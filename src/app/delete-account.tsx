@@ -12,7 +12,7 @@ export function DeleteAccount({ campaignCount }: { campaignCount: number }) {
 
   if (!open) {
     return (
-      <p style={{ marginTop: "2.5rem" }}>
+      <p style={{ marginTop: "1.75rem" }}>
         <button className="linkbtn linkbtn--danger" onClick={() => setOpen(true)}>
           Elimina il mio account
         </button>
@@ -21,7 +21,7 @@ export function DeleteAccount({ campaignCount }: { campaignCount: number }) {
   }
 
   return (
-    <div className="card card--danger" style={{ marginTop: "2.5rem" }}>
+    <div className="card card--danger" style={{ marginTop: "1.75rem" }}>
       <p className="msg msg--error" style={{ marginTop: 0 }}>
         <strong>Questa operazione è definitiva.</strong> Vengono cancellati il tuo account e{" "}
         {campaignCount === 1 ? "la tua campagna" : `le tue ${campaignCount} campagne`}, senza
