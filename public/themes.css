@@ -1,0 +1,213 @@
+/* ============================================================
+   Runebog — TOKEN DEI COLORI, SORGENTE UNICA
+   Letto sia dal sito (Next: <link> in layout.tsx) sia dall'app
+   (public/app.html). L'app conserva i suoi nomi storici (--bog, --ink,
+   --fen…) ma li aliasa a questi: un colore si cambia qui e cambia ovunque.
+
+   I nomi sono per RUOLO, non per tinta: --moss è "l'accento primario",
+   che nel tema Brace è rame e nella Cripta è fuoco fatuo. Così i temi
+   restano scambiabili senza toccare una riga di componente.
+   ============================================================ */
+
+:root {
+  color-scheme: dark;
+
+  /* Fondali: dal più profondo alla superficie rialzata */
+  --peat:        #0c1310;
+  --peat-sunk:   #101914;
+  --surface:     #131c17;
+  --surface-hi:  #1b261f;
+  --surface-hov: #22302a;
+
+  /* Bordi */
+  --edge:        #2a352e;
+  --edge-soft:   #1f2a24;
+  --edge-lit:    #3d4f43;
+
+  /* Testo */
+  --parchment:      #e8e3d8;
+  --parchment-dim:  #9aa69d;
+  --parchment-mute: #6b756e;
+
+  /* Accento primario (+ stato acceso e variante scura per barre e riempimenti) */
+  --moss:        #8fd4a8;
+  --moss-lit:    #a2e0b8;
+  --moss-deep:   #4d7a5f;
+
+  /* Accento secondario: link, collegamenti */
+  --wisp:        #6cc3c9;
+  --wisp-lit:    #8ad6db;
+
+  /* Evidenza: selezione sulla mappa, donazione */
+  --lantern:     #d8b25a;
+
+  /* Distruttivo */
+  --ember:          #e0785f;
+  --ember-deep:     #8a3a2a;
+  --ember-lit:      #9d4531;
+  --ember-edge:     #6b3a2e;
+  --ember-edge-lit: #a8664f;
+  --ember-hov:      #c07a5f;
+
+  /* Arcano: segnalini PNG */
+  --arcane:      #b393c9;
+
+  /* Alone dietro l'intestazione */
+  --glow:        #17241c;
+}
+
+/* ---------- Pergamena: carta invecchiata, inchiostro, ceralacca ----------
+   L'unico tema chiaro. Non è un vezzo: al tavolo con la luce accesa, o
+   proiettando la mappa, il fondo scuro si legge male — e una schermata su
+   fondo nero è inutilizzabile da stampare. */
+[data-theme="pergamena"] {
+  color-scheme: light;
+
+  --peat:        #efe7d5;
+  --peat-sunk:   #e4dac2;
+  --surface:     #f6f1e4;
+  --surface-hi:  #e9e0ca;
+  --surface-hov: #ddd2b7;
+
+  --edge:        #c7ba9c;
+  --edge-soft:   #dccfb2;
+  --edge-lit:    #9c8a68;
+
+  --parchment:      #2b2620;
+  --parchment-dim:  #63543f;
+  --parchment-mute: #7d6c54;
+
+  --moss:        #2f6b47;
+  --moss-lit:    #3a815a;
+  --moss-deep:   #245239;
+
+  --wisp:        #1d6469;
+  --wisp-lit:    #2a8288;
+
+  --lantern:     #86610f;
+
+  --ember:          #9d3b2f;
+  --ember-deep:     #9d3b2f;
+  --ember-lit:      #b04a3c;
+  --ember-edge:     #c09287;
+  --ember-edge-lit: #8e3527;
+  --ember-hov:      #b8604e;
+
+  --arcane:      #674591;
+
+  --glow:        #f9f4e6;
+}
+
+/* ---------- Cripta: pietra fredda, osso, fuoco fatuo ---------- */
+[data-theme="cripta"] {
+  --peat:        #0b0f15;
+  --peat-sunk:   #10151d;
+  --surface:     #141b24;
+  --surface-hi:  #1c2430;
+  --surface-hov: #26303e;
+
+  --edge:        #2b3542;
+  --edge-soft:   #1f2833;
+  --edge-lit:    #43536a;
+
+  --parchment:      #e4e7ec;
+  --parchment-dim:  #9ba5b3;
+  --parchment-mute: #6d7784;
+
+  --moss:        #a6bcf4;
+  --moss-lit:    #c2d1f8;
+  --moss-deep:   #5a6da3;
+
+  --wisp:        #8ccbdb;
+  --wisp-lit:    #abdeea;
+
+  --lantern:     #c9b48a;
+
+  --ember:          #d2685f;
+  --ember-deep:     #7a2f2c;
+  --ember-lit:      #8e3a35;
+  --ember-edge:     #5e2f2c;
+  --ember-edge-lit: #9c5a52;
+  --ember-hov:      #b57268;
+
+  --arcane:      #b393c9;
+
+  --glow:        #16202c;
+}
+
+/* ---------- Brace: notte rossastra, rame, tizzone ---------- */
+[data-theme="brace"] {
+  --peat:        #140d0a;
+  --peat-sunk:   #1a110d;
+  --surface:     #1f1511;
+  --surface-hi:  #2a1c16;
+  --surface-hov: #35241c;
+
+  --edge:        #3d2a20;
+  --edge-soft:   #2c1e17;
+  --edge-lit:    #614433;
+
+  --parchment:      #f0e2d2;
+  --parchment-dim:  #b39d88;
+  --parchment-mute: #85705f;
+
+  --moss:        #d99a4e;
+  --moss-lit:    #edb066;
+  --moss-deep:   #8f6229;
+
+  --wisp:        #7fbfa6;
+  --wisp-lit:    #9ed4bc;
+
+  --lantern:     #f0c05a;
+
+  /* Il distruttivo qui confina con l'accento rame: lo tengo nettamente più
+     rosso, e nell'interfaccia è sempre accompagnato dalla parola "Elimina" —
+     il colore da solo non deve mai portare il significato. */
+  --ember:          #ef7053;
+  --ember-deep:     #8a2b1c;
+  --ember-lit:      #a33524;
+  --ember-edge:     #6e2b1c;
+  --ember-edge-lit: #c04a30;
+  --ember-hov:      #d4664a;
+
+  --arcane:      #b393c9;
+
+  --glow:        #2a1810;
+}
+
+/* ---------- Alto contrasto: non un'atmosfera, un'esigenza ---------- */
+[data-theme="contrasto"] {
+  --peat:        #000000;
+  --peat-sunk:   #000000;
+  --surface:     #0a0a0a;
+  --surface-hi:  #171717;
+  --surface-hov: #262626;
+
+  --edge:        #767676;
+  --edge-soft:   #5a5a5a;
+  --edge-lit:    #ffffff;
+
+  --parchment:      #ffffff;
+  --parchment-dim:  #e2e2e2;
+  --parchment-mute: #bdbdbd;
+
+  --moss:        #5cf59a;
+  --moss-lit:    #9dffc4;
+  --moss-deep:   #1f8a4d;
+
+  --wisp:        #5fe1ff;
+  --wisp-lit:    #a5eeff;
+
+  --lantern:     #ffd54a;
+
+  --ember:          #ff9d86;
+  --ember-deep:     #a81f11;
+  --ember-lit:      #c62a19;
+  --ember-edge:     #ff9d86;
+  --ember-edge-lit: #ff9d86;
+  --ember-hov:      #ffbaa8;
+
+  --arcane:      #dcb0ff;
+
+  --glow:        #121212;
+}

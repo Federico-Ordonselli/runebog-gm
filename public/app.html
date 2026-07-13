@@ -7,28 +7,41 @@
      quindi non serve bloccare quello di sistema per evitare conflitti. -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Runebog GM — Diario del GM</title>
+
+<!-- Sorgente unica dei colori, condivisa col sito. Un tema si scrive una volta
+     sola in themes.css e vale qui e là. -->
+<link rel="stylesheet" href="/themes.css">
+<script>
+  // Prima del disegno, o si vede un lampo del tema sbagliato al caricamento.
+  try{ var t = localStorage.getItem("runebog-theme");
+       if(t && t !== "torbiera") document.documentElement.dataset.theme = t; }catch(e){}
+</script>
+
 <style>
+  /* I nomi storici dell'app restano, ma sono ALIAS dei token condivisi: così le
+     ~400 righe di CSS qui sotto non vanno riscritte e seguono comunque i temi. */
   :root{
-    --bog:#0d1411;
-    --bog-2:#131c17;
-    --panel:#18231d;
-    --panel-2:#1e2b24;
-    --line:#2b3d33;
-    --ink:#e6dfc9;
-    --ink-dim:#9aa895;
-    --fen:#8fd4a8;
-    --fen-dim:#4d7a5f;
-    --gold:#d8b25a;
-    --ember:#d0765a;
-    --teal:#6cc3c9;
-    --viola:#b393c9;
-    --grigio:#8b968e;
+    --bog:      var(--peat);
+    --bog-2:    var(--peat-sunk);
+    --panel:    var(--surface);
+    --panel-2:  var(--surface-hi);
+    --line:     var(--edge);
+    --ink:      var(--parchment);
+    --ink-dim:  var(--parchment-dim);
+    --fen:      var(--moss);
+    --fen-dim:  var(--moss-deep);
+    --gold:     var(--lantern);
+    /* --ember ha già lo stesso nome nei token condivisi: ridichiararlo come
+       var(--ember) sarebbe un riferimento circolare, e si annullerebbe. */
+    --teal:     var(--wisp);
+    --viola:    var(--arcane);
+    --grigio:   var(--parchment-mute);
     --r:10px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
   body{
-    background:radial-gradient(1200px 800px at 30% -10%, #16221b 0%, var(--bog) 60%);
+    background:radial-gradient(1200px 800px at 30% -10%, var(--glow) 0%, var(--bog) 60%);
     color:var(--ink);
     font:15px/1.5 -apple-system, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
     overflow:hidden;
@@ -41,13 +54,13 @@
   }
   input:focus,textarea:focus,select:focus,button:focus-visible{outline:2px solid var(--fen-dim);outline-offset:1px}
   textarea{resize:vertical;min-height:90px}
-  ::placeholder{color:#5c6a5f}
+  ::placeholder{color:var(--grigio)}
 
   /* ---------- top bar ---------- */
   #topbar{
     display:flex;align-items:center;gap:16px;
     padding:10px 18px;border-bottom:1px solid var(--line);
-    background:rgba(13,20,17,.85);backdrop-filter:blur(6px);
+    background:color-mix(in srgb, var(--bog) 85%, transparent);backdrop-filter:blur(6px);
   }
   #topbar h1{font-size:20px;letter-spacing:.06em;color:var(--fen)}
   #topbar h1 small{color:var(--ink-dim);font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin-left:8px}
@@ -65,8 +78,8 @@
     background:var(--panel);color:var(--ink);font-size:13px;
   }
   .btn:hover{border-color:var(--fen-dim);color:var(--fen)}
-  .btn.primary{background:var(--fen-dim);border-color:var(--fen-dim);color:#0d1411;font-weight:600}
-  .btn.primary:hover{background:var(--fen);color:#0d1411}
+  .btn.primary{background:var(--fen-dim);border-color:var(--fen-dim);color:var(--bog);font-weight:600}
+  .btn.primary:hover{background:var(--fen);color:var(--bog)}
   .btn.danger:hover{border-color:var(--ember);color:var(--ember)}
 
   /* ---------- layout ---------- */
@@ -83,13 +96,13 @@
   }
   #crumbs button{color:var(--ink-dim);padding:2px 4px;border-radius:4px}
   #crumbs button:hover{color:var(--fen)}
-  #crumbs .sep{color:#44543f}
+  #crumbs .sep{color:var(--grigio)}
   #crumbs .here{color:var(--fen);font-weight:600}
   #canvas-wrap{flex:1;position:relative;overflow:hidden}
   #canvas{width:100%;height:100%;display:block}
   #canvas-hint{
     position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
-    font-size:12px;color:var(--ink-dim);background:rgba(13,20,17,.7);
+    font-size:12px;color:var(--ink-dim);background:color-mix(in srgb, var(--bog) 78%, transparent);
     padding:4px 12px;border-radius:20px;pointer-events:none;white-space:nowrap;
   }
   #empty-node{
@@ -221,7 +234,7 @@
   #plan-wrap{flex:1;position:relative;overflow:hidden}
   #plan-svg{width:100%;height:100%;display:block;touch-action:none;cursor:default}
   #plan-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--ink-dim);
-    background:rgba(13,20,17,.8);padding:5px 12px;border-radius:8px;border:1px solid var(--line);
+    background:color-mix(in srgb, var(--bog) 85%, transparent);padding:5px 12px;border-radius:8px;border:1px solid var(--line);
     max-width:92%;text-align:center;pointer-events:none}
   #plan-side{width:300px;flex:none;border-left:1px solid var(--line);padding:16px;overflow-y:auto;background:var(--panel)}
   #plan-side h3{font-size:15px;color:var(--fen);margin-bottom:4px}
@@ -234,7 +247,7 @@
      appena accennata dà profondità, e la selezione si accende di lanterna.
      Solo filter/opacity: nessuna proprietà che costringa a ricalcolare il layout. */
   .blk .blk-shape{
-    fill:rgba(23,33,28,.92);stroke-width:2;
+    fill:var(--panel);stroke:var(--c, var(--fen));stroke-width:2;
     filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));
     transition:filter .15s, stroke .15s;
   }
@@ -256,8 +269,8 @@
   .edge{cursor:pointer}
   .edge .edge-hit{stroke:transparent;stroke-width:16;fill:none}
   .edge.sel .edge-line{filter:drop-shadow(0 0 3px var(--gold))}
-  .edge text{font-size:11px;fill:var(--ink-dim);pointer-events:none;paint-order:stroke;stroke:#0d1411;stroke-width:3px}
-  .rs-handle{fill:var(--gold);stroke:#0d1411;stroke-width:2;cursor:nwse-resize}
+  .edge text{font-size:11px;fill:var(--ink-dim);pointer-events:none;paint-order:stroke;stroke:var(--bog);stroke-width:3px}
+  .rs-handle{fill:var(--gold);stroke:var(--bog);stroke-width:2;cursor:nwse-resize}
 
   /* ---------- schede mostro ---------- */
   .btn.tiny{padding:2px 8px;font-size:12px;min-width:0;line-height:1.4}
@@ -312,7 +325,7 @@
   /* ---------- swatch token ---------- */
   .swatches{display:flex;gap:7px}
   .swatch{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer}
-  .swatch.on{border-color:var(--gold);box-shadow:0 0 0 2px #0d1411 inset}
+  .swatch.on{border-color:var(--gold);box-shadow:0 0 0 2px var(--bog) inset}
   .blk.token .blk-shape{stroke-width:2.5}
 
   /* ---------- diario quest ---------- */
@@ -368,6 +381,11 @@
   #ctx-menu hr{border:none;border-top:1px solid var(--line);margin:5px 4px}
   #ctx-menu .dot{width:9px;height:9px;border-radius:50%;flex:none}
   #ctx-menu .bar{width:16px;height:0;border-top:3px solid;border-radius:2px;flex:none}
+
+  /* ---------- tema ---------- */
+  #theme-wrap select{width:auto;padding:6px 8px;font-size:13px;background:var(--panel);cursor:pointer}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+    clip:rect(0 0 0 0);white-space:nowrap;border:0}
 
   /* ---------- puntatore grosso (dito): bersagli da 44px ----------
      Su POINTER, non su larghezza: un iPad in orizzontale è 1024px — largo come un
@@ -428,7 +446,7 @@
       display:flex;align-items:center;justify-content:center;
       position:absolute;right:14px;bottom:14px;z-index:20;
       width:48px;height:48px;border-radius:50%;
-      background:var(--fen-dim);color:#0d1411;font-size:20px;
+      background:var(--fen-dim);color:var(--bog);font-size:20px;
       box-shadow:0 6px 18px rgba(0,0,0,.5);
     }
 
@@ -461,6 +479,16 @@
     <div id="qs-results"></div>
   </div>
   <span id="savestate"></span>
+  <label id="theme-wrap" title="Tema">
+    <span class="sr-only">Tema</span>
+    <select id="theme-select" onchange="setTheme(this.value)">
+      <option value="torbiera">Torbiera</option>
+      <option value="pergamena">Pergamena</option>
+      <option value="cripta">Cripta</option>
+      <option value="brace">Brace</option>
+      <option value="contrasto">Alto contrasto</option>
+    </select>
+  </label>
   <button class="btn" onclick="exportJSON()">Esporta</button>
   <button class="btn" onclick="window.desktop ? importJSONDesktop() : document.getElementById('import-file').click()">Importa</button>
   <input type="file" id="import-file" accept=".json,application/json" hidden>
@@ -473,17 +501,17 @@
       <div id="crumbs"></div>
       <div id="plan-toolbar">
         <span class="pal-title">Blocchi:</span>
-        <div class="pal-item" draggable="true" data-pal='{"shape":"quartiere"}'><svg width="26" height="18"><rect x="1" y="1" width="24" height="16" rx="3" fill="none" stroke="#8fd4a8" stroke-width="2"/></svg>Quartiere</div>
-        <div class="pal-item" draggable="true" data-pal='{"shape":"edificio"}'><svg width="24" height="18"><rect x="2" y="3" width="20" height="12" rx="2" fill="none" stroke="#6cc3c9" stroke-width="2"/></svg>Edificio</div>
-        <div class="pal-item" draggable="true" data-pal='{"shape":"stanza"}'><svg width="18" height="18"><rect x="2" y="2" width="14" height="14" rx="2" fill="none" stroke="#6cc3c9" stroke-width="2"/></svg>Stanza</div>
-        <div class="pal-item" draggable="true" data-pal='{"shape":"piazza"}'><svg width="18" height="18"><circle cx="9" cy="9" r="7" fill="none" stroke="#6cc3c9" stroke-width="2"/></svg>Piazza</div>
-        <div class="pal-item" draggable="true" data-pal='{"shape":"torre"}'><svg width="18" height="18"><polygon points="9,1 17,9 9,17 1,9" fill="none" stroke="#6cc3c9" stroke-width="2"/></svg>Torre</div>
+        <div class="pal-item" draggable="true" data-pal='{"shape":"quartiere"}'><svg width="26" height="18"><rect x="1" y="1" width="24" height="16" rx="3" fill="none" style="stroke:var(--fen)" stroke-width="2"/></svg>Quartiere</div>
+        <div class="pal-item" draggable="true" data-pal='{"shape":"edificio"}'><svg width="24" height="18"><rect x="2" y="3" width="20" height="12" rx="2" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Edificio</div>
+        <div class="pal-item" draggable="true" data-pal='{"shape":"stanza"}'><svg width="18" height="18"><rect x="2" y="2" width="14" height="14" rx="2" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Stanza</div>
+        <div class="pal-item" draggable="true" data-pal='{"shape":"piazza"}'><svg width="18" height="18"><circle cx="9" cy="9" r="7" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Piazza</div>
+        <div class="pal-item" draggable="true" data-pal='{"shape":"torre"}'><svg width="18" height="18"><polygon points="9,1 17,9 9,17 1,9" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Torre</div>
         <span class="pal-title" style="margin-left:6px">Segnalini:</span>
-        <div class="pal-item" draggable="true" data-pal='{"marker":"quest"}'><span class="type-badge" style="background:#d8b25a"></span>Quest</div>
-        <div class="pal-item" draggable="true" data-pal='{"marker":"encounter"}'><span class="type-badge" style="background:#d0765a"></span>Encounter</div>
-        <div class="pal-item" draggable="true" data-pal='{"marker":"png"}'><span class="type-badge" style="background:#b393c9"></span>PNG</div>
-        <div class="pal-item" draggable="true" data-pal='{"marker":"nota"}'><span class="type-badge" style="background:#8b968e"></span>Nota</div>
-        <div class="pal-item" draggable="true" data-pal='{"marker":"token"}'><span class="type-badge" style="background:#e8e3d8"></span>Token</div>
+        <div class="pal-item" draggable="true" data-pal='{"marker":"quest"}'><span class="type-badge" style="background:var(--gold)"></span>Quest</div>
+        <div class="pal-item" draggable="true" data-pal='{"marker":"encounter"}'><span class="type-badge" style="background:var(--ember)"></span>Encounter</div>
+        <div class="pal-item" draggable="true" data-pal='{"marker":"png"}'><span class="type-badge" style="background:var(--viola)"></span>PNG</div>
+        <div class="pal-item" draggable="true" data-pal='{"marker":"nota"}'><span class="type-badge" style="background:var(--grigio)"></span>Nota</div>
+        <div class="pal-item" draggable="true" data-pal='{"marker":"token"}'><span class="type-badge" style="background:var(--ink)"></span>Token</div>
         <span class="pal-sep"></span>
         <button class="btn" onclick="planZoom(1.25)">＋</button>
         <button class="btn" onclick="planZoom(0.8)">－</button>
@@ -557,14 +585,34 @@ const SAVE_KEY = "runebog-gm-v1";
 let persistent = true;
 
 /* ==================== modello dati ==================== */
+/* --- temi: scelti qui, ricordati, e validi anche sul sito (stessa chiave) --- */
+const TEMI = ["torbiera","pergamena","cripta","brace","contrasto"];
+
+function setTheme(nome){
+  if(!TEMI.includes(nome)) nome = "torbiera";
+  // "torbiera" è il default in themes.css: nessun attributo = tema di base.
+  if(nome === "torbiera") delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = nome;
+  try{ localStorage.setItem("runebog-theme", nome); }catch(e){}
+  const sel = document.getElementById("theme-select");
+  if(sel) sel.value = nome;
+}
+
+// Allinea il menu a ciò che lo script in <head> ha già applicato prima del disegno.
+addEventListener("DOMContentLoaded", ()=>{
+  let salvato = "torbiera";
+  try{ salvato = localStorage.getItem("runebog-theme") || "torbiera"; }catch(e){}
+  setTheme(salvato);
+});
+
 const TYPES = {
-  zona:      {label:"Zona",      color:"#8fd4a8"},
-  luogo:     {label:"Luogo",     color:"#6cc3c9"},
-  quest:     {label:"Quest",     color:"#d8b25a"},
-  encounter: {label:"Encounter", color:"#d0765a"},
-  png:       {label:"PNG",       color:"#b393c9"},
-  token:     {label:"Token",     color:"#e8e3d8"},
-  nota:      {label:"Nota",      color:"#8b968e"}
+  zona:      {label:"Zona",      color:"var(--fen)"},
+  luogo:     {label:"Luogo",     color:"var(--teal)"},
+  quest:     {label:"Quest",     color:"var(--gold)"},
+  encounter: {label:"Encounter", color:"var(--ember)"},
+  png:       {label:"PNG",       color:"var(--viola)"},
+  token:     {label:"Token",     color:"var(--ink)"},
+  nota:      {label:"Nota",      color:"var(--grigio)"}
 };
 const TOKEN_COLORS = ["#8fd4a8","#6cc3c9","#d8b25a","#d0765a","#b393c9","#e8e3d8"];
 const STATUSES = ["", "da fare", "in corso", "fatto"];
@@ -1389,7 +1437,7 @@ const EDGE_TYPES = {
   tunnel:   {label:"Tunnel / fogna",    stroke:"#9a7d54", dash:"14 6", w:4}
 };
 const MARKER_R = 15;
-const STATUS_COLORS = {"da fare":"#8b968e","in corso":"#d8b25a","fatto":"#8fd4a8"};
+const STATUS_COLORS = {"da fare":"var(--grigio)","in corso":"var(--gold)","fatto":"var(--fen)"};
 
 const isMarker = n => !(n.type==="zona" || n.type==="luogo");
 const defShape = n => n.type==="zona" ? "quartiere" : "edificio";
@@ -1455,12 +1503,12 @@ const childOf = id => currentNode().children.find(c=>c.id===id);
 
 function shapeMarkup(n, box, col){
   const s = SHAPES[n.shape||defShape(n)] || {};
-  if(s.circle)  return `<ellipse class="blk-shape" cx="${box.w/2}" cy="${box.h/2}" rx="${box.w/2}" ry="${box.h/2}" stroke="${col}"/>`;
-  if(s.diamond) return `<polygon class="blk-shape" points="${box.w/2},0 ${box.w},${box.h/2} ${box.w/2},${box.h} 0,${box.h/2}" stroke="${col}"/>`;
-  return `<rect class="blk-shape" width="${box.w}" height="${box.h}" rx="10" stroke="${col}"/>`;
+  if(s.circle)  return `<ellipse class="blk-shape" cx="${box.w/2}" cy="${box.h/2}" rx="${box.w/2}" ry="${box.h/2}" style="--c:${col}"/>`;
+  if(s.diamond) return `<polygon class="blk-shape" points="${box.w/2},0 ${box.w},${box.h/2} ${box.w/2},${box.h} 0,${box.h/2}" style="--c:${col}"/>`;
+  return `<rect class="blk-shape" width="${box.w}" height="${box.h}" rx="10" style="--c:${col}"/>`;
 }
 const statusDot = (x,y,st) =>
-  `<circle cx="${x}" cy="${y}" r="5.5" fill="${STATUS_COLORS[st]||"#8b968e"}" stroke="#0d1411" stroke-width="2" pointer-events="none"/>`;
+  `<circle cx="${x}" cy="${y}" r="5.5" style="fill:${STATUS_COLORS[st]||"var(--grigio)"};stroke:var(--bog)" stroke-width="2" pointer-events="none"/>`;
 
 /* anteprima in miniatura del contenuto di un blocco (i "collegamenti fatti" visti da fuori) */
 function miniPreview(n, box){
@@ -1486,10 +1534,10 @@ function miniPreview(n, box){
     const col = (TYPES[c.type]||TYPES.nota).color;
     if(isMarker(c)){
       const C = nodeCenter(c);
-      out += `<circle cx="${C.x*k+ox}" cy="${C.y*k+oy}" r="2.6" fill="${c.type==="token" ? (c.tokenColor||col) : col}"/>`;
+      out += `<circle cx="${C.x*k+ox}" cy="${C.y*k+oy}" r="2.6" style="fill:${c.type==="token" ? (c.tokenColor||col) : col}"/>`;
     }else{
       const b = nodeBox(c);
-      out += `<rect x="${c.x*k+ox}" y="${c.y*k+oy}" width="${Math.max(5,b.w*k)}" height="${Math.max(5,b.h*k)}" rx="1.5" fill="none" stroke="${col}" stroke-width="1.2"/>`;
+      out += `<rect x="${c.x*k+ox}" y="${c.y*k+oy}" width="${Math.max(5,b.w*k)}" height="${Math.max(5,b.h*k)}" rx="1.5" fill="none" style="stroke:${col}" stroke-width="1.2"/>`;
     }
   }
   return out + `</g>`;
@@ -1523,7 +1571,7 @@ function renderCanvas(){
       <rect id="bg-frame" x="${cur.bg.x}" y="${cur.bg.y}" width="${cur.bg.w}" height="${cur.bg.h}"
         fill="none" stroke="var(--gold)" stroke-width="2" stroke-dasharray="8 6" pointer-events="none"/>
       <rect id="bg-handle" x="${cur.bg.x+cur.bg.w-14}" y="${cur.bg.y+cur.bg.h-14}" width="28" height="28" rx="5"
-        fill="var(--gold)" stroke="#0d1411" stroke-width="2" style="cursor:nwse-resize"/>`;
+        fill="var(--gold)" stroke-width="2" style="stroke:var(--bog);cursor:nwse-resize"/>`;
   }
 
   // collegamenti del livello corrente
@@ -1536,7 +1584,7 @@ function renderCanvas(){
       <line class="edge-line" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"
         stroke="${t.stroke}" stroke-width="${t.w}"${t.dash?` stroke-dasharray="${t.dash}"`:""} stroke-linecap="round"/>`;
     if(t.double)
-      out += `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#0d1411" stroke-width="2" pointer-events="none"/>`;
+      out += `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" style="stroke:var(--bog)" stroke-width="2" pointer-events="none"/>`;
     if(t.blocked)
       out += `<g stroke="${t.stroke}" stroke-width="4" stroke-linecap="round" pointer-events="none">
         <line x1="${mx-9}" y1="${my-9}" x2="${mx+9}" y2="${my+9}"/>
@@ -1554,14 +1602,14 @@ function renderCanvas(){
       const R = MARKER_R+1, tcol = c.tokenColor || "#e8e3d8";
       const ini = (c.title||"?").trim().split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase() || "?";
       out += `<g class="blk marker token${selCls}" data-block="${c.id}" transform="translate(${c.x},${c.y})">
-        <circle class="blk-shape" cx="${R}" cy="${R}" r="${R}" style="fill:${tcol}" stroke="#0d1411"/>
-        <text x="${R}" y="${R+4}" text-anchor="middle" style="font-size:12px;font-weight:700;fill:#0d1411">${escapeHtml(ini)}</text>
+        <circle class="blk-shape" cx="${R}" cy="${R}" r="${R}" style="fill:${tcol};--c:var(--bog)"/>
+        <text x="${R}" y="${R+4}" text-anchor="middle" style="font-size:12px;font-weight:700;fill:var(--bog)">${escapeHtml(ini)}</text>
         <text x="${R}" y="${R*2+15}" text-anchor="middle" style="font-size:11px;fill:var(--ink-dim)">${escapeHtml(c.title||"")}</text>
       </g>`;
     }else if(isMarker(c)){
       const R = MARKER_R;
       out += `<g class="blk marker${selCls}" data-block="${c.id}" transform="translate(${c.x},${c.y})">
-        <circle class="blk-shape" cx="${R}" cy="${R}" r="${R}" stroke="${col}"/>
+        <circle class="blk-shape" cx="${R}" cy="${R}" r="${R}" style="--c:${col}"/>
         <text x="${R}" y="${R+4}" text-anchor="middle" style="font-size:12px;fill:${col};font-weight:700">${(TYPES[c.type]||TYPES.nota).label[0]}</text>
         <text x="${R}" y="${R*2+15}" text-anchor="middle" style="font-size:11px;fill:var(--ink-dim)">${escapeHtml(c.title||"")}</text>
         ${c.status?statusDot(R*2-2,3,c.status):""}

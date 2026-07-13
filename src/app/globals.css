@@ -1,39 +1,9 @@
 /* Runebog GM — torba, muschio, lanterna.
-   I colori vivono solo qui: nei componenti si usano le variabili. */
+   I COLORI NON STANNO QUI: vivono in public/themes.css, caricato sia da
+   layout.tsx sia dall'app (public/app.html). Un tema si scrive una volta sola
+   e vale in entrambi. Qui restano solo le misure, che i temi non cambiano. */
 
 :root {
-  /* Fondali: dalla torba profonda alla superficie rialzata */
-  --peat:        #0c1310;
-  --peat-sunk:   #101914;
-  --surface:     #131c17;
-  --surface-hi:  #1b261f;
-  --surface-hov: #22302a;
-
-  /* Bordi */
-  --edge:        #2a352e;
-  --edge-soft:   #1f2a24;
-  --edge-lit:    #3d4f43;
-
-  /* Testo */
-  --parchment:     #e8e3d8;
-  --parchment-dim: #9aa69d;
-  --parchment-mute:#6b756e;
-
-  /* Accenti, con i rispettivi stati "acceso" (hover). Stavano sparsi come hex
-     nudi in fondo al file: cambiare --moss non cambiava il suo hover. */
-  --moss:        #8fd4a8;
-  --moss-lit:    #a2e0b8;
-  --wisp:        #6cc3c9;
-  --wisp-lit:    #8ad6db;
-  --lantern:     #d8b25a;
-  --ember:       #e0785f;
-  --ember-deep:  #8a3a2a;
-  --ember-lit:   #9d4531;
-  --ember-edge:  #6b3a2e;
-  --ember-edge-lit: #a8664f;
-  --ember-hov:   #c07a5f;
-  --glow:        #17241c;   /* l'alone di lanterna dietro l'intestazione */
-
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua",
            Georgia, "Times New Roman", serif;
 
