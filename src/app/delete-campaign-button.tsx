@@ -21,11 +21,9 @@ export function DeleteCampaignButton({ id, name }: { id: string; name: string })
   }
 
   return (
-    <button onClick={onDelete} disabled={busy} title={`Elimina "${name}"`}
-            style={{ marginLeft: 8, background: "none", border: "none", cursor: "pointer",
-                     color: "#a8664f", font: "inherit", fontSize: 13, padding: "0 4px",
-                     opacity: busy ? 0.5 : 1 }}>
-      {busy ? "elimino…" : "Elimina"}
+    <button onClick={onDelete} disabled={busy} className="campaign__delete"
+            aria-label={`Elimina la campagna ${name}`}>
+      {busy ? "Elimino…" : "Elimina"}
     </button>
   );
 }

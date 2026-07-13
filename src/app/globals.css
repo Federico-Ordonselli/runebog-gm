@@ -1,0 +1,390 @@
+/* Runebog GM — torba, muschio, lanterna.
+   I colori vivono solo qui: nei componenti si usano le variabili. */
+
+:root {
+  /* Fondali: dalla torba profonda alla superficie rialzata */
+  --peat:        #0c1310;
+  --peat-sunk:   #101914;
+  --surface:     #131c17;
+  --surface-hi:  #1b261f;
+
+  /* Bordi */
+  --edge:        #2a352e;
+  --edge-soft:   #1f2a24;
+  --edge-lit:    #3d4f43;
+
+  /* Testo */
+  --parchment:     #e8e3d8;
+  --parchment-dim: #9aa69d;
+  --parchment-mute:#6b756e;
+
+  /* Accenti */
+  --moss:        #8fd4a8;
+  --moss-deep:   #6bb98a;
+  --wisp:        #6cc3c9;
+  --lantern:     #d8b25a;
+  --ember:       #e0785f;
+  --ember-deep:  #8a3a2a;
+  --ember-edge:  #6b3a2e;
+
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua",
+           Georgia, "Times New Roman", serif;
+
+  --r-sm: 8px;
+  --r-md: 12px;
+
+  --ease: cubic-bezier(0.2, 0.6, 0.3, 1);
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--peat);
+  /* Alone di lanterna in alto: l'unica atmosfera della pagina. */
+  background-image:
+    radial-gradient(80ch 40rem at 50% -12rem, #17241c 0%, rgba(23, 36, 28, 0) 70%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: var(--parchment);
+  font-family: var(--serif);
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Impianto pagina ---------- */
+
+.page {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: clamp(2.5rem, 8vw, 4.5rem) 1.25rem 4rem;
+}
+.page--wide { max-width: 44rem; }
+
+.title {
+  margin: 0;
+  font-size: clamp(2rem, 7vw, 2.6rem);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--moss);
+}
+.title__kicker {
+  display: block;
+  margin-top: 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--parchment-dim);
+}
+
+.lede { margin: 1.25rem 0 0; }
+.muted { color: var(--parchment-dim); }
+.small { font-size: 0.82rem; }
+
+.rule {
+  height: 1px;
+  margin: 3rem 0 1.5rem;
+  border: 0;
+  background: linear-gradient(to right, var(--edge), transparent);
+}
+
+.link { color: var(--wisp); text-decoration-color: color-mix(in srgb, var(--wisp) 40%, transparent); }
+.link:hover { color: #8ad6db; }
+.link--lantern { color: var(--lantern); text-decoration-color: color-mix(in srgb, var(--lantern) 40%, transparent); }
+.link--quiet { color: var(--parchment-dim); }
+.link--quiet:hover { color: var(--parchment); }
+
+/* ---------- Controlli ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--edge);
+  background: var(--surface-hi);
+  color: var(--parchment);
+  font: inherit;
+  font-size: 0.88rem;
+  line-height: 1.3;
+  cursor: pointer;
+  transition: background 140ms var(--ease), border-color 140ms var(--ease),
+              transform 140ms var(--ease), color 140ms var(--ease);
+}
+.btn:hover { border-color: var(--edge-lit); background: #22302a; }
+.btn:active { transform: translateY(1px); }
+.btn--block { width: 100%; }
+
+.btn--primary {
+  background: var(--moss);
+  border-color: var(--moss);
+  color: var(--peat);
+  font-weight: 600;
+}
+.btn--primary:hover { background: #a2e0b8; border-color: #a2e0b8; }
+
+.btn--ghost {
+  background: none;
+  border-color: transparent;
+  color: var(--parchment-dim);
+}
+.btn--ghost:hover { background: var(--surface); border-color: var(--edge); color: var(--parchment); }
+
+.btn--danger {
+  background: var(--ember-deep);
+  border-color: #a8664f;
+  color: #fff;
+}
+.btn--danger:hover { background: #9d4531; border-color: #c07a5f; }
+
+.btn[disabled] {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+.btn--danger[disabled] {
+  background: var(--surface-hi);
+  border-color: var(--edge);
+  color: var(--parchment-mute);
+  opacity: 1;
+}
+
+/* Link travestito da testo: "Password dimenticata?", "Elimina il mio account" */
+.linkbtn {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--parchment-dim);
+  font: inherit;
+  font-size: 0.82rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color 140ms var(--ease);
+}
+.linkbtn:hover { color: var(--parchment); }
+.linkbtn--danger:hover { color: var(--ember); }
+
+/* ---------- Form ---------- */
+
+.field { display: block; margin-top: 0.9rem; }
+.field__label {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--parchment-dim);
+}
+.field__label-note { text-transform: none; letter-spacing: 0; }
+
+.input {
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.6rem 0.7rem;
+  background: var(--peat-sunk);
+  border: 1px solid var(--edge);
+  border-radius: var(--r-sm);
+  color: var(--parchment);
+  font: inherit;
+  font-size: 0.92rem;
+  transition: border-color 140ms var(--ease), background 140ms var(--ease);
+}
+.input::placeholder { color: var(--parchment-mute); }
+.input:hover { border-color: var(--edge-lit); }
+.input:focus { background: var(--peat); }
+
+.card {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+}
+.card--danger { border-color: var(--ember-edge); }
+
+.tabs { display: flex; gap: 0.35rem; }
+.tab {
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--r-sm);
+  border: 1px solid transparent;
+  background: none;
+  color: var(--parchment-dim);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: color 140ms var(--ease), background 140ms var(--ease), border-color 140ms var(--ease);
+}
+.tab:hover { color: var(--parchment); }
+.tab[aria-selected="true"] {
+  background: var(--surface-hi);
+  border-color: var(--edge);
+  color: var(--moss);
+}
+
+.msg { margin: 0.9rem 0 0; font-size: 0.88rem; line-height: 1.55; }
+.msg--error  { color: var(--ember); }
+.msg--ok     { color: var(--moss); }
+.msg--warn   { color: var(--lantern); }
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.4rem 0 0;
+  color: var(--parchment-dim);
+  font-size: 0.8rem;
+}
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--edge-soft);
+}
+
+/* ---------- Campagne ---------- */
+
+.bar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--edge-soft);
+}
+
+.campaigns { margin: 1.5rem 0 0; padding: 0; list-style: none; }
+
+.campaign {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--edge-soft);
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--surface) 45%, transparent);
+  transition: border-color 160ms var(--ease), background 160ms var(--ease);
+}
+.campaign + .campaign { margin-top: 0.5rem; }
+.campaign:hover,
+.campaign:focus-within {
+  border-color: var(--edge-lit);
+  background: var(--surface);
+}
+/* Il muschio che si accende sul bordo: la firma della lista. */
+.campaign::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: 0.7rem;
+  bottom: 0.7rem;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--moss);
+  opacity: 0;
+  transition: opacity 160ms var(--ease);
+}
+.campaign:hover::before,
+.campaign:focus-within::before { opacity: 1; }
+
+.campaign__body { min-width: 0; flex: 1; }
+.campaign__name {
+  display: block;
+  color: var(--parchment);
+  font-size: 1.05rem;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.campaign:hover .campaign__name { color: var(--moss); }
+/* Tutta la riga è cliccabile, ma il link resta il bersaglio semantico. */
+.campaign__name::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-md);
+}
+.campaign__meta {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--parchment-dim);
+  font-size: 0.78rem;
+}
+
+/* Elimina: sopra l'overlay del link, e visibile appena serve. */
+.campaign__delete {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--parchment-mute);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 160ms var(--ease), color 140ms var(--ease),
+              background 140ms var(--ease), border-color 140ms var(--ease);
+}
+.campaign:hover .campaign__delete,
+.campaign:focus-within .campaign__delete { opacity: 1; }
+.campaign__delete:hover {
+  background: color-mix(in srgb, var(--ember-deep) 35%, transparent);
+  border-color: var(--ember-edge);
+  color: var(--ember);
+}
+.campaign__delete[disabled] { cursor: not-allowed; opacity: 1; color: var(--parchment-mute); }
+
+/* Su touch non esiste hover: mostra sempre l'azione. */
+@media (hover: none) {
+  .campaign__delete { opacity: 1; }
+  .campaign::before { opacity: 1; }
+}
+
+.empty {
+  margin-top: 1.5rem;
+  padding: 2rem 1.25rem;
+  border: 1px dashed var(--edge);
+  border-radius: var(--r-md);
+  text-align: center;
+  color: var(--parchment-dim);
+}
+.empty p { margin: 0; }
+
+/* ---------- Prosa (privacy) ---------- */
+
+.prose h2 {
+  margin: 2.4rem 0 0.6rem;
+  font-size: 1.15rem;
+  font-weight: 400;
+  color: var(--moss);
+}
+.prose ul { margin: 0; padding-left: 1.15rem; }
+.prose li { margin-bottom: 0.5rem; }
+.prose li::marker { color: var(--edge-lit); }
+
+/* ---------- Accessibilità ---------- */
+
+:focus-visible {
+  outline: 2px solid var(--moss);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.campaign:focus-within { outline: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

@@ -35,56 +35,84 @@ export default async function Home() {
     : [];
 
   return (
-    <main style={{ maxWidth: 640, margin: "60px auto", fontFamily: "Georgia, serif",
-                   color: "#e8e3d8", padding: "0 20px" }}>
-      <h1 style={{ color: "#8fd4a8" }}>Runebog{" "}
-        <small style={{ color: "#8b968e", fontSize: 14, letterSpacing: ".14em",
-                        textTransform: "uppercase" }}>GM · Diario del GM</small></h1>
-      <p>Mappe gerarchiche, quest, encounter e schede mostro per le tue campagne. Gratis, per sempre.</p>
-      <p style={{ color: "#8b968e", fontSize: 14 }}>
-        Le campagne sono salvate sul tuo account: le riprendi da qualsiasi dispositivo.
-        Puoi sempre esportarle in JSON — sono tue.</p>
+    <main className="page">
+      <h1 className="title">
+        Runebog
+        <span className="title__kicker">GM · Diario del GM</span>
+      </h1>
 
       {!session?.user ? (
         <>
-          <form action={doSignIn}>
-            <button style={{ width: "100%", padding: "10px 14px", borderRadius: 8, cursor: "pointer",
-                             background: "#1b261f", border: "1px solid #2a352e", color: "#e8e3d8",
-                             font: "inherit", fontSize: 14, marginTop: 24 }}>
-              Accedi con Google
-            </button>
-          </form>
-          <p style={{ textAlign: "center", color: "#8b968e", fontSize: 13, margin: "16px 0 0" }}>
-            oppure, senza Google:
+          <p className="lede">
+            Mappe gerarchiche, quest, encounter e schede mostro per le tue campagne.
+            Gratis, per sempre.
           </p>
+          <p className="muted small">
+            Le campagne sono salvate sul tuo account: le riprendi da qualsiasi dispositivo.
+            Puoi sempre esportarle in JSON — sono tue.
+          </p>
+
+          <form action={doSignIn} style={{ marginTop: "1.75rem" }}>
+            <button className="btn btn--block">Accedi con Google</button>
+          </form>
+
+          <p className="divider">oppure, senza Google</p>
+
           <AuthForms />
         </>
       ) : (
         <>
-          <p>Ciao, {session.user.name} · <form action={doSignOut} style={{ display: "inline" }}>
-            <button>Esci</button></form></p>
-          <form action={createCampaign}><button>+ Nuova campagna</button></form>
-          <ul>
-            {rows.map(c => (
-              <li key={c.id}>
-                <a href={`/play/${c.id}`} style={{ color: "#6cc3c9" }}>{c.name}</a>
-                {" "}<small style={{ color: "#8b968e" }}>
-                  aggiornata {c.updatedAt.toLocaleDateString("it-IT")}</small>
-                <DeleteCampaignButton id={c.id} name={c.name} />
-              </li>
-            ))}
-          </ul>
+          <div className="bar">
+            <p className="muted" style={{ margin: 0 }}>
+              Ciao, <strong style={{ color: "var(--parchment)", fontWeight: 400 }}>
+                {session.user.name}
+              </strong>
+            </p>
+            <form action={doSignOut}>
+              <button className="btn btn--ghost">Esci</button>
+            </form>
+          </div>
+
+          <div style={{ marginTop: "1.5rem" }}>
+            <form action={createCampaign}>
+              <button className="btn btn--primary">+ Nuova campagna</button>
+            </form>
+          </div>
+
+          {rows.length === 0 ? (
+            <div className="empty">
+              <p>Non hai ancora campagne. Creane una: parte da una mappa vuota.</p>
+            </div>
+          ) : (
+            <ul className="campaigns">
+              {rows.map(c => (
+                <li key={c.id} className="campaign">
+                  <span className="campaign__body">
+                    <a href={`/play/${c.id}`} className="campaign__name">{c.name}</a>
+                    <span className="campaign__meta">
+                      aggiornata {c.updatedAt.toLocaleDateString("it-IT")}
+                    </span>
+                  </span>
+                  <DeleteCampaignButton id={c.id} name={c.name} />
+                </li>
+              ))}
+            </ul>
+          )}
+
           <DeleteAccount campaignCount={rows.length} />
         </>
       )}
 
-      <hr style={{ margin: "40px 0", borderColor: "#2a352e" }} />
-      <p><a href={DONATE_URL} style={{ color: "#d8b25a" }}>☕ Offrimi un caffè</a> —
-        il sito resta gratuito per tutti.</p>
+      <hr className="rule" />
+      <p className="small">
+        <a href={DONATE_URL} className="link link--lantern"
+           target="_blank" rel="noopener noreferrer">☕ Offrimi un caffè</a>{" "}
+        — il sito resta gratuito per tutti.
+      </p>
       {/* TODO: quando il repo GitHub sarà pubblico, aggiungi qui il link "Codice sorgente"
           (e rimetti la frase sul codice verificabile in fondo a /privacy). */}
-      <p style={{ fontSize: 13 }}>
-        <a href="/privacy" style={{ color: "#8b968e" }}>Privacy</a>
+      <p className="small">
+        <a href="/privacy" className="link link--quiet">Privacy</a>
       </p>
     </main>
   );
