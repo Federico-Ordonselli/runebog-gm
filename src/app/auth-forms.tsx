@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { signInAction, signUpAction, type AuthState } from "./auth-actions";
+import { requestResetAction, signInAction, signUpAction, type AuthState } from "./auth-actions";
 
 const input: React.CSSProperties = {
   width: "100%", padding: "9px 10px", marginTop: 4, boxSizing: "border-box",
@@ -24,32 +24,48 @@ const tab = (active: boolean): React.CSSProperties => ({
   color: active ? "#8fd4a8" : "#8b968e",
 });
 
+type Mode = "in" | "up" | "forgot";
+
 export function AuthForms() {
-  const [mode, setMode] = useState<"in" | "up">("in");
+  const [mode, setMode] = useState<Mode>("in");
   const empty: AuthState = {};
   const [inState, doSignIn, inPending] = useActionState(signInAction, empty);
   const [upState, doSignUp, upPending] = useActionState(signUpAction, empty);
+  const [fgState, doForgot, fgPending] = useActionState(requestResetAction, empty);
 
   const isUp = mode === "up";
-  const state = isUp ? upState : inState;
-  const pending = isUp ? upPending : inPending;
+  const isForgot = mode === "forgot";
+  const state = isForgot ? fgState : isUp ? upState : inState;
+  const pending = isForgot ? fgPending : isUp ? upPending : inPending;
+  const action = isForgot ? doForgot : isUp ? doSignUp : doSignIn;
 
   return (
     <div style={{ border: "1px solid #2a352e", borderRadius: 12, padding: 20, marginTop: 24 }}>
       <div style={{ display: "flex", gap: 6 }}>
-        <button type="button" style={tab(!isUp)} onClick={() => setMode("in")}>Accedi</button>
+        <button type="button" style={tab(mode === "in")} onClick={() => setMode("in")}>Accedi</button>
         <button type="button" style={tab(isUp)} onClick={() => setMode("up")}>Registrati</button>
       </div>
 
-      <form action={isUp ? doSignUp : doSignIn} key={mode}>
+      <form action={action} key={mode}>
+        {isForgot && (
+          <p style={{ color: "#8b968e", fontSize: 13, marginTop: 14, marginBottom: 0, lineHeight: 1.5 }}>
+            Inserisci il tuo nome utente: se all&apos;account è associata un&apos;email,
+            ti mandiamo un link per reimpostare la password.
+          </p>
+        )}
+
         <label style={label}>Nome utente</label>
         <input name="username" autoComplete="username" required style={input}
                placeholder={isUp ? "3-32 caratteri: lettere, numeri, _ e -" : ""} />
 
-        <label style={label}>Password</label>
-        <input name="password" type="password" required style={input}
-               autoComplete={isUp ? "new-password" : "current-password"}
-               placeholder={isUp ? "almeno 8 caratteri" : ""} />
+        {!isForgot && (
+          <>
+            <label style={label}>Password</label>
+            <input name="password" type="password" required style={input}
+                   autoComplete={isUp ? "new-password" : "current-password"}
+                   placeholder={isUp ? "almeno 8 caratteri" : ""} />
+          </>
+        )}
 
         {isUp && (
           <>
@@ -68,11 +84,24 @@ export function AuthForms() {
             {state.error}
           </p>
         )}
+        {state.notice && (
+          <p role="status" style={{ color: "#8fd4a8", fontSize: 14, marginTop: 14, marginBottom: 0, lineHeight: 1.5 }}>
+            {state.notice}
+          </p>
+        )}
 
         <button type="submit" disabled={pending} style={{ ...submit, opacity: pending ? 0.6 : 1 }}>
-          {pending ? "Attendi…" : isUp ? "Crea account" : "Accedi"}
+          {pending ? "Attendi…" : isForgot ? "Mandami il link" : isUp ? "Crea account" : "Accedi"}
         </button>
       </form>
+
+      <p style={{ marginTop: 14, marginBottom: 0, textAlign: "center" }}>
+        <button type="button" onClick={() => setMode(isForgot ? "in" : "forgot")}
+                style={{ background: "none", border: "none", cursor: "pointer", font: "inherit",
+                         fontSize: 13, color: "#8b968e", textDecoration: "underline" }}>
+          {isForgot ? "← Torna al login" : "Password dimenticata?"}
+        </button>
+      </p>
     </div>
   );
 }

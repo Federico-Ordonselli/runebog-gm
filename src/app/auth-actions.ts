@@ -6,8 +6,11 @@ import { signIn } from "@/auth";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { hashPassword } from "@/lib/password";
+import { allowAttempt } from "@/lib/rate-limit";
+import { sendEmail } from "@/lib/email";
+import { consumeResetToken, createResetToken } from "@/lib/reset-token";
 
-export type AuthState = { error?: string };
+export type AuthState = { error?: string; notice?: string };
 
 const USERNAME_RE = /^[a-z0-9_-]{3,32}$/;
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -42,6 +45,56 @@ export async function signUpAction(_prev: AuthState, form: FormData): Promise<Au
   // signIn lancia il redirect: deve propagarsi, non va catturato qui.
   await signIn("credentials", { username, password, redirectTo: "/" });
   return {};
+}
+
+/**
+ * Richiesta di recupero. Risponde SEMPRE con lo stesso messaggio, che l'account esista o no:
+ * altrimenti questo form diventerebbe un modo per scoprire quali username sono registrati.
+ */
+export async function requestResetAction(_prev: AuthState, form: FormData): Promise<AuthState> {
+  const username = String(form.get("username") ?? "").trim().toLowerCase();
+  const generic = {
+    notice: "Se l'account esiste e ha un'email associata, ti abbiamo inviato un link per reimpostare la password. Controlla la posta (e lo spam).",
+  };
+  if (!username) return { error: "Inserisci il tuo nome utente." };
+
+  // Limita anche questo: senza freno è un modo per bombardare di email un utente.
+  if (!allowAttempt(`reset:${username}`)) return generic;
+
+  const [u] = await db.select().from(users).where(eq(users.username, username));
+  if (!u?.email) return generic;              // niente account, o account senza email: stessa risposta
+
+  const token = await createResetToken(u.id);
+  const base = process.env.AUTH_URL ?? "http://localhost:3000";
+  await sendEmail({
+    to: u.email,
+    subject: "Runebog GM — reimposta la password",
+    text: `Ciao ${u.username},
+
+hai chiesto di reimpostare la password di Runebog GM.
+Apri questo link entro un'ora:
+
+${base}/reset/${token}
+
+Il link è valido una sola volta. Se non hai chiesto tu il reset, ignora questa email: la tua password resta quella di prima.`,
+  });
+  return generic;
+}
+
+/** Imposta la nuova password consumando il token monouso. */
+export async function resetPasswordAction(_prev: AuthState, form: FormData): Promise<AuthState> {
+  const token = String(form.get("token") ?? "");
+  const password = String(form.get("password") ?? "");
+  if (password.length < 8) return { error: "La password deve avere almeno 8 caratteri." };
+
+  const userId = await consumeResetToken(token);
+  if (!userId) return { error: "Link scaduto o già usato. Richiedine uno nuovo." };
+
+  await db.update(users)
+    .set({ passwordHash: await hashPassword(password) })
+    .where(eq(users.id, userId));
+
+  return { notice: "Password aggiornata. Ora puoi accedere." };
 }
 
 export async function signInAction(_prev: AuthState, form: FormData): Promise<AuthState> {
