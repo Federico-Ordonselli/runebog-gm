@@ -87,14 +87,22 @@ export default async function Home() {
 
           <div className="bar bar--flush">
             <h2 className="section">Le tue campagne</h2>
-            <form action={createCampaign}>
-              <button className="btn btn--primary">+ Nuova campagna</button>
-            </form>
+            {/* Con zero campagne l'azione sta nello stato vuoto, dove guarda l'occhio:
+                un bottone solo, non due che fanno la stessa cosa. */}
+            {rows.length > 0 && (
+              <form action={createCampaign}>
+                <button className="btn btn--primary">+ Nuova campagna</button>
+              </form>
+            )}
           </div>
 
           {rows.length === 0 ? (
             <div className="empty">
-              <p>Non hai ancora campagne. Creane una: parte da una mappa vuota.</p>
+              <p>Qui compariranno le tue campagne. La prima parte da una mappa vuota:
+                 una zona, e da lì scendi in città, dungeon e stanze.</p>
+              <form action={createCampaign}>
+                <button className="btn btn--primary">+ Crea la prima campagna</button>
+              </form>
             </div>
           ) : (
             <ul className="campaigns">

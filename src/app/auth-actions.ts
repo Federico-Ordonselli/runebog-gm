@@ -6,7 +6,7 @@ import { auth, signIn, signOut } from "@/auth";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { hashPassword } from "@/lib/password";
-import { allowAttempt } from "@/lib/rate-limit";
+import { allowAttempt, blockedForMinutes } from "@/lib/rate-limit";
 import { sendEmail } from "@/lib/email";
 import { consumeResetToken, createResetToken } from "@/lib/reset-token";
 
@@ -113,6 +113,15 @@ export async function signInAction(_prev: AuthState, form: FormData): Promise<Au
   const username = String(form.get("username") ?? "").trim().toLowerCase();
   const password = String(form.get("password") ?? "");
   if (!username || !password) return { error: "Inserisci nome utente e password." };
+
+  // Dopo troppi tentativi l'accesso è bloccato: dirlo, invece di rispondere
+  // "password sbagliata" anche a chi ora la sta scrivendo giusta.
+  const wait = blockedForMinutes(`login:${username}`);
+  if (wait > 0)
+    return {
+      error: `Troppi tentativi falliti. Riprova tra ${wait} ${wait === 1 ? "minuto" : "minuti"}: ` +
+             "è una protezione contro chi prova a indovinare le password.",
+    };
 
   try {
     await signIn("credentials", { username, password, redirectTo: "/" });

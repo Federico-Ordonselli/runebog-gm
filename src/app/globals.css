@@ -328,8 +328,9 @@ body {
 .campaign {
   position: relative;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem 1rem;
   padding: 0.75rem 0.9rem;
   border: 1px solid var(--edge-soft);
   border-radius: var(--r-md);
@@ -380,47 +381,69 @@ body {
   font-size: 0.78rem;
 }
 
-/* Elimina: sopra l'overlay del link, e visibile appena serve. */
-.campaign__delete {
+/* Azione di riga: sopra l'overlay del link, e visibile appena serve. */
+.rowaction {
   position: relative;
   z-index: 1;
   flex: none;
-  padding: 0.3rem 0.5rem;
-  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  opacity: 0;
+  transition: opacity 160ms var(--ease);
+}
+.campaign:hover .rowaction,
+.campaign:focus-within .rowaction,
+.rowaction[data-open="true"] { opacity: 1; }
+
+.rowaction__msg { color: var(--parchment-dim); font-size: 0.8rem; white-space: nowrap; }
+
+.rowaction__btn {
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--edge);
   border-radius: var(--r-sm);
-  background: none;
-  color: var(--parchment-mute);
+  background: var(--surface-hi);
+  color: var(--parchment);
   font: inherit;
   font-size: 0.8rem;
+  white-space: nowrap;
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 160ms var(--ease), color 140ms var(--ease),
-              background 140ms var(--ease), border-color 140ms var(--ease);
+  transition: background 140ms var(--ease), border-color 140ms var(--ease), color 140ms var(--ease);
 }
-.campaign:hover .campaign__delete,
-.campaign:focus-within .campaign__delete { opacity: 1; }
-.campaign__delete:hover {
+.rowaction__btn:hover { border-color: var(--edge-lit); background: #22302a; }
+.rowaction__btn--quiet {
+  border-color: transparent;
+  background: none;
+  color: var(--parchment-mute);
+}
+.rowaction__btn--quiet:hover {
   background: color-mix(in srgb, var(--ember-deep) 35%, transparent);
   border-color: var(--ember-edge);
   color: var(--ember);
 }
-.campaign__delete[disabled] { cursor: not-allowed; opacity: 1; color: var(--parchment-mute); }
+.rowaction__btn--yes {
+  background: var(--ember-deep);
+  border-color: #a8664f;
+  color: #fff;
+}
+.rowaction__btn--yes:hover { background: #9d4531; border-color: #c07a5f; }
+.rowaction__btn[disabled] { cursor: not-allowed; opacity: 0.6; }
 
 /* Su touch non esiste hover: mostra sempre l'azione. */
 @media (hover: none) {
-  .campaign__delete { opacity: 1; }
+  .rowaction { opacity: 1; }
   .campaign::before { opacity: 1; }
 }
 
 .empty {
   margin-top: 1rem;
-  padding: 1.5rem 1.25rem;
+  padding: 1.75rem 1.25rem;
   border: 1px dashed var(--edge);
   border-radius: var(--r-md);
   text-align: center;
   color: var(--parchment-dim);
 }
-.empty p { margin: 0; }
+.empty p { max-width: 32rem; margin: 0 auto 1.1rem; }
 
 /* ---------- Prosa (privacy) ---------- */
 

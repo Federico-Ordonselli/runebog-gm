@@ -20,17 +20,23 @@ export function AuthForms() {
 
   return (
     <div className="card">
-      <div className="tabs" role="tablist">
-        <button type="button" role="tab" aria-selected={mode === "in"} className="tab"
-                onClick={() => setMode("in")}>Accedi</button>
-        <button type="button" role="tab" aria-selected={isUp} className="tab"
-                onClick={() => setMode("up")}>Registrati</button>
-      </div>
+      {/* In modalità recupero i tab sparirebbero entrambi spenti, lasciando il
+          riquadro senza titolo: al loro posto va detto dove sei. */}
+      {isForgot ? (
+        <h2 className="section">Recupera l&apos;accesso</h2>
+      ) : (
+        <div className="tabs" role="tablist">
+          <button type="button" role="tab" aria-selected={mode === "in"} className="tab"
+                  onClick={() => setMode("in")}>Accedi</button>
+          <button type="button" role="tab" aria-selected={isUp} className="tab"
+                  onClick={() => setMode("up")}>Registrati</button>
+        </div>
+      )}
 
       <form action={action} key={mode}>
         {isForgot && (
           <p className="msg muted">
-            Inserisci il tuo nome utente: se all&apos;account è associata un&apos;email,
+            Scrivi il tuo nome utente: se all&apos;account è associata un&apos;email,
             ti mandiamo un link per reimpostare la password.
           </p>
         )}

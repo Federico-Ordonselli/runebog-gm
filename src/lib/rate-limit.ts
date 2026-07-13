@@ -10,6 +10,17 @@ const attempts = new Map<string, { count: number; resetAt: number }>();
 const WINDOW_MS = 15 * 60 * 1000; // 15 minuti
 const MAX_ATTEMPTS = 8;
 
+/**
+ * Quanti minuti mancano allo sblocco; 0 se non è bloccato.
+ * Non incrementa il contatore: serve solo a dire la verità all'utente, che
+ * altrimenti si sentirebbe rispondere "password sbagliata" mentre è in attesa.
+ */
+export function blockedForMinutes(key: string): number {
+  const e = attempts.get(key);
+  if (!e || Date.now() > e.resetAt || e.count < MAX_ATTEMPTS) return 0;
+  return Math.max(1, Math.ceil((e.resetAt - Date.now()) / 60_000));
+}
+
 /** true = tentativo consentito; false = troppi tentativi falliti, blocca. */
 export function allowAttempt(key: string): boolean {
   const now = Date.now();
