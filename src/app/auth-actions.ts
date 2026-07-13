@@ -2,7 +2,7 @@
 
 import { AuthError } from "next-auth";
 import { eq } from "drizzle-orm";
-import { signIn } from "@/auth";
+import { auth, signIn, signOut } from "@/auth";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { hashPassword } from "@/lib/password";
@@ -45,6 +45,18 @@ export async function signUpAction(_prev: AuthState, form: FormData): Promise<Au
   // signIn lancia il redirect: deve propagarsi, non va catturato qui.
   await signIn("credentials", { username, password, redirectTo: "/" });
   return {};
+}
+
+/**
+ * Cancellazione dell'account (diritto alla cancellazione, GDPR art. 17).
+ * Elimina la riga `user`: le FK ON DELETE CASCADE portano via campagne, sessioni,
+ * account OAuth collegati e token di reset. Non resta niente dell'utente.
+ */
+export async function deleteAccountAction(): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.id) return;
+  await db.delete(users).where(eq(users.id, session.user.id));
+  await signOut({ redirectTo: "/" });
 }
 
 /**

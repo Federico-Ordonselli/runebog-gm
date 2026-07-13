@@ -5,6 +5,7 @@ import { desc, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { DeleteCampaignButton } from "./delete-campaign-button";
 import { AuthForms } from "./auth-forms";
+import { DeleteAccount } from "./delete-account";
 
 // TODO: placeholder — sostituire con il link reale (Ko-fi / BuyMeACoffee / PayPal.me) prima del deploy.
 const DONATE_URL = "https://ko-fi.com/TUO_UTENTE";
@@ -73,12 +74,18 @@ export default async function Home() {
               </li>
             ))}
           </ul>
+          <DeleteAccount campaignCount={rows.length} />
         </>
       )}
 
       <hr style={{ margin: "40px 0", borderColor: "#2a352e" }} />
       <p><a href={DONATE_URL} style={{ color: "#d8b25a" }}>☕ Offrimi un caffè</a> —
         il sito resta gratuito per tutti.</p>
+      {/* TODO: quando il repo GitHub sarà pubblico, aggiungi qui il link "Codice sorgente"
+          (e rimetti la frase sul codice verificabile in fondo a /privacy). */}
+      <p style={{ fontSize: 13 }}>
+        <a href="/privacy" style={{ color: "#8b968e" }}>Privacy</a>
+      </p>
     </main>
   );
 }
