@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="7" fill="#0d1411"/>
+  <!-- torre: merlatura, corpo, porta -->
+  <path d="M9 11V8h2.6v2h2.1V8h2.6v2h2.1V8H21v3l-1.4 1.4V24H10.4V12.4z" fill="#8fd4a8"/>
+  <path d="M13.4 24v-4.6a2.6 2.6 0 0 1 5.2 0V24z" fill="#0d1411" transform="translate(-1 0)"/>
+  <circle cx="15" cy="16" r="1.5" fill="#d8b25a"/>
+</svg>
