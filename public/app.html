@@ -2369,7 +2369,17 @@ renderDetail = function(){ __renderDetailCore(); mobileDetailSync(); };
 
 /* avvio */
 renderCampaignSelect();
-if(window.__cloud){ const cw = document.getElementById("camp-wrap"); if(cw) cw.style.display = "none"; }
+if(window.__cloud){
+  const cw = document.getElementById("camp-wrap"); if(cw) cw.style.display = "none";
+  const tb = document.getElementById("topbar"), tabs = tb && tb.querySelector("nav.tabs");
+  if(tb && tabs){                                  // in cloud le campagne stanno sul sito, non negli slot locali
+    const back = document.createElement("a");
+    back.href = "/"; back.className = "btn"; back.textContent = "← Le mie campagne";
+    back.title = "Torna all'elenco delle campagne";
+    back.style.textDecoration = "none";
+    tb.insertBefore(back, tabs);
+  }
+}
 save();
 renderMap();
 </script>
