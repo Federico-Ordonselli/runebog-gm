@@ -33,8 +33,13 @@ export default async function Home() {
   return (
     <main style={{ maxWidth: 640, margin: "60px auto", fontFamily: "Georgia, serif",
                    color: "#e8e3d8", padding: "0 20px" }}>
-      <h1 style={{ color: "#8fd4a8" }}>Runebog <small style={{ color: "#8b968e" }}>Diario del GM</small></h1>
+      <h1 style={{ color: "#8fd4a8" }}>Runebog{" "}
+        <small style={{ color: "#8b968e", fontSize: 14, letterSpacing: ".14em",
+                        textTransform: "uppercase" }}>GM · Diario del GM</small></h1>
       <p>Mappe gerarchiche, quest, encounter e schede mostro per le tue campagne. Gratis, per sempre.</p>
+      <p style={{ color: "#8b968e", fontSize: 14 }}>
+        Le campagne sono salvate sul tuo account: le riprendi da qualsiasi dispositivo.
+        Puoi sempre esportarle in JSON — sono tue.</p>
 
       {!session?.user ? (
         <form action={doSignIn}><button>Accedi con Google</button></form>
