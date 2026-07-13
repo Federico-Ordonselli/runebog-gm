@@ -72,15 +72,17 @@ export default async function Home() {
               Runebog
               <span className="title__kicker">GM · Diario del GM</span>
             </h1>
-            <p className="muted small" style={{ margin: 0 }}>
-              Ciao, <strong style={{ color: "var(--parchment)", fontWeight: 400 }}>
-                {session.user.name}
-              </strong>
-              {" · "}
-              <form action={doSignOut} style={{ display: "contents" }}>
+            {/* <div>, non <p>: un <form> dentro un paragrafo è HTML non valido
+                e manda React in errore di idratazione. */}
+            <div className="whoami muted small">
+              <span>
+                Ciao, <strong className="whoami__name">{session.user.name}</strong>
+              </span>
+              <span aria-hidden="true">·</span>
+              <form action={doSignOut}>
                 <button className="linkbtn">Esci</button>
               </form>
-            </p>
+            </div>
           </div>
 
           <div className="bar bar--flush">

@@ -291,6 +291,14 @@ body {
   border-bottom: 0;
 }
 
+.whoami {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  min-width: 0;
+}
+.whoami__name { color: var(--parchment); font-weight: 400; overflow-wrap: anywhere; }
+
 .section {
   margin: 0;
   font-size: 0.72rem;
