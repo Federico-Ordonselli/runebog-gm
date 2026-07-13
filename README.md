@@ -153,7 +153,9 @@ Con i free tier di Vercel e Neon il costo resta zero fino a traffico significati
 
 ## Dati e licenze
 
-Le statistiche dei mostri provengono dal **System Reference Document 5.2.1** di Wizards of the Coast, rilasciato sotto licenza **Creative Commons Attribution 4.0 (CC-BY-4.0)**. L'attribuzione richiesta è visibile in ogni scheda mostro. I dati strutturati derivano dal progetto open source Open5e. Nomi e descrizioni dei mostri sono in inglese (Wizards ha pubblicato la SRD italiana solo in PDF, non come dati); tutti i campi restano modificabili a mano.
+Il **codice** di questo progetto è rilasciato sotto licenza **MIT** (vedi [LICENSE](LICENSE)).
+
+I **dati dei mostri** NON sono coperti dalla MIT e restano sotto la loro licenza originale: le statistiche provengono dal **System Reference Document 5.2.1** di Wizards of the Coast, rilasciato sotto licenza **Creative Commons Attribution 4.0 (CC-BY-4.0)**. L'attribuzione richiesta è visibile in ogni scheda mostro. Se riusi questo progetto, la MIT ti copre per il codice ma devi mantenere l'attribuzione CC-BY per i dati SRD. I dati strutturati derivano dal progetto open source Open5e. Nomi e descrizioni dei mostri sono in inglese (Wizards ha pubblicato la SRD italiana solo in PDF, non come dati); tutti i campi restano modificabili a mano.
 
 Alcune creature iconiche (Beholder, Mind Flayer) e nomi propri (Tiamat, Strahd) non fanno parte della SRD per scelta dell'editore e vanno ricreate a mano se servono.
 
