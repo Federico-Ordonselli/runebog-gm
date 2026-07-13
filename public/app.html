@@ -2,7 +2,10 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<!-- Lo zoom del browser NON si disabilita: chi ha problemi di vista deve poter
+     ingrandire. Il pinch sulla mappa è gestito dall'app sul suo SVG (touch-action:none),
+     quindi non serve bloccare quello di sistema per evitare conflitti. -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Runebog GM — Diario del GM</title>
 <style>
   :root{
@@ -199,7 +202,6 @@
   #plan-wrap, #plan-svg, #plan-svg text, #plan-toolbar, #crumbs{
     user-select:none; -webkit-user-select:none;
   }
-  .blk:hover .blk-shape{filter:brightness(1.18)}
   #view-plan{display:none;height:100%}
   #view-plan.active{display:flex}
   #plan-left{flex:1;display:flex;flex-direction:column;min-width:0}
@@ -207,10 +209,15 @@
   .pal-title{font-size:12px;color:var(--ink-dim);letter-spacing:.06em;text-transform:uppercase}
   .pal-sep{flex:1}
   .pal-item{display:flex;align-items:center;gap:7px;padding:6px 11px;border:1px solid var(--line);border-radius:8px;
-    background:var(--panel);cursor:grab;font-size:13px;color:var(--ink);user-select:none}
+    background:var(--panel);cursor:grab;font-size:13px;color:var(--ink);user-select:none;
+    touch-action:manipulation}
   .pal-item:hover{border-color:var(--fen-dim);color:var(--fen)}
   .pal-item:active{cursor:grabbing}
   .pal-item svg{display:block}
+  /* Armato: il prossimo tocco sulla mappa piazza questo elemento. */
+  .pal-item.armed{border-color:var(--fen);color:var(--fen);background:var(--panel-2);
+    box-shadow:0 0 0 1px var(--fen) inset}
+  #plan-svg.arming{cursor:copy}
   #plan-wrap{flex:1;position:relative;overflow:hidden}
   #plan-svg{width:100%;height:100%;display:block;touch-action:none;cursor:default}
   #plan-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--ink-dim);
@@ -223,11 +230,28 @@
   #plan-side .side-empty{color:var(--ink-dim);font-size:13px;margin-top:8px}
   .blk{cursor:grab}
   .blk.dragging{cursor:grabbing}
-  .blk .blk-shape{fill:rgba(23,33,28,.92);stroke-width:2}
-  .blk.sel .blk-shape{stroke:var(--gold);stroke-width:3}
+  /* I blocchi poggiano sulla torbiera invece di galleggiarci sopra piatti: un'ombra
+     appena accennata dà profondità, e la selezione si accende di lanterna.
+     Solo filter/opacity: nessuna proprietà che costringa a ricalcolare il layout. */
+  .blk .blk-shape{
+    fill:rgba(23,33,28,.92);stroke-width:2;
+    filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));
+    transition:filter .15s, stroke .15s;
+  }
+  .blk:hover .blk-shape{filter:brightness(1.18) drop-shadow(0 3px 7px rgba(0,0,0,.55))}
+  .blk.sel .blk-shape{
+    stroke:var(--gold);stroke-width:3;
+    filter:drop-shadow(0 0 7px rgba(216,178,90,.45)) drop-shadow(0 2px 4px rgba(0,0,0,.5));
+  }
   .blk text{font-size:13px;fill:var(--ink);pointer-events:none;font-family:"Iowan Old Style",Palatino,Georgia,serif}
   .blk .link-handle{fill:var(--panel);stroke:var(--fen-dim);stroke-width:2;cursor:crosshair;opacity:0}
   .blk:hover .link-handle,.blk.sel .link-handle{opacity:1}
+  /* Senza hover (tablet) la maniglia resterebbe invisibile per sempre e i
+     collegamenti sarebbero impossibili: sul blocco selezionato mostrala sempre. */
+  @media (hover:none){
+    .blk.sel .link-handle{opacity:1}
+    .blk .link-handle{r:11}
+  }
   .blk .link-handle:hover{fill:var(--fen-dim)}
   .edge{cursor:pointer}
   .edge .edge-hit{stroke:transparent;stroke-width:16;fill:none}
@@ -344,6 +368,22 @@
   #ctx-menu hr{border:none;border-top:1px solid var(--line);margin:5px 4px}
   #ctx-menu .dot{width:9px;height:9px;border-radius:50%;flex:none}
   #ctx-menu .bar{width:16px;height:0;border-top:3px solid;border-radius:2px;flex:none}
+
+  /* ---------- puntatore grosso (dito): bersagli da 44px ----------
+     Su POINTER, non su larghezza: un iPad in orizzontale è 1024px — largo come un
+     laptop, ma si tocca col dito. Il desktop resta compatto com'è. */
+  button, .pal-item, .check-item input[type=checkbox]{touch-action:manipulation}
+
+  @media (pointer:coarse){
+    .btn, nav.tabs button, #ctx-menu button{min-height:44px}
+    .btn{min-width:44px}   /* i bottoni a un solo carattere (zoom ＋ －) restavano a 41px */
+    .btn.tiny{min-width:44px;min-height:44px;font-size:15px}
+    .icon-btn{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+    .hp-block .hp-btn{width:44px;height:44px}
+    .pal-item{min-height:44px}
+    .child-list .child{padding:11px 10px}
+    .check-item input[type=checkbox]{width:24px;height:24px}
+  }
 
   /* ---------- mobile: elementi base (nascosti su desktop) ---------- */
   .sheet-close{display:none}
@@ -1462,7 +1502,7 @@ function renderCanvas(){
   document.getElementById("empty-node").classList.toggle("show", cur.children.length===0);
   const hint = document.getElementById("plan-hint");
   hint.style.display = cur.children.length ? "" : "none";
-  hint.textContent = "◉ trascina per collegare · Doppio clic: entra / nuovo blocco · Ctrl+clic: selezione multipla · Canc: elimina · Rotella: zoom";
+  hint.textContent = planHintText();
 
   planVB = planVBs[cur.id] || null;
   if(!planVB) planFit(); else planApplyVB();
@@ -1629,6 +1669,28 @@ function quickAddCenter(){
 }
 
 /* --- interazioni (pointer events) --- */
+let armedPal = null, armedEl = null;   // elemento della palette "armato": il prossimo tocco sulla mappa lo piazza
+
+// Un solo posto decide il testo del suggerimento: renderCanvas lo riscrive a ogni
+// ridisegno, quindi salvarne una copia altrove sarebbe fragile.
+function planHintText(){
+  return armedPal
+    ? "Tocca la mappa per piazzare · Esc per annullare"
+    : "◉ trascina, oppure tocca un elemento della palette e poi la mappa · Doppio clic: entra / nuovo blocco · Ctrl+clic: selezione multipla · Canc: elimina · Rotella: zoom";
+}
+
+function armPal(el, opts){
+  if(armedEl) armedEl.classList.remove("armed");
+  armedEl = el || null;
+  armedPal = el ? opts : null;
+  if(armedEl) armedEl.classList.add("armed");
+  const svg = planSvg();
+  if(svg) svg.classList.toggle("arming", !!armedPal);
+  const hint = document.getElementById("plan-hint");
+  if(hint) hint.textContent = planHintText();
+}
+addEventListener("keydown", ev=>{ if(ev.key === "Escape" && armedPal) armPal(null); });
+
 (function(){
   const svg = planSvg();
 
@@ -1636,6 +1698,13 @@ function quickAddCenter(){
     el.addEventListener("dragstart", ev=>{
       ev.dataTransfer.setData("text/plain", el.dataset.pal);
       ev.dataTransfer.effectAllowed = "copy";
+    });
+    // Il drag HTML5 non esiste su touch: senza questo, da tablet metà della
+    // palette (piazza, torre, token, segnalini) è irraggiungibile. Tocca l'elemento
+    // per "armarlo", poi tocca la mappa dove vuoi metterlo. Vale anche col mouse.
+    el.addEventListener("click", ()=>{
+      let opts; try{ opts = JSON.parse(el.dataset.pal); }catch(_){ return; }
+      armPal(el === armedEl ? null : el, opts);
     });
   });
   svg.addEventListener("dragover", ev=>{ ev.preventDefault(); ev.dataTransfer.dropEffect="copy"; });
@@ -1674,6 +1743,18 @@ function quickAddCenter(){
     }
     if(ev.button===2) return;                   // il destro lo gestisce il contextmenu
     lastPointerType = ev.pointerType || "mouse";
+
+    // Palette armata: questo tocco piazza e basta — anche sopra un blocco esistente,
+    // altrimenti "arma e tocca" fallirebbe proprio dove la mappa è già piena.
+    if(armedPal){
+      ev.preventDefault();
+      const opts = armedPal;
+      const p0 = planPoint(ev);
+      armPal(null);
+      addSpatialChild(opts, p0.x, p0.y);
+      planDrag = null;
+      return;
+    }
     if(ev.pointerType==="touch"){
       pointers.set(ev.pointerId, {x:ev.clientX, y:ev.clientY});
       if(pointers.size===2){                    // due dita: pinch-zoom + pan, annulla tutto il resto
