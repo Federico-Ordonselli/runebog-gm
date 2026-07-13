@@ -7,8 +7,10 @@ import { DeleteCampaignButton } from "./delete-campaign-button";
 import { AuthForms } from "./auth-forms";
 import { DeleteAccount } from "./delete-account";
 
-// TODO: placeholder — sostituire con il link reale (Ko-fi / BuyMeACoffee / PayPal.me) prima del deploy.
-const DONATE_URL = "https://ko-fi.com/TUO_UTENTE";
+// Link diretto, non il widget JS di Ko-fi: quello caricherebbe uno script di terze parti
+// (e potenziali cookie) su ogni visita, contraddicendo quanto promette /privacy.
+const DONATE_URL = "https://ko-fi.com/runebog";
+const CONTACT_EMAIL = "support@runebog.app";
 
 export default async function Home() {
   const session = await auth();
@@ -113,6 +115,8 @@ export default async function Home() {
           (e rimetti la frase sul codice verificabile in fondo a /privacy). */}
       <p className="small">
         <a href="/privacy" className="link link--quiet">Privacy</a>
+        {" · "}
+        <a href={`mailto:${CONTACT_EMAIL}`} className="link link--quiet">Scrivimi</a>
       </p>
     </main>
   );

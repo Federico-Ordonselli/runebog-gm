@@ -1,6 +1,4 @@
-// TODO: decidi l'indirizzo di contatto pubblico. Una casella dedicata sul dominio
-// (es. privacy@runebog.app, anche solo come inoltro) evita di esporre la tua email personale.
-const CONTACT_EMAIL = "privacy@runebog.app";
+const CONTACT_EMAIL = "support@runebog.app";
 
 export const metadata = { title: "Privacy — Runebog GM" };
 
@@ -50,6 +48,11 @@ export default function Privacy() {
         <li><strong>Vercel</strong> — l&apos;hosting del sito.</li>
         <li><strong>Google</strong> — solo se scegli di accedere con Google.</li>
         <li><strong>Resend</strong> — solo per spedire l&apos;email di reimpostazione password, se ne chiedi una.</li>
+        <li>
+          <strong>Cloudflare</strong> — instrada verso di noi la posta che scrivi a{" "}
+          <a href={`mailto:${CONTACT_EMAIL}`} className="link">{CONTACT_EMAIL}</a>. Riguarda solo
+          le email che ci mandi tu: se non ci scrivi, non passa di lì nulla di tuo.
+        </li>
       </ul>
       <p>
         Chi amministra il sito ha accesso tecnico al database, e quindi può leggere email, nomi
