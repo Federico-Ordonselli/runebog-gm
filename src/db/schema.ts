@@ -5,9 +5,12 @@ import type { AdapterAccountType } from "next-auth/adapters";
 export const users = pgTable("user", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   name: text("name"),
-  email: text("email").unique(),
+  email: text("email").unique(),          // nullable: chi entra con username/password può non darla
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
+  // account locali (username + password). Nulli per gli utenti Google.
+  username: text("username").unique(),
+  passwordHash: text("password_hash"),
 });
 export const accounts = pgTable("account", {
   userId: text("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
