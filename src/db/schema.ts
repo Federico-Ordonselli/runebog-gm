@@ -36,6 +36,15 @@ export const verificationTokens = pgTable("verificationToken", {
   expires: timestamp("expires", { mode: "date" }).notNull(),
 }, (t) => [primaryKey({ columns: [t.identifier, t.token] })]);
 
+/* ---- recupero password ----
+   Salviamo lo SHA-256 del token, mai il token in chiaro: se il DB trapela, i link di reset
+   già emessi restano inutilizzabili. Il token vero esiste solo nell'email dell'utente. */
+export const passwordResetTokens = pgTable("password_reset_token", {
+  tokenHash: text("token_hash").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  expires: timestamp("expires", { mode: "date" }).notNull(),
+});
+
 /* ---- le campagne: un JSONB per campagna, stesso formato di Esporta/Importa ---- */
 export const campaigns = pgTable("campaign", {
   id: uuid("id").primaryKey().defaultRandom(),
