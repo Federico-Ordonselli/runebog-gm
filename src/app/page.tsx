@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { campaigns } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
+import { DeleteCampaignButton } from "./delete-campaign-button";
 
 const DONATE_URL = "https://ko-fi.com/TUO_UTENTE"; // ← metti il tuo link Ko-fi / BuyMeACoffee / PayPal.me
 
@@ -54,6 +55,7 @@ export default async function Home() {
                 <a href={`/play/${c.id}`} style={{ color: "#6cc3c9" }}>{c.name}</a>
                 {" "}<small style={{ color: "#8b968e" }}>
                   aggiornata {c.updatedAt.toLocaleDateString("it-IT")}</small>
+                <DeleteCampaignButton id={c.id} name={c.name} />
               </li>
             ))}
           </ul>
