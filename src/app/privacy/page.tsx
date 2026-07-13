@@ -1,4 +1,4 @@
-const CONTACT_EMAIL = "support@runebog.app";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 export const metadata = { title: "Privacy — Runebog GM" };
 

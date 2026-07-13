@@ -7,6 +7,7 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { hashPassword } from "@/lib/password";
 import { allowAttempt, blockedForMinutes } from "@/lib/rate-limit";
+import { normalizeUsername } from "@/lib/username";
 import { sendEmail } from "@/lib/email";
 import { consumeResetToken, createResetToken } from "@/lib/reset-token";
 
@@ -16,7 +17,7 @@ const USERNAME_RE = /^[a-z0-9_-]{3,32}$/;
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 export async function signUpAction(_prev: AuthState, form: FormData): Promise<AuthState> {
-  const username = String(form.get("username") ?? "").trim().toLowerCase();
+  const username = normalizeUsername(form.get("username"));
   const password = String(form.get("password") ?? "");
   const email = String(form.get("email") ?? "").trim().toLowerCase();
 
@@ -64,14 +65,14 @@ export async function deleteAccountAction(): Promise<void> {
  * altrimenti questo form diventerebbe un modo per scoprire quali username sono registrati.
  */
 export async function requestResetAction(_prev: AuthState, form: FormData): Promise<AuthState> {
-  const username = String(form.get("username") ?? "").trim().toLowerCase();
+  const username = normalizeUsername(form.get("username"));
   const generic = {
     notice: "Se l'account esiste e ha un'email associata, ti abbiamo inviato un link per reimpostare la password. Controlla la posta (e lo spam).",
   };
   if (!username) return { error: "Inserisci il tuo nome utente." };
 
   // Limita anche questo: senza freno è un modo per bombardare di email un utente.
-  if (!allowAttempt(`reset:${username}`)) return generic;
+  if (!allowAttempt("reset", username)) return generic;
 
   const [u] = await db.select().from(users).where(eq(users.username, username));
   if (!u?.email) return generic;              // niente account, o account senza email: stessa risposta
@@ -110,13 +111,13 @@ export async function resetPasswordAction(_prev: AuthState, form: FormData): Pro
 }
 
 export async function signInAction(_prev: AuthState, form: FormData): Promise<AuthState> {
-  const username = String(form.get("username") ?? "").trim().toLowerCase();
+  const username = normalizeUsername(form.get("username"));
   const password = String(form.get("password") ?? "");
   if (!username || !password) return { error: "Inserisci nome utente e password." };
 
   // Dopo troppi tentativi l'accesso è bloccato: dirlo, invece di rispondere
   // "password sbagliata" anche a chi ora la sta scrivendo giusta.
-  const wait = blockedForMinutes(`login:${username}`);
+  const wait = blockedForMinutes("login", username);
   if (wait > 0)
     return {
       error: `Troppi tentativi falliti. Riprova tra ${wait} ${wait === 1 ? "minuto" : "minuti"}: ` +

@@ -12,7 +12,7 @@ export function DeleteAccount({ campaignCount }: { campaignCount: number }) {
 
   if (!open) {
     return (
-      <p style={{ marginTop: "1.75rem" }}>
+      <p className="danger-zone">
         <button className="linkbtn linkbtn--danger" onClick={() => setOpen(true)}>
           Elimina il mio account
         </button>
@@ -21,8 +21,8 @@ export function DeleteAccount({ campaignCount }: { campaignCount: number }) {
   }
 
   return (
-    <div className="card card--danger" style={{ marginTop: "1.75rem" }}>
-      <p className="msg msg--error" style={{ marginTop: 0 }}>
+    <div className="card card--danger danger-zone">
+      <p className="msg msg--error">
         <strong>Questa operazione è definitiva.</strong> Vengono cancellati il tuo account e{" "}
         {campaignCount === 1 ? "la tua campagna" : `le tue ${campaignCount} campagne`}, senza
         possibilità di recupero. Se ci tieni ai tuoi dati, <strong>esportali prima in JSON</strong>{" "}
@@ -32,13 +32,13 @@ export function DeleteAccount({ campaignCount }: { campaignCount: number }) {
       <form action={deleteAccountAction}>
         <label className="field">
           <span className="muted small">
-            Per confermare, scrivi <strong style={{ color: "var(--parchment)" }}>{WORD}</strong> qui sotto:
+            Per confermare, scrivi <strong className="strong">{WORD}</strong> qui sotto:
           </span>
           <input value={typed} onChange={e => setTyped(e.target.value)} autoComplete="off"
                  className="input" />
         </label>
 
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "1.1rem" }}>
+        <div className="actions">
           <button type="submit" disabled={!confirmed} className="btn btn--danger">
             Elimina definitivamente
           </button>

@@ -19,40 +19,30 @@ export function DeleteCampaignButton({ id, name }: { id: string; name: string })
     router.refresh();
   }
 
-  // La conferma vive nella riga, non in un dialogo del browser: stessa lingua,
-  // stessi colori, e l'utente non perde di vista la campagna che sta cancellando.
-  if (stato === "chiede" || stato === "elimina" || stato === "fallito") {
+  if (stato === "fermo") {
     return (
-      <span className="rowaction" data-open="true">
-        {stato === "fallito" ? (
-          <>
-            <span className="rowaction__msg">Non è riuscito.</span>
-            <button className="rowaction__btn rowaction__btn--yes" onClick={onDelete}>
-              Riprova
-            </button>
-          </>
-        ) : (
-          <>
-            <span className="rowaction__msg">Eliminare?</span>
-            <button className="rowaction__btn rowaction__btn--yes" onClick={onDelete}
-                    disabled={stato === "elimina"}>
-              {stato === "elimina" ? "Elimino…" : "Sì, elimina"}
-            </button>
-          </>
-        )}
-        <button className="rowaction__btn" onClick={() => setStato("fermo")}
-                disabled={stato === "elimina"}>
-          Annulla
+      <span className="rowaction">
+        <button className="btn btn--sm btn--quiet" onClick={() => setStato("chiede")}
+                aria-label={`Elimina la campagna ${name}`}>
+          Elimina
         </button>
       </span>
     );
   }
 
+  // La conferma vive nella riga, non in un dialogo del browser: stessa lingua,
+  // stessi colori, e l'utente non perde di vista la campagna che sta cancellando.
+  const inCorso = stato === "elimina";
+  const fallito = stato === "fallito";
+
   return (
-    <span className="rowaction">
-      <button className="rowaction__btn rowaction__btn--quiet" onClick={() => setStato("chiede")}
-              aria-label={`Elimina la campagna ${name}`}>
-        Elimina
+    <span className="rowaction" data-open="true">
+      <span className="rowaction__msg">{fallito ? "Non è riuscito." : "Eliminare?"}</span>
+      <button className="btn btn--sm btn--danger" onClick={onDelete} disabled={inCorso}>
+        {inCorso ? "Elimino…" : fallito ? "Riprova" : "Sì, elimina"}
+      </button>
+      <button className="btn btn--sm" onClick={() => setStato("fermo")} disabled={inCorso}>
+        Annulla
       </button>
     </span>
   );

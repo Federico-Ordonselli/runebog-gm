@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { campaigns } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { newCampaignData } from "@/lib/campaigns";
 
 export async function GET() {
   const session = await auth();
@@ -18,12 +19,7 @@ export async function POST(req: Request) {
   if (!session?.user?.id) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const body = await req.json().catch(() => ({}));
   const name = (body.name || "Nuova campagna").slice(0, 120);
-  // stato iniziale minimo, stesso formato di Esporta/Importa
-  const data = body.data ?? {
-    root: { id: "root", title: name, type: "zona", status: "", notes: "", img: null,
-            children: [], edges: [], x: null, y: null, shape: null },
-    checklist: [], players: [],
-  };
+  const data = body.data ?? newCampaignData(name);
   const [row] = await db.insert(campaigns)
     .values({ userId: session.user.id, name, data })
     .returning({ id: campaigns.id });

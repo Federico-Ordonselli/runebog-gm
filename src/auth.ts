@@ -7,6 +7,7 @@ import { db } from "@/db";
 import { users, accounts, sessions, verificationTokens } from "@/db/schema";
 import { verifyPassword } from "@/lib/password";
 import { allowAttempt, resetAttempts } from "@/lib/rate-limit";
+import { normalizeUsername } from "@/lib/username";
 
 // Hash fittizio: lo verifichiamo anche quando l'utente non esiste, così il tempo di risposta
 // resta lo stesso e non rivela quali username sono registrati.
@@ -30,17 +31,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(creds) {
-        const username = String(creds?.username ?? "").trim().toLowerCase();
+        const username = normalizeUsername(creds?.username);
         const password = String(creds?.password ?? "");
         if (!username || !password) return null;
 
-        if (!allowAttempt(`login:${username}`)) return null;   // troppi tentativi falliti
+        if (!allowAttempt("login", username)) return null;   // troppi tentativi falliti
 
         const [u] = await db.select().from(users).where(eq(users.username, username));
         const ok = await verifyPassword(password, u?.passwordHash ?? DUMMY_HASH);
         if (!u?.passwordHash || !ok) return null;
 
-        resetAttempts(`login:${username}`);
+        resetAttempts("login", username);
         return { id: u.id, name: u.name, email: u.email, image: u.image };
       },
     }),

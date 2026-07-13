@@ -6,11 +6,10 @@ import { redirect } from "next/navigation";
 import { DeleteCampaignButton } from "./delete-campaign-button";
 import { AuthForms } from "./auth-forms";
 import { DeleteAccount } from "./delete-account";
+import { newCampaignData } from "@/lib/campaigns";
+import { CONTACT_EMAIL, DONATE_URL } from "@/lib/site";
 
-// Link diretto, non il widget JS di Ko-fi: quello caricherebbe uno script di terze parti
-// (e potenziali cookie) su ogni visita, contraddicendo quanto promette /privacy.
-const DONATE_URL = "https://ko-fi.com/runebog";
-const CONTACT_EMAIL = "support@runebog.app";
+const NOME_INIZIALE = "Nuova campagna";
 
 export default async function Home() {
   const session = await auth();
@@ -23,10 +22,8 @@ export default async function Home() {
     if (!s?.user?.id) return;
     const [row] = await db.insert(campaigns).values({
       userId: s.user.id,
-      name: "Nuova campagna",
-      data: { root: { id: "root", title: "Nuova campagna", type: "zona", status: "", notes: "",
-                      img: null, children: [], edges: [], x: null, y: null, shape: null },
-              checklist: [], players: [] },
+      name: NOME_INIZIALE,
+      data: newCampaignData(NOME_INIZIALE),   // stessa forma che scrive POST /api/campaigns
     }).returning({ id: campaigns.id });
     redirect(`/play/${row.id}`);
   }

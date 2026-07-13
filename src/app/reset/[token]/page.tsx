@@ -8,7 +8,7 @@ export default async function ResetPage({ params }: { params: Promise<{ token: s
   const valid = await isResetTokenValid(token);   // controlla senza consumare
 
   return (
-    <main className="page" style={{ maxWidth: "30rem" }}>
+    <main className="page page--narrow">
       <h1 className="title">Nuova password</h1>
       {valid ? (
         <ResetForm token={token} />

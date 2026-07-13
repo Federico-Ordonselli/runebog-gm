@@ -16,21 +16,22 @@ export function ResetForm({ token }: { token: string }) {
   }
 
   return (
-    <form action={action} className="card">
-      <input type="hidden" name="token" value={token} />
+    <div className="card">
+      <form action={action}>
+        <input type="hidden" name="token" value={token} />
 
-      <label className="field" style={{ marginTop: 0 }}>
-        <span className="field__label">Nuova password</span>
-        <input name="password" type="password" required autoComplete="new-password"
-               placeholder="almeno 8 caratteri" className="input" />
-      </label>
+        <label className="field">
+          <span className="field__label">Nuova password</span>
+          <input name="password" type="password" required autoComplete="new-password"
+                 placeholder="almeno 8 caratteri" className="input" />
+        </label>
 
-      {state.error && <p role="alert" className="msg msg--error">{state.error}</p>}
+        {state.error && <p role="alert" className="msg msg--error">{state.error}</p>}
 
-      <button type="submit" disabled={pending} className="btn btn--primary btn--block"
-              style={{ marginTop: "1.25rem" }}>
-        {pending ? "Attendi…" : "Imposta la nuova password"}
-      </button>
-    </form>
+        <button type="submit" disabled={pending} className="btn btn--primary btn--block">
+          {pending ? "Attendi…" : "Imposta la nuova password"}
+        </button>
+      </form>
+    </div>
   );
 }

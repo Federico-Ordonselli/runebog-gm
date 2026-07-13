@@ -7,6 +7,7 @@
   --peat-sunk:   #101914;
   --surface:     #131c17;
   --surface-hi:  #1b261f;
+  --surface-hov: #22302a;
 
   /* Bordi */
   --edge:        #2a352e;
@@ -18,14 +19,20 @@
   --parchment-dim: #9aa69d;
   --parchment-mute:#6b756e;
 
-  /* Accenti */
+  /* Accenti, con i rispettivi stati "acceso" (hover). Stavano sparsi come hex
+     nudi in fondo al file: cambiare --moss non cambiava il suo hover. */
   --moss:        #8fd4a8;
-  --moss-deep:   #6bb98a;
+  --moss-lit:    #a2e0b8;
   --wisp:        #6cc3c9;
+  --wisp-lit:    #8ad6db;
   --lantern:     #d8b25a;
   --ember:       #e0785f;
   --ember-deep:  #8a3a2a;
+  --ember-lit:   #9d4531;
   --ember-edge:  #6b3a2e;
+  --ember-edge-lit: #a8664f;
+  --ember-hov:   #c07a5f;
+  --glow:        #17241c;   /* l'alone di lanterna dietro l'intestazione */
 
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua",
            Georgia, "Times New Roman", serif;
@@ -51,11 +58,13 @@ body {
   margin: 0;
   min-height: 100vh;
   background: var(--peat);
-  /* Alone di lanterna in alto: l'unica atmosfera della pagina. */
+  /* Alone di lanterna in alto: l'unica atmosfera della pagina.
+     Niente background-attachment: fixed — costringerebbe a ridipingere il
+     gradiente a ogni frame di scroll, e l'alone è ancorato sopra la piega:
+     scorrere via col contenuto è proprio ciò che deve fare. */
   background-image:
-    radial-gradient(80ch 40rem at 50% -12rem, #17241c 0%, rgba(23, 36, 28, 0) 70%);
+    radial-gradient(80ch 40rem at 50% -12rem, var(--glow) 0%, transparent 70%);
   background-repeat: no-repeat;
-  background-attachment: fixed;
   color: var(--parchment);
   font-family: var(--serif);
   font-size: 1rem;
@@ -70,6 +79,7 @@ body {
   margin: 0 auto;
   padding: clamp(1.75rem, 4vw, 2.75rem) 1.25rem 2.5rem;
 }
+.page--narrow { max-width: 30rem; }
 .page--wide { max-width: 42rem; }
 /* La home respira su schermo largo; la prosa resta stretta, che è giusto. */
 .page--home { max-width: 60rem; }
@@ -123,7 +133,7 @@ body {
 }
 
 .link { color: var(--wisp); text-decoration-color: color-mix(in srgb, var(--wisp) 40%, transparent); }
-.link:hover { color: #8ad6db; }
+.link:hover { color: var(--wisp-lit); }
 .link--lantern { color: var(--lantern); text-decoration-color: color-mix(in srgb, var(--lantern) 40%, transparent); }
 .link--quiet { color: var(--parchment-dim); }
 .link--quiet:hover { color: var(--parchment); }
@@ -147,9 +157,11 @@ body {
   transition: background 140ms var(--ease), border-color 140ms var(--ease),
               transform 140ms var(--ease), color 140ms var(--ease);
 }
-.btn:hover { border-color: var(--edge-lit); background: #22302a; }
+.btn:hover { border-color: var(--edge-lit); background: var(--surface-hov); }
 .btn:active { transform: translateY(1px); }
 .btn--block { width: 100%; }
+/* Taglia compatta: le azioni dentro una riga di lista. */
+.btn--sm { padding: 0.3rem 0.55rem; font-size: 0.8rem; white-space: nowrap; }
 
 .btn--primary {
   background: var(--moss);
@@ -157,21 +169,27 @@ body {
   color: var(--peat);
   font-weight: 600;
 }
-.btn--primary:hover { background: #a2e0b8; border-color: #a2e0b8; }
+.btn--primary:hover { background: var(--moss-lit); border-color: var(--moss-lit); }
 
-.btn--ghost {
+/* Smorzato finché non lo sfiori, poi vira alla brace: è pur sempre un'azione
+   distruttiva, e non deve gridare finché non la stai per usare. */
+.btn--quiet {
   background: none;
   border-color: transparent;
-  color: var(--parchment-dim);
+  color: var(--parchment-mute);
 }
-.btn--ghost:hover { background: var(--surface); border-color: var(--edge); color: var(--parchment); }
+.btn--quiet:hover {
+  background: color-mix(in srgb, var(--ember-deep) 35%, transparent);
+  border-color: var(--ember-edge);
+  color: var(--ember);
+}
 
 .btn--danger {
   background: var(--ember-deep);
-  border-color: #a8664f;
+  border-color: var(--ember-edge-lit);
   color: #fff;
 }
-.btn--danger:hover { background: #9d4531; border-color: #c07a5f; }
+.btn--danger:hover { background: var(--ember-lit); border-color: var(--ember-hov); }
 
 .btn[disabled] {
   cursor: not-allowed;
@@ -237,6 +255,23 @@ body {
   background: color-mix(in srgb, var(--surface) 55%, transparent);
 }
 .card--danger { border-color: var(--ember-edge); }
+/* Il primo elemento di una card non stacca dal bordo: regola strutturale, non una
+   misura da ridecidere inline in ogni componente. Solo quando la card SI APRE col
+   contenuto: se in cima ci sono i tab, il primo campo deve staccare da loro. */
+.card > :first-child,
+.card > form:first-child > :first-child { margin-top: 0; }
+/* Il bottone che chiude un form stacca sempre così. */
+.card form .btn--block { margin-top: 1.25rem; }
+
+/* Il link che cambia modalità, in fondo alla card di accesso. */
+.switch { margin: 0.9rem 0 0; text-align: center; }
+
+/* Riga di bottoni in fondo a un pannello. */
+.actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.1rem; }
+/* Il blocco pericoloso in fondo alla home: stacca dal contenuto vero. */
+.danger-zone { margin-top: 1.75rem; }
+/* Testo in evidenza dentro una riga smorzata (non un titolo: solo pieno contrasto). */
+.strong { color: var(--parchment); font-weight: 400; }
 
 .tabs { display: flex; gap: 0.35rem; }
 .tab {
@@ -398,37 +433,6 @@ body {
 
 .rowaction__msg { color: var(--parchment-dim); font-size: 0.8rem; white-space: nowrap; }
 
-.rowaction__btn {
-  padding: 0.3rem 0.55rem;
-  border: 1px solid var(--edge);
-  border-radius: var(--r-sm);
-  background: var(--surface-hi);
-  color: var(--parchment);
-  font: inherit;
-  font-size: 0.8rem;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background 140ms var(--ease), border-color 140ms var(--ease), color 140ms var(--ease);
-}
-.rowaction__btn:hover { border-color: var(--edge-lit); background: #22302a; }
-.rowaction__btn--quiet {
-  border-color: transparent;
-  background: none;
-  color: var(--parchment-mute);
-}
-.rowaction__btn--quiet:hover {
-  background: color-mix(in srgb, var(--ember-deep) 35%, transparent);
-  border-color: var(--ember-edge);
-  color: var(--ember);
-}
-.rowaction__btn--yes {
-  background: var(--ember-deep);
-  border-color: #a8664f;
-  color: #fff;
-}
-.rowaction__btn--yes:hover { background: #9d4531; border-color: #c07a5f; }
-.rowaction__btn[disabled] { cursor: not-allowed; opacity: 0.6; }
-
 /* Su touch non esiste hover: mostra sempre l'azione. */
 @media (hover: none) {
   .rowaction { opacity: 1; }
@@ -465,7 +469,6 @@ body {
   outline-offset: 2px;
   border-radius: 4px;
 }
-.campaign:focus-within { outline: none; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
