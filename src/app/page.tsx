@@ -4,6 +4,7 @@ import { campaigns } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { DeleteCampaignButton } from "./delete-campaign-button";
+import { AuthForms } from "./auth-forms";
 
 // TODO: placeholder — sostituire con il link reale (Ko-fi / BuyMeACoffee / PayPal.me) prima del deploy.
 const DONATE_URL = "https://ko-fi.com/TUO_UTENTE";
@@ -44,7 +45,19 @@ export default async function Home() {
         Puoi sempre esportarle in JSON — sono tue.</p>
 
       {!session?.user ? (
-        <form action={doSignIn}><button>Accedi con Google</button></form>
+        <>
+          <form action={doSignIn}>
+            <button style={{ width: "100%", padding: "10px 14px", borderRadius: 8, cursor: "pointer",
+                             background: "#1b261f", border: "1px solid #2a352e", color: "#e8e3d8",
+                             font: "inherit", fontSize: 14, marginTop: 24 }}>
+              Accedi con Google
+            </button>
+          </form>
+          <p style={{ textAlign: "center", color: "#8b968e", fontSize: 13, margin: "16px 0 0" }}>
+            oppure, senza Google:
+          </p>
+          <AuthForms />
+        </>
       ) : (
         <>
           <p>Ciao, {session.user.name} · <form action={doSignOut} style={{ display: "inline" }}>
