@@ -38,10 +38,12 @@
 
 * { box-sizing: border-box; }
 
-/* La radice è la sorgente della scala: così i rem dei componenti e il testo
-   della prosa vivono sullo stesso passo. */
+/* La radice è la sorgente della scala: tutto il resto è in rem, quindi testo,
+   controlli, spazi e larghezze crescono insieme — è ciò che fa lo zoom.
+   Fluida: 21px su desktop (la corposità che vogliamo), giù verso 17px sul
+   telefono, dove 21px sarebbe ingombrante. */
 html {
-  font-size: 17px;
+  font-size: clamp(17px, 15.3px + 0.45vw, 21px);
   -webkit-text-size-adjust: 100%;
 }
 
@@ -76,10 +78,12 @@ body {
    Sotto la soglia le due colonne si impilano da sole. */
 .hero { display: grid; gap: 1.75rem; align-items: start; }
 
-@media (min-width: 62rem) {
+/* Le soglie sono in rem "di browser" (16px) e non seguono la radice: alzate
+   perché con la scala più grande le due colonne chiedono più spazio. */
+@media (min-width: 68rem) {
   .hero {
-    grid-template-columns: 1fr 23rem;
-    gap: 3rem;
+    grid-template-columns: 1fr 21rem;
+    gap: 2.75rem;
   }
 }
 
@@ -317,7 +321,7 @@ body {
 }
 /* Con spazio in orizzontale, due campagne per riga invece di una colonna
    sottile persa in mezzo al vuoto. */
-@media (min-width: 48rem) {
+@media (min-width: 56rem) {
   .campaigns { grid-template-columns: repeat(2, 1fr); }
 }
 
