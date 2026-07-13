@@ -5,7 +5,8 @@ import { desc, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { DeleteCampaignButton } from "./delete-campaign-button";
 
-const DONATE_URL = "https://ko-fi.com/TUO_UTENTE"; // ← metti il tuo link Ko-fi / BuyMeACoffee / PayPal.me
+// TODO: placeholder — sostituire con il link reale (Ko-fi / BuyMeACoffee / PayPal.me) prima del deploy.
+const DONATE_URL = "https://ko-fi.com/TUO_UTENTE";
 
 export default async function Home() {
   const session = await auth();
