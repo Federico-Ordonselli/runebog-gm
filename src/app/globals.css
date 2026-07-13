@@ -38,7 +38,12 @@
 
 * { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; }
+/* La radice è la sorgente della scala: così i rem dei componenti e il testo
+   della prosa vivono sullo stesso passo. */
+html {
+  font-size: 17px;
+  -webkit-text-size-adjust: 100%;
+}
 
 body {
   margin: 0;
@@ -51,7 +56,7 @@ body {
   background-attachment: fixed;
   color: var(--parchment);
   font-family: var(--serif);
-  font-size: 17px;
+  font-size: 1rem;
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
 }
@@ -59,11 +64,28 @@ body {
 /* ---------- Impianto pagina ---------- */
 
 .page {
-  max-width: 40rem;
+  max-width: 38rem;
   margin: 0 auto;
   padding: clamp(2.5rem, 8vw, 4.5rem) 1.25rem 4rem;
 }
-.page--wide { max-width: 44rem; }
+.page--wide { max-width: 42rem; }
+/* La home respira su schermo largo; la prosa resta stretta, che è giusto. */
+.page--home { max-width: 60rem; }
+
+/* Su schermo largo: presentazione a sinistra, accesso a destra.
+   Sotto la soglia le due colonne si impilano da sole. */
+.hero { display: grid; gap: 2.5rem; align-items: start; }
+
+@media (min-width: 62rem) {
+  .hero {
+    grid-template-columns: 1fr 22rem;
+    gap: 4rem;
+  }
+  .hero__intro { padding-top: 0.5rem; }
+}
+
+/* La misura della prosa non supera mai i ~65 caratteri, anche se c'è spazio. */
+.hero__intro > p { max-width: 34rem; }
 
 .title {
   margin: 0;
@@ -72,6 +94,10 @@ body {
   letter-spacing: -0.01em;
   color: var(--moss);
 }
+/* Da loggato il titolo fa da insegna, non da manifesto: le campagne sono il contenuto. */
+.title--sm { font-size: 1.6rem; }
+.title--sm .title__kicker { margin-top: 0.25rem; font-size: 0.62rem; }
+
 .title__kicker {
   display: block;
   margin-top: 0.55rem;
@@ -253,15 +279,40 @@ body {
 
 .bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: 1rem;
-  margin-top: 2rem;
+  gap: 0.75rem 1rem;
   padding-bottom: 0.9rem;
   border-bottom: 1px solid var(--edge-soft);
 }
+.bar--flush {
+  margin-top: 2.25rem;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
 
-.campaigns { margin: 1.5rem 0 0; padding: 0; list-style: none; }
+.section {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--parchment-dim);
+}
+
+.campaigns {
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.6rem;
+}
+/* Con spazio in orizzontale, due campagne per riga invece di una colonna
+   sottile persa in mezzo al vuoto. */
+@media (min-width: 48rem) {
+  .campaigns { grid-template-columns: repeat(2, 1fr); }
+}
 
 .campaign {
   position: relative;
@@ -274,7 +325,6 @@ body {
   background: color-mix(in srgb, var(--surface) 45%, transparent);
   transition: border-color 160ms var(--ease), background 160ms var(--ease);
 }
-.campaign + .campaign { margin-top: 0.5rem; }
 .campaign:hover,
 .campaign:focus-within {
   border-color: var(--edge-lit);

@@ -37,45 +37,54 @@ export default async function Home() {
     : [];
 
   return (
-    <main className="page">
-      <h1 className="title">
-        Runebog
-        <span className="title__kicker">GM · Diario del GM</span>
-      </h1>
-
+    <main className="page page--home">
       {!session?.user ? (
-        <>
-          <p className="lede">
-            Mappe gerarchiche, quest, encounter e schede mostro per le tue campagne.
-            Gratis, per sempre.
-          </p>
-          <p className="muted small">
-            Le campagne sono salvate sul tuo account: le riprendi da qualsiasi dispositivo.
-            Puoi sempre esportarle in JSON — sono tue.
-          </p>
+        <div className="hero">
+          <div className="hero__intro">
+            <h1 className="title">
+              Runebog
+              <span className="title__kicker">GM · Diario del GM</span>
+            </h1>
+            <p className="lede">
+              Mappe gerarchiche, quest, encounter e schede mostro per le tue campagne.
+              Gratis, per sempre.
+            </p>
+            <p className="muted small">
+              Le campagne sono salvate sul tuo account: le riprendi da qualsiasi dispositivo.
+              Puoi sempre esportarle in JSON — sono tue.
+            </p>
+          </div>
 
-          <form action={doSignIn} style={{ marginTop: "1.75rem" }}>
-            <button className="btn btn--block">Accedi con Google</button>
-          </form>
+          <div className="hero__auth">
+            <form action={doSignIn}>
+              <button className="btn btn--block">Accedi con Google</button>
+            </form>
 
-          <p className="divider">oppure, senza Google</p>
+            <p className="divider">oppure, senza Google</p>
 
-          <AuthForms />
-        </>
+            <AuthForms />
+          </div>
+        </div>
       ) : (
         <>
           <div className="bar">
-            <p className="muted" style={{ margin: 0 }}>
+            <h1 className="title title--sm">
+              Runebog
+              <span className="title__kicker">GM · Diario del GM</span>
+            </h1>
+            <p className="muted small" style={{ margin: 0 }}>
               Ciao, <strong style={{ color: "var(--parchment)", fontWeight: 400 }}>
                 {session.user.name}
               </strong>
+              {" · "}
+              <form action={doSignOut} style={{ display: "contents" }}>
+                <button className="linkbtn">Esci</button>
+              </form>
             </p>
-            <form action={doSignOut}>
-              <button className="btn btn--ghost">Esci</button>
-            </form>
           </div>
 
-          <div style={{ marginTop: "1.5rem" }}>
+          <div className="bar bar--flush">
+            <h2 className="section">Le tue campagne</h2>
             <form action={createCampaign}>
               <button className="btn btn--primary">+ Nuova campagna</button>
             </form>
