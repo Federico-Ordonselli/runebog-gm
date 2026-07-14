@@ -45,11 +45,14 @@ export const passwordResetTokens = pgTable("password_reset_token", {
   expires: timestamp("expires", { mode: "date" }).notNull(),
 });
 
-/* ---- le campagne: un JSONB per campagna, stesso formato di Esporta/Importa ---- */
+/* ---- le campagne: un JSONB per campagna, stesso formato di Esporta/Importa ----
+   shareToken: il link per il tavolo dei giocatori. Nullo = campagna non condivisa.
+   Rigenerarlo invalida di colpo tutti i link già distribuiti. */
 export const campaigns = pgTable("campaign", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull().default("Nuova campagna"),
   data: jsonb("data").notNull(),
+  shareToken: text("share_token").unique(),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
 });
