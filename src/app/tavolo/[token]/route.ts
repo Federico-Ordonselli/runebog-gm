@@ -1,5 +1,6 @@
 import { db } from "@/db";
 import { campaigns } from "@/db/schema";
+import { jsonForScript } from "@/lib/inline-json";
 import { projectForPlayers } from "@/lib/share";
 import { eq } from "drizzle-orm";
 import { readFile } from "fs/promises";
@@ -19,7 +20,9 @@ export async function GET(_: Request, { params }: { params: Promise<{ token: str
   if (!state) return new Response("Tavolo non trovato.", { status: 404 });
 
   const html = await readFile(path.join(process.cwd(), "public", "app.html"), "utf8");
-  const bridge = `<script>window.__table = ${JSON.stringify({
+  // jsonForScript, non JSON.stringify: un titolo con "</script>" scritto dal DM
+  // diventerebbe script eseguito nel browser dei giocatori.
+  const bridge = `<script>window.__table = ${jsonForScript({
     token, name: row.name, state,
   })};</script>`;
   const out = html.replace("<script>", bridge + "\n<script>");

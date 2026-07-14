@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { jsonForScript } from "@/lib/inline-json";
 import { db } from "@/db";
 import { campaigns } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
@@ -14,8 +15,9 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
   if (!row) return new Response("Campagna non trovata", { status: 404 });
 
   const html = await readFile(path.join(process.cwd(), "public", "app.html"), "utf8");
-  // inietto stato e id PRIMA dello script dell'app: il boot li troverà in window.__cloud
-  const bridge = `<script>window.__cloud = { id: ${JSON.stringify(row.id)}, state: ${JSON.stringify(row.data)} };</script>`;
+  // inietto stato e id PRIMA dello script dell'app: il boot li troverà in window.__cloud.
+  // jsonForScript: lo stato può contenere "</script>" (es. importato da un JSON altrui).
+  const bridge = `<script>window.__cloud = { id: ${jsonForScript(row.id)}, state: ${jsonForScript(row.data)} };</script>`;
   const out = html.replace("<script>", bridge + "\n<script>");
   return new Response(out, { headers: { "Content-Type": "text/html; charset=utf-8" } });
 }
