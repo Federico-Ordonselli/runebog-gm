@@ -54,6 +54,12 @@
 
   /* Alone dietro l'intestazione */
   --glow:        #17241c;
+
+  /* Generatore di dungeon: sulla mappa trappola e tana devono distinguersi
+     dal boss (--ember), tre rossi non bastano. Solo questi due sono nuovi:
+     gli altri tipi di stanza riusano i token qui sopra. */
+  --dg-trap:     #d9773f;
+  --dg-lair:     #c0563f;
 }
 
 /* ---------- Pergamena: carta invecchiata, inchiostro, ceralacca ----------
@@ -96,6 +102,9 @@
   --arcane:      #674591;
 
   --glow:        #f9f4e6;
+
+  --dg-trap:     #a34f1e;
+  --dg-lair:     #8e3527;
 }
 
 /* ---------- Cripta: pietra fredda, osso, fuoco fatuo ---------- */
@@ -210,4 +219,7 @@
   --arcane:      #dcb0ff;
 
   --glow:        #121212;
+
+  --dg-trap:     #ffab63;
+  --dg-lair:     #ff8f70;
 }

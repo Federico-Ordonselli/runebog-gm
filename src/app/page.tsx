@@ -130,6 +130,8 @@ export default async function Home() {
       {/* TODO: quando il repo GitHub sarà pubblico, aggiungi qui il link "Codice sorgente"
           (e rimetti la frase sul codice verificabile in fondo a /privacy). */}
       <p className="small">
+        <a href="/dungeon" className="link">Generatore di dungeon</a>
+        {" · "}
         <a href="/privacy" className="link link--quiet">Privacy</a>
         {" · "}
         <a href={`mailto:${CONTACT_EMAIL}`} className="link link--quiet">Scrivimi</a>

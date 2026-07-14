@@ -1,0 +1,150 @@
+/* Generatore di dungeon — caricato solo dalla rotta /dungeon (import in page.tsx).
+   Come in globals.css: qui solo misure e impianto, i colori vengono dai token
+   di public/themes.css. I controlli riusano .btn/.input/.field/.tabs/.card. */
+
+/* La mappa chiede respiro: più largo di ogni altra pagina del sito. */
+.dg-page { max-width: 75rem; }
+
+.dg-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.1rem;
+  align-items: flex-start;
+  margin-top: 1.25rem;
+}
+
+/* I controlli restano a portata di mano mentre scorri le stanze. */
+.dg-controls {
+  flex: 1 1 16rem;
+  min-width: 15rem;
+  position: sticky;
+  top: 0.75rem;
+  margin-top: 0;
+}
+@media (max-width: 52rem) {
+  .dg-controls { position: static; }
+}
+
+.dg-main {
+  flex: 3 1 30rem;
+  min-width: 19rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.dg-main > .card { margin-top: 0; }
+
+.dg-row { display: flex; gap: 0.5rem; }
+.dg-row > .field { flex: 1; margin-top: 0; }
+.dg-row > .input { flex: 1; }
+
+.dg-range { width: 100%; margin-top: 0.55rem; accent-color: var(--moss); }
+
+.dg-dice { flex: 0 0 auto; margin-top: 0.3rem; font-size: 1.1rem; color: var(--lantern); }
+
+.dg-tabs { margin-top: 0.3rem; }
+.dg-tabs .tab { flex: 1; font-size: 0.8rem; padding: 0.45rem 0.4rem; }
+
+.dg-actions { display: grid; gap: 0.5rem; margin-top: 1.25rem; }
+.dg-copied { color: var(--moss); }
+.dg-note { line-height: 1.6; }
+.dg-note code { font-size: 0.85em; }
+
+/* ---------- Mappa ---------- */
+
+.dg-mapwrap { padding: 0.75rem; overflow: auto; }
+.dg-svg { width: 100%; height: auto; display: block; max-height: 70vh; }
+.dg-svgroom { cursor: pointer; }
+.dg-svgroom:hover rect { fill-opacity: 0.3; }
+
+.dg-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.9rem;
+  margin-top: 0.7rem;
+  font-size: 0.72rem;
+  color: var(--parchment-dim);
+}
+.dg-legend__item { display: inline-flex; align-items: center; gap: 0.35rem; }
+.dg-legend__dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 3px;
+  border: 1px solid;
+}
+.dg-legend__dot--round { border-radius: 50%; }
+.dg-legend__break { width: 100%; height: 0; }
+
+/* ---------- Riepilogo ---------- */
+
+.dg-summary { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.dg-stat { flex: 1 1 5rem; }
+.dg-stat__v { font-size: 1.25rem; color: var(--lantern); }
+.dg-stat__k {
+  margin-top: 0.1rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--parchment-dim);
+}
+
+/* ---------- Stanze ---------- */
+
+.dg-rooms { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.dg-card {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--edge-soft);
+  border-left: 4px solid;
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  cursor: pointer;
+  transition: border-color 160ms var(--ease), background 160ms var(--ease);
+}
+.dg-card:hover { border-color: var(--edge-lit); background: var(--surface); }
+.dg-card--sel { box-shadow: 0 0 0 2px var(--wisp); }
+
+.dg-card__head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.dg-card__idx { font-size: 1.05rem; font-weight: 700; }
+.dg-card__name { font-size: 1rem; color: var(--parchment); }
+.dg-card__desc { margin: 0.4rem 0 0.6rem; font-style: italic; color: var(--parchment-dim); font-size: 0.9rem; }
+
+.dg-badge {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid;
+  border-radius: 20px;
+  padding: 0.1rem 0.55rem;
+}
+
+.dg-sec { border-top: 1px solid var(--edge-soft); padding-top: 0.55rem; margin-top: 0.55rem; }
+.dg-sec__h {
+  margin-bottom: 0.35rem;
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.dg-list { margin: 0.25rem 0; padding-left: 1.1rem; font-size: 0.88rem; }
+.dg-list li { margin: 0.15rem 0; }
+
+.dg-tags { margin-top: 0.3rem; }
+.dg-tag {
+  display: inline-block;
+  border: 1px solid var(--edge);
+  border-radius: 5px;
+  padding: 0.05rem 0.45rem;
+  margin: 0.15rem 0.3rem 0.15rem 0;
+  font-size: 0.78rem;
+}
+
+.dg-bar {
+  height: 6px;
+  background: var(--peat-sunk);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 0.15rem 0 0.5rem;
+}
+.dg-bar__fill { height: 100%; border-radius: 4px; }
