@@ -1,6 +1,7 @@
 node_modules/
 .next/
 .env
+CLAUDE.md
 .env*.local
 next-env.d.ts
 *.tsbuildinfo
