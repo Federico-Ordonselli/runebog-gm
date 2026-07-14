@@ -7,7 +7,7 @@ import { DeleteCampaignButton } from "./delete-campaign-button";
 import { AuthForms } from "./auth-forms";
 import { DeleteAccount } from "./delete-account";
 import { newCampaignData } from "@/lib/campaigns";
-import { CONTACT_EMAIL, DONATE_URL } from "@/lib/site";
+import { CONTACT_EMAIL, DONATE_URL, REPO_URL } from "@/lib/site";
 
 const NOME_INIZIALE = "Nuova campagna";
 
@@ -127,10 +127,11 @@ export default async function Home() {
            target="_blank" rel="noopener noreferrer">☕ Offrimi un caffè</a>{" "}
         — il sito resta gratuito per tutti.
       </p>
-      {/* TODO: quando il repo GitHub sarà pubblico, aggiungi qui il link "Codice sorgente"
-          (e rimetti la frase sul codice verificabile in fondo a /privacy). */}
       <p className="small">
         <a href="/dungeon" className="link">Generatore di dungeon</a>
+        {" · "}
+        <a href={REPO_URL} className="link link--quiet"
+           target="_blank" rel="noopener noreferrer">Codice sorgente</a>
         {" · "}
         <a href="/privacy" className="link link--quiet">Privacy</a>
         {" · "}

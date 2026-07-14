@@ -1,4 +1,4 @@
-import { CONTACT_EMAIL } from "@/lib/site";
+import { CONTACT_EMAIL, REPO_URL } from "@/lib/site";
 
 export const metadata = { title: "Privacy — Runebog GM" };
 
@@ -93,10 +93,12 @@ export default function Privacy() {
       </p>
 
       <hr className="rule" />
-      {/* TODO: quando il repo GitHub sarà pubblico, riaggiungi qui che il codice è
-          verificabile da chiunque — oggi è privato, quindi non lo affermiamo. */}
       <p className="muted small">
-        Runebog GM è un progetto gratuito e senza scopo di lucro.
+        Runebog GM è un progetto gratuito e senza scopo di lucro. Il{" "}
+        <a href={REPO_URL} className="link" target="_blank" rel="noopener noreferrer">
+          codice sorgente
+        </a>{" "}
+        è pubblico: quello che leggi qui è verificabile da chiunque.
       </p>
     </main>
   );
