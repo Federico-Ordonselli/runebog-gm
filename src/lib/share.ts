@@ -44,13 +44,31 @@ function projectCombat(m: Node | undefined) {
   if (!foes.length) return undefined;
   return {
     foes: foes.map((f: Node) => ({
-      id: String(f.id ?? ""),
+      id: safeId(f.id),
       name: String(f.name ?? "Nemico"),
       state: foeState(Number(f.hp) || 0, Number(f.hpMax) || 0),
     })),
     alive: foes.filter((f: Node) => (Number(f.hp) || 0) > 0).length,
     total: foes.length,
   };
+}
+
+/**
+ * I campi che il client interpola DENTRO attributi HTML (onclick="jumpTo('${id}')",
+ * src="${img}", style="fill:${tokenColor}", translate(${x},${y})): l'escape del
+ * client copre solo il testo, quindi qui si stringono a forme che da un attributo
+ * non possono uscire. Un valore che non rispetta la forma si perde, non si ripara.
+ */
+const safeId = (v: unknown) => String(v ?? "").replace(/[^\w-]/g, "");
+const num = (v: unknown, alt: number | null = null) =>
+  Number.isFinite(Number(v)) ? Number(v) : alt;
+const safeColor = (v: unknown) =>
+  /^#[0-9a-f]{3,8}$/i.test(String(v)) ? String(v) : null;
+function safeUrl(v: unknown) {
+  const s = String(v ?? "");
+  if (!/^(data:image\/|https?:\/\/)/i.test(s)) return null;   // niente javascript: e parenti
+  if (/[\s"'<>`]/.test(s)) return null;                       // niente uscite dall'attributo
+  return s;
 }
 
 /**
@@ -66,26 +84,37 @@ function projectNode(n: Node): Node {
   const visibleIds = new Set(kids.map((c: Node) => c.id));
 
   const out: Node = {
-    id: n.id,
-    title: n.title ?? "",
-    type: n.type ?? "zona",
+    id: safeId(n.id),
+    title: String(n.title ?? ""),
+    type: String(n.type ?? "zona"),              // il client la usa solo come chiave di lookup
     status: "",                                  // "da fare / in corso" è preparazione del DM
-    notes: n.playerNotes ?? "",                  // ← MAI n.notes
-    img: n.img ?? null,
+    notes: String(n.playerNotes ?? ""),          // ← MAI n.notes
+    img: safeUrl(n.img),
     children: kids,
     // una strada si vede solo se si vedono entrambe le sue estremità: altrimenti
     // sarebbe una freccia verso un luogo che i giocatori non dovrebbero sapere che esiste
     edges: (Array.isArray(n.edges) ? n.edges : [])
-      .filter((e: Node) => visibleIds.has(e.a) && visibleIds.has(e.b))
-      .map((e: Node) => ({ id: e.id, a: e.a, b: e.b, type: e.type, label: e.label ?? "", notes: "" })),
-    x: n.x ?? null,
-    y: n.y ?? null,
-    shape: n.shape ?? null,
+      .filter((e: Node) => visibleIds.has(safeId(e.a)) && visibleIds.has(safeId(e.b)))
+      .map((e: Node) => ({
+        id: safeId(e.id), a: safeId(e.a), b: safeId(e.b),
+        type: String(e.type ?? ""), label: String(e.label ?? ""), notes: "",
+      })),
+    x: num(n.x),
+    y: num(n.y),
+    shape: n.shape != null ? String(n.shape) : null,
   };
-  if (n.w) out.w = n.w;
-  if (n.h) out.h = n.h;
-  if (n.tokenColor) out.tokenColor = n.tokenColor;
-  if (n.bg) out.bg = n.bg;                       // lo sfondo è la mappa disegnata: è il senso di tutto
+  const w = num(n.w), h = num(n.h);
+  if (w) out.w = w;
+  if (h) out.h = h;
+  const tokenColor = safeColor(n.tokenColor);
+  if (tokenColor) out.tokenColor = tokenColor;
+  const bgImg = safeUrl(n.bg?.img);              // lo sfondo è la mappa disegnata: è il senso di tutto
+  if (bgImg) out.bg = {
+    img: bgImg,
+    x: num(n.bg.x, 0), y: num(n.bg.y, 0),
+    w: num(n.bg.w, 0), h: num(n.bg.h, 0),
+    opacity: num(n.bg.opacity, 0.6),
+  };
 
   const combat = projectCombat(n.monster);
   if (combat) out.combat = combat;
@@ -104,8 +133,10 @@ export function projectForPlayers(data: Node | null | undefined) {
     root,
     checklist: [],                               // la checklist è la lista della spesa del DM
     players: (Array.isArray(data.players) ? data.players : []).map((p: Node) => ({
-      id: p.id, name: p.name ?? "", cls: p.cls ?? "",
-      hp: p.hp, hpMax: p.hpMax, notes: p.notes ?? "",   // le schede dei PG sono loro: passano intere
+      id: safeId(p.id), name: String(p.name ?? ""), cls: String(p.cls ?? ""),
+      // le schede dei PG sono loro: passano intere. Ma i PF sono interpolati
+      // come numeri nella scheda: una stringa lì dentro sarebbe HTML.
+      hp: num(p.hp, 0), hpMax: num(p.hpMax, 0), notes: String(p.notes ?? ""),
     })),
   };
 }
