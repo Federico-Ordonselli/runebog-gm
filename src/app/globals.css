@@ -92,6 +92,55 @@ body {
 }
 
 .lede { margin: 0.9rem 0 0; }
+
+/* ---------- Anteprima dell'editor (landing) ---------- */
+
+/* Tutta la vignetta è un unico link a /app.html: il nome accessibile è la CTA
+   testuale, l'SVG dentro è decorativo (aria-hidden nel componente). */
+.demo {
+  display: block;
+  max-width: 34rem;
+  margin-top: 1.6rem;
+  text-decoration: none;
+}
+.demo__frame {
+  display: block;
+  border: 1px solid var(--edge);
+  border-radius: var(--r-md);
+  background: var(--peat-sunk);
+  overflow: hidden;
+  transition: border-color 160ms var(--ease);
+}
+.demo:hover .demo__frame,
+.demo:focus-visible .demo__frame { border-color: var(--edge-lit); }
+.demo__frame svg { display: block; width: 100%; height: auto; }
+
+.demo__cta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
+  color: var(--wisp);
+  font-size: 1.05rem;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--wisp) 40%, transparent);
+  text-underline-offset: 3px;
+}
+.demo:hover .demo__cta { color: var(--wisp-lit); }
+.demo__arrow { transition: transform 160ms var(--ease); }
+.demo:hover .demo__arrow { transform: translateX(3px); }
+
+.demo__note { max-width: 34rem; margin-top: 0.6rem; }
+
+/* Il tratteggio del passaggio segreto cammina, piano: un accenno di vita,
+   non un'insegna. Periodo del dash 2+7=9, offset -18 = due passi interi. */
+.demo__segreto { animation: demo-marcia 2.6s linear infinite; }
+@keyframes demo-marcia { to { stroke-dashoffset: -18; } }
+/* La regola globale accorcia le animazioni a 0.01ms ma questa è infinita:
+   la spengo del tutto, sennò ripartirebbe in loop stretto. */
+@media (prefers-reduced-motion: reduce) {
+  .demo__segreto { animation: none; }
+}
 .muted { color: var(--parchment-dim); }
 .small { font-size: 0.86rem; }
 

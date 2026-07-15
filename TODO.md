@@ -2,8 +2,6 @@
 
 Dal report UX del 15 lug 2026 (`.impeccable/critique/`, baseline 29/40), in ordine:
 
-- [ ] **Landing e funnel (`/impeccable onboard`)** — mostrare il prodotto (visual o
-  demo nella colonna vuota) e link "Provala senza account →" a `/app.html`.
 - [ ] **Microcopy (`/impeccable clarify`)** — nomenclatura bolla/blocco unificata,
   `alert()` nativi → dialog custom, placeholder mobile troncato ("Cerca… (Ctrl"),
   elenco scorciatoie raggiungibile.
@@ -13,6 +11,19 @@ Dal report UX del 15 lug 2026 (`.impeccable/critique/`, baseline 29/40), in ordi
 - [ ] **Rifinitura (`/impeccable polish`)** — favicon di `app.html`, mini-preview più
   contrastata, % testuale sulla barra XP del dungeon, transizioni `width`→`scaleX`
   sulle barre HP; poi rilanciare `/impeccable critique` per misurare il progresso.
+
+- [x] **Landing e funnel (giro `/impeccable onboard`)** — fatto (15 lug 2026), il P2
+  "landing senza prodotto né porta senza account" del report UX:
+  - Anteprima dell'editor sulla landing: vignetta SVG disegnata coi token di
+    `themes.css` (`src/app/anteprima-editor.tsx`), non uno screenshot — stessa
+    grammatica visiva di `mappa.js` (bolla-zona con mini-preview dei figli,
+    strada/ponte/segreto, status dot forma+colore, glow di lanterna sul
+    condiviso) e la mini-preview mostra cosa significa "mappe gerarchiche".
+  - L'intera vignetta è un link a `/app.html` con CTA "Provala senza account →"
+    (l'editor standalone su localStorage esisteva già, mancava la porta); nota
+    sotto: la zona contiene i luoghi, senza account si salva sul dispositivo.
+  - Verificato con Chromium: desktop e mobile (dove la CTA precede i form di
+    registrazione), clic → l'app parte con i distretti demo.
 
 - [x] **Robustezza editor (giro `/impeccable harden`)** — fatto (15 lug 2026), i due
   P1 del report UX:

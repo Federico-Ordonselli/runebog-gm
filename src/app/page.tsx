@@ -5,6 +5,7 @@ import { desc, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { DeleteCampaignButton } from "./delete-campaign-button";
 import { AuthForms } from "./auth-forms";
+import { AnteprimaEditor } from "./anteprima-editor";
 import { DeleteAccount } from "./delete-account";
 import { newCampaignData } from "@/lib/campaigns";
 import { CONTACT_EMAIL, DONATE_URL, REPO_URL } from "@/lib/site";
@@ -49,6 +50,15 @@ export default async function Home() {
             <p className="muted small">
               Le campagne sono salvate sul tuo account: le riprendi da qualsiasi dispositivo.
               Puoi sempre esportarle in JSON — sono tue.
+            </p>
+
+            {/* Il prodotto prima della registrazione: l'anteprima è la porta
+                d'ingresso senza account (l'editor gira già standalone). */}
+            <AnteprimaEditor />
+            <p className="muted small demo__note">
+              Ogni bolla si apre su un'altra mappa: la zona contiene i luoghi, il luogo
+              le stanze. Senza account l'editor salva su questo dispositivo; con
+              l'account ritrovi le campagne ovunque.
             </p>
           </div>
 
