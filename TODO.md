@@ -1,5 +1,44 @@
 # To-do
 
+Dal report UX del 15 lug 2026 (`.impeccable/critique/`, baseline 29/40), in ordine:
+
+- [ ] **Robustezza editor (`/impeccable harden`)** — i due P1 rimasti: undo con
+  snapshot-stack (lo stato è già un JSON unico; Ctrl+Z in `scorciatoie.js`, cap ~20)
+  e accessibilità da tastiera della mappa (tabindex/role/aria su bolle SVG e palette,
+  `aria-live` su `#savestate`, `role="tab"` sui tab, Ctrl+K anche con focus nei campi,
+  avviso proattivo sul limite 4 MB).
+- [ ] **Landing e funnel (`/impeccable onboard`)** — mostrare il prodotto (visual o
+  demo nella colonna vuota) e link "Provala senza account →" a `/app.html`.
+- [ ] **Microcopy (`/impeccable clarify`)** — nomenclatura bolla/blocco unificata,
+  `alert()` nativi → dialog custom, placeholder mobile troncato ("Cerca… (Ctrl"),
+  elenco scorciatoie raggiungibile.
+- [ ] **Layout (`/impeccable layout`)** — side-stripe delle card dungeon (pattern
+  bandito), topbar mobile su 3 righe (Esporta/Importa in menu), progressive
+  disclosure nel pannello dettagli, gradino tipografico 18/19px.
+- [ ] **Rifinitura (`/impeccable polish`)** — favicon di `app.html`, mini-preview più
+  contrastata, % testuale sulla barra XP del dungeon, transizioni `width`→`scaleX`
+  sulle barre HP; poi rilanciare `/impeccable critique` per misurare il progresso.
+
+- [x] **Contrasto e palette a token (giro `/impeccable colorize`)** — fatto (15 lug 2026),
+  dal report UX in `.impeccable/critique/` (baseline 29/40, dual-agent):
+  - CTA `.btn.primary` dell'app allineata alla ricetta del sito (`--fen` pieno):
+    era sotto 4.5:1 nei tre temi scuri (`public/app/app.css`).
+  - Nuovo token `--moss-hov` per l'hover dell'accento: nei temi scuri schiarisce,
+    in Pergamena scurisce (schiarire toglieva contrasto); usato da app e sito.
+  - `--parchment-mute` (placeholder) schiarito/scurito nei 4 temi atmosferici:
+    ora ≥4.5:1 su `--peat-sunk` (prima 3.6–4.0).
+  - Stroke dei collegamenti mappa a token: nuovi `--track`/`--tunnel` per tema,
+    bloccata/ponte/segreto riusano `--ember`/`--wisp`/`--arcane`
+    (`modello.js`; in Pergamena la strada era a 1.58:1, invisibile). Vincolo
+    documentato: gli stroke vanno in `style=`, gli attributi SVG non risolvono `var()`.
+  - Griglia della tela a token `--grid` (deriva da `--moss` via `color-mix`),
+    barra PF dei nemici su `--fen`/`--gold`/`--ember` (`mostri.js`),
+    `--on-ember` al posto del `#fff` in `globals.css`.
+  - Status dot: lo stato non è più solo colore — "da fare" anello, "in corso"
+    disco, "fatto" disco con spunta (`mappa.js`).
+  - Verificato a schermo (Torbiera + Pergamena) con sonde di contrasto sui
+    computed style. I punti restanti del report sono le voci aperte qui sopra.
+
 - [x] **Migrazioni drizzle-kit al posto di db:push** — fatto (15 lug 2026): schema
   versionato in `drizzle/` con baseline `0000_iniziale` (generata dallo schema attuale e
   marcata come già applicata inserendo a mano la riga in `drizzle.__drizzle_migrations`,
@@ -12,6 +51,9 @@
   insert/select falliva con 42703 (sito bloccato dopo il login). Applicato SQL esplicito
   (`db:push` è rotto, vedi CLAUDE.md): `ADD COLUMN share_token text` + constraint
   `campaign_share_token_unique`, nome identico a quello che genererebbe drizzle-kit.
+  Secondo round: il primo fix era finito solo sul branch Neon `dev` (quello del `.env`
+  locale) — riapplicato su `production` (baseline migrazioni incluso), che è il branch
+  usato dal sito. D'ora in poi ogni migrazione va su entrambi i branch.
 
 - [x] **Chiudere le 3 vulnerabilità Dependabot** — fatto (15 lug 2026): drizzle-orm
   0.38 → 0.45.2 (high, SQL injection — non eravamo sfruttabili: schema statico, nessun

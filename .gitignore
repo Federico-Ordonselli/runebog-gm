@@ -1,5 +1,7 @@
 node_modules/
 .next/
+# cache locale del detector impeccable (i report in critique/ invece si versionano)
+.impeccable/hook.cache.json
 .env
 CLAUDE.md
 .env*.local

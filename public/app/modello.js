@@ -20,12 +20,15 @@ export const SHAPES = {
   piazza:   {label:"Piazza",    w:110, h:110, circle:true},
   torre:    {label:"Torre",     w:80,  h:80,  diamond:true}
 };
+/* Gli stroke sono token di tema (in Pergamena i valori fissi sparivano, 1.6:1
+   sulla carta) e vanno applicati via style="stroke:…", mai come attributo SVG
+   stroke="…": gli attributi di presentazione non risolvono var(). */
 export const EDGE_TYPES = {
-  strada:   {label:"Strada",            stroke:"#c9b98a", dash:"",     w:5},
-  bloccata: {label:"Strada bloccata",   stroke:"#d0765a", dash:"11 8", w:5, blocked:true},
-  ponte:    {label:"Ponte",             stroke:"#6cc3c9", dash:"",     w:7, double:true},
-  segreto:  {label:"Passaggio segreto", stroke:"#b393c9", dash:"2 7",  w:3},
-  tunnel:   {label:"Tunnel / fogna",    stroke:"#9a7d54", dash:"14 6", w:4}
+  strada:   {label:"Strada",            stroke:"var(--track)",  dash:"",     w:5},
+  bloccata: {label:"Strada bloccata",   stroke:"var(--ember)",  dash:"11 8", w:5, blocked:true},
+  ponte:    {label:"Ponte",             stroke:"var(--wisp)",   dash:"",     w:7, double:true},
+  segreto:  {label:"Passaggio segreto", stroke:"var(--arcane)", dash:"2 7",  w:3},
+  tunnel:   {label:"Tunnel / fogna",    stroke:"var(--tunnel)", dash:"14 6", w:4}
 };
 export const MARKER_R = 15;
 export const STATUS_COLORS = {"da fare":"var(--grigio)","in corso":"var(--gold)","fatto":"var(--fen)"};

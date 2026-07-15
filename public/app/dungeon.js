@@ -35,6 +35,9 @@ function dungeonBgImage(g){
         doors += `<rect x="${x*S+7}" y="${y*S+7}" width="${S-14}" height="${S-14}"/>`;
     }
   }
+  // Hex fissi obbligati: questo SVG diventa un'immagine data-URI (documento a
+  // sé), dove i token var(--…) della pagina non esistono. È l'eccezione, non
+  // il modello: nel DOM della pagina i colori passano dai token del tema.
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${g.width*S} ${g.height*S}">`
     + `<g fill="#8a8f98" fill-opacity="0.45">${rects}</g>`
     + `<g fill="#d8b25a" fill-opacity="0.9">${doors}</g></svg>`;

@@ -89,7 +89,7 @@ export function showCtxFor(target, cx, cy){
   const items = [
     {head:"Nuovo blocco qui"},
     ...Object.entries(SHAPES).map(([k,s])=>({
-      id:"sh-"+k, label:s.label, dot:"#6cc3c9",
+      id:"sh-"+k, label:s.label, dot:"var(--teal)",
       run:()=>addSpatialChild({shape:k}, p.x, p.y)
     })),
     "---",

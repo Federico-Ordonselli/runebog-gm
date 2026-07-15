@@ -10,6 +10,7 @@
     --ink-dim:  var(--parchment-dim);
     --fen:      var(--moss);
     --fen-dim:  var(--moss-deep);
+    --fen-hov:  var(--moss-hov);
     --gold:     var(--lantern);
     /* --ember ha già lo stesso nome nei token condivisi: ridichiararlo come
        var(--ember) sarebbe un riferimento circolare, e si annullerebbe. */
@@ -58,8 +59,10 @@
     background:var(--panel);color:var(--ink);font-size:13px;
   }
   .btn:hover{border-color:var(--fen-dim);color:var(--fen)}
-  .btn.primary{background:var(--fen-dim);border-color:var(--fen-dim);color:var(--bog);font-weight:600}
-  .btn.primary:hover{background:var(--fen);color:var(--bog)}
+  /* Stessa ricetta del sito (--moss pieno): su --fen-dim il testo scendeva
+     sotto 4.5:1 in tutti i temi scuri — ed è la CTA principale. */
+  .btn.primary{background:var(--fen);border-color:var(--fen);color:var(--bog);font-weight:600}
+  .btn.primary:hover{background:var(--fen-hov);border-color:var(--fen-hov);color:var(--bog)}
   .btn.danger:hover{border-color:var(--ember);color:var(--ember)}
 
   /* ---------- layout ---------- */

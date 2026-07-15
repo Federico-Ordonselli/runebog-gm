@@ -139,7 +139,7 @@ body {
   color: var(--peat);
   font-weight: 600;
 }
-.btn--primary:hover { background: var(--moss-lit); border-color: var(--moss-lit); }
+.btn--primary:hover { background: var(--moss-hov); border-color: var(--moss-hov); }
 
 /* Smorzato finché non lo sfiori, poi vira alla brace: è pur sempre un'azione
    distruttiva, e non deve gridare finché non la stai per usare. */
@@ -157,7 +157,7 @@ body {
 .btn--danger {
   background: var(--ember-deep);
   border-color: var(--ember-edge-lit);
-  color: #fff;
+  color: var(--on-ember);
 }
 .btn--danger:hover { background: var(--ember-lit); border-color: var(--ember-hov); }
 

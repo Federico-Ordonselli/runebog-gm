@@ -122,8 +122,18 @@ function shapeMarkup(n, box, col){
   if(s.diamond) return `<polygon class="blk-shape" points="${box.w/2},0 ${box.w},${box.h/2} ${box.w/2},${box.h} 0,${box.h/2}" style="--c:${col}"/>`;
   return `<rect class="blk-shape" width="${box.w}" height="${box.h}" rx="10" style="--c:${col}"/>`;
 }
-const statusDot = (x,y,st_) =>
-  `<circle cx="${x}" cy="${y}" r="5.5" style="fill:${STATUS_COLORS[st_]||"var(--grigio)"};stroke:var(--bog)" stroke-width="2" pointer-events="none"/>`;
+/* Lo stato non viaggia mai solo sul colore (oro e verde si confondono per un
+   daltonico deutan): "da fare" è un anello vuoto, "in corso" un disco pieno,
+   "fatto" un disco con la spunta. */
+function statusDot(x,y,st_){
+  const col = STATUS_COLORS[st_]||"var(--grigio)";
+  if(st_==="da fare")
+    return `<circle cx="${x}" cy="${y}" r="5" style="fill:var(--bog);stroke:${col}" stroke-width="2.5" pointer-events="none"/>`;
+  if(st_==="fatto")
+    return `<g pointer-events="none"><circle cx="${x}" cy="${y}" r="5.5" style="fill:${col};stroke:var(--bog)" stroke-width="2"/>`+
+           `<path d="M${x-2.6} ${y+0.2}l1.9 2 3.4-4" fill="none" style="stroke:var(--bog)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+  return `<circle cx="${x}" cy="${y}" r="5.5" style="fill:${col};stroke:var(--bog)" stroke-width="2" pointer-events="none"/>`;
+}
 
 /* anteprima in miniatura del contenuto di un blocco (i "collegamenti fatti" visti da fuori) */
 function miniPreview(n, box){
@@ -143,7 +153,7 @@ function miniPreview(n, box){
     const a = kids.find(c=>c.id===e.a), b = kids.find(c=>c.id===e.b);
     if(!a||!b) continue;
     const A=nodeCenter(a), B=nodeCenter(b), t=EDGE_TYPES[e.type]||EDGE_TYPES.strada;
-    out += `<line x1="${A.x*k+ox}" y1="${A.y*k+oy}" x2="${B.x*k+ox}" y2="${B.y*k+oy}" stroke="${t.stroke}" stroke-width="1.5"${t.dash?` stroke-dasharray="3 3"`:""}/>`;
+    out += `<line x1="${A.x*k+ox}" y1="${A.y*k+oy}" x2="${B.x*k+ox}" y2="${B.y*k+oy}" style="stroke:${t.stroke}" stroke-width="1.5"${t.dash?` stroke-dasharray="3 3"`:""}/>`;
   }
   for(const c of kids){
     const col = (TYPES[c.type]||TYPES.nota).color;
@@ -172,7 +182,7 @@ export function renderCanvas(){
 
   let out = `<defs>
     <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-      <path d="M40 0H0V40" fill="none" stroke="rgba(143,212,168,.07)" stroke-width="1"/>
+      <path d="M40 0H0V40" fill="none" style="stroke:var(--grid)" stroke-width="1"/>
     </pattern>
   </defs>
   <rect x="${planVB.x-6000}" y="${planVB.y-6000}" width="14000" height="14000" fill="url(#grid)" data-bg="1"/>`;
@@ -197,11 +207,11 @@ export function renderCanvas(){
     out += `<g class="edge${sel?" sel":""}" data-edge="${e.id}">
       <line class="edge-hit" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"/>
       <line class="edge-line" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"
-        stroke="${t.stroke}" stroke-width="${t.w}"${t.dash?` stroke-dasharray="${t.dash}"`:""} stroke-linecap="round"/>`;
+        style="stroke:${t.stroke}" stroke-width="${t.w}"${t.dash?` stroke-dasharray="${t.dash}"`:""} stroke-linecap="round"/>`;
     if(t.double)
       out += `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" style="stroke:var(--bog)" stroke-width="2" pointer-events="none"/>`;
     if(t.blocked)
-      out += `<g stroke="${t.stroke}" stroke-width="4" stroke-linecap="round" pointer-events="none">
+      out += `<g style="stroke:${t.stroke}" stroke-width="4" stroke-linecap="round" pointer-events="none">
         <line x1="${mx-9}" y1="${my-9}" x2="${mx+9}" y2="${my+9}"/>
         <line x1="${mx-9}" y1="${my+9}" x2="${mx+9}" y2="${my-9}"/></g>`;
     if(e.label)

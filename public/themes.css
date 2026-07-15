@@ -24,15 +24,19 @@
   --edge-soft:   #1f2a24;
   --edge-lit:    #3d4f43;
 
-  /* Testo */
+  /* Testo. --parchment-mute è il colore dei placeholder: deve reggere
+     4.5:1 sul fondo dei campi (--peat-sunk), in ogni tema. */
   --parchment:      #e8e3d8;
   --parchment-dim:  #9aa69d;
-  --parchment-mute: #6b756e;
+  --parchment-mute: #7f8b82;
 
   /* Accento primario (+ stato acceso e variante scura per barre e riempimenti) */
   --moss:        #8fd4a8;
   --moss-lit:    #a2e0b8;
   --moss-deep:   #4d7a5f;
+  /* Hover dell'accento: nei temi scuri schiarisce (risolve sul --moss-lit del
+     tema attivo); Pergamena lo ridefinisce perché lì schiarire toglie contrasto. */
+  --moss-hov:    var(--moss-lit);
 
   /* Accento secondario: link, collegamenti */
   --wisp:        #6cc3c9;
@@ -41,7 +45,9 @@
   /* Evidenza: selezione sulla mappa, donazione */
   --lantern:     #d8b25a;
 
-  /* Distruttivo */
+  /* Distruttivo (+ testo sopra --ember-deep: il bianco regge in tutti e
+     cinque i temi, ≥6.7:1, ma la scelta vive qui e non nei componenti) */
+  --on-ember:       #ffffff;
   --ember:          #e0785f;
   --ember-deep:     #8a3a2a;
   --ember-lit:      #9d4531;
@@ -60,6 +66,13 @@
      gli altri tipi di stanza riusano i token qui sopra. */
   --dg-trap:     #d9773f;
   --dg-lair:     #c0563f;
+
+  /* Mappa: strada e tunnel hanno tinte proprie (bloccata, ponte e segreto
+     riusano --ember, --wisp e --arcane); la griglia della tela deriva
+     dall'accento del tema attivo, così si adatta da sola. */
+  --track:       #c9b98a;
+  --tunnel:      #9a7d54;
+  --grid:        color-mix(in srgb, var(--moss) 9%, transparent);
 }
 
 /* ---------- Pergamena: carta invecchiata, inchiostro, ceralacca ----------
@@ -81,11 +94,12 @@
 
   --parchment:      #2b2620;
   --parchment-dim:  #63543f;
-  --parchment-mute: #7d6c54;
+  --parchment-mute: #6a5a43;
 
   --moss:        #2f6b47;
   --moss-lit:    #3a815a;
   --moss-deep:   #245239;
+  --moss-hov:    #245239;
 
   --wisp:        #1d6469;
   --wisp-lit:    #2a8288;
@@ -105,6 +119,11 @@
 
   --dg-trap:     #a34f1e;
   --dg-lair:     #8e3527;
+
+  /* Sulla carta chiara le tinte sabbia di strade e tunnel sparirebbero
+     (1.6:1): qui virano all'inchiostro, come il resto del tema. */
+  --track:       #8a7340;
+  --tunnel:      #6d5a35;
 }
 
 /* ---------- Cripta: pietra fredda, osso, fuoco fatuo ---------- */
@@ -121,7 +140,7 @@
 
   --parchment:      #e4e7ec;
   --parchment-dim:  #9ba5b3;
-  --parchment-mute: #6d7784;
+  --parchment-mute: #7c8695;
 
   --moss:        #a6bcf4;
   --moss-lit:    #c2d1f8;
@@ -142,6 +161,9 @@
   --arcane:      #b393c9;
 
   --glow:        #16202c;
+
+  /* --dg-trap, --dg-lair, --track e --tunnel: ereditati di proposito da
+     Torbiera — su questo fondale scuro reggono senza ritocchi. */
 }
 
 /* ---------- Brace: notte rossastra, rame, tizzone ---------- */
@@ -158,7 +180,7 @@
 
   --parchment:      #f0e2d2;
   --parchment-dim:  #b39d88;
-  --parchment-mute: #85705f;
+  --parchment-mute: #97816f;
 
   --moss:        #d99a4e;
   --moss-lit:    #edb066;
@@ -182,6 +204,9 @@
   --arcane:      #b393c9;
 
   --glow:        #2a1810;
+
+  /* --dg-trap, --dg-lair, --track e --tunnel: ereditati di proposito da
+     Torbiera — su questo fondale scuro reggono senza ritocchi. */
 }
 
 /* ---------- Alto contrasto: non un'atmosfera, un'esigenza ---------- */
@@ -222,4 +247,7 @@
 
   --dg-trap:     #ffab63;
   --dg-lair:     #ff8f70;
+
+  --track:       #ffe08a;
+  --tunnel:      #d9b56f;
 }

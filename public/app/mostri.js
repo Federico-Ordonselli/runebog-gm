@@ -9,6 +9,11 @@ import { renderDetail, editNode } from "./pannello.js";
 const ABILITIES = [["str","FOR"],["dex","DES"],["con","COS"],["int","INT"],["wis","SAG"],["cha","CAR"]];
 const abMod = v => { const m = Math.floor(((+v||10)-10)/2); return (m>=0?"+":"")+m; };
 
+// Token, non hex fissi: i vecchi valori di Torbiera sulla carta di Pergamena
+// scendevano a 1.5:1 e la barra spariva. La soglia resta accompagnata dal
+// numero PF accanto: il colore non è mai l'unica informazione.
+const hpColor = pct => pct>50 ? "var(--fen)" : pct>25 ? "var(--gold)" : "var(--ember)";
+
 export function newFoe(name="Nemico", hp=10){ return {id:uid(), name, hp, hpMax:hp}; }
 function ensureMon(n){
   if(!n.monster) n.monster = {};
@@ -65,7 +70,7 @@ function renderFoeHP(id, foeId){
   const f = findNode(id)?.monster?.foes.find(x=>x.id===foeId); if(!f) return;
   const wrap = document.querySelector(`[data-foehp="${foeId}"]`); if(!wrap) return;
   const pct = f.hpMax ? Math.round(100*f.hp/f.hpMax) : 0;
-  const col = pct>50 ? "#8fd4a8" : pct>25 ? "#d8b25a" : "#d0765a";
+  const col = hpColor(pct);
   wrap.querySelector(".hpbar-fill").style.width = pct+"%";
   wrap.querySelector(".hpbar-fill").style.background = col;
   const num = wrap.querySelector(".hp-now"); if(num) num.value = f.hp;
@@ -124,7 +129,7 @@ export function rollDice(expr){
 
 function foeCard(nodeId, f){
   const pct = f.hpMax ? Math.round(100*f.hp/f.hpMax) : 0;
-  const col = pct>50 ? "#8fd4a8" : pct>25 ? "#d8b25a" : "#d0765a";
+  const col = hpColor(pct);
   return `<div class="foe-card ${f.hp<=0?"dead":""}">
     <div class="foe-top">
       <input class="foe-name" value="${escapeAttr(f.name)}" oninput="editFoe('${nodeId}','${f.id}','name',this.value)" placeholder="Nome">
