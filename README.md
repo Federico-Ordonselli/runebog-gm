@@ -2,7 +2,7 @@
 
 Strumento per Game Master di giochi di ruolo da tavolo: costruisci mappe gerarchiche e navigabili delle tue città e dei tuoi dungeon, tieni traccia di quest ed encounter, gestisci le schede dei mostri con i PF in tempo reale durante il combattimento, e organizza tutto in campagne separate.
 
-Questo repository contiene il **sito web multi-utente** (Next.js 15): serve l'app dietro un login, con le campagne salvate su database cloud. L'app in sé (`public/app.html`) è un singolo file vanilla JavaScript, senza framework né dipendenze a runtime, e gira identica anche standalone nel browser o dentro un wrapper Electron.
+Questo repository contiene il **sito web multi-utente** (Next.js 15): serve l'app dietro un login, con le campagne salvate su database cloud. L'app in sé (`public/app.html` + i moduli in `public/app/`) è vanilla JavaScript, senza framework, senza build step e senza dipendenze a runtime, e gira identica anche standalone nel browser.
 
 Nato per gestire una one-shot di compleanno ambientata nella città immaginaria di **Runebog** (da cui il nome), è cresciuto fino a diventare uno strumento generico per qualsiasi campagna, con dati ufficiali **D&D 5e (SRD 5.2.1, regole 2024)** integrati.
 
@@ -19,7 +19,7 @@ Il concetto centrale è una **mappa gerarchica di "bolle"**. Ogni bolla è un no
 
 Tutto lo stato di una campagna è **un unico oggetto JSON serializzabile**. Questa scelta è il cardine dell'intero progetto: rende l'esportazione banale, l'importazione simmetrica, e il salvataggio su cloud una semplice scrittura di quel JSON in una colonna del database.
 
-Il formato JSON è **identico** nei tre contesti (browser, desktop, sito): esporti dal desktop, importi nel sito, riesporti nel browser, senza nessuna conversione. L'app rileva da sola dove sta girando (controlla se esiste `window.__cloud`) e adatta il comportamento di salvataggio.
+Il formato JSON è **identico** in ogni contesto (standalone su localStorage, cloud, file esportato): esporti da una parte, importi dall'altra, senza nessuna conversione. L'app rileva da sola dove sta girando (controlla se esiste `window.__cloud`) e adatta il comportamento di salvataggio.
 
 ---
 
@@ -27,8 +27,10 @@ Il formato JSON è **identico** nei tre contesti (browser, desktop, sito): espor
 
 ```
 .
-├── public/app.html             ← L'APP. File singolo, ~2400 righe, vanilla JS.
-│                                 Contiene anche il dataset SRD (<script id="srd-data">).
+├── public/
+│   ├── app.html                ← L'APP: solo il markup (~160 righe)
+│   └── app/                    ← stili (app.css), dataset SRD (srd-mostri.js) e
+│                                 moduli ES per dominio (main.js è l'entry point)
 ├── src/
 │   ├── auth.ts                 ← Auth.js v5: Google OAuth + username/password, sessioni JWT
 │   ├── db/
@@ -49,13 +51,11 @@ Il formato JSON è **identico** nei tre contesti (browser, desktop, sito): espor
 └── .env.example
 ```
 
-`public/app.html` è una **copia** del file sorgente dell'app, condiviso con le versioni standalone e desktop. Se lo modifichi lì, ricopialo qui: è l'unico passo di sincronizzazione manuale.
-
 ---
 
 ## L'app: com'è fatta dentro
 
-`app.html` è un unico file con HTML, CSS e JavaScript inline, organizzato in sezioni delimitate da commenti-banner. Le parti principali:
+`app.html` è il markup; il codice sta in `public/app/`, moduli ES divisi per dominio (`stato.js`, `mappa.js`, `pannello.js`, `mostri.js`, `tavolo.js`, …) con `main.js` come unico entry point — sempre senza framework e senza build step. Le parti principali:
 
 **Modello dati.** Un nodo (bolla) ha: `id`, `title`, `type` (zona, luogo, quest, encounter, png, token, nota), `notes`, `img` (immagine in base64), `children` (nodi figli), `edges` (collegamenti tra i figli), coordinate `x`/`y`, `shape`, ed eventualmente `monster` (scheda mostro) o `bg` (sfondo del livello). Lo stato completo è `{root, checklist, players}`.
 
@@ -79,7 +79,7 @@ Una campagna è **una riga** nella tabella `campaign`, con una colonna `data` di
 
 Il flusso:
 
-1. La route `/play/[id]` legge la riga e serve `app.html` iniettando `<script>window.__cloud = {id, state}</script>` **prima** dello script dell'app (e dopo quello del bestiario).
+1. La route `/play/[id]` legge la riga e serve `app.html` iniettando `<script>window.__cloud = {id, state}</script>` in `<head>`, **prima** di ogni script dell'app (l'ancora è il primo tag script inline, quello del tema).
 2. All'avvio l'app vede `window.__cloud` e parte da quello stato invece che da `localStorage`.
 3. Ogni `save()` fa `PATCH /api/campaigns/:id`. Se la rete manca, l'app mostra "Offline — salvato in locale" e non perde nulla.
 4. Ogni route API verifica che la campagna appartenga all'utente autenticato.

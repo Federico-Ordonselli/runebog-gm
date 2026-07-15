@@ -1,0 +1,339 @@
+/* Il pannello di dettaglio: la scheda del blocco/collegamento selezionato,
+   le modifiche che ne partono (editNode, editEdge, immagini) e la variante
+   bottom sheet su mobile. */
+
+import { TYPES, STATUSES, SHAPES, EDGE_TYPES, TOKEN_COLORS,
+         isMarker, defShape, nodeBox, node, escapeHtml, escapeAttr } from "./modello.js";
+import { st, save, findNode, findParent, removeNode, currentNode, RO } from "./stato.js";
+import { openConfirm } from "./viste.js";
+import { renderMap, renderCrumbs, renderCanvas, bgEdit, isEmptyNode, doDeleteNodes } from "./mappa.js";
+import { statblockHTML } from "./mostri.js";
+
+/* Il pannello del tavolo. È una funzione a parte, e non un renderDetail() pieno di
+   `if(RO)`: quello che i giocatori vedono deve poter essere letto tutto insieme, in
+   venti righe, senza inseguire condizioni sparse dentro duecento. */
+function renderTableDetail(aside){
+  const n = (st.selectedId && findNode(st.selectedId)) || currentNode();
+  const t = TYPES[n.type] || TYPES.nota;
+  const c = n.combat;
+
+  const childRows = n.children.map(k=>{
+    const kc = (TYPES[k.type]||TYPES.nota).color;
+    return `<div class="child" onclick="jumpTo('${n.id}','${k.id}')">
+      <span class="type-badge" style="background:${kc}"></span>${escapeHtml(k.title||"(senza nome)")}
+    </div>`;
+  }).join("");
+
+  const nulla = !n.notes && !n.img && !c && !n.children.length;
+
+  aside.innerHTML = `<div class="inner">
+    <div>
+      <span style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:${t.color}">
+        <span class="type-badge" style="background:${t.color}"></span>${t.label}
+      </span>
+      <h2>${escapeHtml(n.title||"(senza nome)")}</h2>
+    </div>
+
+    ${n.notes ? `<div class="field"><label>Descrizione</label>
+      <div class="ro-text">${escapeHtml(n.notes)}</div></div>` : ""}
+
+    ${n.img ? `<div class="field"><label>Immagine</label>
+      <img id="detail-img" class="show" src="${n.img}" alt="riferimento" onclick="openLightbox('${n.id}')">
+    </div>` : ""}
+
+    ${c ? `<div class="field"><label>Combattimento</label>
+      <div class="foe-head"><span>${c.alive}/${c.total} in vita</span></div>
+      ${c.foes.map(f=>`<div class="foe-ro">
+        <span>${escapeHtml(f.name)}</span>
+        <span class="foe-state s-${f.state.replace(/\s/g,"-")}">${f.state}</span>
+      </div>`).join("")}
+    </div>` : ""}
+
+    ${n.children.length ? `<div class="field"><label>Cosa c'è qui (${n.children.length})</label>
+      <div class="child-list">${childRows}</div></div>` : ""}
+
+    ${nulla ? `<p class="empty" style="padding:20px 0">Il DM non ha ancora svelato niente
+      di questo posto.</p>` : ""}
+  </div>`;
+}
+
+function renderDetailCore(){
+  const aside = document.getElementById("detail");
+  if(RO) return renderTableDetail(aside);
+  const cur = currentNode();
+
+  // pannello di un collegamento selezionato
+  if(st.selectedEdgeId){
+    const e = (cur.edges||[]).find(x=>x.id===st.selectedEdgeId);
+    if(!e){ st.selectedEdgeId = null; }
+    else{
+      const a = findNode(e.a), b = findNode(e.b);
+      const et = EDGE_TYPES[e.type]||EDGE_TYPES.strada;
+      const typeOpts = Object.entries(EDGE_TYPES)
+        .map(([k,v])=>`<option value="${k}" ${k===e.type?"selected":""}>${v.label}</option>`).join("");
+      aside.innerHTML = `<div class="inner">
+        <div>
+          <span style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:${et.stroke}">
+            <span class="type-badge" style="background:${et.stroke}"></span>Collegamento
+          </span>
+          <h2>${escapeHtml(a?.title||"(senza nome)")} ↔ ${escapeHtml(b?.title||"(senza nome)")}</h2>
+        </div>
+        <div class="field"><label>Tipo</label>
+          <select onchange="editEdge('${e.id}','type',this.value)">${typeOpts}</select></div>
+        <div class="field"><label>Etichetta (visibile sulla pianta)</label>
+          <input value="${escapeAttr(e.label||"")}" oninput="editEdge('${e.id}','label',this.value)" placeholder="Es. Via del Mercato"></div>
+        <div class="field"><label>Note</label>
+          <textarea oninput="editEdge('${e.id}','notes',this.value)" placeholder="Macerie, posto di blocco, encounter legato alla strada…">${escapeHtml(e.notes||"")}</textarea></div>
+        <div class="detail-actions">
+          <button class="btn danger" onclick="deleteEdge('${e.id}')">Elimina collegamento</button>
+        </div>
+      </div>`;
+      return;
+    }
+  }
+
+  if(st.multiSel.size>1){
+    const nodes = [...st.multiSel].map(id=>findNode(id)).filter(Boolean);
+    aside.innerHTML = `<div class="inner">
+      <div><h2>${nodes.length} blocchi selezionati</h2></div>
+      <div class="field"><div class="child-list">${nodes.map(x=>`<div class="child">
+        <span class="type-badge" style="background:${(TYPES[x.type]||TYPES.nota).color}"></span>${escapeHtml(x.title||"(senza nome)")}
+      </div>`).join("")}</div></div>
+      <p style="color:var(--ink-dim);font-size:12px;line-height:1.5">
+        Trascina uno qualsiasi dei blocchi per spostarli insieme · Frecce per ritocchi fini · Canc per eliminarli · Esc per deselezionare
+      </p>
+      <div class="detail-actions">
+        <button class="btn danger" onclick="requestDeleteSelection()">Elimina selezionati</button>
+      </div>
+    </div>`;
+    return;
+  }
+
+  const sel = st.selectedId ? findNode(st.selectedId) : null;
+  const n = sel || cur;
+  const isRoot = (n.id === st.state.root.id);
+  const t = TYPES[n.type] || TYPES.nota;
+
+  const typeOpts = Object.entries(TYPES)
+    .map(([k,v])=>`<option value="${k}" ${k===n.type?"selected":""}>${v.label}</option>`).join("");
+  const statusOpts = STATUSES
+    .map(s=>`<option value="${s}" ${s===n.status?"selected":""}>${s||"—"}</option>`).join("");
+  const shapeOpts = Object.entries(SHAPES)
+    .map(([k,v])=>`<option value="${k}" ${(n.shape||defShape(n))===k?"selected":""}>${v.label}</option>`).join("");
+
+  const childRows = n.children.map(c=>{
+    const cc = (TYPES[c.type]||TYPES.nota).color;
+    return `<div class="child" onclick="jumpTo('${n.id}','${c.id}')">
+      <span class="type-badge" style="background:${cc}"></span>${escapeHtml(c.title||"(senza nome)")}
+      ${c.status?`<span class="st">${c.status}</span>`:""}
+    </div>`;
+  }).join("");
+
+  aside.innerHTML = `<div class="inner">
+    <div>
+      <span style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:${t.color}">
+        <span class="type-badge" style="background:${t.color}"></span>${t.label}${sel?"":" (livello corrente)"}
+      </span>
+      <h2>${escapeHtml(n.title||"(senza nome)")}</h2>
+    </div>
+
+    <div class="field"><label>Titolo</label>
+      <input value="${escapeAttr(n.title)}" oninput="editNode('${n.id}','title',this.value)"></div>
+
+    <div class="row">
+      <div class="field"><label>Tipo</label>
+        <select onchange="editNode('${n.id}','type',this.value)" ${isRoot?"disabled":""}>${typeOpts}</select></div>
+      <div class="field"><label>Stato</label>
+        <select onchange="editNode('${n.id}','status',this.value)">${statusOpts}</select></div>
+    </div>
+
+    ${!isMarker(n) && !isRoot ? `<div class="field"><label>Forma sulla pianta</label>
+      <select onchange="editNode('${n.id}','shape',this.value)">${shapeOpts}</select></div>
+    <div class="row">
+      <div class="field"><label>Larghezza</label>
+        <input type="number" step="10" min="40" value="${nodeBox(n).w}" onchange="editNode('${n.id}','w',Math.max(40,parseInt(this.value)||40))"></div>
+      <div class="field"><label>Altezza</label>
+        <input type="number" step="10" min="30" value="${nodeBox(n).h}" onchange="editNode('${n.id}','h',Math.max(30,parseInt(this.value)||30))"></div>
+    </div>` : ""}
+
+    <div class="field"><label>Note <span class="only-dm">solo tue</span></label>
+      <textarea oninput="editNode('${n.id}','notes',this.value)" placeholder="Dettagli, agganci, statistiche mostri, letture ad alta voce…">${escapeHtml(n.notes)}</textarea></div>
+
+    <div class="field share-field">
+      <label>Al tavolo</label>
+      ${isRoot ? `<p class="hint-sm">La radice della campagna è sempre visibile: è il contenitore.</p>`
+        : `<button class="btn ${n.shared?"primary":""}" onclick="revealNode('${n.id}',${n.shared?"false":"true"})">
+             ${n.shared ? "👁 Visibile ai giocatori" : "Rivela ai giocatori"}
+           </button>
+           <p class="hint-sm">${n.shared
+             ? "I giocatori lo vedono sulla mappa condivisa. Le note qui sopra restano tue."
+             : "Nascosto. Rivelandolo si rivelano anche i livelli che lo contengono: servono per raggiungerlo."}</p>`}
+      <label style="margin-top:10px">Descrizione per i giocatori</label>
+      <textarea oninput="editNode('${n.id}','playerNotes',this.value)"
+        placeholder="Cosa vedono al tavolo. Vuoto = non leggono niente.">${escapeHtml(n.playerNotes||"")}</textarea>
+    </div>
+
+    ${n.type==="token" ? `<div class="field"><label>Colore del token</label>
+      <div class="swatches">${TOKEN_COLORS.map(cc=>`<button class="swatch${(n.tokenColor||"#e8e3d8")===cc?" on":""}"
+        style="background:${cc}" onclick="editNode('${n.id}','tokenColor','${cc}')"></button>`).join("")}</div></div>` : ""}
+
+    ${n.type==="quest" ? `<div class="field"><label>Diario</label>
+      <button class="btn ${n.main?"primary":""}" onclick="editNode('${n.id}','main',${n.main?"false":"true"})">
+        ★ ${n.main?"Quest principale":"Segna come principale"}</button></div>` : ""}
+
+    ${!sel && !isMarker(n) ? `<div class="field"><label>Sfondo della pianta</label>
+      <div class="img-actions">
+        <button class="btn" onclick="pickBg()">${cur.bg?"Sostituisci":"Carica"} sfondo</button>
+        ${cur.bg?`<button class="btn ${bgEdit?"primary":""}" onclick="toggleBgEdit()">${bgEdit?"Fatto":"Sposta/Ridim."}</button>
+        <button class="btn danger" onclick="removeBg()">Rimuovi</button>`:""}
+      </div>
+      ${cur.bg?`<label style="margin-top:10px">Opacità sfondo</label>
+      <input type="range" min="0.1" max="1" step="0.05" value="${cur.bg.opacity ?? 0.6}" oninput="setBgOpacity(this.value)">`:""}
+    </div>
+
+    <div class="field"><label>Generatore di dungeon</label>
+      <div class="img-actions">
+        <button class="btn" onclick="pasteDungeon()">Incolla dungeon</button>
+        <button class="btn" onclick="document.getElementById('dungeon-file').click()">Da file…</button>
+      </div>
+      <p class="hint-sm">Genera un dungeon sulla pagina <b>/dungeon</b> del sito e copialo:
+        qui diventa una bolla con le stanze sulla pianta, gli incontri pronti
+        per i PF e i tuoi PG come pedine all'ingresso.</p>
+    </div>` : ""}
+
+    <div class="field"><label>Mappa / immagine di riferimento</label>
+      <img id="detail-img" class="${n.img?"show":""}" src="${n.img||""}" alt="riferimento" onclick="openLightbox('${n.id}')">
+      <div class="img-actions" style="margin-top:8px">
+        <button class="btn" onclick="pickImage('${n.id}')">${n.img?"Sostituisci":"Carica"} immagine</button>
+        ${n.img?`<button class="btn danger" onclick="editNode('${n.id}','img',null)">Rimuovi</button>`:""}
+      </div>
+    </div>
+
+    ${n.type==="encounter" ? statblockHTML(n) : ""}
+
+    ${n.children.length?`<div class="field"><label>Contenuto (${n.children.length})</label>
+      <div class="child-list">${childRows}</div></div>`:""}
+
+    <div class="detail-actions">
+      <button class="btn primary" onclick="addChild('${n.id}')">+ Blocco dentro</button>
+      ${sel?`<button class="btn" onclick="enterNode('${n.id}')">Entra →</button>`:""}
+      ${!isRoot?`<button class="btn danger" onclick="askDeleteNode('${n.id}')">Elimina</button>`:""}
+    </div>
+  </div>`;
+}
+
+/* --- pannello mobile (bottom sheet): sempre sincronizzato dopo ogni render --- */
+export function openDetailSheet(){ st.detailOpen = true; renderDetail(); }
+function closeDetailSheet(){
+  st.detailOpen = false;
+  document.getElementById("detail").classList.remove("open");
+}
+function mobileDetailSync(){
+  const aside = document.getElementById("detail");
+  if(!aside) return;
+  if(!aside.querySelector(".sheet-close")){
+    const b = document.createElement("button");
+    b.className = "sheet-close btn tiny";
+    b.textContent = "✕ Chiudi";
+    b.onclick = closeDetailSheet;
+    aside.prepend(b);
+  }
+  aside.classList.toggle("open",
+    st.detailOpen || !!st.selectedId || !!st.selectedEdgeId || st.multiSel.size>0);
+}
+export function renderDetail(){
+  renderDetailCore();
+  mobileDetailSync();
+}
+
+/* ==================== modifiche dal pannello ==================== */
+export function editNode(id, key, val){
+  if(RO) return;
+  const n = findNode(id); if(!n) return;
+  n[key] = val;
+  if(key==="type" && !isMarker(n) && !n.shape) n.shape = defShape(n);
+  save();
+  if(["title","type","status","shape","w","h","tokenColor"].includes(key)){ renderCrumbs(); renderCanvas(); }
+  if(key==="type"||key==="img"||key==="main"||key==="tokenColor") renderDetail();
+}
+
+export function editEdge(id, key, val){
+  if(RO) return;
+  const cur = currentNode();
+  const e = (cur.edges||[]).find(x=>x.id===id); if(!e) return;
+  e[key] = val;
+  save();
+  if(key==="type"||key==="label") renderCanvas();   // l'input vive nel pannello: il focus non si perde
+}
+export function deleteEdge(id){
+  if(RO) return;
+  const cur = currentNode();
+  cur.edges = (cur.edges||[]).filter(x=>x.id!==id);
+  st.selectedEdgeId = null;
+  save(); renderMap();
+}
+
+export function addChild(id){
+  if(RO) return;
+  const parent = id ? findNode(id) : currentNode();
+  const c = node("Nuova bolla","nota");
+  parent.children.push(c);
+  if(parent.id === currentNode().id){ st.selectedId = c.id; }
+  save(); renderMap();
+  // focus sul titolo per rinominare subito
+  setTimeout(()=>{ const inp=document.querySelector("#detail input"); if(inp){inp.focus(); inp.select();} },50);
+}
+
+export function askDeleteNode(id){
+  if(RO) return;
+  const n = findNode(id); if(!n || n.id===st.state.root.id) return;
+  if(isEmptyNode(n)){ doDeleteNodes([id]); return; }   // bolla vuota: via subito, niente dialogo
+  openConfirm(`Eliminare "${n.title||"blocco"}" e tutto il suo contenuto?`, ok=>{
+    if(!ok) return;
+    const par = findParent(id);
+    if(par && Array.isArray(par.edges))
+      par.edges = par.edges.filter(e=>e.a!==id && e.b!==id);
+    removeNode(id, st.state.root);
+    // se il nodo eliminato era nel percorso, torno al genitore valido
+    const idx = st.path.indexOf(id);
+    if(idx!==-1) st.path = st.path.slice(0, idx);
+    if(!st.path.length) st.path=[st.state.root.id];
+    if(st.selectedId===id) st.selectedId=null;
+    save(); renderMap();
+  });
+}
+
+/* ==================== immagini ==================== */
+export function pickImage(id){
+  const inp = document.createElement("input");
+  inp.type="file"; inp.accept="image/*";
+  inp.onchange = ()=>{
+    const f = inp.files[0]; if(!f) return;
+    const r = new FileReader();
+    r.onload = ()=>{ compressImage(r.result, (data)=>{ editNode(id,"img",data); }); };
+    r.readAsDataURL(f);
+  };
+  inp.click();
+}
+export function compressImage(dataUrl, cb){
+  const img = new Image();
+  img.onload = ()=>{
+    const MAX = 1400;
+    let w=img.width, h=img.height;
+    if(w>MAX||h>MAX){ const k=MAX/Math.max(w,h); w=Math.round(w*k); h=Math.round(h*k); }
+    const c=document.createElement("canvas"); c.width=w; c.height=h;
+    c.getContext("2d").drawImage(img,0,0,w,h);
+    cb(c.toDataURL("image/jpeg",0.82));
+  };
+  img.onerror = ()=>cb(dataUrl);
+  img.src = dataUrl;
+}
+export function openLightbox(id){
+  const n = findNode(id); if(!n||!n.img) return;
+  document.getElementById("lightbox-img").src = n.img;
+  document.getElementById("lightbox").classList.add("show");
+}
+
+// per gli onclick inline nei template
+Object.assign(window, { editNode, editEdge, deleteEdge, addChild, askDeleteNode,
+  pickImage, openLightbox, openDetailSheet });
