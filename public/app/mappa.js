@@ -3,7 +3,7 @@
    navigazione tra livelli e operazioni sulla selezione. */
 
 import { TYPES, SHAPES, EDGE_TYPES, MARKER_R, STATUS_COLORS,
-         isMarker, defShape, nodeBox, nodeCenter, node, uid, escapeHtml } from "./modello.js";
+         isMarker, defShape, nodeBox, nodeCenter, node, uid, escapeHtml, escapeAttr } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, pathNodes, RO } from "./stato.js";
 import { showView, openConfirm } from "./viste.js";
 import { renderDetail, compressImage } from "./pannello.js";
@@ -135,6 +135,16 @@ function statusDot(x,y,st_){
   return `<circle cx="${x}" cy="${y}" r="5.5" style="fill:${col};stroke:var(--bog)" stroke-width="2" pointer-events="none"/>`;
 }
 
+/* Nome accessibile di una bolla: quello che un lettore di schermo annuncia
+   arrivandoci con Tab. Tipo prima del titolo, come nel pannello di dettaglio. */
+function ariaBlk(c){
+  let s = `${(TYPES[c.type]||TYPES.nota).label}: ${c.title||"senza nome"}`;
+  if(c.status) s += ` · ${c.status}`;
+  if(c.children.length) s += ` · contiene ${c.children.length} element${c.children.length===1?"o":"i"}`;
+  if(!RO && c.shared) s += " · visibile ai giocatori";
+  return escapeAttr(s);
+}
+
 /* anteprima in miniatura del contenuto di un blocco (i "collegamenti fatti" visti da fuori) */
 function miniPreview(n, box){
   const kids = n.children.filter(c=>typeof c.x==="number");
@@ -204,7 +214,8 @@ export function renderCanvas(){
     const a=childOf(e.a), b=childOf(e.b); if(!a||!b) continue;
     const A=nodeCenter(a), B=nodeCenter(b), t=EDGE_TYPES[e.type]||EDGE_TYPES.strada;
     const mx=(A.x+B.x)/2, my=(A.y+B.y)/2, sel = st.selectedEdgeId===e.id;
-    out += `<g class="edge${sel?" sel":""}" data-edge="${e.id}">
+    out += `<g class="edge${sel?" sel":""}" data-edge="${e.id}" tabindex="0" role="button" aria-pressed="${sel}"
+      aria-label="${escapeAttr(`${t.label}: ${a.title||"senza nome"} – ${b.title||"senza nome"}${e.label?` (${e.label})`:""}`)}">
       <line class="edge-hit" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"/>
       <line class="edge-line" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"
         style="stroke:${t.stroke}" stroke-width="${t.w}"${t.dash?` stroke-dasharray="${t.dash}"`:""} stroke-linecap="round"/>`;
@@ -222,19 +233,23 @@ export function renderCanvas(){
   // blocchi e segnalini
   for(const c of cur.children){
     const col = (TYPES[c.type]||TYPES.nota).color;
-    const selCls = (st.multiSel.has(c.id) || c.id===st.selectedId) ? " sel" : "";
+    const isSel = st.multiSel.has(c.id) || c.id===st.selectedId;
+    const selCls = isSel ? " sel" : "";
     const shCls = (!RO && c.shared) ? " shared" : "";
+    // tabindex/role/aria: le bolle si raggiungono con Tab; la selezione segue
+    // il focus (vedi il focusin in initMappa) e aria-pressed la annuncia
+    const a11y = `tabindex="0" role="button" aria-pressed="${isSel}" aria-label="${ariaBlk(c)}"`;
     if(c.type==="token"){
       const R = MARKER_R+1, tcol = c.tokenColor || "#e8e3d8";
       const ini = (c.title||"?").trim().split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase() || "?";
-      out += `<g class="blk marker token${selCls}${shCls}" data-block="${c.id}" transform="translate(${c.x},${c.y})">
+      out += `<g class="blk marker token${selCls}${shCls}" data-block="${c.id}" ${a11y} transform="translate(${c.x},${c.y})">
         <circle class="blk-shape" cx="${R}" cy="${R}" r="${R}" style="fill:${tcol};--c:var(--bog)"/>
         <text x="${R}" y="${R+4}" text-anchor="middle" style="font-size:12px;font-weight:700;fill:var(--bog)">${escapeHtml(ini)}</text>
         <text x="${R}" y="${R*2+15}" text-anchor="middle" style="font-size:11px;fill:var(--ink-dim)">${escapeHtml(c.title||"")}</text>
       </g>`;
     }else if(isMarker(c)){
       const R = MARKER_R;
-      out += `<g class="blk marker${selCls}${shCls}" data-block="${c.id}" transform="translate(${c.x},${c.y})">
+      out += `<g class="blk marker${selCls}${shCls}" data-block="${c.id}" ${a11y} transform="translate(${c.x},${c.y})">
         <circle class="blk-shape" cx="${R}" cy="${R}" r="${R}" style="--c:${col}"/>
         <text x="${R}" y="${R+4}" text-anchor="middle" style="font-size:12px;fill:${col};font-weight:700">${(TYPES[c.type]||TYPES.nota).label[0]}</text>
         <text x="${R}" y="${R*2+15}" text-anchor="middle" style="font-size:11px;fill:var(--ink-dim)">${escapeHtml(c.title||"")}</text>
@@ -246,7 +261,7 @@ export function renderCanvas(){
       const box = nodeBox(c);
       if(c.children.length) ensureLayout(c);
       const prev = miniPreview(c, box);
-      out += `<g class="blk${selCls}${shCls}" data-block="${c.id}" transform="translate(${c.x},${c.y})">
+      out += `<g class="blk${selCls}${shCls}" data-block="${c.id}" ${a11y} transform="translate(${c.x},${c.y})">
         ${shapeMarkup(c, box, col)}
         ${prev}
         <text x="${box.w/2}" y="${prev?18:box.h/2+5}" text-anchor="middle">${escapeHtml(c.title||"")}</text>
@@ -257,9 +272,23 @@ export function renderCanvas(){
       </g>`;
     }
   }
+  // innerHTML distrugge l'elemento a fuoco: senza il ripristino, ogni freccia
+  // premuta (che ri-renderizza) butterebbe l'utente tastiera fuori dalla mappa
+  const af = document.activeElement;
+  const focusSel = af && svg.contains(af)
+    ? (af.closest(".blk") ? `.blk[data-block="${af.closest(".blk").dataset.block}"]`
+     : af.closest(".edge") ? `.edge[data-edge="${af.closest(".edge").dataset.edge}"]` : null)
+    : null;
+
   svg.innerHTML = out + `<line id="plan-temp" stroke="var(--fen-dim)" stroke-width="3" stroke-dasharray="6 6" visibility="hidden" pointer-events="none"/>
     <line id="guide-v" stroke="var(--gold)" stroke-width="1" stroke-dasharray="4 4" visibility="hidden" pointer-events="none"/>
     <line id="guide-h" stroke="var(--gold)" stroke-width="1" stroke-dasharray="4 4" visibility="hidden" pointer-events="none"/>`;
+
+  if(focusSel){
+    const el = svg.querySelector(focusSel);
+    // il focus() di ripristino non deve ri-selezionare (ciclo col focusin)
+    if(el){ suppressFocusSel = true; el.focus(); suppressFocusSel = false; }
+  }
 }
 
 const SNAP_DIST = 8;
@@ -345,6 +374,7 @@ export function quickAddCenter(){
 
 /* --- interazioni (pointer events) --- */
 let armedPal = null, armedEl = null;   // elemento della palette "armato": il prossimo tocco sulla mappa lo piazza
+let suppressFocusSel = false;          // vero solo durante il focus() di ripristino dopo un render
 
 // Un solo posto decide il testo del suggerimento: renderCanvas lo riscrive a ogni
 // ridisegno, quindi salvarne una copia altrove sarebbe fragile.
@@ -355,10 +385,10 @@ function planHintText(){
 }
 
 function armPal(el, opts){
-  if(armedEl) armedEl.classList.remove("armed");
+  if(armedEl){ armedEl.classList.remove("armed"); armedEl.setAttribute("aria-pressed","false"); }
   armedEl = el || null;
   armedPal = el ? opts : null;
-  if(armedEl) armedEl.classList.add("armed");
+  if(armedEl){ armedEl.classList.add("armed"); armedEl.setAttribute("aria-pressed","true"); }
   const svg = planSvg();
   if(svg) svg.classList.toggle("arming", !!armedPal);
   const hint = document.getElementById("plan-hint");
@@ -389,6 +419,44 @@ export function initMappa(){
       let opts; try{ opts = JSON.parse(el.dataset.pal); }catch(_){ return; }
       armPal(el === armedEl ? null : el, opts);
     });
+    // Da tastiera "arma e tocca" non ha senso (non c'è un secondo tocco):
+    // Invio/Spazio piazza subito al centro della vista, come quickAddCenter.
+    el.addEventListener("keydown", ev=>{
+      if(ev.key!=="Enter" && ev.key!==" ") return;
+      // stopPropagation: sennò l'Invio risale alle scorciatoie globali, che vedono
+      // il blocco appena creato selezionato e ci entrano dentro
+      ev.preventDefault(); ev.stopPropagation();
+      let opts; try{ opts = JSON.parse(el.dataset.pal); }catch(_){ return; }
+      armPal(null);
+      const cx = planVB ? planVB.x+planVB.w/2 : 0, cy = planVB ? planVB.y+planVB.h/2 : 0;
+      addSpatialChild(opts, cx, cy);
+    });
+  });
+
+  // La selezione segue il focus da tastiera (Tab tra le bolle = clic). I due flag
+  // escludono i focus non-Tab: quello indotto dal clic (già gestito dal pointerdown,
+  // che con Ctrl fa altro) e quello di ripristino dopo un render.
+  let pointerFocus = false;
+  svg.addEventListener("pointerdown", ()=>{
+    pointerFocus = true; setTimeout(()=>{ pointerFocus = false; });
+  }, true);
+  svg.addEventListener("focusin", ev=>{
+    if(suppressFocusSel || pointerFocus || !ev.target.closest) return;
+    const blkEl = ev.target.closest(".blk");
+    const edgeEl = blkEl ? null : ev.target.closest(".edge");
+    if(blkEl){
+      const id = blkEl.dataset.block;
+      // già parte della selezione: al massimo diventa l'àncora, senza sciogliere
+      // una selezione multipla costruita col Ctrl+clic
+      if(st.multiSel.has(id)){ if(st.selectedId!==id){ st.selectedId = id; renderDetail(); } return; }
+      st.selectedId = id; st.selectedEdgeId = null; st.multiSel = new Set([id]);
+      renderCanvas(); renderDetail();
+    }else if(edgeEl){
+      const id = edgeEl.dataset.edge;
+      if(st.selectedEdgeId===id) return;
+      st.selectedEdgeId = id; st.selectedId = null; st.multiSel.clear();
+      renderCanvas(); renderDetail();
+    }
   });
   svg.addEventListener("dragover", ev=>{ ev.preventDefault(); ev.dataTransfer.dropEffect="copy"; });
   svg.addEventListener("drop", ev=>{

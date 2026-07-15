@@ -2,11 +2,6 @@
 
 Dal report UX del 15 lug 2026 (`.impeccable/critique/`, baseline 29/40), in ordine:
 
-- [ ] **Robustezza editor (`/impeccable harden`)** — i due P1 rimasti: undo con
-  snapshot-stack (lo stato è già un JSON unico; Ctrl+Z in `scorciatoie.js`, cap ~20)
-  e accessibilità da tastiera della mappa (tabindex/role/aria su bolle SVG e palette,
-  `aria-live` su `#savestate`, `role="tab"` sui tab, Ctrl+K anche con focus nei campi,
-  avviso proattivo sul limite 4 MB).
 - [ ] **Landing e funnel (`/impeccable onboard`)** — mostrare il prodotto (visual o
   demo nella colonna vuota) e link "Provala senza account →" a `/app.html`.
 - [ ] **Microcopy (`/impeccable clarify`)** — nomenclatura bolla/blocco unificata,
@@ -18,6 +13,27 @@ Dal report UX del 15 lug 2026 (`.impeccable/critique/`, baseline 29/40), in ordi
 - [ ] **Rifinitura (`/impeccable polish`)** — favicon di `app.html`, mini-preview più
   contrastata, % testuale sulla barra XP del dungeon, transizioni `width`→`scaleX`
   sulle barre HP; poi rilanciare `/impeccable critique` per misurare il progresso.
+
+- [x] **Robustezza editor (giro `/impeccable harden`)** — fatto (15 lug 2026), i due
+  P1 del report UX:
+  - **Undo**: snapshot-stack di serializzazioni JSON in `stato.js` (cap 20), alimentato
+    da `save()`; una raffica di modifiche ravvicinate (digitazione) conta come una sola.
+    Ctrl+Z in `scorciatoie.js`, con feedback in `#savestate` e ripulitura di
+    path/selezione dai nodi che non esistono più. Stack azzerato a cambio campagna,
+    nuova campagna e import.
+  - **Mappa da tastiera**: bolle e collegamenti SVG con `tabindex`/`role`/`aria-label`/
+    `aria-pressed` (`mappa.js`); la selezione segue il focus (Tab = clic, il pannello
+    dettagli si aggiorna), il focus sopravvive ai re-render via `innerHTML`, Space =
+    Ctrl+clic sulla bolla a fuoco. Palette attivabile da tastiera: Invio/Spazio piazza
+    al centro della vista (con `stopPropagation`, sennò l'Invio risaliva alle
+    scorciatoie globali ed entrava nel blocco appena creato — bug trovato in verifica).
+  - **A11y di contorno**: `aria-live`/`role=status` su `#savestate`, pattern ARIA
+    completo sui tab (`role="tab"`+`aria-selected`+frecce in `viste.js`, `tabpanel`
+    sulle sezioni), Ctrl+K funziona anche col focus nei campi.
+  - **Limite 4 MB**: avviso proattivo in `#savestate` sopra l'80% (`3,5 MB su 4…`),
+    messaggio esplicito oltre il limite e sul 413 del cloud (prima diceva "Offline").
+  - Verificato end-to-end con Chromium guidato solo da tastiera: 26/26 controlli
+    (selezione/nudge/undo/palette/tab/Ctrl+K) + 2 sugli avvisi di peso.
 
 - [x] **Contrasto e palette a token (giro `/impeccable colorize`)** — fatto (15 lug 2026),
   dal report UX in `.impeccable/critique/` (baseline 29/40, dual-agent):

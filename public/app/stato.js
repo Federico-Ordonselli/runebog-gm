@@ -90,6 +90,7 @@ export function switchCampaign(id){
   try{ const raw = store.get(ckey(id)); st.state = raw ? JSON.parse(raw) : emptyState(); }
   catch(_){ st.state = emptyState(); }
   migrateState(st.state);
+  resetUndo();                       // l'undo non attraversa le campagne
   st.path = [st.state.root.id]; st.selectedId = null; st.selectedEdgeId = null; st.multiSel.clear();
   renderCampaignSelect(); showView("map");
 }
@@ -100,6 +101,7 @@ export function newCampaign(){
   campaignsIdx.push({id, name:"Nuova campagna", updatedAt: Date.now()});
   campaignId = id; store.set(CUR_KEY, id);
   st.state = emptyState();
+  resetUndo();
   persistCurrent(); renderCampaignSelect();
   st.path = [st.state.root.id]; st.selectedId = null; st.selectedEdgeId = null; st.multiSel.clear();
   showView("map");
@@ -154,26 +156,100 @@ export function initStato(){
     }catch(e){ st.state = emptyState(); }
   }
   migrateState(st.state);                         // migrazione salvataggi vecchi
+  resetUndo();
   st.path = [st.state.root.id];
+}
+
+/* ==================== undo ====================
+   Lo stato è un JSON unico: uno snapshot è la sua serializzazione, annullare è un
+   parse. Lo stack tiene le serializzazioni PRECEDENTI alle modifiche; una raffica
+   di save() ravvicinati (digitazione in un campo) conta come una modifica sola,
+   sennò Ctrl+Z toglierebbe una lettera alla volta. */
+const UNDO_CAP = 20;
+const BURST_MS = 800;      // poco sopra il debounce di save: una pausa che fa
+                           // scattare il salvataggio chiude anche la raffica
+let undoStack = [];
+let lastSnap = null;       // serializzazione dello stato all'ultimo salvataggio compiuto
+let lastEditAt = 0;
+
+export function resetUndo(){
+  undoStack = [];
+  lastSnap = st.state ? JSON.stringify(st.state) : null;
+  lastEditAt = 0;
+}
+function noteChange(){
+  const now = Date.now();
+  if(lastSnap !== null && now - lastEditAt > BURST_MS && undoStack[undoStack.length-1] !== lastSnap){
+    undoStack.push(lastSnap);
+    if(undoStack.length > UNDO_CAP) undoStack.shift();
+  }
+  lastEditAt = now;
+}
+export function undo(){
+  if(RO || !st.state) return false;
+  const cur = JSON.stringify(st.state);
+  let target = null;
+  if(lastSnap !== null && lastSnap !== cur){
+    target = lastSnap;               // raffica in corso non ancora salvata: si torna a prima
+  }else{
+    while(undoStack.length){         // salta gli snapshot identici allo stato attuale
+      const s = undoStack.pop();     // (save() chiamate senza modifiche reali)
+      if(s !== cur){ target = s; break; }
+    }
+  }
+  if(target === null) return false;
+  clearTimeout(saveTimer);
+  st.state = JSON.parse(target);
+  migrateState(st.state);
+  // percorso e selezione possono puntare a nodi che nello stato ripristinato
+  // non esistono (es. undo di una creazione mentre ci si era entrati dentro)
+  const valid = [];
+  for(const id of st.path){ if(findNode(id)) valid.push(id); else break; }
+  st.path = valid.length ? valid : [st.state.root.id];
+  if(st.selectedId && !findNode(st.selectedId)) st.selectedId = null;
+  st.multiSel = new Set([...st.multiSel].filter(id => findNode(id)));
+  if(st.selectedEdgeId) st.selectedEdgeId = null;
+  doSave();                          // persiste subito, senza passare da noteChange
+  return true;
 }
 
 /* ==================== salvataggio ==================== */
 let saveTimer = null;
 let cloudBusy = false, cloudDirty = false;
+
+/* Il limite vero è la PATCH di /api/campaigns (4 MB, vedi route.ts); in locale il
+   tetto di localStorage è vicino. Avvisare all'80% evita di scoprirlo a fallimento
+   avvenuto, con le immagini ormai dentro. La lunghezza della stringa ≈ byte:
+   il grosso del peso è base64, cioè ASCII. */
+const MAX_BYTES = 4 * 1024 * 1024;
+const mb = len => (len/1048576).toFixed(1).replace(".", ",");
+function sizeWarning(len){
+  if(len > MAX_BYTES)     return {msg:`${mb(len)} MB: oltre il limite di 4 MB — alleggerisci le immagini`, tone:"var(--ember)"};
+  if(len > MAX_BYTES*0.8) return {msg:`${mb(len)} MB su 4 — le immagini pesano, occhio al limite`, tone:"var(--gold)"};
+  return null;
+}
+
 async function cloudPush(){
   if(!window.__cloud) return;
   if(cloudBusy){ cloudDirty = true; return; }
   cloudBusy = true;
   const el = document.getElementById("savestate");
+  const body = JSON.stringify({data: st.state});
+  const warn = sizeWarning(body.length);
   try{
     const res = await fetch(`/api/campaigns/${window.__cloud.id}`, {
       method: "PATCH",
       headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({data: st.state})
+      body
     });
+    if(res.status === 413){
+      el.textContent = `Non salvato nel cloud: ${mb(body.length)} MB, il limite è 4 — alleggerisci le immagini`;
+      el.style.color = "var(--ember)";
+      return;
+    }
     if(!res.ok) throw new Error(res.status);
-    el.textContent = "Salvato nel cloud ✓";
-    el.style.color = "var(--ink-dim)";
+    el.textContent = warn ? `Salvato nel cloud ✓ · ${warn.msg}` : "Salvato nel cloud ✓";
+    el.style.color = warn ? warn.tone : "var(--ink-dim)";
   }catch(_){
     el.textContent = "Offline — salvato in locale";
     el.style.color = "var(--gold)";
@@ -182,26 +258,32 @@ async function cloudPush(){
     if(cloudDirty){ cloudDirty = false; cloudPush(); }
   }
 }
+function doSave(){
+  const json = JSON.stringify(st.state);
+  lastSnap = json;                                // da qui in poi l'undo torna a questo punto
+  if(window.__cloud){
+    store.set(SAVE_KEY, json);                    // cache offline
+    cloudPush(); return;
+  }
+  persistent = store.set(ckey(campaignId), json);
+  const c = campaignsIdx.find(x=>x.id===campaignId);
+  if(c){
+    const nm = st.state.root.title || "Campagna";
+    if(c.name !== nm){ c.name = nm; renderCampaignSelect(); }
+    c.updatedAt = Date.now();
+  }
+  persistIndex();
+  const el = document.getElementById("savestate");
+  const warn = sizeWarning(json.length);
+  el.textContent = !persistent ? "Solo in memoria — usa Esporta"
+                 : warn ? `Salvato ✓ · ${warn.msg}` : "Salvato ✓";
+  el.style.color = !persistent ? "var(--gold)" : warn ? warn.tone : "var(--ink-dim)";
+}
 export function save(){
   if(RO) return;                                  // il tavolo non ha niente da salvare
+  noteChange();
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(()=>{
-    if(window.__cloud){
-      store.set(SAVE_KEY, JSON.stringify(st.state));    // cache offline
-      cloudPush(); return;
-    }
-    persistent = store.set(ckey(campaignId), JSON.stringify(st.state));
-    const c = campaignsIdx.find(x=>x.id===campaignId);
-    if(c){
-      const nm = st.state.root.title || "Campagna";
-      if(c.name !== nm){ c.name = nm; renderCampaignSelect(); }
-      c.updatedAt = Date.now();
-    }
-    persistIndex();
-    const el = document.getElementById("savestate");
-    el.textContent = persistent ? "Salvato ✓" : "Solo in memoria — usa Esporta";
-    el.style.color = persistent ? "var(--ink-dim)" : "var(--gold)";
-  }, 700);
+  saveTimer = setTimeout(doSave, 700);
 }
 
 /* ==================== utilità albero ==================== */

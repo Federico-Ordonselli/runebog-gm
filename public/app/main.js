@@ -4,6 +4,7 @@
    poi i listener, poi il primo render. */
 
 import { initStato, renderCampaignSelect, save } from "./stato.js";
+import { initViste } from "./viste.js";
 import { initMappa, renderMap } from "./mappa.js";
 import { initMenu } from "./menu.js";
 import { initRicerca } from "./ricerca.js";
@@ -35,6 +36,7 @@ let salvato = "torbiera";
 try{ salvato = localStorage.getItem("runebog-theme") || "torbiera"; }catch(e){}
 setTheme(salvato);
 
+initViste();
 initMappa();
 initMenu();
 initRicerca();

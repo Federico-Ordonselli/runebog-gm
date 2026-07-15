@@ -31,18 +31,20 @@
     <button class="btn tiny" title="Nuova campagna" onclick="newCampaign()">＋</button>
     <button class="btn tiny danger" title="Elimina campagna" onclick="askDeleteCampaign()">🗑</button>
   </div>
-  <nav class="tabs" role="tablist">
-    <button id="tab-map" class="active" onclick="showView('map')">Mappa</button>
-    <button id="tab-quests" onclick="showView('quests')">Quest</button>
-    <button id="tab-check" class="dm-only" onclick="showView('check')">Checklist</button>
-    <button id="tab-players" onclick="showView('players')">Giocatori</button>
+  <nav class="tabs" role="tablist" aria-label="Sezioni">
+    <button id="tab-map" class="active" role="tab" aria-selected="true" aria-controls="view-map" onclick="showView('map')">Mappa</button>
+    <button id="tab-quests" role="tab" aria-selected="false" aria-controls="view-quests" onclick="showView('quests')">Quest</button>
+    <button id="tab-check" class="dm-only" role="tab" aria-selected="false" aria-controls="view-check" onclick="showView('check')">Checklist</button>
+    <button id="tab-players" role="tab" aria-selected="false" aria-controls="view-players" onclick="showView('players')">Giocatori</button>
   </nav>
   <div class="spacer"></div>
   <div id="qs-wrap">
     <input id="quick-search" type="search" placeholder="Cerca… (Ctrl+K)" autocomplete="off">
     <div id="qs-results"></div>
   </div>
-  <span id="savestate"></span>
+  <!-- role=status/aria-live: "Salvato ✓", "Modifica annullata", l'avviso sui 4 MB
+       e gli errori cloud vengono annunciati anche da lettore di schermo -->
+  <span id="savestate" role="status" aria-live="polite"></span>
   <label id="theme-wrap" title="Tema">
     <span class="sr-only">Tema</span>
     <select id="theme-select" onchange="setTheme(this.value)">
@@ -62,22 +64,25 @@
 
 <main>
   <!-- ============ MAPPA (spaziale gerarchica) ============ -->
-  <section id="view-map" class="view active">
+  <section id="view-map" class="view active" role="tabpanel" aria-labelledby="tab-map">
     <div id="map-left">
       <div id="crumbs"></div>
       <div id="plan-toolbar">
+        <!-- tabindex/role/aria-pressed: la palette si usa anche da tastiera.
+             Invio o Spazio piazzano al centro della vista (il flusso "arma e
+             tocca" resta per mouse e touch); aria-pressed segnala l'armamento. -->
         <span class="pal-title">Blocchi:</span>
-        <div class="pal-item" draggable="true" data-pal='{"shape":"quartiere"}'><svg width="26" height="18"><rect x="1" y="1" width="24" height="16" rx="3" fill="none" style="stroke:var(--fen)" stroke-width="2"/></svg>Quartiere</div>
-        <div class="pal-item" draggable="true" data-pal='{"shape":"edificio"}'><svg width="24" height="18"><rect x="2" y="3" width="20" height="12" rx="2" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Edificio</div>
-        <div class="pal-item" draggable="true" data-pal='{"shape":"stanza"}'><svg width="18" height="18"><rect x="2" y="2" width="14" height="14" rx="2" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Stanza</div>
-        <div class="pal-item" draggable="true" data-pal='{"shape":"piazza"}'><svg width="18" height="18"><circle cx="9" cy="9" r="7" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Piazza</div>
-        <div class="pal-item" draggable="true" data-pal='{"shape":"torre"}'><svg width="18" height="18"><polygon points="9,1 17,9 9,17 1,9" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Torre</div>
+        <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"quartiere"}'><svg width="26" height="18" aria-hidden="true"><rect x="1" y="1" width="24" height="16" rx="3" fill="none" style="stroke:var(--fen)" stroke-width="2"/></svg>Quartiere</div>
+        <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"edificio"}'><svg width="24" height="18" aria-hidden="true"><rect x="2" y="3" width="20" height="12" rx="2" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Edificio</div>
+        <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"stanza"}'><svg width="18" height="18" aria-hidden="true"><rect x="2" y="2" width="14" height="14" rx="2" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Stanza</div>
+        <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"piazza"}'><svg width="18" height="18" aria-hidden="true"><circle cx="9" cy="9" r="7" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Piazza</div>
+        <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"torre"}'><svg width="18" height="18" aria-hidden="true"><polygon points="9,1 17,9 9,17 1,9" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Torre</div>
         <span class="pal-title" style="margin-left:6px">Segnalini:</span>
-        <div class="pal-item" draggable="true" data-pal='{"marker":"quest"}'><span class="type-badge" style="background:var(--gold)"></span>Quest</div>
-        <div class="pal-item" draggable="true" data-pal='{"marker":"encounter"}'><span class="type-badge" style="background:var(--ember)"></span>Encounter</div>
-        <div class="pal-item" draggable="true" data-pal='{"marker":"png"}'><span class="type-badge" style="background:var(--viola)"></span>PNG</div>
-        <div class="pal-item" draggable="true" data-pal='{"marker":"nota"}'><span class="type-badge" style="background:var(--grigio)"></span>Nota</div>
-        <div class="pal-item" draggable="true" data-pal='{"marker":"token"}'><span class="type-badge" style="background:var(--ink)"></span>Token</div>
+        <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"marker":"quest"}'><span class="type-badge" style="background:var(--gold)"></span>Quest</div>
+        <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"marker":"encounter"}'><span class="type-badge" style="background:var(--ember)"></span>Encounter</div>
+        <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"marker":"png"}'><span class="type-badge" style="background:var(--viola)"></span>PNG</div>
+        <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"marker":"nota"}'><span class="type-badge" style="background:var(--grigio)"></span>Nota</div>
+        <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"marker":"token"}'><span class="type-badge" style="background:var(--ink)"></span>Token</div>
         <span class="pal-sep"></span>
         <button class="btn" onclick="planZoom(1.25)">＋</button>
         <button class="btn" onclick="planZoom(0.8)">－</button>
@@ -99,12 +104,12 @@
   </section>
 
   <!-- ============ QUEST ============ -->
-  <section id="view-quests" class="view">
+  <section id="view-quests" class="view" role="tabpanel" aria-labelledby="tab-quests">
     <div id="quests-list"></div>
   </section>
 
   <!-- ============ CHECKLIST ============ -->
-  <section id="view-check" class="view">
+  <section id="view-check" class="view" role="tabpanel" aria-labelledby="tab-check">
     <div class="narrow">
       <h2>Checklist</h2>
       <p class="sub">Cose da preparare e da non dimenticare al tavolo.</p>
@@ -118,7 +123,7 @@
   </section>
 
   <!-- ============ GIOCATORI ============ -->
-  <section id="view-players" class="view">
+  <section id="view-players" class="view" role="tabpanel" aria-labelledby="tab-players">
     <button id="players-add" class="btn primary" onclick="addPlayer()">+ Aggiungi giocatore</button>
     <div id="players-grid"></div>
   </section>

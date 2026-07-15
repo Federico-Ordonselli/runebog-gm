@@ -242,6 +242,7 @@
     background:var(--panel);cursor:grab;font-size:13px;color:var(--ink);user-select:none;
     touch-action:manipulation}
   .pal-item:hover{border-color:var(--fen-dim);color:var(--fen)}
+  .pal-item:focus-visible{outline:2px solid var(--fen-dim);outline-offset:1px}
   .pal-item:active{cursor:grabbing}
   .pal-item svg{display:block}
   /* Armato: il prossimo tocco sulla mappa piazza questo elemento. */
@@ -273,6 +274,13 @@
     stroke:var(--gold);stroke-width:3;
     filter:drop-shadow(0 0 7px rgba(216,178,90,.45)) drop-shadow(0 2px 4px rgba(0,0,0,.5));
   }
+  /* Focus da tastiera sulla tela: la selezione segue il focus, quindi il ring
+     riprende la stessa lanterna di .sel (l'outline nativo su <g> non è affidabile). */
+  .blk:focus,.edge:focus{outline:none}
+  .blk:focus-visible .blk-shape{
+    stroke:var(--gold);stroke-width:3;
+    filter:drop-shadow(0 0 7px rgba(216,178,90,.45)) drop-shadow(0 2px 4px rgba(0,0,0,.5));
+  }
   .blk text{font-size:13px;fill:var(--ink);pointer-events:none;font-family:"Iowan Old Style",Palatino,Georgia,serif}
   .blk .link-handle{fill:var(--panel);stroke:var(--fen-dim);stroke-width:2;cursor:crosshair;opacity:0}
   .blk:hover .link-handle,.blk.sel .link-handle{opacity:1}
@@ -285,7 +293,7 @@
   .blk .link-handle:hover{fill:var(--fen-dim)}
   .edge{cursor:pointer}
   .edge .edge-hit{stroke:transparent;stroke-width:16;fill:none}
-  .edge.sel .edge-line{filter:drop-shadow(0 0 3px var(--gold))}
+  .edge.sel .edge-line,.edge:focus-visible .edge-line{filter:drop-shadow(0 0 3px var(--gold))}
   .edge text{font-size:11px;fill:var(--ink-dim);pointer-events:none;paint-order:stroke;stroke:var(--bog);stroke-width:3px}
   .rs-handle{fill:var(--gold);stroke:var(--bog);stroke-width:2;cursor:nwse-resize}
 
