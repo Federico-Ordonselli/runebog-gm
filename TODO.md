@@ -1,5 +1,25 @@
 # To-do
 
+- [x] **Migrazioni drizzle-kit al posto di db:push** — fatto (15 lug 2026): schema
+  versionato in `drizzle/` con baseline `0000_iniziale` (generata dallo schema attuale e
+  marcata come già applicata inserendo a mano la riga in `drizzle.__drizzle_migrations`,
+  stesso hash sha256 che calcola il migrator). Script `db:push` rimosso, al suo posto
+  `db:generate` + `db:migrate`. Verificato: `migrate` è no-op sul DB attuale, `generate`
+  non rileva drift. Aggiornati README e CLAUDE.md.
+
+- [x] **Riparare il DB: colonna `share_token` mancante** — fatto (15 lug 2026): la
+  tabella `campaign` su Neon era rimasta indietro rispetto a `src/db/schema.ts` e ogni
+  insert/select falliva con 42703 (sito bloccato dopo il login). Applicato SQL esplicito
+  (`db:push` è rotto, vedi CLAUDE.md): `ADD COLUMN share_token text` + constraint
+  `campaign_share_token_unique`, nome identico a quello che genererebbe drizzle-kit.
+
+- [x] **Chiudere le 3 vulnerabilità Dependabot** — fatto (15 lug 2026): drizzle-orm
+  0.38 → 0.45.2 (high, SQL injection — non eravamo sfruttabili: schema statico, nessun
+  identificatore SQL dall'utente), postcss forzato a ≥8.5.10 con override npm (Next lo
+  pinna vulnerabile), drizzle-kit → 0.31.10 + override esbuild ^0.25 sotto
+  `@esbuild-kit` (solo dev). `npm audit` a zero; gli override sono da ricontrollare
+  quando Next/drizzle-kit si aggiornano.
+
 - [x] **Spezzare app.html in moduli ES** — fatto (14 lug 2026): ritirate le versioni
   standalone/desktop, `public/app.html` è solo markup (~160 righe); CSS in
   `public/app/app.css`, bestiario in `public/app/srd-mostri.js` (~350 KB, ora cacheabile

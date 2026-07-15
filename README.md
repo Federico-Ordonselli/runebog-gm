@@ -126,9 +126,19 @@ Servono: una connection string **Neon** pooled (`DATABASE_URL`), un **OAuth clie
 
 ### Schema del database
 
-> ⚠️ **`npm run db:push` non funziona** su questo schema: drizzle-kit tenta di rimuovere il `NOT NULL` da colonne che sono chiavi primarie e Postgres rifiuta (errore 42P16). In più, per aggiungere il vincolo unique su `username`, propone di **troncare la tabella `user`** — cosa da non accettare mai.
->
-> Finché drizzle-kit non viene aggiornato, applica le modifiche di schema con SQL esplicito o con `drizzle-kit migrate`.
+Lo schema è versionato con **migrazioni SQL** in `drizzle/` (la `0000_iniziale` è il
+baseline dello schema esistente). Per modificarlo:
+
+```bash
+# 1. modifica src/db/schema.ts
+npm run db:generate    # 2. genera il file SQL in drizzle/ (committalo)
+npm run db:migrate     # 3. applica al database di DATABASE_URL
+```
+
+`db:migrate` applica solo le migrazioni non ancora registrate in
+`drizzle.__drizzle_migrations`, quindi è idempotente.
+
+> ⚠️ **Non usare `drizzle-kit push`** (lo script `db:push` è stato rimosso): su questo schema propone di rimuovere il `NOT NULL` dalle chiavi primarie (errore 42P16) e di **troncare la tabella `user`**. Il flusso generate + migrate non ha questo problema perché parte dal baseline, non dall'introspezione del DB.
 
 ### Deploy
 
