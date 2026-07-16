@@ -381,7 +381,7 @@ let suppressFocusSel = false;          // vero solo durante il focus() di ripris
 function planHintText(){
   return armedPal
     ? "Tocca la mappa per piazzare · Esc per annullare"
-    : "◉ trascina, oppure tocca un elemento della palette e poi la mappa · Doppio clic: entra / nuovo blocco · Ctrl+clic: selezione multipla · Canc: elimina · Rotella: zoom";
+    : "◉ trascina, oppure tocca un elemento della palette e poi la mappa · Doppio clic: entra / nuova bolla · Ctrl+clic: selezione multipla · Canc: elimina · ?: scorciatoie";
 }
 
 function armPal(el, opts){
@@ -874,8 +874,8 @@ export function requestDeleteSelection(){
   if(!nodes.length) return;
   if(nodes.every(isEmptyNode)){ doDeleteNodes(nodes.map(n=>n.id)); return; }
   openConfirm(nodes.length===1
-    ? `Eliminare "${nodes[0].title||"blocco"}" e tutto il suo contenuto?`
-    : `Eliminare ${nodes.length} blocchi selezionati (e il loro contenuto)?`,
+    ? `Eliminare "${nodes[0].title||"bolla"}" e tutto il suo contenuto?`
+    : `Eliminare ${nodes.length} bolle selezionate (e il loro contenuto)?`,
     ok=>{ if(ok) doDeleteNodes(nodes.map(n=>n.id)); });
 }
 

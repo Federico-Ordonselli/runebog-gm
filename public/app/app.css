@@ -186,14 +186,26 @@
   .pcard .foot{display:flex;justify-content:flex-end}
   #players-add{margin:26px 0 18px}
 
-  /* ---------- dialog conferma ---------- */
+  /* ---------- dialog condivisi ---------- */
   dialog{
     background:var(--panel);color:var(--ink);border:1px solid var(--line);
     border-radius:var(--r);padding:20px;max-width:360px;
+    margin:auto;   /* il reset *{margin:0} sopra toglierebbe il centraggio nativo */
   }
   dialog::backdrop{background:rgba(6,10,8,.7)}
   dialog .d-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
   #share-dialog{max-width:440px}
+
+  /* ---------- dialog scorciatoie ---------- */
+  #keys-dialog{max-width:480px}
+  .keys-h{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin:14px 0 8px}
+  .keys-grid{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;align-items:center;font-size:13px}
+  .keys-grid > span:nth-child(odd){white-space:nowrap}
+  kbd{
+    display:inline-block;font:11px/1 -apple-system,Helvetica,sans-serif;color:var(--ink);
+    border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;
+    padding:3px 6px;background:var(--bog-2);margin-right:3px;
+  }
   #share-dialog p{font-size:13px;line-height:1.55;margin-bottom:10px}
   #share-url{font-family:ui-monospace,monospace;font-size:12px}
 
@@ -375,7 +387,22 @@
 
   /* ---------- ricerca rapida ---------- */
   #qs-wrap{position:relative}
-  #quick-search{width:200px;font-size:13px;padding:6px 10px}
+  #quick-search{width:200px;font-size:13px;padding:6px 58px 6px 10px}
+  /* Il badge della scorciatoia vive fuori dal placeholder (su mobile si troncava).
+     Sparisce appena il campo è attivo o pieno: lì la scorciatoia è già servita. */
+  #qs-kbd{
+    position:absolute;right:7px;top:50%;transform:translateY(-50%);
+    font:11px/1 -apple-system,Helvetica,sans-serif;color:var(--ink-dim);
+    border:1px solid var(--line);border-radius:4px;padding:3px 5px;
+    background:var(--bog-2);pointer-events:none;white-space:nowrap;
+  }
+  #quick-search:focus + #qs-kbd,
+  #quick-search:not(:placeholder-shown) + #qs-kbd{display:none}
+  /* Col dito non c'è tastiera: niente badge, e il campo si riprende lo spazio. */
+  @media (pointer:coarse){
+    #qs-kbd{display:none}
+    #quick-search{padding-right:10px}
+  }
   #qs-results{
     position:absolute;top:calc(100% + 6px);right:0;min-width:290px;max-height:330px;overflow-y:auto;
     background:var(--panel);border:1px solid var(--line);border-radius:10px;

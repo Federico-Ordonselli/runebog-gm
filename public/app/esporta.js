@@ -2,7 +2,7 @@
    come file. È il formato di scambio con il sito (colonna campaign.data). */
 
 import { st, save, migrateState, resetUndo } from "./stato.js";
-import { showView } from "./viste.js";
+import { openAlert, showView } from "./viste.js";
 
 export function exportJSON(){
   const json = JSON.stringify(st.state, null, 2);
@@ -31,7 +31,7 @@ export function initEsporta(){
     const r = new FileReader();
     r.onload = ()=>{
       try{ applyImportedJSON(r.result); }
-      catch(err){ alert("File non valido: " + err.message); }
+      catch(_){ openAlert("Questo file non è una campagna Runebog: serve il .json creato con Esporta."); }
       e.target.value = "";
     };
     r.readAsText(f);

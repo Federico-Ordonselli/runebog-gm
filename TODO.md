@@ -2,15 +2,30 @@
 
 Dal report UX del 15 lug 2026 (`.impeccable/critique/`, baseline 29/40), in ordine:
 
-- [ ] **Microcopy (`/impeccable clarify`)** — nomenclatura bolla/blocco unificata,
-  `alert()` nativi → dialog custom, placeholder mobile troncato ("Cerca… (Ctrl"),
-  elenco scorciatoie raggiungibile.
 - [ ] **Layout (`/impeccable layout`)** — side-stripe delle card dungeon (pattern
   bandito), topbar mobile su 3 righe (Esporta/Importa in menu), progressive
   disclosure nel pannello dettagli, gradino tipografico 18/19px.
 - [ ] **Rifinitura (`/impeccable polish`)** — favicon di `app.html`, mini-preview più
   contrastata, % testuale sulla barra XP del dungeon, transizioni `width`→`scaleX`
   sulle barre HP; poi rilanciare `/impeccable critique` per misurare il progresso.
+
+- [x] **Microcopy (giro `/impeccable clarify`)** — fatto (16 lug 2026), dal report UX:
+  - Nomenclatura unificata su **bolla** (la parola della landing, di `/dungeon` e di
+    CLAUDE.md): palette, empty state, pannello, menu contestuale, conferme di
+    eliminazione e dialog del tavolo non dicono più "blocco" (`app.html`, `menu.js`,
+    `pannello.js`, `mappa.js`, `tavolo.js`). "Posto di blocco" in `pannello.js` resta:
+    è un'altra parola.
+  - `alert()` nativi → `openAlert()` in `viste.js` + `#alert-dialog`: sostituite le 7
+    chiamate in `stato.js`, `tavolo.js`, `dungeon.js`, `esporta.js`; l'import fallito
+    non mostra più l'errore JSON in inglese. Scoperto di passaggio: il reset
+    `*{margin:0}` di `app.css` toglieva il centraggio nativo dei `<dialog>` (si
+    aprivano in alto a sinistra) — ora `dialog{margin:auto}`.
+  - Ricerca: placeholder "Cerca…" + badge `Ctrl K` separato (`#qs-kbd`, sparisce con
+    focus/testo digitato e su puntatore grosso) — niente più "Cerca… (Ctrl" troncato.
+  - Elenco scorciatoie: `#keys-dialog` raggiungibile col tasto `?` (fuori dai campi),
+    col bottone "?" in topbar e citato nell'hint della mappa.
+  - Verificato con Chromium: 19/19 controlli su desktop e mobile touch (nomenclatura,
+    dialog, badge, "?" nei campi resta testo).
 
 - [x] **Landing e funnel (giro `/impeccable onboard`)** — fatto (15 lug 2026), il P2
   "landing senza prodotto né porta senza account" del report UX:

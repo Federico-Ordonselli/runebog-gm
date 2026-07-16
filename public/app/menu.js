@@ -87,7 +87,7 @@ export function showCtxFor(target, cx, cy){
   // tela vuota: crea qui
   const p = planPointXY(cx, cy);
   const items = [
-    {head:"Nuovo blocco qui"},
+    {head:"Nuova bolla qui"},
     ...Object.entries(SHAPES).map(([k,s])=>({
       id:"sh-"+k, label:s.label, dot:"var(--teal)",
       run:()=>addSpatialChild({shape:k}, p.x, p.y)

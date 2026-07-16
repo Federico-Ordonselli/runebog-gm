@@ -95,12 +95,12 @@ function renderDetailCore(){
   if(st.multiSel.size>1){
     const nodes = [...st.multiSel].map(id=>findNode(id)).filter(Boolean);
     aside.innerHTML = `<div class="inner">
-      <div><h2>${nodes.length} blocchi selezionati</h2></div>
+      <div><h2>${nodes.length} bolle selezionate</h2></div>
       <div class="field"><div class="child-list">${nodes.map(x=>`<div class="child">
         <span class="type-badge" style="background:${(TYPES[x.type]||TYPES.nota).color}"></span>${escapeHtml(x.title||"(senza nome)")}
       </div>`).join("")}</div></div>
       <p style="color:var(--ink-dim);font-size:12px;line-height:1.5">
-        Trascina uno qualsiasi dei blocchi per spostarli insieme · Frecce per ritocchi fini · Canc per eliminarli · Esc per deselezionare
+        Trascina una qualsiasi delle bolle per spostarle insieme · Frecce per ritocchi fini · Canc per eliminarle · Esc per deselezionare
       </p>
       <div class="detail-actions">
         <button class="btn danger" onclick="requestDeleteSelection()">Elimina selezionati</button>
@@ -215,7 +215,7 @@ function renderDetailCore(){
       <div class="child-list">${childRows}</div></div>`:""}
 
     <div class="detail-actions">
-      <button class="btn primary" onclick="addChild('${n.id}')">+ Blocco dentro</button>
+      <button class="btn primary" onclick="addChild('${n.id}')">+ Bolla dentro</button>
       ${sel?`<button class="btn" onclick="enterNode('${n.id}')">Entra →</button>`:""}
       ${!isRoot?`<button class="btn danger" onclick="askDeleteNode('${n.id}')">Elimina</button>`:""}
     </div>
@@ -288,7 +288,7 @@ export function askDeleteNode(id){
   if(RO) return;
   const n = findNode(id); if(!n || n.id===st.state.root.id) return;
   if(isEmptyNode(n)){ doDeleteNodes([id]); return; }   // bolla vuota: via subito, niente dialogo
-  openConfirm(`Eliminare "${n.title||"blocco"}" e tutto il suo contenuto?`, ok=>{
+  openConfirm(`Eliminare "${n.title||"bolla"}" e tutto il suo contenuto?`, ok=>{
     if(!ok) return;
     const par = findParent(id);
     if(par && Array.isArray(par.edges))

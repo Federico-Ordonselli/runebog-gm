@@ -2,7 +2,7 @@
    e, per quelle della mappa, solo con la vista Mappa aperta. */
 
 import { st, save, undo, findNode } from "./stato.js";
-import { showView } from "./viste.js";
+import { showView, openKeys } from "./viste.js";
 import { goUp, enterNode, planZoom, planFit, renderCanvas,
          requestDeleteSelection, duplicateSelected } from "./mappa.js";
 import { renderDetail, deleteEdge } from "./pannello.js";
@@ -33,6 +33,9 @@ export function initScorciatoie(){
       }
       return;
     }
+    // "?" apre l'elenco delle scorciatoie da qualunque vista (fuori dai campi:
+    // lì il punto di domanda è testo che si sta scrivendo)
+    if(e.key==="?"){ e.preventDefault(); openKeys(); return; }
     if(!document.getElementById("view-map").classList.contains("active")) return;
     const k = e.key;
     if(k==="Escape"){

@@ -1,6 +1,7 @@
-/* Il cambio di vista (tab) e il dialogo di conferma condiviso.
-   Tutte le conferme passano da openConfirm(testo, cb): un solo meccanismo,
-   nessuno stato "in sospeso" sparso per i moduli. */
+/* Il cambio di vista (tab) e i dialoghi condivisi.
+   Tutte le conferme passano da openConfirm(testo, cb), gli avvisi da
+   openAlert(testo): un solo meccanismo, nessuno stato "in sospeso" sparso
+   per i moduli, e niente alert() nativi che ignorano il tema. */
 
 import { renderMap } from "./mappa.js";
 import { renderQuests } from "./quest.js";
@@ -37,6 +38,15 @@ export function initViste(){
   });
 }
 
+export function openKeys(){
+  document.getElementById("keys-dialog").showModal();
+}
+
+export function openAlert(testo){
+  document.getElementById("alert-text").textContent = testo;
+  document.getElementById("alert-dialog").showModal();
+}
+
 let confirmCb = null;
 export function openConfirm(testo, cb){
   document.getElementById("confirm-text").textContent = testo;
@@ -50,4 +60,4 @@ export function closeConfirm(yes){
 }
 
 // per gli onclick inline nei template e nell'HTML statico
-Object.assign(window, { showView, closeConfirm });
+Object.assign(window, { showView, closeConfirm, openKeys });

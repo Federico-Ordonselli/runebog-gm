@@ -4,6 +4,7 @@
 
 import { escapeAttr } from "./modello.js";
 import { st, save, findNode, findParent, RO, TABLE } from "./stato.js";
+import { openAlert } from "./viste.js";
 import { renderMap, renderCanvas } from "./mappa.js";
 import { renderDetail } from "./pannello.js";
 
@@ -49,7 +50,7 @@ function renderShare(token){
   if(!token){
     body.innerHTML = `
       <p>Apri il tavolo e ottieni un link da dare ai giocatori. Vedranno la mappa e le
-      descrizioni <b>solo dei blocchi che hai rivelato</b> — mai le tue note, mai i PF dei mostri.</p>
+      descrizioni <b>solo delle bolle che hai rivelato</b> — mai le tue note, mai i PF dei mostri.</p>
       <p class="hint-sm">Chi ha il link entra senza account. Puoi chiuderlo quando vuoi.</p>
       <div class="d-actions">
         <button class="btn" onclick="document.getElementById('share-dialog').close()">Annulla</button>
@@ -59,13 +60,13 @@ function renderShare(token){
   }
   const url = location.origin + "/tavolo/" + token;
   body.innerHTML = `
-    <p>Il tavolo è <b>aperto</b>. Blocchi rivelati finora: <b>${nRivelati}</b>.</p>
+    <p>Il tavolo è <b>aperto</b>. Bolle rivelate finora: <b>${nRivelati}</b>.</p>
     <div class="field">
       <label>Link per i giocatori</label>
       <input id="share-url" readonly value="${escapeAttr(url)}" onclick="this.select()">
     </div>
     ${nRivelati===0 ? `<p class="hint-sm" style="color:var(--gold)">Non hai ancora rivelato niente:
-      per ora i giocatori aprirebbero una mappa vuota. Seleziona un blocco e premi
+      per ora i giocatori aprirebbero una mappa vuota. Seleziona una bolla e premi
       «Rivela ai giocatori».</p>` : ``}
     <div class="d-actions">
       <button class="btn" onclick="copyShare()">Copia link</button>
@@ -75,13 +76,13 @@ function renderShare(token){
 }
 export async function rotateShare(){
   const res = await fetch(`/api/campaigns/${window.__cloud.id}/share`, {method:"POST"});
-  if(!res.ok){ alert("Non riesco ad aprire il tavolo. Riprova."); return; }
+  if(!res.ok){ openAlert("Non riesco ad aprire il tavolo. Controlla la connessione e riprova."); return; }
   const {token} = await res.json();
   renderShare(token);
 }
 export async function closeShare(){
   const res = await fetch(`/api/campaigns/${window.__cloud.id}/share`, {method:"DELETE"});
-  if(!res.ok){ alert("Non riesco a chiudere il tavolo. Riprova."); return; }
+  if(!res.ok){ openAlert("Non riesco a chiudere il tavolo. Controlla la connessione e riprova."); return; }
   renderShare(null);
 }
 export function copyShare(){

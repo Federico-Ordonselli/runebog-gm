@@ -3,7 +3,7 @@
    multiple e le utilità sull'albero. */
 
 import { uid, node, escapeHtml } from "./modello.js";
-import { openConfirm, showView } from "./viste.js";
+import { openAlert, openConfirm, showView } from "./viste.js";
 
 /* ==================== dove stiamo girando ====================
    Due contesti col server, riconosciuti da cosa ha iniettato prima dei moduli:
@@ -109,7 +109,7 @@ export function newCampaign(){
 }
 export function askDeleteCampaign(){
   if(window.__cloud) return;
-  if(campaignsIdx.length<=1){ alert("È l'unica campagna: creane un'altra prima di poterla eliminare."); return; }
+  if(campaignsIdx.length<=1){ openAlert("È l'unica campagna: creane un'altra prima di poterla eliminare."); return; }
   openConfirm(
     `Eliminare la campagna "${st.state.root.title||"senza nome"}"? Operazione definitiva (fai prima un Esporta se hai dubbi).`,
     ok=>{

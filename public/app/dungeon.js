@@ -8,6 +8,7 @@
 import { node, uid, TOKEN_COLORS, MARKER_R } from "./modello.js";
 import { st, save, currentNode, RO } from "./stato.js";
 import { enterNode, planFit } from "./mappa.js";
+import { openAlert } from "./viste.js";
 import { newFoe } from "./mostri.js";
 
 const DG_SCALE = 40;
@@ -136,9 +137,9 @@ function importDungeon(text){
   if(RO) return;
   let data;
   try{ data = JSON.parse(text); }
-  catch(_){ alert("Non è JSON: copia l'export dalla pagina /dungeon (Copia JSON) e riprova."); return; }
+  catch(_){ openAlert("Non è JSON: copia l'export dalla pagina /dungeon (Copia JSON) e riprova."); return; }
   if(!data || data.generator!=="runebog-dungeon-generator" || !data.grid || !Array.isArray(data.rooms)){
-    alert("Questo JSON non viene dal generatore di dungeon (/dungeon del sito).");
+    openAlert("Questo JSON non viene dal generatore di dungeon (/dungeon del sito).");
     return;
   }
   const dg = dungeonFromExport(data);
@@ -153,7 +154,7 @@ export async function pasteDungeon(){
   let text = null;
   try{ text = await navigator.clipboard.readText(); }catch(_){}
   if(!text){
-    alert("Non riesco a leggere gli appunti: usa “Da file…” con il .json scaricato.");
+    openAlert("Non riesco a leggere gli appunti: usa “Da file…” con il .json scaricato.");
     return;
   }
   importDungeon(text);
