@@ -2,12 +2,34 @@
 
 Dal report UX del 15 lug 2026 (`.impeccable/critique/`, baseline 29/40), in ordine:
 
-- [ ] **Layout (`/impeccable layout`)** — side-stripe delle card dungeon (pattern
-  bandito), topbar mobile su 3 righe (Esporta/Importa in menu), progressive
-  disclosure nel pannello dettagli, gradino tipografico 18/19px.
 - [ ] **Rifinitura (`/impeccable polish`)** — favicon di `app.html`, mini-preview più
   contrastata, % testuale sulla barra XP del dungeon, transizioni `width`→`scaleX`
   sulle barre HP; poi rilanciare `/impeccable critique` per misurare il progresso.
+
+- [x] **Layout (giro `/impeccable layout`)** — fatto (16 lug 2026), dual-agent
+  (assessment strutturale + detector meccanico; il detector era pulito, tutti i
+  finding veri sono dell'assessment):
+  - **Topbar mobile da ~4 righe (~200px) a 2 (111px misurati a 390px)**: le azioni
+    rare in sessione (Esporta/Importa, tema, scorciatoie, ＋/🗑 campagna) vivono nel
+    menu "⋯" (`openTopbarMenu` in `menu.js`, riusa `openCtx`; al tavolo dei giocatori
+    restano solo tema e scorciatoie). Righe via `order` nel media query, DOM invariato.
+  - **Progressive disclosure nel pannello** (`pannello.js`, `mostri.js`): `<details>`
+    per Sfondo della pianta, Generatore di dungeon, Immagine di riferimento (aperta
+    se c'è un'immagine) e "Resto della scheda" mostro (TS/abilità/res/linguaggi/
+    tratti/leggendarie). Lo stato di apertura sopravvive ai re-render (`openSecs`).
+    Sempre visibili: Note, Al tavolo, Azioni, tracker PF.
+  - **Card dungeon**: via la side-stripe `border-left:4px` (pattern bandito, colore
+    del tipo già sul badge) — ora l'indice `#n` è colorato; `dg-stat__k`/`dg-badge`
+    0.62→0.7rem (erano sotto i 10px).
+  - Pulizie di contorno: foe-list de-nestata (era card dentro card), gradino 18/19px
+    fuso su 19, `.hint-sm` 11.5→12px, ricette bottoni unificate (tab 7×13 come `.btn`,
+    `.pal-item` 7×10 come i menu), gemelli 26/28px allineati, ~35 righe di CSS morto
+    rimosse (`#canvas*`, `#view-plan`, `#plan-side`), aria extra sul confine "Al tavolo".
+  - Rimandati consapevolmente: token di spaziatura `--sp-*`, consolidamento completo
+    della scala tipografica a 6 gradini, raggruppamento del cluster destro della
+    topbar desktop (candidati per il giro polish o oltre).
+  - Verificato: `npx tsc` ok, Chromium 27/27 (pannello e statblock desktop, topbar
+    e menu ⋯ mobile touch con cambio tema, /dungeon senza stripe).
 
 - [x] **Microcopy (giro `/impeccable clarify`)** — fatto (16 lug 2026), dal report UX:
   - Nomenclatura unificata su **bolla** (la parola della landing, di `/dungeon` e di

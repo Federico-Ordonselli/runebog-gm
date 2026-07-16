@@ -9,6 +9,16 @@ import { openConfirm } from "./viste.js";
 import { renderMap, renderCrumbs, renderCanvas, bgEdit, isEmptyNode, doDeleteNodes } from "./mappa.js";
 import { statblockHTML } from "./mostri.js";
 
+/* Sezioni richiudibili (<details>) del pannello: lo stato di apertura vive qui,
+   fuori dal DOM, perché ogni renderDetail ricostruisce l'innerHTML da zero e
+   l'attributo open andrebbe perso. `force` riapre le sezioni che in quel momento
+   hanno qualcosa da mostrare (un'immagine caricata, lo sfondo in modifica). */
+const openSecs = new Set();
+export function secOpen(key, force=false){ return (force || openSecs.has(key)) ? " open" : ""; }
+export function secToggle(el){
+  if(el.open) openSecs.add(el.dataset.sec); else openSecs.delete(el.dataset.sec);
+}
+
 /* Il pannello del tavolo. È una funzione a parte, e non un renderDetail() pieno di
    `if(RO)`: quello che i giocatori vedono deve poter essere letto tutto insieme, in
    venti righe, senza inseguire condizioni sparse dentro duecento. */
@@ -181,7 +191,8 @@ function renderDetailCore(){
       <button class="btn ${n.main?"primary":""}" onclick="editNode('${n.id}','main',${n.main?"false":"true"})">
         ★ ${n.main?"Quest principale":"Segna come principale"}</button></div>` : ""}
 
-    ${!sel && !isMarker(n) ? `<div class="field"><label>Sfondo della pianta</label>
+    ${!sel && !isMarker(n) ? `<details class="field" data-sec="bg" ontoggle="secToggle(this)"${secOpen("bg", bgEdit)}>
+      <summary>Sfondo della pianta</summary>
       <div class="img-actions">
         <button class="btn" onclick="pickBg()">${cur.bg?"Sostituisci":"Carica"} sfondo</button>
         ${cur.bg?`<button class="btn ${bgEdit?"primary":""}" onclick="toggleBgEdit()">${bgEdit?"Fatto":"Sposta/Ridim."}</button>
@@ -189,9 +200,10 @@ function renderDetailCore(){
       </div>
       ${cur.bg?`<label style="margin-top:10px">Opacità sfondo</label>
       <input type="range" min="0.1" max="1" step="0.05" value="${cur.bg.opacity ?? 0.6}" oninput="setBgOpacity(this.value)">`:""}
-    </div>
+    </details>
 
-    <div class="field"><label>Generatore di dungeon</label>
+    <details class="field" data-sec="dungeon" ontoggle="secToggle(this)"${secOpen("dungeon")}>
+      <summary>Generatore di dungeon</summary>
       <div class="img-actions">
         <button class="btn" onclick="pasteDungeon()">Incolla dungeon</button>
         <button class="btn" onclick="document.getElementById('dungeon-file').click()">Da file…</button>
@@ -199,15 +211,16 @@ function renderDetailCore(){
       <p class="hint-sm">Genera un dungeon sulla pagina <b>/dungeon</b> del sito e copialo:
         qui diventa una bolla con le stanze sulla pianta, gli incontri pronti
         per i PF e i tuoi PG come pedine all'ingresso.</p>
-    </div>` : ""}
+    </details>` : ""}
 
-    <div class="field"><label>Mappa / immagine di riferimento</label>
+    <details class="field" data-sec="img" ontoggle="secToggle(this)"${secOpen("img", !!n.img)}>
+      <summary>Mappa / immagine di riferimento</summary>
       <img id="detail-img" class="${n.img?"show":""}" src="${n.img||""}" alt="riferimento" onclick="openLightbox('${n.id}')">
       <div class="img-actions" style="margin-top:8px">
         <button class="btn" onclick="pickImage('${n.id}')">${n.img?"Sostituisci":"Carica"} immagine</button>
         ${n.img?`<button class="btn danger" onclick="editNode('${n.id}','img',null)">Rimuovi</button>`:""}
       </div>
-    </div>
+    </details>
 
     ${n.type==="encounter" ? statblockHTML(n) : ""}
 
@@ -334,6 +347,6 @@ export function openLightbox(id){
   document.getElementById("lightbox").classList.add("show");
 }
 
-// per gli onclick inline nei template
+// per gli onclick/ontoggle inline nei template
 Object.assign(window, { editNode, editEdge, deleteEdge, addChild, askDeleteNode,
-  pickImage, openLightbox, openDetailSheet });
+  pickImage, openLightbox, openDetailSheet, secToggle });

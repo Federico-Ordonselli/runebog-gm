@@ -82,7 +82,7 @@
 .dg-stat__v { font-size: 1.25rem; color: var(--lantern); }
 .dg-stat__k {
   margin-top: 0.1rem;
-  font-size: 0.62rem;
+  font-size: 0.7rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--parchment-dim);
@@ -92,10 +92,11 @@
 
 .dg-rooms { display: flex; flex-direction: column; gap: 0.75rem; }
 
+/* Il colore del tipo sta su indice e badge, non su una stripe laterale:
+   il bordo resta uniforme come le altre card del sito. */
 .dg-card {
   padding: 0.9rem 1rem;
   border: 1px solid var(--edge-soft);
-  border-left: 4px solid;
   border-radius: var(--r-md);
   background: color-mix(in srgb, var(--surface) 55%, transparent);
   cursor: pointer;
@@ -110,7 +111,7 @@
 .dg-card__desc { margin: 0.4rem 0 0.6rem; font-style: italic; color: var(--parchment-dim); font-size: 0.9rem; }
 
 .dg-badge {
-  font-size: 0.62rem;
+  font-size: 0.7rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   border: 1px solid;

@@ -58,10 +58,12 @@
       <option value="contrasto">Alto contrasto</option>
     </select>
   </label>
-  <button class="btn tiny" onclick="openKeys()" title="Scorciatoie da tastiera" aria-label="Scorciatoie da tastiera">?</button>
+  <button id="keys-btn" class="btn tiny" onclick="openKeys()" title="Scorciatoie da tastiera" aria-label="Scorciatoie da tastiera">?</button>
   <button class="btn only-cloud" onclick="openShare()" title="Link per i giocatori">Tavolo</button>
   <button class="btn dm-only" onclick="exportJSON()">Esporta</button>
   <button class="btn dm-only" onclick="document.getElementById('import-file').click()">Importa</button>
+  <!-- Solo mobile (display:none su desktop): raccoglie le azioni rare in sessione. -->
+  <button id="topbar-more" class="btn" onclick="openTopbarMenu(event)" title="Altre azioni" aria-label="Altre azioni" aria-haspopup="menu">⋯</button>
   <input type="file" id="import-file" accept=".json,application/json" hidden>
   <input type="file" id="dungeon-file" accept=".json,application/json" hidden>
 </header>
@@ -96,7 +98,8 @@
       <div id="plan-wrap">
         <svg id="plan-svg" xmlns="http://www.w3.org/2000/svg"></svg>
         <div id="empty-node">
-          <p class="serif" style="font-size:18px">Questo livello è ancora vuoto.</p>
+          <!-- 19px come gli h2 del pannello e dei dialog: un gradino solo, non 18/19 -->
+          <p class="serif" style="font-size:19px">Questo livello è ancora vuoto.</p>
           <p style="color:var(--ink-dim);font-size:13px;max-width:340px;text-align:center">Trascina qui una bolla o un segnalino dalla barra, oppure fai doppio clic sulla tela.</p>
           <button class="btn primary" onclick="quickAddCenter()">+ Aggiungi bolla</button>
         </div>

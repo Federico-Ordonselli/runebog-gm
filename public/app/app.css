@@ -46,14 +46,17 @@
   #topbar h1{font-size:20px;letter-spacing:.06em;color:var(--fen)}
   #topbar h1 small{color:var(--ink-dim);font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin-left:8px}
   nav.tabs{display:flex;gap:4px;margin-left:12px}
+  /* Stessa ricetta di .btn (7px 13px): tab e bottoni sono la stessa taglia di
+     controllo, la differenza 13/14 era rumore. */
   nav.tabs button{
-    padding:7px 14px;border-radius:8px;color:var(--ink-dim);
+    padding:7px 13px;border-radius:8px;color:var(--ink-dim);
     letter-spacing:.03em;
   }
   nav.tabs button.active{background:var(--panel-2);color:var(--fen)}
   nav.tabs button:hover{color:var(--ink)}
   #topbar .spacer{flex:1}
   #savestate{font-size:12px;color:var(--ink-dim)}
+  #topbar-more{display:none}   /* esiste solo sotto i 760px, vedi media query */
   .btn{
     padding:7px 13px;border:1px solid var(--line);border-radius:8px;
     background:var(--panel);color:var(--ink);font-size:13px;
@@ -81,13 +84,6 @@
   #crumbs button:hover{color:var(--fen)}
   #crumbs .sep{color:var(--grigio)}
   #crumbs .here{color:var(--fen);font-weight:600}
-  #canvas-wrap{flex:1;position:relative;overflow:hidden}
-  #canvas{width:100%;height:100%;display:block}
-  #canvas-hint{
-    position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
-    font-size:12px;color:var(--ink-dim);background:color-mix(in srgb, var(--bog) 78%, transparent);
-    padding:4px 12px;border-radius:20px;pointer-events:none;white-space:nowrap;
-  }
   #empty-node{
     position:absolute;inset:0;display:none;flex-direction:column;
     align-items:center;justify-content:center;gap:12px;color:var(--ink-dim);
@@ -116,6 +112,19 @@
   #detail .inner{padding:18px;display:flex;flex-direction:column;gap:14px}
   #detail .empty{padding:30px 20px;color:var(--ink-dim);text-align:center}
   .field label{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:5px}
+  /* Sezioni richiudibili del pannello: il summary è vestito come una label di
+     .field, così chiusa una sezione resta una riga della stessa grammatica.
+     Le sezioni rare (sfondo, generatore, immagine, resto della scheda) partono
+     chiuse: prima ciò che si tocca in sessione. */
+  details.field > summary{
+    font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);
+    cursor:pointer;list-style:none;user-select:none;
+  }
+  details.field > summary::-webkit-details-marker{display:none}
+  details.field > summary::before{content:"▸";display:inline-block;width:13px;color:var(--grigio)}
+  details.field[open] > summary::before{content:"▾"}
+  details.field[open] > summary{margin-bottom:5px}
+  details.field > summary:hover{color:var(--ink)}
   .row{display:flex;gap:10px}
   .row>.field{flex:1}
   .type-badge{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:baseline}
@@ -184,7 +193,7 @@
   .hp-num input{width:34px;padding:2px 4px;text-align:center;font-size:13px}
   .pcard textarea{min-height:60px;font-size:13px}
   .pcard .foot{display:flex;justify-content:flex-end}
-  #players-add{margin:26px 0 18px}
+  #players-add{margin:28px 0 18px}
 
   /* ---------- dialog condivisi ---------- */
   dialog{
@@ -224,8 +233,10 @@
 
   .only-dm{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);
     border:1px solid var(--line);border-radius:99px;padding:1px 6px;margin-left:6px}
-  .hint-sm{font-size:11.5px;line-height:1.5;color:var(--ink-dim);margin-top:6px}
-  .share-field{border-top:1px solid var(--line);padding-top:14px}
+  .hint-sm{font-size:12px;line-height:1.5;color:var(--ink-dim);margin-top:6px}
+  /* Confine semantico, non un campo qualsiasi: qui si decide cosa vedono i
+     giocatori. Un po' più d'aria del gap standard (14px) del pannello. */
+  .share-field{border-top:1px solid var(--line);padding-top:14px;margin-top:6px}
   /* contorno dorato = i giocatori lo vedono. Serve al DM per sapere, con un'occhiata
      alla mappa, cosa ha già dato via e cosa no. */
   .blk.shared .blk-shape{filter:drop-shadow(0 0 5px var(--gold))}
@@ -244,13 +255,11 @@
   #plan-wrap, #plan-svg, #plan-svg text, #plan-toolbar, #crumbs{
     user-select:none; -webkit-user-select:none;
   }
-  #view-plan{display:none;height:100%}
-  #view-plan.active{display:flex}
-  #plan-left{flex:1;display:flex;flex-direction:column;min-width:0}
   #plan-toolbar{display:flex;gap:8px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
   .pal-title{font-size:12px;color:var(--ink-dim);letter-spacing:.06em;text-transform:uppercase}
   .pal-sep{flex:1}
-  .pal-item{display:flex;align-items:center;gap:7px;padding:6px 11px;border:1px solid var(--line);border-radius:8px;
+  /* 7px 10px = la ricetta chip dei menu (#ctx-menu, #qs-results) */
+  .pal-item{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;
     background:var(--panel);cursor:grab;font-size:13px;color:var(--ink);user-select:none;
     touch-action:manipulation}
   .pal-item:hover{border-color:var(--fen-dim);color:var(--fen)}
@@ -266,11 +275,6 @@
   #plan-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--ink-dim);
     background:color-mix(in srgb, var(--bog) 85%, transparent);padding:5px 12px;border-radius:8px;border:1px solid var(--line);
     max-width:92%;text-align:center;pointer-events:none}
-  #plan-side{width:300px;flex:none;border-left:1px solid var(--line);padding:16px;overflow-y:auto;background:var(--panel)}
-  #plan-side h3{font-size:15px;color:var(--fen);margin-bottom:4px}
-  #plan-side label{display:block;font-size:11px;color:var(--ink-dim);letter-spacing:.06em;text-transform:uppercase;margin:12px 0 4px}
-  #plan-side input,#plan-side select,#plan-side textarea{width:100%}
-  #plan-side .side-empty{color:var(--ink-dim);font-size:13px;margin-top:8px}
   .blk{cursor:grab}
   .blk.dragging{cursor:grabbing}
   /* I blocchi poggiano sulla torbiera invece di galleggiarci sopra piatti: un'ombra
@@ -313,7 +317,9 @@
   .btn.tiny{padding:2px 8px;font-size:12px;min-width:0;line-height:1.4}
   .statblock label,.statblock-empty label{margin-top:12px}
   .statblock > .row{margin-top:6px}
-  .foe-list{margin:8px 0;border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--bg)}
+  /* Gruppo, non card: le card sono i singoli nemici — un contenitore bordato
+     attorno a card bordate era il pattern "card dentro card". */
+  .foe-list{margin:8px 0}
   .foe-head{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--ink-dim);
     letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px}
   .foe-card{border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--panel);margin-bottom:7px}
@@ -367,7 +373,7 @@
 
   /* ---------- diario quest ---------- */
   #view-quests{overflow-y:auto}
-  #quests-list{max-width:760px;margin:0 auto;padding:26px 20px 60px}
+  #quests-list{max-width:760px;margin:0 auto;padding:28px 20px 60px}   /* stesso attacco di .narrow */
   .q-h{font-size:15px;color:var(--fen);letter-spacing:.06em;text-transform:uppercase;margin:26px 0 10px}
   .q-h:first-child{margin-top:0}
   .q-empty{color:var(--ink-dim);font-size:13px}
@@ -463,15 +469,23 @@
     body{display:flex;flex-direction:column;height:100dvh;overflow:hidden;overscroll-behavior:none}
     main{flex:1;min-height:0;height:auto}
 
-    /* topbar compatta */
+    /* Topbar compatta su due righe: le azioni rare (Esporta/Importa, tema,
+       scorciatoie, +/🗑 campagna) passano al menu ⋯; riga 1 identità+ricerca+⋯,
+       riga 2 tab+stato salvataggio (via order, il DOM non cambia). */
     #topbar{flex-wrap:wrap;gap:6px;padding:8px 10px}
     #topbar h1{font-size:16px}
     #topbar h1 small{display:none}
     #camp-wrap{margin-left:0}
     #campaign-select{max-width:120px}
+    #topbar-more{display:block}
+    #theme-wrap, #keys-btn,
+    #topbar > .btn.dm-only,
+    #camp-wrap .btn.tiny{display:none}
+    #topbar .spacer{display:none}
+    nav.tabs{order:5;margin-left:0}
+    #savestate{order:6;font-size:11px}
     .tabs button{padding:6px 10px;font-size:13px}
     #quick-search{width:110px}
-    #savestate{font-size:11px}
 
     /* palette scorrevole in orizzontale */
     #plan-toolbar{overflow-x:auto;flex-wrap:nowrap;padding:8px 10px;scrollbar-width:none}

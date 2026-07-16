@@ -4,7 +4,7 @@
 
 import { uid, escapeHtml, escapeAttr } from "./modello.js";
 import { findNode, save } from "./stato.js";
-import { renderDetail, editNode } from "./pannello.js";
+import { renderDetail, editNode, secOpen } from "./pannello.js";
 
 const ABILITIES = [["str","FOR"],["dex","DES"],["con","COS"],["int","INT"],["wis","SAG"],["cha","CAR"]];
 const abMod = v => { const m = Math.floor(((+v||10)-10)/2); return (m>=0?"+":"")+m; };
@@ -188,20 +188,25 @@ export function statblockHTML(n){
       <div class="field"><label>GS (PE)</label><input value="${escapeAttr(m.cr)}" oninput="editMon('${n.id}','cr',this.value)"></div>
       <div class="field"><label>Sensi</label><input value="${escapeAttr(m.senses)}" oninput="editMon('${n.id}','senses',this.value)"></div>
     </div>
-    <div class="row">
-      <div class="field"><label>Tiri salvezza</label><input value="${escapeAttr(m.saves)}" oninput="editMon('${n.id}','saves',this.value)"></div>
-      <div class="field"><label>Abilità</label><input value="${escapeAttr(m.skills)}" oninput="editMon('${n.id}','skills',this.value)"></div>
-    </div>
-    <div class="row">
-      <div class="field"><label>Res./Immunità</label><input value="${escapeAttr(m.resist)}" oninput="editMon('${n.id}','resist',this.value)"></div>
-      <div class="field"><label>Linguaggi</label><input value="${escapeAttr(m.langs)}" oninput="editMon('${n.id}','langs',this.value)"></div>
-    </div>
-    <label>Tratti</label>
-    <textarea class="mon-sm" oninput="editMon('${n.id}','traits',this.value)">${escapeHtml(m.traits||"")}</textarea>
     <label>Azioni</label>
     <textarea oninput="editMon('${n.id}','actions',this.value)">${escapeHtml(m.actions||"")}</textarea>
-    <label>Azioni leggendarie</label>
-    <textarea class="mon-sm" oninput="editMon('${n.id}','legendary',this.value)">${escapeHtml(m.legendary||"")}</textarea>
+    <!-- Consultazione rara in combattimento: parte chiusa, il tracker PF e le
+         Azioni restano sempre a portata di mano. -->
+    <details class="field" data-sec="mon-extra" ontoggle="secToggle(this)"${secOpen("mon-extra")}>
+      <summary>Resto della scheda</summary>
+      <div class="row">
+        <div class="field"><label>Tiri salvezza</label><input value="${escapeAttr(m.saves)}" oninput="editMon('${n.id}','saves',this.value)"></div>
+        <div class="field"><label>Abilità</label><input value="${escapeAttr(m.skills)}" oninput="editMon('${n.id}','skills',this.value)"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Res./Immunità</label><input value="${escapeAttr(m.resist)}" oninput="editMon('${n.id}','resist',this.value)"></div>
+        <div class="field"><label>Linguaggi</label><input value="${escapeAttr(m.langs)}" oninput="editMon('${n.id}','langs',this.value)"></div>
+      </div>
+      <label>Tratti</label>
+      <textarea class="mon-sm" oninput="editMon('${n.id}','traits',this.value)">${escapeHtml(m.traits||"")}</textarea>
+      <label>Azioni leggendarie</label>
+      <textarea class="mon-sm" oninput="editMon('${n.id}','legendary',this.value)">${escapeHtml(m.legendary||"")}</textarea>
+    </details>
 
     <div class="foe-list">
       <div class="foe-head"><span>${m.foes.length>1?`${alive}/${m.foes.length} in vita · ${total} PF totali`:"Nemico"}</span>

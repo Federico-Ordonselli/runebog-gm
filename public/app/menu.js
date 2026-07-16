@@ -2,7 +2,9 @@
    (il long-press lo rileva mappa.js, che chiama showCtxFor). */
 
 import { TYPES, SHAPES, EDGE_TYPES, STATUS_COLORS, isMarker, defShape } from "./modello.js";
-import { st, currentNode } from "./stato.js";
+import { st, currentNode, newCampaign, askDeleteCampaign, RO } from "./stato.js";
+import { openKeys } from "./viste.js";
+import { exportJSON } from "./esporta.js";
 import { childOf, enterNode, duplicateSelected, addSpatialChild, arrangeGrid,
          planPointXY, renderCanvas } from "./mappa.js";
 import { renderDetail, editNode, askDeleteNode, editEdge, deleteEdge } from "./pannello.js";
@@ -104,8 +106,42 @@ export function showCtxFor(target, cx, cy){
   openCtx(items, cx, cy);
 }
 
+/* Il menu "⋯" della topbar mobile: sotto i 760px le azioni rare in sessione
+   (esporta/importa, tema, scorciatoie, gestione campagne) stanno qui, così la
+   topbar scende a due righe e la tela si riprende lo schermo. I bottoni estesi
+   restano nel markup: su desktop questo bottone è display:none. */
+export function openTopbarMenu(ev){
+  const cur = document.getElementById("theme-select")?.value || "torbiera";
+  const TEMI = {torbiera:"Torbiera", pergamena:"Pergamena", cripta:"Cripta",
+                brace:"Brace", contrasto:"Alto contrasto"};
+  const items = [];
+  if(!RO){
+    items.push(
+      {id:"exp", label:"Esporta la campagna", run:()=>exportJSON()},
+      {id:"imp", label:"Importa da file…", run:()=>document.getElementById("import-file").click()},
+      "---"
+    );
+  }
+  items.push({head:"Tema"});
+  for(const [k,label] of Object.entries(TEMI))
+    // setTheme vive in main.js (l'entry point): importarlo da qui invertirebbe
+    // il verso dell'avvio, quindi si passa dal window come gli onclick inline.
+    items.push({id:"th-"+k, label: label + (cur===k?"  ✓":""), run:()=>window.setTheme(k)});
+  items.push("---", {id:"keys", label:"Scorciatoie da tastiera", run:openKeys});
+  if(!RO && !window.__cloud){
+    items.push("---",
+      {id:"newc", label:"Nuova campagna", run:newCampaign},
+      {id:"delc", label:"Elimina campagna…", danger:true, run:askDeleteCampaign});
+  }
+  const r = ev.currentTarget.getBoundingClientRect();
+  openCtx(items, r.left, r.bottom + 6);
+}
+
 export function initMenu(){
   addEventListener("pointerdown", e=>{ if(!e.target.closest("#ctx-menu")) closeCtx(); }, true);
   addEventListener("keydown", e=>{ if(e.key==="Escape") closeCtx(); });
   addEventListener("blur", closeCtx);
 }
+
+// per l'onclick inline del bottone "⋯" in topbar
+Object.assign(window, { openTopbarMenu });

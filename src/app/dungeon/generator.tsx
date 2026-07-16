@@ -223,9 +223,9 @@ function FeaturesView({ features }: { features: string[] }) {
 function RoomCard({ room, selected, onSelect, ref }: { room: Room; selected: boolean; onSelect: (id: number) => void; ref?: React.Ref<HTMLDivElement> }) {
   const m = ROOM_META[room.type];
   return (
-    <div ref={ref} className={"dg-card" + (selected ? " dg-card--sel" : "")} style={{ borderLeftColor: m.color }} onClick={() => onSelect(room.id)}>
+    <div ref={ref} className={"dg-card" + (selected ? " dg-card--sel" : "")} onClick={() => onSelect(room.id)}>
       <div className="dg-card__head">
-        <span className="dg-card__idx">#{room.index}</span>
+        <span className="dg-card__idx" style={{ color: m.color }}>#{room.index}</span>
         <span className="dg-badge" style={{ color: m.color, borderColor: m.color }}>{m.label}</span>
         <span className="dg-card__name">{room.label}</span>
       </div>
