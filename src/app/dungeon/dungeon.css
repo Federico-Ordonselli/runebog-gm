@@ -141,11 +141,24 @@
   font-size: 0.78rem;
 }
 
+.dg-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.15rem 0 0.5rem;
+}
 .dg-bar {
+  flex: 1;
   height: 6px;
   background: var(--peat-sunk);
   border-radius: 4px;
   overflow: hidden;
-  margin: 0.15rem 0 0.5rem;
 }
 .dg-bar__fill { height: 100%; border-radius: 4px; }
+.dg-bar__pct {
+  font-size: 0.75rem;
+  color: var(--parchment-dim);
+  font-variant-numeric: tabular-nums;
+  min-width: 2.8em; /* le % a 2 e 3 cifre non spostano la barra */
+  text-align: right;
+}

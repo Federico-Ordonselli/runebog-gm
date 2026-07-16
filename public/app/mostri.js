@@ -71,7 +71,7 @@ function renderFoeHP(id, foeId){
   const wrap = document.querySelector(`[data-foehp="${foeId}"]`); if(!wrap) return;
   const pct = f.hpMax ? Math.round(100*f.hp/f.hpMax) : 0;
   const col = hpColor(pct);
-  wrap.querySelector(".hpbar-fill").style.width = pct+"%";
+  wrap.querySelector(".hpbar-fill").style.transform = `scaleX(${pct/100})`;
   wrap.querySelector(".hpbar-fill").style.background = col;
   const num = wrap.querySelector(".hp-now"); if(num) num.value = f.hp;
   const g = wrap.closest(".foe-card"); if(g) g.classList.toggle("dead", f.hp<=0);
@@ -137,7 +137,7 @@ function foeCard(nodeId, f){
     </div>
     <div class="foe-hp" data-foehp="${f.id}">
       <button class="btn tiny" onclick="bumpFoeHP('${nodeId}','${f.id}',-1)">−</button>
-      <div class="hpbar"><div class="hpbar-fill" style="width:${pct}%;background:${col}"></div></div>
+      <div class="hpbar"><div class="hpbar-fill" style="transform:scaleX(${pct/100});background:${col}"></div></div>
       <input class="hp-now" type="number" value="${f.hp}" min="0" max="${f.hpMax}"
         onchange="editFoe('${nodeId}','${f.id}','hp',Math.max(0,Math.min(${f.hpMax},parseInt(this.value)||0)))">
       <span class="hp-sep">/</span>

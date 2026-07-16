@@ -58,11 +58,15 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function Bar({ value, max }: { value: number; max: number }) {
-  const pct = max ? (value / max) * 100 : 0;
+  const pct = max ? Math.round((value / max) * 100) : 0;
   const col = pct > 110 ? "var(--ember)" : pct > 90 ? "var(--lantern)" : "var(--moss)";
+  // La % anche come testo: il superamento del budget non può vivere solo nel colore.
   return (
-    <div className="dg-bar">
-      <div className="dg-bar__fill" style={{ width: Math.min(100, pct) + "%", background: col }} />
+    <div className="dg-bar-row">
+      <div className="dg-bar">
+        <div className="dg-bar__fill" style={{ width: Math.min(100, pct) + "%", background: col }} />
+      </div>
+      <span className="dg-bar__pct">{pct}%</span>
     </div>
   );
 }

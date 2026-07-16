@@ -187,7 +187,9 @@
   }
   .hp-block .hp-btn:hover{border-color:var(--fen-dim)}
   .hp-bar{flex:1;height:10px;background:var(--bog-2);border-radius:6px;overflow:hidden;border:1px solid var(--line)}
-  .hp-bar i{display:block;height:100%;background:var(--fen-dim);transition:width .2s,background .2s}
+  /* Il riempimento è largo 100% e si scala con transform: anima sul compositor,
+     senza rilayout a ogni tick di PF. La larghezza la decide il JS via scaleX. */
+  .hp-bar i{display:block;height:100%;width:100%;background:var(--fen-dim);transform-origin:left;transition:transform .2s,background .2s}
   .hp-bar i.low{background:var(--ember)}
   .hp-num{font-size:13px;min-width:64px;text-align:right;color:var(--ink-dim)}
   .hp-num input{width:34px;padding:2px 4px;text-align:center;font-size:13px}
@@ -330,7 +332,7 @@
   .foe-name{flex:1;font-weight:600}
   .foe-hp{display:flex;align-items:center;gap:5px;margin-top:6px}
   .hpbar{flex:1;height:9px;border-radius:5px;background:var(--line);overflow:hidden}
-  .hpbar-fill{height:100%;border-radius:5px;transition:width .15s,background .15s}
+  .hpbar-fill{height:100%;width:100%;border-radius:5px;transform-origin:left;transition:transform .15s,background .15s}
   .foe-hp .hp-now,.foe-hp .hp-max{width:46px;text-align:center;padding:3px 4px;font-size:13px}
   .foe-hp .hp-sep{color:var(--ink-dim)}
   .foe-line{display:flex;gap:5px;align-items:center;margin-top:6px}

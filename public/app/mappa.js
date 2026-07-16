@@ -158,21 +158,21 @@ function miniPreview(n, box){
   const k = Math.min(availW/Math.max(60,x2-x1), availH/Math.max(60,y2-y1));
   const ox = 11 + (availW-(x2-x1)*k)/2 - x1*k;
   const oy = 31 + (availH-(y2-y1)*k)/2 - y1*k;
-  let out = `<g class="mini" opacity="0.85" pointer-events="none">`;
+  let out = `<g class="mini" pointer-events="none">`;
   for(const e of (n.edges||[])){
     const a = kids.find(c=>c.id===e.a), b = kids.find(c=>c.id===e.b);
     if(!a||!b) continue;
     const A=nodeCenter(a), B=nodeCenter(b), t=EDGE_TYPES[e.type]||EDGE_TYPES.strada;
-    out += `<line x1="${A.x*k+ox}" y1="${A.y*k+oy}" x2="${B.x*k+ox}" y2="${B.y*k+oy}" style="stroke:${t.stroke}" stroke-width="1.5"${t.dash?` stroke-dasharray="3 3"`:""}/>`;
+    out += `<line x1="${A.x*k+ox}" y1="${A.y*k+oy}" x2="${B.x*k+ox}" y2="${B.y*k+oy}" style="stroke:${t.stroke}" stroke-width="1.8"${t.dash?` stroke-dasharray="3 3"`:""}/>`;
   }
   for(const c of kids){
     const col = (TYPES[c.type]||TYPES.nota).color;
     if(isMarker(c)){
       const C = nodeCenter(c);
-      out += `<circle cx="${C.x*k+ox}" cy="${C.y*k+oy}" r="2.6" style="fill:${c.type==="token" ? (c.tokenColor||col) : col}"/>`;
+      out += `<circle cx="${C.x*k+ox}" cy="${C.y*k+oy}" r="3" style="fill:${c.type==="token" ? (c.tokenColor||col) : col}"/>`;
     }else{
       const b = nodeBox(c);
-      out += `<rect x="${c.x*k+ox}" y="${c.y*k+oy}" width="${Math.max(5,b.w*k)}" height="${Math.max(5,b.h*k)}" rx="1.5" fill="none" style="stroke:${col}" stroke-width="1.2"/>`;
+      out += `<rect x="${c.x*k+ox}" y="${c.y*k+oy}" width="${Math.max(5,b.w*k)}" height="${Math.max(5,b.h*k)}" rx="1.5" fill="none" style="stroke:${col}" stroke-width="1.6"/>`;
     }
   }
   return out + `</g>`;

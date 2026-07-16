@@ -21,7 +21,7 @@ export function renderPlayers(){
       <input class="pclass" value="${escapeAttr(p.cls)}" placeholder="Giocatore · Classe">
       <div class="hp-block">
         <button class="hp-btn" data-a="-1">−</button>
-        <div class="hp-bar"><i class="${pct<=30?"low":""}" style="width:${pct}%"></i></div>
+        <div class="hp-bar"><i class="${pct<=30?"low":""}" style="transform:scaleX(${pct/100})"></i></div>
         <button class="hp-btn" data-a="1">+</button>
         <span class="hp-num">${p.hp} / <input type="number" min="1" value="${p.hpMax}" title="PF massimi"></span>
       </div>

@@ -2,9 +2,29 @@
 
 Dal report UX del 15 lug 2026 (`.impeccable/critique/`, baseline 29/40), in ordine:
 
-- [ ] **Rifinitura (`/impeccable polish`)** — favicon di `app.html`, mini-preview più
-  contrastata, % testuale sulla barra XP del dungeon, transizioni `width`→`scaleX`
-  sulle barre HP; poi rilanciare `/impeccable critique` per misurare il progresso.
+- [ ] **Rilanciare `/impeccable critique`** per misurare il progresso rispetto alla
+  baseline 29/40 del 15 lug 2026, ora che polish/layout/clarify/onboard/harden/colorize
+  sono tutti a terra.
+
+- [x] **Rifinitura (giro `/impeccable polish`)** — fatto (16 lug 2026), le quattro voci
+  minori rimaste dal report UX:
+  - **Favicon di `app.html`**: `link rel="icon"` verso `/icon.svg` (l'icona del sito,
+    `src/app/icon.svg`, che Next già serve) — via il 404 di `favicon.ico`.
+  - **Mini-preview più contrastata** (`mappa.js`): gruppo a piena opacità (era 0.85),
+    stroke dei collegamenti 1.5→1.8 e delle bolle figlie 1.2→1.6, marker r 2.6→3.
+  - **% testuale sulla barra XP del dungeon** (`generator.tsx` + `dungeon.css`): il
+    superamento del budget non vive più solo nel colore — `.dg-bar__pct` a fianco
+    della barra, `tabular-nums` + `min-width` perché 2 o 3 cifre non spostino nulla.
+  - **Barre HP a `scaleX`** (`app.css`, `giocatori.js`, `mostri.js`): riempimento
+    largo 100% scalato con `transform` (origin a sinistra) invece della transizione
+    su `width` — anima sul compositor, niente rilayout a ogni tick di PF.
+  - Verificato: `npx tsc` ok, Chromium 11/11 (favicon 200, opacità/stroke della
+    mini-preview, `scaleX` su entrambe le barre con update in place al click su −,
+    % presente su /dungeon, console pulita). I finding residui del detector su
+    `app.html`/`app.css` sono i falsi positivi già classificati nella baseline
+    (img del lightbox con src da JS, scala densa da tool, swatch del menu
+    contestuale); il `layout-transition` su `.hpbar-fill` ora matcha solo la
+    parola `width:100%`, la transizione è su `transform`.
 
 - [x] **Layout (giro `/impeccable layout`)** — fatto (16 lug 2026), dual-agent
   (assessment strutturale + detector meccanico; il detector era pulito, tutti i

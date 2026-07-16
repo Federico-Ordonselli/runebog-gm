@@ -12,6 +12,9 @@
      sola in themes.css e vale qui e là. -->
 <link rel="stylesheet" href="/themes.css">
 <link rel="stylesheet" href="/app/app.css">
+<!-- Stessa icona del sito: src/app/icon.svg, che Next serve su /icon.svg.
+     Senza questo link il browser chiede /favicon.ico e prende un 404. -->
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
 <!-- Il tag script qui sotto è anche l'ancora dell'iniezione server: /play/[id] e
      /tavolo/[token] inseriscono window.__cloud / window.__table subito prima,
      cercando la prima apertura di tag script senza attributi. ATTENZIONE: quella
