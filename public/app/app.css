@@ -43,7 +43,7 @@
     padding:10px 18px;border-bottom:1px solid var(--line);
     background:color-mix(in srgb, var(--bog) 85%, transparent);backdrop-filter:blur(6px);
   }
-  #topbar h1{font-size:20px;letter-spacing:.06em;color:var(--fen)}
+  #topbar h1{font-size:20px;letter-spacing:.06em;color:var(--fen);white-space:nowrap}
   #topbar h1 small{color:var(--ink-dim);font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin-left:8px}
   nav.tabs{display:flex;gap:4px;margin-left:12px}
   /* Stessa ricetta di .btn (7px 13px): tab e bottoni sono la stessa taglia di
@@ -55,8 +55,14 @@
   nav.tabs button.active{background:var(--panel-2);color:var(--fen)}
   nav.tabs button:hover{color:var(--ink)}
   #topbar .spacer{flex:1}
-  #savestate{font-size:12px;color:var(--ink-dim)}
-  #topbar-more{display:none}   /* esiste solo sotto i 760px, vedi media query */
+  /* nowrap: "Salvato ✓" si spezzava quando la fila si stringeva. min-width:0 +
+     ellipsis: i messaggi lunghi (avviso 4 MB, offline) si troncano invece di
+     sfondare la topbar — il testo integrale lo annuncia comunque il role=status. */
+  #savestate{
+    font-size:12px;color:var(--ink-dim);
+    white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis;
+  }
+  #topbar-more{display:none}   /* appare sotto i 1400px, vedi i gradini della topbar */
   .btn{
     padding:7px 13px;border:1px solid var(--line);border-radius:8px;
     background:var(--panel);color:var(--ink);font-size:13px;
@@ -66,6 +72,9 @@
      sotto 4.5:1 in tutti i temi scuri — ed è la CTA principale. */
   .btn.primary{background:var(--fen);border-color:var(--fen);color:var(--bog);font-weight:600}
   .btn.primary:hover{background:var(--fen-hov);border-color:var(--fen-hov);color:var(--bog)}
+  /* Il distruttivo si dichiara a riposo, non solo all'hover: su touch l'hover
+     non esiste e nel confirm "Elimina" era identico ad "Annulla". */
+  .btn.danger{color:var(--ember);border-color:color-mix(in srgb, var(--ember) 35%, var(--line))}
   .btn.danger:hover{border-color:var(--ember);color:var(--ember)}
 
   /* ---------- layout ---------- */
@@ -98,11 +107,6 @@
   .bubble text{fill:var(--ink);pointer-events:none;font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif}
   .bubble text.count{fill:var(--ink-dim);font-family:-apple-system,Helvetica,sans-serif}
   .bubble .status-dot{pointer-events:none}
-  .rune-ring{pointer-events:none}
-  @media (prefers-reduced-motion:no-preference){
-    .rune-ring{animation:slowspin 90s linear infinite;transform-origin:center}
-    @keyframes slowspin{to{transform:rotate(360deg)}}
-  }
 
   /* ---------- pannello dettaglio ---------- */
   #detail{
@@ -192,7 +196,8 @@
   .hp-bar i{display:block;height:100%;width:100%;background:var(--fen-dim);transform-origin:left;transition:transform .2s,background .2s}
   .hp-bar i.low{background:var(--ember)}
   .hp-num{font-size:13px;min-width:64px;text-align:right;color:var(--ink-dim)}
-  .hp-num input{width:34px;padding:2px 4px;text-align:center;font-size:13px}
+  /* 52px: a 34 il campo troncava "24" in "2·" — devono starci tre cifre di PF. */
+  .hp-num input{width:52px;padding:2px 4px;text-align:center;font-size:13px}
   .pcard textarea{min-height:60px;font-size:13px}
   .pcard .foot{display:flex;justify-content:flex-end}
   #players-add{margin:28px 0 18px}
@@ -391,7 +396,9 @@
   .q-title:hover{color:var(--fen);text-decoration:underline}
   .q-loc{margin-left:8px;font-size:11px;color:var(--ink-dim)}
   .q-notes{font-size:12px;color:var(--ink-dim);margin-top:3px}
-  .q-status{font-size:12px;padding:4px 6px}
+  /* width:auto: sennò il reset input,select{width:100%} fa occupare al select
+     l'intera riga e il titolo della quest collassa a una parola per riga. */
+  .q-status{font-size:12px;padding:4px 6px;width:auto}
 
   /* ---------- ricerca rapida ---------- */
   #qs-wrap{position:relative}
@@ -437,7 +444,9 @@
     padding:7px 10px;border-radius:7px;font-size:13px;color:var(--ink);
   }
   #ctx-menu button:hover{background:var(--panel-2);color:var(--fen)}
-  #ctx-menu button.danger:hover{color:var(--ember)}
+  /* Dopo la regola :hover generica (stessa specificità): l'ember resta anche
+     al passaggio, e il distruttivo è rosso pure a riposo — su touch è l'unico segnale. */
+  #ctx-menu button.danger{color:var(--ember)}
   #ctx-menu hr{border:none;border-top:1px solid var(--line);margin:5px 4px}
   #ctx-menu .dot{width:9px;height:9px;border-radius:50%;flex:none}
   #ctx-menu .bar{width:16px;height:0;border-top:3px solid;border-radius:2px;flex:none}
@@ -446,6 +455,34 @@
   #theme-wrap select{width:auto;padding:6px 8px;font-size:13px;background:var(--panel);cursor:pointer}
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
     clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+  /* ---------- topbar stretta: tre gradini prima del mobile ----------
+     A piena dotazione la fila misura ~1520px: senza questi gradini l'h1 e
+     "Salvato ✓" andavano a capo già a 1440px (ora sono nowrap, quindi qui
+     va tolto ingombro, non lasciato traboccare). */
+  @media (max-width:1550px){
+    #topbar h1 small{display:none}   /* decorativo: mobile già lo nasconde */
+    #quick-search{width:150px}
+  }
+  /* Le azioni rare in sessione passano al menu ⋯ (lo stesso del mobile). */
+  @media (max-width:1400px){
+    #topbar-more{display:block}
+    #theme-wrap, #keys-btn,
+    #topbar > .btn.dm-only,
+    #camp-wrap .btn.tiny{display:none}
+  }
+  /* Due righe ordinate come su mobile: riga 1 identità+ricerca+⋯, riga 2
+     tab+stato. Lo pseudo-elemento a basis 100% forza l'a-capo tra le due. */
+  @media (max-width:1200px) and (min-width:761px){
+    #topbar{flex-wrap:wrap;row-gap:4px}
+    #topbar::after{content:"";flex-basis:100%;order:4}
+    nav.tabs{order:5;margin-left:0}
+    #savestate{order:6;margin-left:auto}
+    /* main a calc(100vh - 53px) assume la topbar a una riga: qui sono due,
+       quindi il layout passa a flex come su mobile. */
+    body{display:flex;flex-direction:column;height:100vh}
+    main{flex:1;min-height:0;height:auto}
+  }
 
   /* ---------- puntatore grosso (dito): bersagli da 44px ----------
      Su POINTER, non su larghezza: un iPad in orizzontale è 1024px — largo come un

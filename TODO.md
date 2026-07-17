@@ -2,9 +2,42 @@
 
 Dal report UX del 15 lug 2026 (`.impeccable/critique/`, baseline 29/40), in ordine:
 
-- [ ] **Rilanciare `/impeccable critique`** per misurare il progresso rispetto alla
-  baseline 29/40 del 15 lug 2026, ora che polish/layout/clarify/onboard/harden/colorize
-  sono tutti a terra.
+- [ ] **Giro fix dal re-critique del 16 lug** (scope concordato: tutti e 5 i priority,
+  partendo dai bug visivi rapidi; niente cambi al modello Tipo×Forma / modalità sessione):
+  1. [x] `/impeccable polish` — fatto (17 lug 2026), i 4 bug visivi, tutto in
+     `public/app/app.css`:
+     - `.q-status{width:auto}`: il reset `input,select{width:100%}` non fa più
+       occupare al select l'intera riga — la vista Quest torna leggibile.
+     - Danger ember **a riposo**: `.btn.danger` con colore+bordo a riposo (contrasto
+       misurato 5.82:1 in Torbiera, 6.01:1 in Pergamena) e `#ctx-menu button.danger`
+       piazzato dopo la regola `:hover` generica così l'ember vince anche al passaggio.
+       Nel confirm "Elimina" ≠ "Annulla" anche su touch.
+     - `.hp-num input` 34→52px: tre cifre di PF senza troncare ("24" non è più "2·").
+     - **Topbar a gradini**: `h1` e `#savestate` in `nowrap` (con `min-width:0` +
+       ellipsis sui messaggi lunghi tipo l'avviso 4 MB — il testo integrale lo
+       annuncia il `role=status`); la fila piena misura ~1520px, quindi tre gradini:
+       ≤1550px via il sottotitolo e ricerca a 150px; ≤1400px le azioni rare passano
+       al menu ⋯ (lo stesso del mobile); 761–1200px due righe ordinate con
+       `flex-wrap` + pseudo-elemento a `flex-basis:100%`, e `body` a flex perché
+       `main{height:calc(100vh-53px)}` assumeva la topbar a una riga.
+     - Rimosso il CSS morto `.rune-ring` segnalato dal critique.
+     - Verificato con Chromium 21/21: vista Quest, PF, confirm e ctx-menu in due
+       temi con sonde WCAG, topbar a 9 larghezze da 1920 a 770px (overflow, righe,
+       ellipsis del messaggio lungo, `main` in viewport), console pulita.
+  2. `/impeccable harden` — undo raggiungibile su touch (voce nel menu ⋯ / bottone in
+     topbar quando lo stack non è vuoto) e ricerca Ctrl+K estesa a note/giocatori/
+     checklist con snippet (oggi `ricerca.js` matcha solo `n.title`).
+  3. `/impeccable onboard` — primo avvio: via i dati personali da `defaultState()`
+     (stato.js:42), esempio-tutorial o canvas vuoto + empty state guidato.
+
+- [x] **Rilanciare `/impeccable critique`** — fatto (16 lug 2026), dual-agent, snapshot
+  `.impeccable/critique/2026-07-16T14-51-37Z__public-app-html.md`. Punteggio **29/40**,
+  piatto sulla baseline ma con composizione tutta nuova: i P1 del 15 lug (contrasti,
+  tastiera, undo assente, onboarding) sono risolti — contrasti e tela accessibile ora
+  sono punti di forza misurati live. Emersi 2 P1 nuovi (vista Quest rotta, undo
+  inesistente su touch) e 3 P2 (danger invisibile a riposo, primo avvio coi dati dello
+  sviluppatore, ricerca che promette "tutta la campagna" ma matcha solo i titoli) —
+  dettagli e fix nel giro qui sopra.
 
 - [x] **Rifinitura (giro `/impeccable polish`)** — fatto (16 lug 2026), le quattro voci
   minori rimaste dal report UX:
