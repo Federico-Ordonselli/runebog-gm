@@ -65,6 +65,12 @@
   <button class="btn only-cloud" onclick="openShare()" title="Link per i giocatori">Tavolo</button>
   <button class="btn dm-only" onclick="exportJSON()">Esporta</button>
   <button class="btn dm-only" onclick="document.getElementById('import-file').click()">Importa</button>
+  <!-- Solo su touch dai 761px in su (via CSS): lì Ctrl+Z non esiste e un drag
+       accidentale sarebbe irreversibile; sul telefono la topbar non ha spazio e
+       l'annulla sta nel menu ⋯. hidden lo governa stato.js: appare quando c'è
+       qualcosa da annullare. Niente classe dm-only: la regola dei gradini la
+       nasconderebbe sotto i 1400px; al tavolo lo stack resta comunque vuoto. -->
+  <button id="undo-btn" class="btn tiny" hidden onclick="doUndo()" title="Annulla l'ultima modifica" aria-label="Annulla l'ultima modifica">↶</button>
   <!-- Solo mobile (display:none su desktop): raccoglie le azioni rare in sessione. -->
   <button id="topbar-more" class="btn" onclick="openTopbarMenu(event)" title="Altre azioni" aria-label="Altre azioni" aria-haspopup="menu">⋯</button>
   <input type="file" id="import-file" accept=".json,application/json" hidden>

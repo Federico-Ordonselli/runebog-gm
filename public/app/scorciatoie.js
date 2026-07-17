@@ -1,7 +1,7 @@
 /* Scorciatoie da tastiera globali. Attive solo fuori dai campi di testo
    e, per quelle della mappa, solo con la vista Mappa aperta. */
 
-import { st, save, undo, findNode } from "./stato.js";
+import { st, save, doUndo, findNode } from "./stato.js";
 import { showView, openKeys } from "./viste.js";
 import { goUp, enterNode, planZoom, planFit, renderCanvas,
          requestDeleteSelection, duplicateSelected } from "./mappa.js";
@@ -23,14 +23,7 @@ export function initScorciatoie(){
     // Ctrl+Z globale (dopo il filtro sui campi: lì comanda l'undo nativo del browser)
     if((e.ctrlKey||e.metaKey) && !e.shiftKey && e.key.toLowerCase()==="z"){
       e.preventDefault();
-      const el = document.getElementById("savestate");
-      if(undo()){
-        const attiva = document.querySelector(".view.active");
-        showView(attiva ? attiva.id.replace("view-","") : "map");
-        el.textContent = "Modifica annullata ↩";
-      }else{
-        el.textContent = "Niente da annullare";
-      }
+      doUndo();
       return;
     }
     // "?" apre l'elenco delle scorciatoie da qualunque vista (fuori dai campi:

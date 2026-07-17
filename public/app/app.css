@@ -430,6 +430,16 @@
   }
   #qs-results button:hover,#qs-results button.active{background:var(--panel-2);color:var(--fen)}
   #qs-results .qs-path{margin-left:auto;font-size:11px;color:var(--ink-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:45%}
+  /* Titolo + snippet in colonna; min-width:0 sennò lo snippet lungo allarga il
+     menu invece di troncarsi. Il match è in <mark> su fondo --gold traslucido:
+     regge su tutti e 5 i temi perché il gold è un token di tema. */
+  #qs-results .qs-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+  #qs-results .qs-main > span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #qs-results .qs-snip{font-size:11px;color:var(--ink-dim)}
+  #qs-results mark{
+    background:color-mix(in srgb, var(--gold) 28%, transparent);
+    color:inherit;border-radius:3px;padding:0 1px;
+  }
 
   /* ---------- menu contestuale ---------- */
   #ctx-menu{
@@ -488,6 +498,16 @@
      Su POINTER, non su larghezza: un iPad in orizzontale è 1024px — largo come un
      laptop, ma si tocca col dito. Il desktop resta compatto com'è. */
   button, .pal-item, .check-item input[type=checkbox]{touch-action:manipulation}
+
+  /* L'undo visibile (↶): solo su touch — col mouse c'è Ctrl+Z, e in topbar
+     desktop non c'è larghezza da spendere. Sul telefono (≤760px) nemmeno:
+     la riga 2 è piena e il bottone la spingerebbe a tre righe — lì l'annulla
+     sta nel menu ⋯, a un tap. hidden (governato da stato.js, niente da
+     annullare) vince comunque: il selettore lo esclude. */
+  #undo-btn{display:none}
+  @media (pointer:coarse) and (min-width:761px){
+    #undo-btn:not([hidden]){display:inline-flex;align-items:center;justify-content:center}
+  }
 
   @media (pointer:coarse){
     .btn, nav.tabs button, #ctx-menu button{min-height:44px}

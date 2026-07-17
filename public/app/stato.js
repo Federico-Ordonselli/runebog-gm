@@ -172,10 +172,23 @@ let undoStack = [];
 let lastSnap = null;       // serializzazione dello stato all'ultimo salvataggio compiuto
 let lastEditAt = 0;
 
+/* Il bottone ↶ della topbar (visibile solo su touch, via CSS) appare quando c'è
+   qualcosa da annullare. Il check esatto richiederebbe di serializzare lo stato
+   (fino a 4 MB) a ogni battitura, quindi è un proxy: stack non vuoto, escluso il
+   caso del singolo snapshot identico a lastSnap — è quello che lascia il save()
+   di avvio (main.js) e non annulla niente. I falsi positivi residui si
+   auto-correggono: undo() scarta gli snapshot identici mentre cerca, e il
+   refresh successivo nasconde il bottone. */
+function refreshUndoBtn(){
+  const b = document.getElementById("undo-btn");
+  if(b) b.hidden = !undoStack.length ||
+                   (undoStack.length === 1 && undoStack[0] === lastSnap);
+}
 export function resetUndo(){
   undoStack = [];
   lastSnap = st.state ? JSON.stringify(st.state) : null;
   lastEditAt = 0;
+  refreshUndoBtn();
 }
 function noteChange(){
   const now = Date.now();
@@ -184,6 +197,7 @@ function noteChange(){
     if(undoStack.length > UNDO_CAP) undoStack.shift();
   }
   lastEditAt = now;
+  refreshUndoBtn();
 }
 export function undo(){
   if(RO || !st.state) return false;
@@ -211,6 +225,19 @@ export function undo(){
   if(st.selectedEdgeId) st.selectedEdgeId = null;
   doSave();                          // persiste subito, senza passare da noteChange
   return true;
+}
+/* L'annulla con feedback: unico punto d'ingresso per Ctrl+Z (scorciatoie.js),
+   la voce nel menu ⋯ e il bottone ↶ su touch — stessa esperienza da ovunque. */
+export function doUndo(){
+  const el = document.getElementById("savestate");
+  if(undo()){
+    const attiva = document.querySelector(".view.active");
+    showView(attiva ? attiva.id.replace("view-","") : "map");
+    el.textContent = "Modifica annullata ↩";
+  }else{
+    el.textContent = "Niente da annullare";
+  }
+  refreshUndoBtn();
 }
 
 /* ==================== salvataggio ==================== */
@@ -261,6 +288,7 @@ async function cloudPush(){
 function doSave(){
   const json = JSON.stringify(st.state);
   lastSnap = json;                                // da qui in poi l'undo torna a questo punto
+  refreshUndoBtn();                               // lastSnap è cambiato: il proxy va rivalutato
   if(window.__cloud){
     store.set(SAVE_KEY, json);                    // cache offline
     cloudPush(); return;
@@ -322,4 +350,4 @@ export function pathNodes(){ return st.path.map(id=>findNode(id)).filter(Boolean
 
 // Gli onclick inline nei template cercano funzioni globali: i moduli ES non ne
 // creano, quindi le espongo esplicitamente.
-Object.assign(window, { switchCampaign, newCampaign, askDeleteCampaign });
+Object.assign(window, { switchCampaign, newCampaign, askDeleteCampaign, doUndo });

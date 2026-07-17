@@ -24,9 +24,27 @@ Dal report UX del 15 lug 2026 (`.impeccable/critique/`, baseline 29/40), in ordi
      - Verificato con Chromium 21/21: vista Quest, PF, confirm e ctx-menu in due
        temi con sonde WCAG, topbar a 9 larghezze da 1920 a 770px (overflow, righe,
        ellipsis del messaggio lungo, `main` in viewport), console pulita.
-  2. `/impeccable harden` — undo raggiungibile su touch (voce nel menu ⋯ / bottone in
-     topbar quando lo stack non è vuoto) e ricerca Ctrl+K estesa a note/giocatori/
-     checklist con snippet (oggi `ricerca.js` matcha solo `n.title`).
+  2. [x] `/impeccable harden` — fatto (17 lug 2026), i due filoni:
+     - **Undo su touch**: `doUndo()` in `stato.js` è l'unico punto d'ingresso
+       (Ctrl+Z, menu, bottone) con lo stesso feedback in `#savestate`. Bottone ↶
+       in topbar visibile solo su `pointer:coarse` ≥761px e solo quando c'è
+       qualcosa da annullare (`hidden` governato da `refreshUndoBtn`, proxy su
+       `undoStack` che esclude lo snapshot del save() di avvio; niente classe
+       `dm-only`, la regola dei gradini lo nasconderebbe sotto i 1400px). Sul
+       telefono la riga 2 è piena (tre righe di topbar): lì la via è la voce
+       "Annulla l'ultima modifica ↩" nel menu ⋯, presente ovunque (`menu.js`).
+     - **Ricerca Ctrl+K estesa** (`ricerca.js` riscritta): titoli, note DM +
+       note per i giocatori (snippet con `<mark>` su fondo `--gold` traslucido),
+       nemici (`monster.foes`, un risultato per bolla), giocatori (nome/classe/
+       note → vista Giocatori), checklist (→ vista Checklist, esclusa al tavolo
+       dove il tab non esiste). Ordine: titoli, poi note, poi il resto; il
+       dialog "?" che promette "Cerca in tutta la campagna" ora dice il vero.
+     - Verificato con Chromium 23/23 su tre contesti (desktop fine pointer,
+       iPad touch 1024, telefono 390): cinque sorgenti con navigazione da
+       tastiera, Ctrl+Z invariato (e ancora lasciato al browser dentro i campi),
+       ciclo completo del ↶ (appare/annulla/sparisce), voce nel menu ⋯ su
+       tablet e telefono, topbar senza overflow, console pulita; regressione
+       suite polish 21/21.
   3. `/impeccable onboard` — primo avvio: via i dati personali da `defaultState()`
      (stato.js:42), esempio-tutorial o canvas vuoto + empty state guidato.
 

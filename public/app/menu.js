@@ -2,7 +2,7 @@
    (il long-press lo rileva mappa.js, che chiama showCtxFor). */
 
 import { TYPES, SHAPES, EDGE_TYPES, STATUS_COLORS, isMarker, defShape } from "./modello.js";
-import { st, currentNode, newCampaign, askDeleteCampaign, RO } from "./stato.js";
+import { st, currentNode, newCampaign, askDeleteCampaign, doUndo, RO } from "./stato.js";
 import { openKeys } from "./viste.js";
 import { exportJSON } from "./esporta.js";
 import { childOf, enterNode, duplicateSelected, addSpatialChild, arrangeGrid,
@@ -117,6 +117,10 @@ export function openTopbarMenu(ev){
   const items = [];
   if(!RO){
     items.push(
+      // Sempre presente, non solo a stack pieno: è la via touch all'undo e deve
+      // essere scopribile; a stack vuoto doUndo risponde "Niente da annullare".
+      {id:"undo", label:"Annulla l'ultima modifica ↩", run:doUndo},
+      "---",
       {id:"exp", label:"Esporta la campagna", run:()=>exportJSON()},
       {id:"imp", label:"Importa da file…", run:()=>document.getElementById("import-file").click()},
       "---"
