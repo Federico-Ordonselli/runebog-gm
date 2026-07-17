@@ -178,11 +178,33 @@ function miniPreview(n, box){
   return out + `</g>`;
 }
 
+/* L'empty state insegna cose diverse a seconda di dove sei: alla radice di una
+   campagna nuova spiega il concetto (le bolle contengono altre mappe), nei
+   livelli interni ricorda solo i gesti, al tavolo dei giocatori non propone
+   modifiche — lì non c'è niente da trascinare. */
+function emptyNodeMarkup(){
+  // 19px come gli h2 del pannello e dei dialog: un gradino solo, non 18/19
+  const h = t => `<p class="serif" style="font-size:19px">${t}</p>`;
+  const p = t => `<p style="color:var(--ink-dim);font-size:13px;max-width:340px;text-align:center">${t}</p>`;
+  if(RO) return h("Qui non c'è ancora niente da vedere.") +
+              p("Il DM non ha ancora rivelato nulla di questo livello.");
+  const btn = `<button class="btn primary" onclick="quickAddCenter()">+ Aggiungi bolla</button>`;
+  if(st.path.length===1)
+    return h("La campagna parte da qui.") +
+           p("Ogni bolla è una zona o un luogo, e dentro può contenere un'altra mappa: trascinane una dalla barra, oppure fai doppio clic sulla tela.") +
+           btn;
+  return h("Questo livello è ancora vuoto.") +
+         p("Trascina qui una bolla o un segnalino dalla barra, oppure fai doppio clic sulla tela.") +
+         btn;
+}
+
 export function renderCanvas(){
   const svg = planSvg();
   const cur = currentNode();
   ensureLayout(cur);
-  document.getElementById("empty-node").classList.toggle("show", cur.children.length===0);
+  const emptyEl = document.getElementById("empty-node");
+  emptyEl.classList.toggle("show", cur.children.length===0);
+  if(cur.children.length===0) emptyEl.innerHTML = emptyNodeMarkup();
   const hint = document.getElementById("plan-hint");
   hint.style.display = cur.children.length ? "" : "none";
   hint.textContent = planHintText();

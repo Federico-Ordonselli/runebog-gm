@@ -106,12 +106,9 @@
       </div>
       <div id="plan-wrap">
         <svg id="plan-svg" xmlns="http://www.w3.org/2000/svg"></svg>
-        <div id="empty-node">
-          <!-- 19px come gli h2 del pannello e dei dialog: un gradino solo, non 18/19 -->
-          <p class="serif" style="font-size:19px">Questo livello è ancora vuoto.</p>
-          <p style="color:var(--ink-dim);font-size:13px;max-width:340px;text-align:center">Trascina qui una bolla o un segnalino dalla barra, oppure fai doppio clic sulla tela.</p>
-          <button class="btn primary" onclick="quickAddCenter()">+ Aggiungi bolla</button>
-        </div>
+        <!-- contenuto generato da emptyNodeMarkup() in mappa.js: cambia in base
+             a dove sei (radice, livello interno, tavolo dei giocatori) -->
+        <div id="empty-node"></div>
         <div id="plan-hint"></div>
         <button id="detail-fab" title="Dettagli del livello" onclick="openDetailSheet()">✎</button>
       </div>

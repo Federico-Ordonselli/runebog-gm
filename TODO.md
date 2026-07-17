@@ -2,7 +2,8 @@
 
 Dal report UX del 15 lug 2026 (`.impeccable/critique/`, baseline 29/40), in ordine:
 
-- [ ] **Giro fix dal re-critique del 16 lug** (scope concordato: tutti e 5 i priority,
+- [x] **Giro fix dal re-critique del 16 lug** — completato (17 lug 2026) con i tre
+  passi qui sotto (scope concordato: tutti e 5 i priority,
   partendo dai bug visivi rapidi; niente cambi al modello Tipo×Forma / modalità sessione):
   1. [x] `/impeccable polish` — fatto (17 lug 2026), i 4 bug visivi, tutto in
      `public/app/app.css`:
@@ -45,8 +46,23 @@ Dal report UX del 15 lug 2026 (`.impeccable/critique/`, baseline 29/40), in ordi
        ciclo completo del ↶ (appare/annulla/sparisce), voce nel menu ⋯ su
        tablet e telefono, topbar senza overflow, console pulita; regressione
        suite polish 21/21.
-  3. `/impeccable onboard` — primo avvio: via i dati personali da `defaultState()`
-     (stato.js:42), esempio-tutorial o canvas vuoto + empty state guidato.
+  3. [x] `/impeccable onboard` — fatto (17 lug 2026), primo avvio senza dati personali:
+     - **Esempio-tutorial al posto dei distretti vuoti**: `defaultState()` (stato.js)
+       ora costruisce "Guado dell'Airone (esempio)" — locanda con due stanze dentro
+       (mini-preview visibile), mercato/faro/locanda nei tre stati di preparazione,
+       tre tipi di collegamento (strada, ponte, segreto con etichetta), quest nel
+       diario, PNG, encounter col tracker PF (2 ratti SRD), note DM ≠ note giocatori
+       su una bolla condivisa, checklist 3 voci di cui 1 fatta. Esplorarlo è il
+       tutorial; "(esempio)" nel titolo dice che si può smontare. Il nome nell'indice
+       campagne combacia col titolo fin dal primo avvio.
+     - **Empty state contestuale** (`emptyNodeMarkup()` in mappa.js, markup tolto da
+       app.html): alla radice di una campagna nuova spiega il concetto ("Ogni bolla…
+       può contenere un'altra mappa"), nei livelli interni ricorda i gesti, al tavolo
+       dei giocatori niente inviti a modificare ("Il DM non ha ancora rivelato nulla").
+     - Verificato con Chromium 24/24 su tre contesti (primo avvio a localStorage
+       vuoto, campagna nuova vuota, tavolo simulato): niente "Distretto"/"compleanno",
+       5 bolle + 3 collegamenti, stati e condivisione negli aria-label, tracker PF,
+       quest e checklist nelle viste, console pulita.
 
 - [x] **Rilanciare `/impeccable critique`** — fatto (16 lug 2026), dual-agent, snapshot
   `.impeccable/critique/2026-07-16T14-51-37Z__public-app-html.md`. Punteggio **29/40**,

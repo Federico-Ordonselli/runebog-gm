@@ -39,21 +39,65 @@ export const st = {
   detailOpen: false     // bottom sheet aperto manualmente (mobile)
 };
 
+/* La campagna del primo avvio è un esempio-tutorial, non dati veri: una zona
+   compilata che mostra la gerarchia (bolle dentro bolle, con mini-preview),
+   i tre stati di preparazione, i tipi di collegamento, le note DM separate da
+   quelle per i giocatori e il tracker PF di un encounter. Esplorarla È il
+   tutorial; il "(esempio)" nel titolo dice che si può smontare senza rimorsi. */
 export function defaultState(){
-  const root = node("Runebog","zona");
-  root.notes = "Città sulle paludi. One-shot di compleanno — 11 luglio.";
-  root.children = [
-    node("Distretto 1","zona"),
-    node("Distretto 2","zona"),
-    node("Distretto 3","zona"),
-    node("Distretto 4","zona"),
-    node("Distretto 5","zona")
+  const root = node("Guado dell'Airone (esempio)","zona");
+  root.notes = "Campagna d'esempio: smontala pure. Doppio clic su una bolla per entrarci, "+
+    "doppio clic sulla tela per crearne una nuova. Quando vuoi partire dalla tua, "+
+    "il ＋ in alto crea una campagna vuota.";
+
+  const locanda = node("Locanda della Biscia","luogo");
+  locanda.shape="edificio"; locanda.x=60; locanda.y=120; locanda.status="da fare";
+  locanda.notes = "Berta è un'informatrice della gilda: se i PG chiedono del traghettatore, li manda al faro.";
+  locanda.shared = true;
+  locanda.playerNotes = "Birra torbida, letti asciutti e una locandiera che sa tutto di tutti.";
+  const sala = node("Sala comune","luogo");     sala.shape="stanza";   sala.x=40;    sala.y=40;
+  const camere = node("Camere di sopra","luogo"); camere.shape="stanza"; camere.x=180; camere.y=40;
+  locanda.children = [sala, camere];
+
+  const mercato = node("Mercato del guado","luogo");
+  mercato.shape="piazza"; mercato.x=340; mercato.y=-20; mercato.status="fatto";
+  mercato.notes = "Palafitte e bancarelle: si vende di tutto, purché sia umido.";
+
+  const faro = node("Faro sommerso","luogo");
+  faro.shape="torre"; faro.x=620; faro.y=120; faro.status="in corso";
+  faro.notes = "Metà torre affiora dalla palude. Dentro ci sono i ratti: i PF si segnano dalla scheda.";
+  const ratti = node("Ratti della palude","encounter");
+  ratti.x=70; ratti.y=60;
+  ratti.monster = {                     // ratto gigante (SRD 5e, CC-BY-4.0)
+    meta:"Bestia Piccola, senza allineamento", ac:"12", speed:"9 m",
+    str:7, dex:15, con:11, int:2, wis:10, cha:4, cr:"1/8",
+    actions:"Morso: +4 al tiro per colpire, 4 (1d4+2) danni perforanti.",
+    hpDefault:7,
+    foes:[{id:uid(), name:"Ratto 1", hp:7, hpMax:7},
+          {id:uid(), name:"Ratto 2", hp:7, hpMax:7}]
+  };
+  faro.children = [ratti];
+
+  const quest = node("Il traghettatore scomparso","quest");
+  quest.x=380; quest.y=300; quest.status="in corso";
+  quest.notes = "Sparito da tre notti, la barca ancora legata al pontile. La pista porta al faro. Ricompensa: 50 mo.";
+
+  const berta = node("Berta, la locandiera","png");
+  berta.x=140; berta.y=300;
+  berta.notes = "Vende informazioni per birra. Voce ferma, memoria di ferro.";
+
+  root.children = [locanda, mercato, faro, quest, berta];
+  root.edges = [
+    {id:uid(), a:locanda.id, b:mercato.id, type:"strada",  label:"", notes:""},
+    {id:uid(), a:mercato.id, b:faro.id,    type:"ponte",   label:"", notes:""},
+    {id:uid(), a:locanda.id, b:faro.id,    type:"segreto", label:"cunicolo sotto il guado", notes:""}
   ];
   return {
     root,
     checklist: [
-      {id:uid(), text:"Stampare le schede dei personaggi", done:false},
-      {id:uid(), text:"Ripassare gli encounter principali", done:false}
+      {id:uid(), text:"Leggere le note della Locanda della Biscia", done:true},
+      {id:uid(), text:"Ripassare l'incontro al Faro sommerso", done:false},
+      {id:uid(), text:"Stampare le schede dei personaggi", done:false}
     ],
     players: []
   };
@@ -144,9 +188,10 @@ export function initStato(){
     }
     if(!campaignsIdx.length){
       const id0 = uid();
-      campaignsIdx = [{id: id0, name: "La mia campagna", updatedAt: Date.now()}];
+      const ds = defaultState();      // il nome nell'indice combacia col titolo dell'esempio
+      campaignsIdx = [{id: id0, name: ds.root.title, updatedAt: Date.now()}];
       persistIndex();
-      store.set(ckey(id0), JSON.stringify(defaultState()));
+      store.set(ckey(id0), JSON.stringify(ds));
     }
     campaignId = store.get(CUR_KEY);
     if(!campaignsIdx.some(c=>c.id===campaignId)) campaignId = campaignsIdx[0].id;
