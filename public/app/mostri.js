@@ -5,6 +5,8 @@
 import { uid, escapeHtml, escapeAttr } from "./modello.js";
 import { findNode, save } from "./stato.js";
 import { renderDetail, editNode, secOpen } from "./pannello.js";
+import { foesInCampo } from "./battaglia.js";
+import { renderCanvas } from "./mappa.js";
 
 const ABILITIES = [["str","FOR"],["dex","DES"],["con","COS"],["int","INT"],["wis","SAG"],["cha","CAR"]];
 const abMod = v => { const m = Math.floor(((+v||10)-10)/2); return (m>=0?"+":"")+m; };
@@ -76,6 +78,9 @@ function renderFoeHP(id, foeId){
   const num = wrap.querySelector(".hp-now"); if(num) num.value = f.hp;
   const g = wrap.closest(".foe-card"); if(g) g.classList.toggle("dead", f.hp<=0);
   // aggiorno anche l'intestazione (vivi / PF totali) senza ridisegnare tutto
+  // La pedina sul campo mostra gli STESSI PF: se non la si ridisegna, la barra
+  // sotto il goblin resterebbe piena mentre la scheda lo dà per morto.
+  renderCanvas();
   const m = findNode(id)?.monster;
   const head = document.querySelector(".foe-head span");
   if(m && head && m.foes.length>1){
@@ -165,6 +170,7 @@ export function statblockHTML(n){
   ensureMon(n);
   const alive = m.foes.filter(f=>f.hp>0).length;
   const total = m.foes.reduce((s,f)=>s+f.hp,0);
+  const campo = foesInCampo(n.id);      // quante di queste creature sono già pedine
   return `<div class="field statblock">
     <label>Scheda mostro — D&D 5e</label>
     <div class="srd-wrap">
@@ -212,6 +218,14 @@ export function statblockHTML(n){
       <div class="foe-head"><span>${m.foes.length>1?`${alive}/${m.foes.length} in vita · ${total} PF totali`:"Nemico"}</span>
         <button class="btn tiny" onclick="addFoe('${n.id}')">+ nemico</button></div>
       ${m.foes.map(f=>foeCard(n.id,f)).join("")}
+      ${campo.tot ? `<div class="campo-row">
+        <button class="btn tiny ${campo.in<campo.tot?"primary":""}" onclick="expandEncounter('${n.id}')"
+          ${campo.in>=campo.tot?"disabled":""}>⚔ Espandi in pedine</button>
+        <span class="hint-sm">${campo.in===0
+          ? `${campo.tot} pedin${campo.tot===1?"a":"e"} da piazzare sul campo`
+          : campo.in>=campo.tot ? "Tutte in campo — i PF sono gli stessi qui e sulla pianta"
+          : `${campo.in} di ${campo.tot} in campo`}</span>
+      </div>` : ""}
     </div>
 
     <label>Tiradadi</label>

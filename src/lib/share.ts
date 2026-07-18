@@ -54,12 +54,6 @@ function projectCombat(m: Node | undefined) {
 }
 
 /**
- * I campi che il client interpola DENTRO attributi HTML (onclick="jumpTo('${id}')",
- * src="${img}", style="fill:${color}", translate(${x},${y})): l'escape del
- * client copre solo il testo, quindi qui si stringono a forme che da un attributo
- * non possono uscire. Un valore che non rispetta la forma si perde, non si ripara.
- */
-/**
  * Tipi di collegamento che non escono mai, nemmeno tra due bolle rivelate.
  * Un passaggio segreto è un segreto del DM: che il cunicolo esista è precisamente
  * l'informazione che i giocatori devono guadagnarsi al tavolo, e l'etichetta lo
@@ -69,6 +63,12 @@ function projectCombat(m: Node | undefined) {
  */
 const DM_ONLY_EDGES = new Set(["segreto"]);
 
+/**
+ * I campi che il client interpola DENTRO attributi HTML (onclick="jumpTo('${id}')",
+ * src="${img}", style="fill:${color}", translate(${x},${y})): l'escape del
+ * client copre solo il testo, quindi qui si stringono a forme che da un attributo
+ * non possono uscire. Un valore che non rispetta la forma si perde, non si ripara.
+ */
 const safeId = (v: unknown) => String(v ?? "").replace(/[^\w-]/g, "");
 const num = (v: unknown, alt: number | null = null) =>
   Number.isFinite(Number(v)) ? Number(v) : alt;
@@ -81,21 +81,94 @@ function safeUrl(v: unknown) {
   return s;
 }
 
+/** Cerca un nodo per id in tutto l'albero: serve a risolvere i riferimenti
+ *  dell'ordine d'iniziativa, che puntano a encounter ovunque nella campagna. */
+function trovaNodo(n: Node | undefined, id: string): Node | undefined {
+  if (!n) return undefined;
+  if (n.id === id) return n;
+  for (const c of (Array.isArray(n.children) ? n.children : [])) {
+    const f = trovaNodo(c, id);
+    if (f) return f;
+  }
+  return undefined;
+}
+
+/** Il nome visibile di una pedina, risolto dal riferimento che porta. */
+function nomePedina(n: Node, data: Node) {
+  if (n.playerId) {
+    const p = (Array.isArray(data.players) ? data.players : [])
+      .find((x: Node) => x.id === n.playerId);
+    return String(p?.name ?? "PG");
+  }
+  if (n.foe) {
+    const nodo = trovaNodo(data.root, String(n.foe.nodeId ?? ""));
+    const f = (Array.isArray(nodo?.monster?.foes) ? nodo!.monster.foes : [])
+      .find((x: Node) => x.id === n.foe.foeId);
+    return String(f?.name ?? "Nemico");
+  }
+  return String(n.title ?? "");
+}
+
+/**
+ * L'ordine d'iniziativa come lo vede il tavolo: nomi, numeri e di chi è il turno.
+ *
+ * I riferimenti si risolvono QUI, sul server, e ne esce solo il nome: la voce
+ * salvata punta a un giocatore o a un nemico dentro un encounter, e spedirla
+ * grezza significherebbe consegnare gli id di nodi che i giocatori non vedono.
+ * Dei mostri non esce nessun PF — solo `down`, che è la stessa informazione già
+ * pubblica via projectCombat ("fuori combattimento"), non un numero in più.
+ */
+function projectBattle(b: Node | undefined, data: Node) {
+  const order = Array.isArray(b?.order) ? b!.order : [];
+  if (!b || !order.length) return undefined;
+
+  const voci = order.map((e: Node) => {
+    let name = "", down = false;
+    if (e?.kind === "pg") {
+      const p = (Array.isArray(data.players) ? data.players : [])
+        .find((x: Node) => x.id === e.playerId);
+      if (!p) return null;                        // giocatore rimosso: sparisce dal tabellone
+      name = String(p.name ?? "PG");
+      down = (Number(p.hp) || 0) <= 0;
+    } else {
+      const nodo = trovaNodo(data.root, String(e?.nodeId ?? ""));
+      const f = (Array.isArray(nodo?.monster?.foes) ? nodo!.monster.foes : [])
+        .find((x: Node) => x.id === e.foeId);
+      if (!f) return null;                        // nemico cancellato dal DM
+      name = String(f.name ?? "Nemico");
+      down = (Number(f.hp) || 0) <= 0;
+    }
+    return { id: safeId(e.id), name, init: num(e.init, 0) as number,
+             kind: e.kind === "pg" ? "pg" : "foe", down };
+  }).filter(Boolean);
+
+  if (!voci.length) return undefined;
+  // turn è un indice sull'elenco COMPLETO: dopo il filtro va riportato sulle voci
+  // rimaste, sennò il tavolo evidenzierebbe la riga sbagliata.
+  const attivo = safeId(order[num(b.turn, 0) as number]?.id);
+  const turn = Math.max(0, voci.findIndex((v: any) => v.id === attivo));
+  return { round: num(b.round, 1), turn, order: voci };
+}
+
 /**
  * Ricostruisce il nodo campo per campo. È volutamente una lista bianca: un campo
  * nuovo aggiunto al modello NON compare al tavolo finché qualcuno non lo scrive qui.
  * Se un giorno questa funzione diventasse "copia tutto tranne X", il primo campo
  * segreto che dimentichi di togliere finisce dritto in mano ai giocatori.
  */
-function projectNode(n: Node): Node {
+function projectNode(n: Node, data: Node): Node {
   const kids = (Array.isArray(n.children) ? n.children : [])
     .filter((c: Node) => c?.shared === true)
-    .map(projectNode);
+    .map((c: Node) => projectNode(c, data));
   const visibleIds = new Set(kids.map((c: Node) => c.id));
 
   const out: Node = {
     id: safeId(n.id),
-    title: String(n.title ?? ""),
+    // Una pedina collegata non ha titolo proprio: nell'app il nome si legge dal
+    // giocatore o dal nemico a cui punta. Al tavolo quei dati non arrivano (e non
+    // devono: sono id di nodi invisibili), quindi il nome lo risolve il server e
+    // lo consegna già come titolo — altrimenti i giocatori vedrebbero pedine mute.
+    title: n.type === "token" ? nomePedina(n, data) : String(n.title ?? ""),
     type: String(n.type ?? "zona"),              // il client la usa solo come chiave di lookup
     status: "",                                  // "da fare / in corso" è preparazione del DM
     notes: String(n.playerNotes ?? ""),          // ← MAI n.notes
@@ -134,6 +207,12 @@ function projectNode(n: Node): Node {
   const combat = projectCombat(n.monster);
   if (combat) out.combat = combat;
 
+  // I riferimenti della pedina (playerId / foe) NON escono: al tavolo servono
+  // solo nome e colore, che il client ricava dal titolo. Spedirli darebbe ai
+  // giocatori gli id di nodi che non possono vedere.
+  const battle = projectBattle(n.battle, data);
+  if (battle) out.battle = battle;
+
   return out;
 }
 
@@ -143,7 +222,7 @@ function projectNode(n: Node): Node {
  */
 export function projectForPlayers(data: Node | null | undefined) {
   if (!data?.root) return null;
-  const root = projectNode(data.root);           // la radice c'è sempre: è il contenitore
+  const root = projectNode(data.root, data);     // la radice c'è sempre: è il contenitore
   return {
     root,
     checklist: [],                               // la checklist è la lista della spesa del DM

@@ -52,9 +52,53 @@
   un livello vuoto. Controprova della causa: rimettendo `pointer-events:auto`
   Playwright si rifiuta di completare il drop e indica come ostacolo proprio il
   paragrafo che spiega come trascinare.
-- poter salvare i personaggi dei player della campagna in modo da poterli vedere velocemente e poterli posizionare
-- poter mettere modalita combattimento cosi rendi i quadratini piu rigidi, quindi che un personaggio sta precisamente in un quadratino di lato 1.5 metri, condividi l'iniziativa con il tavolo sia dei mostri che dei pg, e importante il poter rollare iniziativa per l'encounter direttamente dalla app (lato dm)
-- poter espandere l'encounter in modo che se lencounter sono 4 goblin, se lo espando ho 4 token goblin che posso posizionare sul campo di battaglia
+- [x] **Blocco combattimento (voci 8, 9, 10)** — fatto (18 lug 2026), modulo nuovo
+  `public/app/battaglia.js` più gli innesti in mappa/pannello/mostri/giocatori e
+  la proiezione al tavolo in `share.ts`. Le tre voci sono state fatte insieme
+  perché la 9 detta il modello da cui dipendono le altre due.
+
+  Tre decisioni portanti (documentate in testa a `battaglia.js`):
+  1. **Una battaglia vive su un livello**, non sull'app: `n.battle` esiste solo
+     sul nodo dove si combatte, e la sua presenza È la modalità accesa. Si può
+     tenere aperta una scaramuccia nella cripta navigando la città, e chiudere
+     significa cancellare un campo, non ripulire stato globale.
+  2. **Le pedine referenziano, non copiano**: una pedina PG porta `playerId`, una
+     di mostro `{nodeId, foeId}`; nome e PF si leggono alla fonte a ogni disegno.
+     Ferire il goblin dalla scheda o guardarlo sulla pianta è lo stesso numero —
+     copiarli avrebbe prodotto due PF che divergono al primo colpo. Per questo
+     espandere un encounter è reversibile: le pedine sono viste.
+  3. **La griglia c'era già**: il pattern SVG è a 40px e `dungeon.js` documenta
+     "1 quadrato = 40px" = 5 piedi = 1,5 m. La modalità non introduce una scala,
+     rende rigido l'aggancio a quella esistente (`CELL`, `snapToCell`).
+
+  - **Voce 9**: bottone ⚔ in barra strumenti, griglia a contrasto alzato, pedine
+    agganciate al centro della cella (anche quelle già sparse, all'accensione) e
+    niente allineamento magnetico in battaglia — tirerebbe fuori griglia proprio
+    ciò che dev'esserci dentro. Tabellone d'iniziativa flottante sulla tela con
+    round, turno corrente, avanti/indietro. `Tira iniziativa` tira d20+DES **per
+    i mostri** (sono del DM) e conserva i numeri dei PG, che al tavolo tirano da
+    sé; c'è un 🎲 per PG se il DM vuole tirare per loro. Pari merito risolto con
+    la Destrezza (regola 5e) e poi col nome, sennò l'ordine ballerebbe a ogni
+    ridisegno; il turno segue la creatura, non l'indice.
+  - **Voce 10**: `Espandi in pedine` nella scheda mostro, con lo stato "3 di 4 in
+    campo" e disabilitato quando non c'è altro da fare. Non duplica mai.
+  - **Voce 8**: `⚔ In campo` su ogni scheda PG (e `Metti in campo i PG` in
+    massa dal tabellone); rimetterlo in campo seleziona la pedina esistente
+    invece di raddoppiarla. I PF cambiati nella scheda muovono la barra sulla
+    pedina, e viceversa.
+  - **Al tavolo**: l'ordine completo coi numeri, come da scelta. I riferimenti si
+    risolvono **sul server** (`projectBattle` in `share.ts`) e ne escono solo i
+    nomi: spedirli grezzi consegnerebbe id di nodi invisibili. Dei mostri esce
+    `down` (già pubblico via `projectCombat`), mai un PF né il modificatore di
+    Destrezza. Stessa ragione per cui il *titolo* di una pedina collegata lo
+    risolve il server: senza, al tavolo le pedine sarebbero mute.
+  - In battaglia il nome sotto la pedina sparisce: celle da 40px e nomi più
+    larghi davano "Goblin 1Goblin 2Goblin 3Goblin 4" sovrapposti. Restano le
+    iniziali nel disco (G1, G2…), il tabellone e l'aria-label.
+  - Verificato: 31/31 in Chromium sullo scenario completo (2 PG + encounter di 4
+    goblin) e 18/18 sulla proiezione al tavolo, metà dei quali sono controlli su
+    ciò che NON deve uscire. Suite precedenti senza regressioni (6/6, 11/11,
+    22/22, 11/11).
 
 
 Dal report UX del 15 lug 2026 (`.impeccable/critique/`, baseline 29/40), in ordine:

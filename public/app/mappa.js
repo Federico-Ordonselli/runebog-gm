@@ -8,11 +8,13 @@ import { st, save, findNode, findParent, removeNode, currentNode, pathNodes, RO 
 import { showView, openConfirm } from "./viste.js";
 import { renderDetail, compressImage } from "./pannello.js";
 import { showCtxFor } from "./menu.js";
+import { battleOn, snapToCell, tokenLink, renderBattleBar, CELL } from "./battaglia.js";
 
 export function renderMap(){
   renderCrumbs();
   renderCanvas();
   renderDetail();
+  renderBattleBar();     // vive fuori dalla tela: va aggiornata insieme, non da sola
 }
 
 export function renderCrumbs(){
@@ -138,7 +140,11 @@ function statusDot(x,y,st_){
 /* Nome accessibile di una bolla: quello che un lettore di schermo annuncia
    arrivandoci con Tab. Tipo prima del titolo, come nel pannello di dettaglio. */
 function ariaBlk(c){
-  let s = `${(TYPES[c.type]||TYPES.nota).label}: ${c.title||"senza nome"}`;
+  const link = c.type==="token" ? tokenLink(c) : null;
+  let s = `${(TYPES[c.type]||TYPES.nota).label}: ${link ? link.nome : (c.title||"senza nome")}`;
+  // I PF vanno detti, non solo disegnati: la barra sotto la pedina non esiste
+  // per chi usa un lettore di schermo.
+  if(link && link.hpMax>0) s += ` · ${link.hp} PF su ${link.hpMax}`;
   if(c.status) s += ` · ${c.status}`;
   if(c.children.length) s += ` · contiene ${c.children.length} element${c.children.length===1?"o":"i"}`;
   if(!RO && c.shared) s += " · visibile ai giocatori";
@@ -212,9 +218,15 @@ export function renderCanvas(){
   planVB = planVBs[cur.id] || null;
   if(!planVB) planFit(); else planApplyVB();
 
+  /* La maglia è sempre a CELL px (1 quadretto = 1,5 m), ma in combattimento si
+     alza il contrasto: lì la griglia smette di essere una carta da parati e
+     diventa la regola con cui si misurano portata e movimento. */
+  const inBattaglia = battleOn();
+  svg.classList.toggle("battaglia", inBattaglia);
   let out = `<defs>
-    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-      <path d="M40 0H0V40" fill="none" style="stroke:var(--grid)" stroke-width="1"/>
+    <pattern id="grid" width="${CELL}" height="${CELL}" patternUnits="userSpaceOnUse">
+      <path d="M${CELL} 0H0V${CELL}" fill="none" stroke-width="${inBattaglia?1.4:1}"
+        style="stroke:${inBattaglia?"color-mix(in srgb, var(--fen) 26%, transparent)":"var(--grid)"}"/>
     </pattern>
   </defs>
   <rect x="${planVB.x-6000}" y="${planVB.y-6000}" width="14000" height="14000" fill="url(#grid)" data-bg="1"/>`;
@@ -263,11 +275,28 @@ export function renderCanvas(){
     const a11y = `tabindex="0" role="button" aria-pressed="${isSel}" aria-label="${ariaBlk(c)}"`;
     if(c.type==="token"){
       const R = MARKER_R+1, tcol = col;
-      const ini = (c.title||"?").trim().split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase() || "?";
-      out += `<g class="blk marker token${selCls}${shCls}" data-block="${c.id}" ${a11y} transform="translate(${c.x},${c.y})">
+      // Una pedina collegata (a un PG o a un nemico) prende nome e PF dalla fonte:
+      // sul campo e nella scheda c'è UN solo numero, non due che divergono.
+      const link = tokenLink(c);
+      const nome = link ? link.nome : (c.title||"");
+      /* In combattimento il nome sotto la pedina sparisce: le celle sono larghe
+         40px e i nomi no, quindi quattro goblin adiacenti producevano
+         "Goblin 1Goblin 2Goblin 3Goblin 4" sovrapposti e illeggibili. A
+         identificarle restano le iniziali dentro il disco (G1, G2…), il
+         tabellone d'iniziativa e l'aria-label — tre vie, nessuna collisione. */
+      const ini = (nome||"?").trim().split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase() || "?";
+      const pct = link && link.hpMax>0 ? Math.max(0, Math.min(1, link.hp/link.hpMax)) : null;
+      const giu = link && link.hp<=0;
+      const barra = pct===null ? "" :
+        `<rect x="0" y="${R*2+3}" width="${R*2}" height="4" rx="2" style="fill:var(--panel-2)"/>
+         <rect x="0" y="${R*2+3}" width="${(R*2*pct).toFixed(1)}" height="4" rx="2"
+           style="fill:${pct>0.5?"var(--fen)":pct>0.25?"var(--gold)":"var(--ember)"}"/>`;
+      out += `<g class="blk marker token${selCls}${shCls}${giu?" giu":""}" data-block="${c.id}" ${a11y} transform="translate(${c.x},${c.y})">
         <circle class="blk-shape" cx="${R}" cy="${R}" r="${R}" style="fill:${tcol};--c:var(--bog)"/>
         <text x="${R}" y="${R+4}" text-anchor="middle" style="font-size:12px;font-weight:700;fill:var(--bog)">${escapeHtml(ini)}</text>
-        <text x="${R}" y="${R*2+15}" text-anchor="middle" style="font-size:11px;fill:var(--ink-dim)">${escapeHtml(c.title||"")}</text>
+        ${barra}
+        ${inBattaglia ? "" :
+          `<text x="${R}" y="${R*2+(pct===null?15:22)}" text-anchor="middle" style="font-size:11px;fill:var(--ink-dim)">${escapeHtml(nome)}</text>`}
       </g>`;
     }else if(isMarker(c)){
       const R = MARKER_R;
@@ -381,8 +410,15 @@ export function addSpatialChild(opts, x, y){
   if(opts.marker) c = node("", opts.marker);
   else { c = node("", opts.shape==="quartiere" ? "zona" : "luogo"); c.shape = opts.shape; }
   const b = nodeBox(c);
-  c.x = Math.round((x-b.w/2)/10)*10;
-  c.y = Math.round((y-b.h/2)/10)*10;
+  // In combattimento anche una pedina appena piazzata nasce dentro un quadretto:
+  // sennò il primo gesto dopo l'aggiunta sarebbe sempre "trascinala per allinearla".
+  if(battleOn() && c.type==="token"){
+    c.x = snapToCell(x-b.w/2);
+    c.y = snapToCell(y-b.h/2);
+  }else{
+    c.x = Math.round((x-b.w/2)/10)*10;
+    c.y = Math.round((y-b.h/2)/10)*10;
+  }
   cur.children.push(c);
   st.selectedId = c.id; st.selectedEdgeId = null; st.multiSel = new Set([c.id]);
   save(); renderMap();
@@ -640,10 +676,19 @@ export function initMappa(){
     const p = planPoint(ev);
     if(planDrag.mode==="move"){
       const n = childOf(planDrag.id); if(!n) return;
-      n.x = Math.round((p.x-planDrag.dx)/10)*10;
-      n.y = Math.round((p.y-planDrag.dy)/10)*10;
-      const g = applySnap(n, planDrag.group);  // allineamento magnetico (escluso il gruppo trascinato)
-      drawGuides(n, g);
+      // In combattimento una pedina sta in UN quadretto: aggancio alla cella e
+      // niente allineamento magnetico alle altre bolle, che tirerebbe fuori
+      // griglia proprio ciò che dev'esserci dentro.
+      if(battleOn() && n.type==="token"){
+        n.x = snapToCell(p.x-planDrag.dx);
+        n.y = snapToCell(p.y-planDrag.dy);
+        drawGuides(null, null);
+      }else{
+        n.x = Math.round((p.x-planDrag.dx)/10)*10;
+        n.y = Math.round((p.y-planDrag.dy)/10)*10;
+        const g = applySnap(n, planDrag.group);  // allineamento magnetico (escluso il gruppo trascinato)
+        drawGuides(n, g);
+      }
       planDrag.moved = true;
       const ddx = n.x - planDrag.start[n.id].x;
       const ddy = n.y - planDrag.start[n.id].y;

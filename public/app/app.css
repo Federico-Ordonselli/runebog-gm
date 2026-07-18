@@ -385,6 +385,48 @@
   #camp-wrap{display:flex;gap:5px;align-items:center;margin-left:14px}
   #campaign-select{max-width:180px;font-size:13px;padding:5px 8px}
 
+  /* ---------- modalità combattimento ---------- */
+  /* Il tabellone galleggia sulla tela invece di rubarle larghezza: durante uno
+     scontro la mappa è la cosa che si guarda, l'ordine si consulta di sbieco. */
+  #battle-bar{
+    position:absolute;left:12px;top:12px;width:216px;max-height:calc(100% - 24px);
+    display:none;flex-direction:column;gap:6px;padding:10px;border-radius:var(--r);
+    background:color-mix(in srgb, var(--panel) 92%, transparent);
+    border:1px solid var(--line);overflow-y:auto;z-index:3;
+  }
+  #battle-bar.show{display:flex}
+  .ini-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .ini-round{font-weight:600;font-size:13px}
+  .ini-scala{font-size:11px;color:var(--ink-dim);margin-left:auto}
+  .ini-list{display:flex;flex-direction:column;gap:3px}
+  .ini-row{
+    display:flex;align-items:center;gap:6px;padding:3px 5px;border-radius:6px;
+    border-left:3px solid transparent;font-size:13px;
+  }
+  .ini-row.pg{border-left-color:var(--fen)}
+  .ini-row.foe{border-left-color:var(--ember)}
+  /* Il turno corrente non si affida al solo colore: ha anche il fondo pieno e
+     il nome in grassetto, e ▸ come indicatore di forma. */
+  .ini-row.on{background:var(--panel-2);font-weight:700}
+  .ini-row.on .ini-name::before{content:"▸ "}
+  .ini-row.dead .ini-name, .ini-row.gone .ini-name{text-decoration:line-through;color:var(--ink-dim)}
+  .ini-num{width:38px;flex:none;text-align:center;font-variant-numeric:tabular-nums}
+  input.ini-num{padding:2px 4px;font-size:12px}
+  .ini-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ini-vuoto{font-size:12px;color:var(--ink-dim);line-height:1.45}
+  .ini-actions{display:flex;gap:5px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:7px}
+  #battle-btn.on{background:var(--ember);border-color:var(--ember);color:var(--on-ember);font-weight:600}
+  /* Pedina a terra: resta sul campo (il corpo è un ostacolo) ma smette di
+     competere per l'attenzione con chi combatte ancora. */
+  .blk.token.giu{opacity:.45}
+  /* "Espandi in pedine" e il suo stato, sotto la lista dei nemici */
+  .campo-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .campo-row .hint-sm{margin:0;flex:1;min-width:120px}
+  .link-field .hint-sm{margin-top:4px}
+  /* La scheda PG ora ha due azioni in fondo: l'elimina resta all'estremo destro */
+  .pcard .foot{display:flex;align-items:center;gap:8px}
+  .pcard .foot .icon-btn{margin-left:auto}
+
   /* ---------- swatch colore bolla ---------- */
   .swatches{display:flex;gap:7px;flex-wrap:wrap}
   .swatch{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer}

@@ -2,7 +2,9 @@
 
 import { uid, escapeHtml, escapeAttr } from "./modello.js";
 import { st, save } from "./stato.js";
-import { openConfirm } from "./viste.js";
+import { openConfirm, showView } from "./viste.js";
+import { renderCanvas } from "./mappa.js";
+import { placePlayer } from "./battaglia.js";
 
 export function renderPlayers(){
   const grid = document.getElementById("players-grid");
@@ -26,17 +28,27 @@ export function renderPlayers(){
         <span class="hp-num">${p.hp} / <input type="number" min="1" value="${p.hpMax}" title="PF massimi"></span>
       </div>
       <textarea placeholder="Condizioni, oggetti, legami…">${escapeHtml(p.notes)}</textarea>
-      <div class="foot"><button class="icon-btn" title="Rimuovi giocatore">✕</button></div>
+      <div class="foot">
+        <button class="btn tiny in-campo" title="Mette una pedina di questo PG sul livello aperto">⚔ In campo</button>
+        <button class="icon-btn" title="Rimuovi giocatore">✕</button>
+      </div>
     `;
     card.querySelector(".pname").oninput = e=>{ p.name=e.target.value; save(); };
     card.querySelector(".pclass").oninput = e=>{ p.cls=e.target.value; save(); };
     card.querySelectorAll(".hp-btn").forEach(b=>{
-      b.onclick = ()=>{ p.hp = Math.max(0, Math.min(p.hpMax, p.hp + Number(b.dataset.a))); save(); renderPlayers(); };
+      // renderCanvas: la pedina del PG sul campo legge questi stessi PF, e la sua
+      // barra deve scendere insieme al numero qui — sono un dato solo.
+      b.onclick = ()=>{ p.hp = Math.max(0, Math.min(p.hpMax, p.hp + Number(b.dataset.a)));
+                        save(); renderPlayers(); renderCanvas(); };
     });
+    card.querySelector(".in-campo").onclick = ()=>{
+      placePlayer(p.id);
+      showView("map");                 // la pedina è sulla mappa: portaci l'occhio
+    };
     card.querySelector(".hp-num input").onchange = e=>{
       p.hpMax = Math.max(1, Number(e.target.value)||1);
       p.hp = Math.min(p.hp, p.hpMax);
-      save(); renderPlayers();
+      save(); renderPlayers(); renderCanvas();
     };
     card.querySelector("textarea").oninput = e=>{ p.notes=e.target.value; save(); };
     card.querySelector(".foot .icon-btn").onclick = ()=>{

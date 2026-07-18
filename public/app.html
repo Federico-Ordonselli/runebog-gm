@@ -103,6 +103,8 @@
         <button class="btn" onclick="planZoom(0.8)">－</button>
         <button class="btn dm-only" onclick="arrangeGrid()" title="Dispone le bolle in griglia allineata">Ordina</button>
         <button class="btn" onclick="planFit(true)">Adatta</button>
+        <button class="btn dm-only" id="battle-btn" onclick="toggleBattle()"
+          title="Griglia rigida (1 quadretto = 1,5 m), pedine e ordine d'iniziativa su questo livello">⚔ Combattimento</button>
       </div>
       <div id="plan-wrap">
         <svg id="plan-svg" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -110,6 +112,11 @@
              a dove sei (radice, livello interno, tavolo dei giocatori) -->
         <div id="empty-node"></div>
         <div id="plan-hint"></div>
+        <!-- Tabellone d'iniziativa: contenuto da renderBattleBar() in battaglia.js.
+             Compare solo se il livello corrente ha una battaglia aperta, e c'è
+             anche al tavolo dei giocatori (lì senza comandi). aria-live: il
+             cambio turno va annunciato, non solo colorato. -->
+        <div id="battle-bar" aria-live="polite"></div>
         <button id="detail-fab" title="Dettagli del livello" onclick="openDetailSheet()">✎</button>
       </div>
     </div>

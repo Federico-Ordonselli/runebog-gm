@@ -8,6 +8,7 @@ import { st, save, findNode, findParent, removeNode, currentNode, RO } from "./s
 import { openConfirm } from "./viste.js";
 import { renderMap, renderCrumbs, renderCanvas, bgEdit, isEmptyNode, doDeleteNodes } from "./mappa.js";
 import { statblockHTML } from "./mostri.js";
+import { tokenLink } from "./battaglia.js";
 
 /* Sezioni richiudibili (<details>) del pannello: lo stato di apertura vive qui,
    fuori dal DOM, perché ogni renderDetail ricostruisce l'innerHTML da zero e
@@ -126,6 +127,9 @@ function renderDetailCore(){
   const n = sel || cur;
   const isRoot = (n.id === st.state.root.id);
   const t = TYPES[n.type] || TYPES.nota;
+  // Una pedina collegata non ha un titolo proprio: mostrarne il campo inviterebbe
+  // a scriverci un nome che il disegno poi ignora, perché legge la fonte.
+  const link = n.type === "token" ? tokenLink(n) : null;
 
   const typeOpts = Object.entries(TYPES)
     .map(([k,v])=>`<option value="${k}" ${k===n.type?"selected":""}>${v.label}</option>`).join("");
@@ -147,11 +151,17 @@ function renderDetailCore(){
       <span style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:${t.color}">
         <span class="type-badge" style="background:${t.color}"></span>${t.label}${sel?"":" (livello corrente)"}
       </span>
-      <h2>${escapeHtml(n.title||"(senza nome)")}</h2>
+      <h2>${escapeHtml(link ? link.nome : (n.title||"(senza nome)"))}</h2>
     </div>
 
+    ${link ? `<div class="field link-field">
+      <label>Pedina collegata</label>
+      <p class="hint-sm">Rappresenta <b>${escapeHtml(link.nome)}</b>${link.hpMax>0?` — ${link.hp}/${link.hpMax} PF`:""}.
+        Nome e PF li tiene ${link.pg?"la scheda del giocatore":"la scheda del mostro"}: cambiali lì,
+        qui cambiano da soli. Rimuovere la pedina non tocca la creatura.</p>
+    </div>` : `
     <div class="field"><label>Titolo</label>
-      <input value="${escapeAttr(n.title)}" oninput="editNode('${n.id}','title',this.value)"></div>
+      <input value="${escapeAttr(n.title)}" oninput="editNode('${n.id}','title',this.value)"></div>`}
 
     <div class="row">
       <div class="field"><label>Tipo</label>
