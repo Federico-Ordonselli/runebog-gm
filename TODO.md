@@ -18,6 +18,25 @@
   su `EDGE_TYPES.segreto` in `modello.js` — server e client vanno aggiornati insieme).
   Verificato: 6/6 sulla proiezione (strada normale passa, segreto no, etichetta
   assente, note DM assenti) + 11/11 in Chromium sulle tre voci.
+- [x] **L'empty state offre tutte le scelte, non "una bolla"** — fatto (18 lug 2026),
+  seguito alla segnalazione che in una bolla nuova sembrava obbligatorio creare una
+  bolla prima di poter mettere una quest o un encounter. Il trascinamento dalla barra
+  già funzionava (fix `pointer-events` più sotto), ma restava l'impressione contraria
+  perché l'unico comando visibile era "+ Aggiungi bolla", che crea una forma fissa.
+  Causa aggiuntiva scoperta verificando: **sotto i 760px `#plan-toolbar` scorre in
+  orizzontale con la scrollbar nascosta** (`scrollbar-width:none`), quindi su telefono
+  metà palette — tutti i segnalini — è fuori schermo *senza alcun segno che esista*, e
+  lì anche `#plan-hint` è `display:none`. Misurato: su 390px "Encounter" sta oltre il
+  bordo destro della barra.
+  Ora l'empty state contiene le stesse dieci scelte, generate da `SHAPES`+`SHAPE_COLORS`
+  e `TYPES` (le sorgenti della barra: non possono divergere), con l'icona che ripete la
+  forma e il colore che si otterrà. `addAtCenter(kind,key)` in `mappa.js` le crea al
+  centro della vista.
+  Attenzione al `pointer-events`: sta sui **chip**, non su `.empty-pal` — rendendo
+  cliccabile il contenitore si riassorbivano i doppi clic sullo sfondo, cioè la stessa
+  trappola di `#empty-node` in scala ridotta (colto dalla suite della voce 7).
+  Verificato: 20/20, incluse tutte e dieci le scelte controllate sullo stato salvato e
+  il caso telefono; suite precedenti tutte verdi.
 - [x] **Colore delle bolle: default per forma + personalizzabile** — fatto (18 lug 2026).
   Prima il colore veniva dal TIPO, e siccome edificio e stanza sono entrambi "luogo"
   erano lo stesso teal: una pianta di dungeon era una distesa di rettangoli identici.

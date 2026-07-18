@@ -2,7 +2,7 @@
    pointer (drag, pinch, long-press, collegamenti), sfondo del livello,
    navigazione tra livelli e operazioni sulla selezione. */
 
-import { TYPES, SHAPES, EDGE_TYPES, MARKER_R, STATUS_COLORS, nodeColor,
+import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, MARKER_R, STATUS_COLORS, nodeColor,
          isMarker, defShape, nodeBox, nodeCenter, node, uid, escapeHtml, escapeAttr } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, pathNodes, RO } from "./stato.js";
 import { showView, openConfirm } from "./viste.js";
@@ -194,14 +194,34 @@ function emptyNodeMarkup(){
   const p = t => `<p style="color:var(--ink-dim);font-size:13px;max-width:340px;text-align:center">${t}</p>`;
   if(RO) return h("Qui non c'è ancora niente da vedere.") +
               p("Il DM non ha ancora rivelato nulla di questo livello.");
-  const btn = `<button class="btn primary" onclick="quickAddCenter()">+ Aggiungi bolla</button>`;
+  /* Le scelte stanno QUI, non solo nella barra in alto. Prima c'era un bottone
+     unico, "+ Aggiungi bolla", che creava una forma fissa: da un livello vuoto
+     sembrava obbligatorio passare da una bolla prima di poter mettere una quest
+     o un encounter. E sotto i 760px la barra scorre in orizzontale con la
+     scrollbar nascosta, quindi metà palette (i segnalini) è proprio invisibile.
+     Generata da SHAPES e TYPES, le stesse sorgenti della barra: non possono
+     divergere. */
+  const chip = (kind, key, label, colore, forma) => `
+    <button class="ep-chip" onclick="addAtCenter('${kind}','${key}')" title="Aggiungi: ${label}">
+      <span class="ep-ico ${forma}" style="--c:${colore}"></span>${label}
+    </button>`;
+  const bolle = Object.entries(SHAPES).map(([k,s])=>
+    chip("shape", k, s.label, SHAPE_COLORS[k]||"var(--teal)",
+         s.circle ? "tondo" : s.diamond ? "rombo" : "quadro")).join("");
+  const segnalini = ["quest","encounter","png","nota","token"].map(t=>
+    chip("marker", t, TYPES[t].label, TYPES[t].color, "punto")).join("");
+  const palette = `<div class="empty-pal">
+    <div class="ep-group"><span class="ep-lab">Bolle</span>${bolle}</div>
+    <div class="ep-group"><span class="ep-lab">Segnalini</span>${segnalini}</div>
+  </div>`;
+
   if(st.path.length===1)
     return h("La campagna parte da qui.") +
-           p("Ogni bolla è una zona o un luogo, e dentro può contenere un'altra mappa: trascinane una dalla barra, oppure fai doppio clic sulla tela.") +
-           btn;
+           p("Ogni bolla è una zona o un luogo, e dentro può contenere un'altra mappa. Scegli qui, trascina dalla barra in alto, o fai doppio clic sulla tela.") +
+           palette;
   return h("Questo livello è ancora vuoto.") +
-         p("Trascina qui una bolla o un segnalino dalla barra, oppure fai doppio clic sulla tela.") +
-         btn;
+         p("Mettici quello che vuoi: una stanza, una quest, un encounter. Scegli qui, trascina dalla barra in alto, o fai doppio clic sulla tela.") +
+         palette;
 }
 
 export function renderCanvas(){
@@ -426,8 +446,14 @@ export function addSpatialChild(opts, x, y){
 }
 export function quickAddCenter(){
   const opts = canEditEdges() ? {shape:"stanza"} : {shape:"quartiere"};
+  addAtCenter(opts.shape ? "shape" : "marker", opts.shape || opts.marker);
+}
+/* Crea al centro della vista corrente. La usano i pulsanti dell'empty state:
+   lì non c'è un punto scelto dall'utente, quindi il centro è l'unica posizione
+   che non sorprende. */
+export function addAtCenter(kind, key){
   const cx = planVB ? planVB.x+planVB.w/2 : 0, cy = planVB ? planVB.y+planVB.h/2 : 0;
-  addSpatialChild(opts, cx, cy);
+  addSpatialChild(kind==="marker" ? {marker:key} : {shape:key}, cx, cy);
 }
 
 /* --- interazioni (pointer events) --- */
@@ -968,5 +994,5 @@ export function duplicateSelected(){
 }
 
 // per gli onclick inline nei template e nell'HTML statico
-Object.assign(window, { enterNode, jumpTo, planFit, planZoom, arrangeGrid, quickAddCenter,
+Object.assign(window, { enterNode, jumpTo, planFit, planZoom, arrangeGrid, quickAddCenter, addAtCenter,
   pickBg, removeBg, toggleBgEdit, setBgOpacity, requestDeleteSelection, goToNode });

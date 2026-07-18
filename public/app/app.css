@@ -110,7 +110,29 @@
     pointer-events:none;
   }
   #empty-node.show{display:flex}
-  #empty-node .btn{pointer-events:auto}
+  /* Sui CHIP, non sul loro contenitore: .empty-pal è una fascia larga in mezzo
+     alla tela, e renderla cliccabile riassorbirebbe i doppi clic destinati allo
+     sfondo — la stessa trappola di #empty-node, in piccolo. Così gli spazi tra
+     un chip e l'altro restano tela viva. */
+  #empty-node .btn, #empty-node .ep-chip{pointer-events:auto}
+  /* La palette dell'empty state: le stesse scelte della barra in alto, messe
+     dove l'occhio è già. Su schermo stretto la barra scorre in orizzontale con
+     la scrollbar nascosta, quindi lassù i segnalini non si vedono proprio. */
+  .empty-pal{display:flex;flex-direction:column;gap:8px;align-items:center;max-width:min(560px,90vw)}
+  .ep-group{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center}
+  .ep-lab{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--grigio)}
+  .ep-chip{
+    display:inline-flex;align-items:center;gap:6px;padding:6px 10px;font-size:13px;
+    border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);
+  }
+  .ep-chip:hover{border-color:var(--fen-dim);color:var(--fen)}
+  /* L'icona ripete la forma che si otterrà: tonda per la piazza, rombo per la
+     torre. Il colore è quello vero del default, così la scelta si riconosce
+     poi sulla pianta. */
+  .ep-ico{width:12px;height:12px;flex:none;border:2px solid var(--c);border-radius:2px}
+  .ep-ico.tondo{border-radius:50%}
+  .ep-ico.rombo{transform:rotate(45deg)}
+  .ep-ico.punto{border-radius:50%;background:var(--c);border-color:var(--c)}
 
   /* bolle */
   .bubble{cursor:pointer}
