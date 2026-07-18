@@ -89,3 +89,59 @@ export const nodeCenter = n => { const b=nodeBox(n); return {x:n.x+b.w/2, y:n.y+
 
 export function escapeHtml(s){ return String(s??"").replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
 export function escapeAttr(s){ return escapeHtml(s); }
+
+/*
+ * Bonifica dei campi che finiscono DENTRO attributi HTML (src, href, style, onclick,
+ * data-block) nei render dell'app. escapeHtml protegge il testo, non questi: un `img`
+ * come `x" onerror="…` o un `id` come `');…//` esce dall'attributo ed esegue codice.
+ * Il tavolo è già coperto da share.ts sul server; qui il vettore è il JSON IMPORTATO
+ * (Importa, o una bolla-dungeon altrui): forma valida ma contenuto ostile. Stesse
+ * regole di share.ts, così client e server concordano su cosa è un valore sicuro.
+ *
+ * safeId è deterministico e idempotente: applicato sia a un id sia a ogni riferimento
+ * che lo punta (edge.a/b, playerId, foe.*, order.*) lascia intatti i lookup `x.id===ref`
+ * — gli id legittimi (uid() = [a-z0-9]{8}) passano immutati, gli ostili si spuntano
+ * allo stesso modo su entrambi i lati. I valori (colore, immagine) non sono mai
+ * riferimenti: se malformati si perdono, non si riparano.
+ */
+const safeId = v => String(v ?? "").replace(/[^\w-]/g, "");
+const safeColor = v => /^#[0-9a-f]{3,8}$/i.test(String(v)) ? String(v) : null;
+function safeUrl(v){
+  const s = String(v ?? "");
+  if(!/^(data:image\/|https?:\/\/)/i.test(s)) return null;   // niente javascript: e simili
+  if(/[\s"'<>`]/.test(s)) return null;                       // niente uscite dall'attributo
+  return s;
+}
+
+/* Pulisce in-place l'intero albero dello stato. Un solo punto: la chiama migrateState,
+   che ogni percorso di caricamento attraversa (import, cloud, localStorage). */
+export function sanitizeState(s){
+  if(!s || typeof s !== "object") return s;
+  (function walk(n){
+    if(!n || typeof n !== "object") return;
+    if(n.id != null) n.id = safeId(n.id);
+    if(n.color != null){ const c = safeColor(n.color); if(c) n.color = c; else delete n.color; }
+    if(n.tokenColor != null){ const c = safeColor(n.tokenColor); if(c) n.tokenColor = c; else delete n.tokenColor; }
+    if(n.img != null){ const u = safeUrl(n.img); if(u) n.img = u; else n.img = null; }
+    if(n.bg && n.bg.img != null){ const u = safeUrl(n.bg.img); if(u) n.bg.img = u; else delete n.bg; }
+    // riferimenti della pedina: stesso safeId dei nodi/foe puntati, così restano allineati
+    if(n.playerId != null) n.playerId = safeId(n.playerId);
+    if(n.foe){ n.foe.nodeId = safeId(n.foe.nodeId); n.foe.foeId = safeId(n.foe.foeId); }
+    for(const e of (Array.isArray(n.edges) ? n.edges : [])){
+      if(e.id != null) e.id = safeId(e.id);
+      e.a = safeId(e.a); e.b = safeId(e.b);
+    }
+    for(const f of (n.monster && Array.isArray(n.monster.foes) ? n.monster.foes : []))
+      if(f.id != null) f.id = safeId(f.id);
+    if(n.battle) for(const o of (Array.isArray(n.battle.order) ? n.battle.order : [])){
+      if(o.id != null) o.id = safeId(o.id);
+      if(o.playerId != null) o.playerId = safeId(o.playerId);
+      if(o.nodeId != null) o.nodeId = safeId(o.nodeId);
+      if(o.foeId != null) o.foeId = safeId(o.foeId);
+    }
+    for(const c of (Array.isArray(n.children) ? n.children : [])) walk(c);
+  })(s.root);
+  for(const p of (Array.isArray(s.players) ? s.players : []))
+    if(p && p.id != null) p.id = safeId(p.id);
+  return s;
+}

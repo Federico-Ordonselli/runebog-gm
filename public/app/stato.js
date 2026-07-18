@@ -2,7 +2,7 @@
    condiviso da tutti i moduli, il salvataggio (locale o cloud), le campagne
    multiple e le utilità sull'albero. */
 
-import { uid, node, escapeHtml } from "./modello.js";
+import { uid, node, escapeHtml, sanitizeState } from "./modello.js";
 import { openAlert, openConfirm, showView } from "./viste.js";
 
 /* ==================== dove stiamo girando ====================
@@ -389,6 +389,11 @@ export function migrateState(s){
     s.root.children.push(z);
   }
   delete s.plan;
+  // Ultimo passo: bonifica i campi interpolati negli attributi HTML (id, colore,
+  // immagine, riferimenti). Qui perché migrateState è l'imbuto di OGNI caricamento
+  // — import, cloud, localStorage — e l'import è il vettore: JSON altrui, forma
+  // valida, contenuto ostile. Vedi sanitizeState in modello.js.
+  sanitizeState(s);
 }
 export function removeNode(id, cur){
   const i = cur.children.findIndex(c=>c.id===id);

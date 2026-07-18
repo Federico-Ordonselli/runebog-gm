@@ -56,6 +56,20 @@ ma oggi le bolle non la rispettano: sono simboli, non piante.
   Da decidere come conviverci con le bolle esistenti fuori scala (migrazione o
   scala solo per le forme "architettoniche").
 
+- [x] **XSS da JSON importato bonificato lato DM** — fatto (18 lug 2026). Il tavolo
+  dei giocatori era già coperto da `share.ts` sul server, ma nell'app del DM i campi
+  `img`, `bg.img`, `color`/`tokenColor` e gli `id` finivano grezzi dentro attributi
+  HTML (`src`, `href`, `style`, `onclick`, `data-block`) in `pannello.js`/`mappa.js`.
+  Il vettore è l'Importa: un JSON altrui (o una bolla-dungeon condivisa) di forma
+  valida ma contenuto ostile — `img:'x" onerror=…'`, `id:"');…//"` — eseguiva codice
+  nell'origine `runebog.app` con la sessione del DM (nessuna CSP a mitigare). Fix:
+  `sanitizeState()` in `public/app/modello.js` (stesse regole `safeId`/`safeColor`/
+  `safeUrl` di `share.ts`), chiamata da `migrateState` — l'imbuto di ogni caricamento
+  (import, cloud, localStorage). `safeId` deterministico e idempotente su id e su ogni
+  riferimento che lo punta (edge.a/b, playerId, foe.\*, order.\*): i lookup `x.id===ref`
+  restano allineati, gli id legittimi (`uid()`=`[a-z0-9]{8}`) passano immutati.
+  Verificato: 10/10 sulla funzione con payload ostili + in Chromium l'import ostile
+  non fa scattare l'XSS, la bolla si disegna con l'id spuntato, il colore hex resta.
 
 - [x] **Generatore di dungeon accessibile da ogni campagna** — fatto (18 lug 2026).
   Il link stava solo nel footer della home, cioè fuori dalla campagna: ora c'è un
