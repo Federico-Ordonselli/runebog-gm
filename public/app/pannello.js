@@ -2,7 +2,7 @@
    le modifiche che ne partono (editNode, editEdge, immagini) e la variante
    bottom sheet su mobile. */
 
-import { TYPES, STATUSES, SHAPES, EDGE_TYPES, TOKEN_COLORS,
+import { TYPES, STATUSES, SHAPES, EDGE_TYPES, NODE_COLORS, nodeColor,
          isMarker, defShape, nodeBox, node, escapeHtml, escapeAttr } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, RO } from "./stato.js";
 import { openConfirm } from "./viste.js";
@@ -28,7 +28,7 @@ function renderTableDetail(aside){
   const c = n.combat;
 
   const childRows = n.children.map(k=>{
-    const kc = (TYPES[k.type]||TYPES.nota).color;
+    const kc = nodeColor(k);
     return `<div class="child" onclick="jumpTo('${n.id}','${k.id}')">
       <span class="type-badge" style="background:${kc}"></span>${escapeHtml(k.title||"(senza nome)")}
     </div>`;
@@ -110,7 +110,7 @@ function renderDetailCore(){
     aside.innerHTML = `<div class="inner">
       <div><h2>${nodes.length} bolle selezionate</h2></div>
       <div class="field"><div class="child-list">${nodes.map(x=>`<div class="child">
-        <span class="type-badge" style="background:${(TYPES[x.type]||TYPES.nota).color}"></span>${escapeHtml(x.title||"(senza nome)")}
+        <span class="type-badge" style="background:${nodeColor(x)}"></span>${escapeHtml(x.title||"(senza nome)")}
       </div>`).join("")}</div></div>
       <p style="color:var(--ink-dim);font-size:12px;line-height:1.5">
         Trascina una qualsiasi delle bolle per spostarle insieme · Frecce per ritocchi fini · Canc per eliminarle · Esc per deselezionare
@@ -135,7 +135,7 @@ function renderDetailCore(){
     .map(([k,v])=>`<option value="${k}" ${(n.shape||defShape(n))===k?"selected":""}>${v.label}</option>`).join("");
 
   const childRows = n.children.map(c=>{
-    const cc = (TYPES[c.type]||TYPES.nota).color;
+    const cc = nodeColor(c);
     return `<div class="child" onclick="jumpTo('${n.id}','${c.id}')">
       <span class="type-badge" style="background:${cc}"></span>${escapeHtml(c.title||"(senza nome)")}
       ${c.status?`<span class="st">${c.status}</span>`:""}
@@ -186,9 +186,18 @@ function renderDetailCore(){
         placeholder="Cosa vedono al tavolo. Vuoto = non leggono niente.">${escapeHtml(n.playerNotes||"")}</textarea>
     </div>
 
-    ${n.type==="token" ? `<div class="field"><label>Colore del token</label>
-      <div class="swatches">${TOKEN_COLORS.map(cc=>`<button class="swatch${(n.tokenColor||"#e8e3d8")===cc?" on":""}"
-        style="background:${cc}" onclick="editNode('${n.id}','tokenColor','${cc}')"></button>`).join("")}</div></div>` : ""}
+    ${!isRoot ? `<div class="field"><label>Colore</label>
+      <div class="swatches">
+        <!-- "Predefinito" per primo e con la spunta quando non c'è scelta esplicita:
+             senza, il colore personalizzato sarebbe una porta a senso unico. Il
+             campione mostra il default vero di questa forma, non un grigio finto. -->
+        <button class="swatch swatch--auto${n.color?"":" on"}" style="background:${nodeColor({...n, color:null})}"
+          title="Predefinito della forma" aria-label="Colore predefinito"
+          onclick="editNode('${n.id}','color',null)"></button>
+        ${NODE_COLORS.map(cc=>`<button class="swatch${n.color===cc?" on":""}"
+          style="background:${cc}" aria-label="Colora di ${cc}"
+          onclick="editNode('${n.id}','color','${cc}')"></button>`).join("")}
+      </div></div>` : ""}
 
     ${n.type==="quest" ? `<div class="field"><label>Diario</label>
       <button class="btn ${n.main?"primary":""}" onclick="editNode('${n.id}','main',${n.main?"false":"true"})">
@@ -270,8 +279,10 @@ export function editNode(id, key, val){
   n[key] = val;
   if(key==="type" && !isMarker(n) && !n.shape) n.shape = defShape(n);
   save();
-  if(["title","type","status","shape","w","h","tokenColor"].includes(key)){ renderCrumbs(); renderCanvas(); }
-  if(key==="type"||key==="img"||key==="main"||key==="tokenColor") renderDetail();
+  if(["title","type","status","shape","w","h","color"].includes(key)){ renderCrumbs(); renderCanvas(); }
+  // shape: cambiando forma cambia il colore predefinito, e il campione "Predefinito"
+  // nel pannello deve seguirlo
+  if(["type","img","main","color","shape"].includes(key)) renderDetail();
 }
 
 export function editEdge(id, key, val){

@@ -373,6 +373,11 @@ export function findParent(id, cur=st.state.root){
 export function migrateState(s){
   (function walk(n){
     if(!Array.isArray(n.edges)) n.edges=[];
+    // tokenColor era il colore del solo segnalino "token"; ora `color` vale per
+    // qualsiasi bolla (vedi nodeColor in modello.js). Le pedine già colorate
+    // devono restare come il DM le aveva messe.
+    if(n.tokenColor && !n.color) n.color = n.tokenColor;
+    delete n.tokenColor;
     (n.children||[]).forEach(walk);
   })(s.root);
   // vecchia "Pianta" separata → diventa una zona dentro la radice

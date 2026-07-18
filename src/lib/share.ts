@@ -55,7 +55,7 @@ function projectCombat(m: Node | undefined) {
 
 /**
  * I campi che il client interpola DENTRO attributi HTML (onclick="jumpTo('${id}')",
- * src="${img}", style="fill:${tokenColor}", translate(${x},${y})): l'escape del
+ * src="${img}", style="fill:${color}", translate(${x},${y})): l'escape del
  * client copre solo il testo, quindi qui si stringono a forme che da un attributo
  * non possono uscire. Un valore che non rispetta la forma si perde, non si ripara.
  */
@@ -118,8 +118,11 @@ function projectNode(n: Node): Node {
   const w = num(n.w), h = num(n.h);
   if (w) out.w = w;
   if (h) out.h = h;
-  const tokenColor = safeColor(n.tokenColor);
-  if (tokenColor) out.tokenColor = tokenColor;
+  // `tokenColor` è il vecchio nome (valeva solo per le pedine): l'app migra al volo
+  // in migrateState, ma una campagna salvata prima e non più riaperta dal DM ha
+  // ancora il campo vecchio nel JSONB — finché non la risalva, va letto anche quello.
+  const color = safeColor(n.color) ?? safeColor(n.tokenColor);
+  if (color) out.color = color;
   const bgImg = safeUrl(n.bg?.img);              // lo sfondo è la mappa disegnata: è il senso di tutto
   if (bgImg) out.bg = {
     img: bgImg,

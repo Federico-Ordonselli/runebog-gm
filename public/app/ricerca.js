@@ -31,7 +31,7 @@ export function initRicerca(){
     const titoli=[], note=[], resto=[];
     (function walk(n, parent){
       if(n!==st.state.root){
-        const color = (TYPES[n.type]||TYPES.nota).color;
+        const color = nodeColor(n);
         const label = n.title||"(senza nome)", path = parent?.title||"";
         if((n.title||"").toLowerCase().includes(q)){
           titoli.push({color, label, path, go:()=>goToNode(n.id)});

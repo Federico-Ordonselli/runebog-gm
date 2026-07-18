@@ -2,7 +2,7 @@
    pointer (drag, pinch, long-press, collegamenti), sfondo del livello,
    navigazione tra livelli e operazioni sulla selezione. */
 
-import { TYPES, SHAPES, EDGE_TYPES, MARKER_R, STATUS_COLORS,
+import { TYPES, SHAPES, EDGE_TYPES, MARKER_R, STATUS_COLORS, nodeColor,
          isMarker, defShape, nodeBox, nodeCenter, node, uid, escapeHtml, escapeAttr } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, pathNodes, RO } from "./stato.js";
 import { showView, openConfirm } from "./viste.js";
@@ -166,10 +166,10 @@ function miniPreview(n, box){
     out += `<line x1="${A.x*k+ox}" y1="${A.y*k+oy}" x2="${B.x*k+ox}" y2="${B.y*k+oy}" style="stroke:${t.stroke}" stroke-width="1.8"${t.dash?` stroke-dasharray="3 3"`:""}/>`;
   }
   for(const c of kids){
-    const col = (TYPES[c.type]||TYPES.nota).color;
+    const col = nodeColor(c);
     if(isMarker(c)){
       const C = nodeCenter(c);
-      out += `<circle cx="${C.x*k+ox}" cy="${C.y*k+oy}" r="3" style="fill:${c.type==="token" ? (c.tokenColor||col) : col}"/>`;
+      out += `<circle cx="${C.x*k+ox}" cy="${C.y*k+oy}" r="3" style="fill:${col}"/>`;
     }else{
       const b = nodeBox(c);
       out += `<rect x="${c.x*k+ox}" y="${c.y*k+oy}" width="${Math.max(5,b.w*k)}" height="${Math.max(5,b.h*k)}" rx="1.5" fill="none" style="stroke:${col}" stroke-width="1.6"/>`;
@@ -254,7 +254,7 @@ export function renderCanvas(){
 
   // blocchi e segnalini
   for(const c of cur.children){
-    const col = (TYPES[c.type]||TYPES.nota).color;
+    const col = nodeColor(c);
     const isSel = st.multiSel.has(c.id) || c.id===st.selectedId;
     const selCls = isSel ? " sel" : "";
     const shCls = (!RO && c.shared) ? " shared" : "";
@@ -262,7 +262,7 @@ export function renderCanvas(){
     // il focus (vedi il focusin in initMappa) e aria-pressed la annuncia
     const a11y = `tabindex="0" role="button" aria-pressed="${isSel}" aria-label="${ariaBlk(c)}"`;
     if(c.type==="token"){
-      const R = MARKER_R+1, tcol = c.tokenColor || "#e8e3d8";
+      const R = MARKER_R+1, tcol = col;
       const ini = (c.title||"?").trim().split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase() || "?";
       out += `<g class="blk marker token${selCls}${shCls}" data-block="${c.id}" ${a11y} transform="translate(${c.x},${c.y})">
         <circle class="blk-shape" cx="${R}" cy="${R}" r="${R}" style="fill:${tcol};--c:var(--bog)"/>
@@ -489,22 +489,22 @@ export function initMappa(){
     addSpatialChild(opts, p.x, p.y);
   });
 
-  // Con il pointer capture il browser re-indirizza click/dblclick sull'SVG,
-  // quindi il doppio clic sui blocchi è rilevato a mano nel pointerdown (lastTap):
-  // qui gestiamo solo il doppio clic sullo sfondo.
-  let lastHit = "bg";
+  // Nessun doppio clic su questa tela passa dall'evento nativo: il pointer capture
+  // e i renderCanvas() a metà sequenza lo rendono inaffidabile. Si contano a mano
+  // entrambi — sui blocchi con lastTap (nel pointerdown), sullo sfondo con
+  // lastBgTap (nel pointerup).
   let lastTap = {id:null, t:0};
   const pointers = new Map();          // dita attive (per il pinch)
   let lpTimer = null, lpStart = null, lpFired = false;   // long-press = tasto destro
-  let lastBgTap = null;                // doppio tap sullo sfondo
+  let lastBgTap = null;                // doppio clic/tap sullo sfondo, rilevato a mano
   let lastPointerType = "mouse";
-  svg.addEventListener("dblclick", ev=>{
-    if(lastPointerType==="touch") return;
-    if(lastHit!=="bg") return;
-    const p = planPoint(ev);
-    const opts = canEditEdges() ? {shape:"stanza"} : {shape:"quartiere"};
-    addSpatialChild(opts, p.x, p.y);
-  });
+  /* Qui c'era un listener "dblclick" per il caso mouse: non è mai stato eseguito.
+     Il pointerup sullo sfondo chiama renderCanvas(), che riscrive svg.innerHTML e
+     distrugge il <rect> su cui era iniziato il pointerdown; senza quel nodo il
+     browser non può sintetizzare il click, e senza click non c'è dblclick. È lo
+     stesso inganno che questo file documenta poco più sotto per il focus da
+     tastiera. Il ramo touch funzionava proprio perché il doppio tap se lo contava
+     da solo: ora se lo conta per tutti (vedi lastBgTap nel pointerup). */
 
   svg.addEventListener("pointerdown", ev=>{
     if(ev.button===1){                          // tasto centrale: pan ovunque, anche sopra i blocchi
@@ -559,7 +559,6 @@ export function initMappa(){
     const blkEl  = ev.target.closest(".blk");
     const edgeEl = ev.target.closest(".edge");
     const p = planPoint(ev);
-    lastHit = blkEl ? "blk" : edgeEl ? "edge" : "bg";
     if(bgEdit && !blkEl && !edgeEl){
       const cur = currentNode();
       if(ev.target.id==="bg-handle" && cur.bg){
@@ -761,9 +760,12 @@ export function initMappa(){
     }else if(planDrag.mode==="pan"){
       svg.style.cursor = "default";
       if(!planDrag.moved){
-        if(lastPointerType==="touch"){          // doppio tap sullo sfondo = nuovo blocco
+        {                                       // doppio clic/tap sullo sfondo = nuovo blocco
+          // 500ms è la soglia del doppio clic di sistema; col mouse il puntatore
+          // non si sposta, col dito sì, quindi la tolleranza resta quella del tocco.
           const now = performance.now();
-          if(lastBgTap && now-lastBgTap.t<350 && Math.hypot(ev.clientX-lastBgTap.x, ev.clientY-lastBgTap.y)<30){
+          const finestra = lastPointerType==="touch" ? 350 : 500;
+          if(lastBgTap && now-lastBgTap.t<finestra && Math.hypot(ev.clientX-lastBgTap.x, ev.clientY-lastBgTap.y)<30){
             lastBgTap = null;
             const pp = planPointXY(ev.clientX, ev.clientY);
             addSpatialChild(canEditEdges()?{shape:"stanza"}:{shape:"quartiere"}, pp.x, pp.y);

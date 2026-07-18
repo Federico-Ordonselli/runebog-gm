@@ -5,7 +5,7 @@
    archi "tunnel", gli incontri sono nodi encounter coi nemici già contati, e i PG
    di state.players entrano come pedine trascinabili nella stanza d'ingresso. */
 
-import { node, uid, TOKEN_COLORS, MARKER_R } from "./modello.js";
+import { node, uid, NODE_COLORS, MARKER_R } from "./modello.js";
 import { st, save, currentNode, RO } from "./stato.js";
 import { enterNode, planFit } from "./mappa.js";
 import { openAlert } from "./viste.js";
@@ -124,7 +124,7 @@ function dungeonFromExport(data){
     const cx = (ent.rect.x + ent.rect.w/2)*S, cy = (ent.rect.y + ent.rect.h/2)*S;
     pcs.forEach((pl,i)=>{
       const tk = node(pl.name.trim(), "token");
-      tk.tokenColor = TOKEN_COLORS[i % TOKEN_COLORS.length];
+      tk.color = NODE_COLORS[i % NODE_COLORS.length];
       tk.x = Math.round(cx + (i - (pcs.length-1)/2)*36 - MARKER_R);
       tk.y = Math.round(cy - MARKER_R);
       dg.children.push(tk);

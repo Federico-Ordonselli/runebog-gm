@@ -97,11 +97,20 @@
   #crumbs button:hover{color:var(--fen)}
   #crumbs .sep{color:var(--grigio)}
   #crumbs .here{color:var(--fen);font-weight:600}
+  /* pointer-events:none NON è cosmetico. Questo pannello copre l'intera tela
+     (inset:0) e finché intercettava i puntatori, su un livello vuoto NIENTE
+     arrivava all'SVG sotto: niente drop dalla palette, niente "arma e tocca",
+     niente doppio clic — cioè esattamente i tre gesti che il suo stesso testo
+     suggerisce. L'unica via rimasta era il bottone qui dentro, che aggiunge una
+     forma sola: da fuori sembrava che un livello nuovo accettasse una bolla e
+     basta. I figli cliccabili si riprendono i puntatori uno per uno. */
   #empty-node{
     position:absolute;inset:0;display:none;flex-direction:column;
     align-items:center;justify-content:center;gap:12px;color:var(--ink-dim);
+    pointer-events:none;
   }
   #empty-node.show{display:flex}
+  #empty-node .btn{pointer-events:auto}
 
   /* bolle */
   .bubble{cursor:pointer}
@@ -376,10 +385,18 @@
   #camp-wrap{display:flex;gap:5px;align-items:center;margin-left:14px}
   #campaign-select{max-width:180px;font-size:13px;padding:5px 8px}
 
-  /* ---------- swatch token ---------- */
-  .swatches{display:flex;gap:7px}
+  /* ---------- swatch colore bolla ---------- */
+  .swatches{display:flex;gap:7px;flex-wrap:wrap}
   .swatch{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer}
   .swatch.on{border-color:var(--gold);box-shadow:0 0 0 2px var(--bog) inset}
+  /* Il campione "Predefinito" mostra il colore vero della forma, quindi da solo
+     sarebbe indistinguibile da una scelta esplicita dello stesso colore: la barra
+     diagonale è ciò che dice "automatico", come il "nessun colore" dei selettori. */
+  .swatch--auto{position:relative}
+  .swatch--auto::after{
+    content:"";position:absolute;left:50%;top:2px;bottom:2px;width:2px;
+    transform:translateX(-50%) rotate(45deg);background:var(--bog);opacity:.75;
+  }
   .blk.token .blk-shape{stroke-width:2.5}
 
   /* ---------- diario quest ---------- */

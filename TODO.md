@@ -18,8 +18,40 @@
   su `EDGE_TYPES.segreto` in `modello.js` — server e client vanno aggiornati insieme).
   Verificato: 6/6 sulla proiezione (strada normale passa, segreto no, etichetta
   assente, note DM assenti) + 11/11 in Chromium sulle tre voci.
-- poter personalzizare il colore delle bolle e mettere quartiere edificio e stanza colori di default diversi fra loro
-- quando apri un livello puoi aggiungere solo una bolla, invece dovresti poter trascinare da quartiere a token qualsiasi cosa
+- [x] **Colore delle bolle: default per forma + personalizzabile** — fatto (18 lug 2026).
+  Prima il colore veniva dal TIPO, e siccome edificio e stanza sono entrambi "luogo"
+  erano lo stesso teal: una pianta di dungeon era una distesa di rettangoli identici.
+  Ora `SHAPE_COLORS` in `modello.js` dà un default per forma (quartiere verde,
+  edificio teal, stanza sabbia, piazza ocra, torre viola — token esistenti, così i
+  cinque temi restano coerenti senza aggiungerne), e `nodeColor()` è l'unico punto
+  che decide il colore di una bolla: prima la logica era sparsa in quattro punti di
+  `mappa.js` col token come caso speciale hardcodato.
+  La tavolozza nel pannello ora vale per **ogni** bolla, non solo per i token, col
+  campione "Predefinito" (barra diagonale) per tornare indietro — senza, colorare
+  sarebbe stata una porta a senso unico. Il campo `tokenColor` diventa `color`:
+  `migrateState` migra le campagne esistenti al caricamento e `share.ts` legge
+  ancora il nome vecchio, perché una campagna nel JSONB non risalvata dal DM ce
+  l'ha ancora. Default = token di tema, scelta esplicita = hex (che infatti non
+  segue il tema: è voluto, ed è anche il vincolo di `safeColor`).
+- [x] **Si può piazzare qualsiasi cosa in un livello vuoto** — fatto (18 lug 2026).
+  La palette con tutte e dieci le voci c'era già; il problema era che `#empty-node`
+  (`position:absolute; inset:0`) copriva la tela **intercettando i puntatori**, così
+  su un livello vuoto non passava niente all'SVG: né drop dalla palette, né
+  "arma e tocca", né doppio clic — cioè i tre gesti che il suo stesso testo
+  suggerisce. Restava solo il bottone "+ Aggiungi bolla", che aggiunge una forma
+  fissa: da fuori sembrava che un livello nuovo accettasse una bolla e basta.
+  Fix: `pointer-events:none` sul pannello, `auto` sui figli cliccabili.
+  Emerso durante la verifica, stessa area: il **doppio clic col mouse sullo sfondo
+  non funzionava nemmeno sui livelli pieni**. Il listener `dblclick` era codice morto
+  — il pointerup sullo sfondo chiama `renderCanvas()`, che riscrive `svg.innerHTML`
+  e distrugge il nodo su cui era iniziato il pointerdown, quindi il browser non
+  sintetizza il click e senza click non c'è dblclick. Ora il doppio clic se lo conta
+  a mano anche il mouse (`lastBgTap`, finestra 500ms), come già faceva il tocco;
+  listener morto e variabile `lastHit` (scritta e mai letta) rimossi.
+  Verificato: 22/22 sulle due voci + 10/10 trascinando ogni pezzo della palette in
+  un livello vuoto. Controprova della causa: rimettendo `pointer-events:auto`
+  Playwright si rifiuta di completare il drop e indica come ostacolo proprio il
+  paragrafo che spiega come trascinare.
 - poter salvare i personaggi dei player della campagna in modo da poterli vedere velocemente e poterli posizionare
 - poter mettere modalita combattimento cosi rendi i quadratini piu rigidi, quindi che un personaggio sta precisamente in un quadratino di lato 1.5 metri, condividi l'iniziativa con il tavolo sia dei mostri che dei pg, e importante il poter rollare iniziativa per l'encounter direttamente dalla app (lato dm)
 - poter espandere l'encounter in modo che se lencounter sono 4 goblin, se lo espando ho 4 token goblin che posso posizionare sul campo di battaglia

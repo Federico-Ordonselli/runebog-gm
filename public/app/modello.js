@@ -10,7 +10,12 @@ export const TYPES = {
   token:     {label:"Token",     color:"var(--ink)"},
   nota:      {label:"Nota",      color:"var(--grigio)"}
 };
-export const TOKEN_COLORS = ["#8fd4a8","#6cc3c9","#d8b25a","#d0765a","#b393c9","#e8e3d8"];
+/* La tavolozza del colore personalizzato. Sono hex letterali, non token di tema,
+   e la differenza è voluta: il DEFAULT di una bolla segue il tema (vedi
+   SHAPE_COLORS), la scelta esplicita del DM no — se coloro di rosso la torre del
+   negromante, deve restare rossa anche passando a Pergamena. È anche un vincolo
+   del server: safeColor() in src/lib/share.ts accetta solo #hex. */
+export const NODE_COLORS = ["#8fd4a8","#6cc3c9","#d8b25a","#d0765a","#b393c9","#e8e3d8"];
 export const STATUSES = ["", "da fare", "in corso", "fatto"];
 
 export const SHAPES = {
@@ -19,6 +24,20 @@ export const SHAPES = {
   stanza:   {label:"Stanza",    w:80,  h:80},
   piazza:   {label:"Piazza",    w:110, h:110, circle:true},
   torre:    {label:"Torre",     w:80,  h:80,  diamond:true}
+};
+/* Colore di default PER FORMA, non per tipo: prima edificio e stanza erano
+   entrambi "luogo" e quindi lo stesso teal, così una pianta di dungeon era una
+   distesa di rettangoli identici e la gerarchia si leggeva solo dalla taglia.
+   Riusano i token esistenti invece di introdurne di nuovi — come già fanno i
+   tipi di stanza del generatore — così i cinque temi restano coerenti da soli.
+   Piazza e torre stanno lontane dai segnalini con cui si confonderebbero:
+   la piazza è un cerchio come il PNG, quindi il violetto va alla torre. */
+export const SHAPE_COLORS = {
+  quartiere:"var(--fen)",
+  edificio: "var(--teal)",
+  stanza:   "var(--track)",
+  piazza:   "var(--tunnel)",
+  torre:    "var(--viola)"
 };
 /* Gli stroke sono token di tema (in Pergamena i valori fissi sparivano, 1.6:1
    sulla carta) e vanno applicati via style="stroke:…", mai come attributo SVG
@@ -41,6 +60,17 @@ export const node = (title, type="zona") => ({id:uid(), title, type, status:"", 
 
 export const isMarker = n => !(n.type==="zona" || n.type==="luogo");
 export const defShape = n => n.type==="zona" ? "quartiere" : "edificio";
+
+/* L'UNICO posto che decide di che colore è una bolla. Ordine: scelta esplicita
+   del DM, poi il default della forma (bolle) o del tipo (segnalini). Prima questa
+   logica era sparsa in quattro punti di mappa.js — con `col` calcolato una volta
+   sola per tutti i rami — e il token era un caso speciale hardcodato. */
+export function nodeColor(n){
+  if(n.color) return n.color;
+  if(n.type === "token") return "#e8e3d8";              // pedina senza colore: avorio
+  if(isMarker(n)) return (TYPES[n.type] || TYPES.nota).color;
+  return SHAPE_COLORS[n.shape || defShape(n)] || (TYPES[n.type] || TYPES.nota).color;
+}
 export function nodeBox(n){
   if(isMarker(n)) return {w:MARKER_R*2, h:MARKER_R*2};
   const s = SHAPES[n.shape] || SHAPES[defShape(n)];
