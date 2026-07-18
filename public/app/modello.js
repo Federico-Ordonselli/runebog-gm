@@ -31,12 +31,21 @@ export const SHAPES = {
    Riusano i token esistenti invece di introdurne di nuovi — come già fanno i
    tipi di stanza del generatore — così i cinque temi restano coerenti da soli.
    Piazza e torre stanno lontane dai segnalini con cui si confonderebbero:
-   la piazza è un cerchio come il PNG, quindi il violetto va alla torre. */
+   la piazza è un cerchio come il PNG, quindi il violetto va alla torre.
+   Le cinque tinte vanno scelte per SALTO DI TINTA, non di luminosità: stanza e
+   piazza erano --track e --tunnel, cioè la stessa sabbia più chiara e più
+   scura, e su una mappa affollata leggevano come un colore solo. La piazza
+   passa quindi ad --dg-trap, l'arancio del generatore.
+   Il vincolo vero è che la separazione regga in TUTTI E CINQUE i temi, non solo
+   nel default: --gold per la stanza sembrava più squillante, ma in Brace
+   l'accento --moss è rame (#d99a4e) e l'oro (#f0c05a) gli finisce addosso —
+   quartiere, stanza e piazza diventavano tre aranci. --track resta sabbia
+   pallida ovunque, e con l'arancio della piazza non si confonde. */
 export const SHAPE_COLORS = {
   quartiere:"var(--fen)",
   edificio: "var(--teal)",
   stanza:   "var(--track)",
-  piazza:   "var(--tunnel)",
+  piazza:   "var(--dg-trap)",
   torre:    "var(--viola)"
 };
 /* Gli stroke sono token di tema (in Pergamena i valori fissi sparivano, 1.6:1
