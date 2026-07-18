@@ -27,7 +27,10 @@ export const EDGE_TYPES = {
   strada:   {label:"Strada",            stroke:"var(--track)",  dash:"",     w:5},
   bloccata: {label:"Strada bloccata",   stroke:"var(--ember)",  dash:"11 8", w:5, blocked:true},
   ponte:    {label:"Ponte",             stroke:"var(--wisp)",   dash:"",     w:7, double:true},
-  segreto:  {label:"Passaggio segreto", stroke:"var(--arcane)", dash:"2 7",  w:3},
+  /* dmOnly: il tavolo non lo vede MAI, nemmeno tra due bolle rivelate — a
+     decidere è comunque il server (DM_ONLY_EDGES in src/lib/share.ts), questo
+     flag serve solo a dirlo nel pannello. Se ne aggiungi uno, aggiorna entrambi. */
+  segreto:  {label:"Passaggio segreto", stroke:"var(--arcane)", dash:"2 7",  w:3, dmOnly:true},
   tunnel:   {label:"Tunnel / fogna",    stroke:"var(--tunnel)", dash:"14 6", w:4}
 };
 export const MARKER_R = 15;

@@ -59,6 +59,16 @@ function projectCombat(m: Node | undefined) {
  * client copre solo il testo, quindi qui si stringono a forme che da un attributo
  * non possono uscire. Un valore che non rispetta la forma si perde, non si ripara.
  */
+/**
+ * Tipi di collegamento che non escono mai, nemmeno tra due bolle rivelate.
+ * Un passaggio segreto è un segreto del DM: che il cunicolo esista è precisamente
+ * l'informazione che i giocatori devono guadagnarsi al tavolo, e l'etichetta lo
+ * racconta pure ("cunicolo sotto il guado"). Rivelare le due estremità significa
+ * "conoscono i due posti", non "conoscono la scorciatoia che li unisce".
+ * Quando il gruppo lo scopre, il DM cambia il tipo in strada o tunnel.
+ */
+const DM_ONLY_EDGES = new Set(["segreto"]);
+
 const safeId = (v: unknown) => String(v ?? "").replace(/[^\w-]/g, "");
 const num = (v: unknown, alt: number | null = null) =>
   Number.isFinite(Number(v)) ? Number(v) : alt;
@@ -91,9 +101,11 @@ function projectNode(n: Node): Node {
     notes: String(n.playerNotes ?? ""),          // ← MAI n.notes
     img: safeUrl(n.img),
     children: kids,
-    // una strada si vede solo se si vedono entrambe le sue estremità: altrimenti
-    // sarebbe una freccia verso un luogo che i giocatori non dovrebbero sapere che esiste
+    // una strada si vede solo se si vedono entrambe le sue estremità (altrimenti
+    // sarebbe una freccia verso un luogo che i giocatori non dovrebbero sapere che
+    // esiste) E se il suo tipo non è di quelli riservati al DM
     edges: (Array.isArray(n.edges) ? n.edges : [])
+      .filter((e: Node) => !DM_ONLY_EDGES.has(String(e.type ?? "")))
       .filter((e: Node) => visibleIds.has(safeId(e.a)) && visibleIds.has(safeId(e.b)))
       .map((e: Node) => ({
         id: safeId(e.id), a: safeId(e.a), b: safeId(e.b),

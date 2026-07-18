@@ -126,8 +126,6 @@ export default async function Home() {
               ))}
             </ul>
           )}
-
-          <DeleteAccount campaignCount={rows.length} />
         </>
       )}
 
@@ -138,8 +136,6 @@ export default async function Home() {
         — il sito resta gratuito per tutti.
       </p>
       <p className="small">
-        <a href="/dungeon" className="link">Generatore di dungeon</a>
-        {" · "}
         <a href={REPO_URL} className="link link--quiet"
            target="_blank" rel="noopener noreferrer">Codice sorgente</a>
         {" · "}
@@ -147,6 +143,12 @@ export default async function Home() {
         {" · "}
         <a href={`mailto:${CONTACT_EMAIL}`} className="link link--quiet">Scrivimi</a>
       </p>
+
+      {/* In fondo, tra le voci di servizio: eliminare l'account non è un'azione di
+          gioco e non deve stare in mezzo alle campagne, dove si clicca in fretta.
+          Il generatore di dungeon che occupava questo posto è passato dentro l'app
+          (pannello del livello e menu ⋯), dove serve davvero. */}
+      {session?.user && <DeleteAccount campaignCount={rows.length} />}
     </main>
   );
 }

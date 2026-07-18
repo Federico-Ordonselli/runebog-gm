@@ -123,6 +123,10 @@ export function openTopbarMenu(ev){
       "---",
       {id:"exp", label:"Esporta la campagna", run:()=>exportJSON()},
       {id:"imp", label:"Importa da file…", run:()=>document.getElementById("import-file").click()},
+      // Il generatore sta anche nel pannello del livello, ma lì compare solo se
+      // non c'è un segnalino selezionato: qui è raggiungibile sempre, da dentro
+      // qualsiasi campagna. Scheda nuova: la campagna aperta non si perde.
+      {id:"dg", label:"Genera un dungeon ↗", run:()=>window.open("/dungeon","_blank","noopener")},
       "---"
     );
   }

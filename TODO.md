@@ -1,5 +1,30 @@
 # To-do
 
+- [x] **Generatore di dungeon accessibile da ogni campagna** — fatto (18 lug 2026).
+  Il link stava solo nel footer della home, cioè fuori dalla campagna: ora c'è un
+  `<a class="btn primary" href="/dungeon" target="_blank">` dentro la sezione
+  "Generatore di dungeon" del pannello (`pannello.js`) e la voce "Genera un dungeon ↗"
+  nel menu ⋯ (`menu.js`), che lo copre anche quando il pannello mostra un segnalino.
+  Scheda nuova, così la campagna aperta non si perde. Regola `a.btn` in `app.css`:
+  un `<a>` non eredita da `<button>` né box né allineamento.
+- [x] **"Elimina il mio account" spostato in fondo** — fatto (18 lug 2026).
+  Da sopra la lista campagne (dove si clicca in fretta) al posto lasciato libero dal
+  generatore, tra le voci di servizio del footer (`src/app/page.tsx`).
+- [x] **I passaggi segreti non escono più al tavolo** — fatto (18 lug 2026). Era un
+  leak: `share.ts` filtrava le strade solo per estremità visibili, quindi bastava
+  rivelare le due bolle collegate perché il tavolo leggesse il collegamento *e la
+  sua etichetta* ("cunicolo sotto il guado"). Ora `DM_ONLY_EDGES` in `src/lib/share.ts`
+  li scarta per tipo, e il pannello del collegamento lo dice al DM (flag `dmOnly`
+  su `EDGE_TYPES.segreto` in `modello.js` — server e client vanno aggiornati insieme).
+  Verificato: 6/6 sulla proiezione (strada normale passa, segreto no, etichetta
+  assente, note DM assenti) + 11/11 in Chromium sulle tre voci.
+- poter personalzizare il colore delle bolle e mettere quartiere edificio e stanza colori di default diversi fra loro
+- quando apri un livello puoi aggiungere solo una bolla, invece dovresti poter trascinare da quartiere a token qualsiasi cosa
+- poter salvare i personaggi dei player della campagna in modo da poterli vedere velocemente e poterli posizionare
+- poter mettere modalita combattimento cosi rendi i quadratini piu rigidi, quindi che un personaggio sta precisamente in un quadratino di lato 1.5 metri, condividi l'iniziativa con il tavolo sia dei mostri che dei pg, e importante il poter rollare iniziativa per l'encounter direttamente dalla app (lato dm)
+- poter espandere l'encounter in modo che se lencounter sono 4 goblin, se lo espando ho 4 token goblin che posso posizionare sul campo di battaglia
+
+
 Dal report UX del 15 lug 2026 (`.impeccable/critique/`, baseline 29/40), in ordine:
 
 - [x] **Giro fix dal re-critique del 16 lug** — completato (17 lug 2026) con i tre

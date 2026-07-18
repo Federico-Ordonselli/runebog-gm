@@ -89,7 +89,10 @@ function renderDetailCore(){
           <h2>${escapeHtml(a?.title||"(senza nome)")} ↔ ${escapeHtml(b?.title||"(senza nome)")}</h2>
         </div>
         <div class="field"><label>Tipo</label>
-          <select onchange="editEdge('${e.id}','type',this.value)">${typeOpts}</select></div>
+          <select onchange="editEdge('${e.id}','type',this.value)">${typeOpts}</select>
+          ${et.dmOnly?`<p class="hint-sm">Resta tuo: al tavolo questo collegamento non compare,
+            anche quando i giocatori vedono le bolle alle due estremità. Quando lo scoprono,
+            cambia il tipo in strada o tunnel.</p>`:""}</div>
         <div class="field"><label>Etichetta (visibile sulla pianta)</label>
           <input value="${escapeAttr(e.label||"")}" oninput="editEdge('${e.id}','label',this.value)" placeholder="Es. Via del Mercato"></div>
         <div class="field"><label>Note</label>
@@ -205,12 +208,13 @@ function renderDetailCore(){
     <details class="field" data-sec="dungeon" ontoggle="secToggle(this)"${secOpen("dungeon")}>
       <summary>Generatore di dungeon</summary>
       <div class="img-actions">
+        <a class="btn primary" href="/dungeon" target="_blank" rel="noopener">Genera un dungeon ↗</a>
         <button class="btn" onclick="pasteDungeon()">Incolla dungeon</button>
         <button class="btn" onclick="document.getElementById('dungeon-file').click()">Da file…</button>
       </div>
-      <p class="hint-sm">Genera un dungeon sulla pagina <b>/dungeon</b> del sito e copialo:
-        qui diventa una bolla con le stanze sulla pianta, gli incontri pronti
-        per i PF e i tuoi PG come pedine all'ingresso.</p>
+      <p class="hint-sm">Il generatore si apre in una scheda a parte — la campagna resta
+        aperta qui. Copia il JSON e torna: diventa una bolla con le stanze sulla pianta,
+        gli incontri pronti per i PF e i tuoi PG come pedine all'ingresso.</p>
     </details>` : ""}
 
     <details class="field" data-sec="img" ontoggle="secToggle(this)"${secOpen("img", !!n.img)}>

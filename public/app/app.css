@@ -68,6 +68,10 @@
     background:var(--panel);color:var(--ink);font-size:13px;
   }
   .btn:hover{border-color:var(--fen-dim);color:var(--fen)}
+  /* I <a class="btn"> (l'unico oggi è "Genera un dungeon ↗", che deve restare un
+     link vero: apre una scheda, non esegue un'azione) non ereditano da <button>
+     né il box né l'allineamento — glieli diamo qui. */
+  a.btn{display:inline-flex;align-items:center;text-decoration:none;line-height:1.4}
   /* Stessa ricetta del sito (--moss pieno): su --fen-dim il testo scendeva
      sotto 4.5:1 in tutti i temi scuri — ed è la CTA principale. */
   .btn.primary{background:var(--fen);border-color:var(--fen);color:var(--bog);font-weight:600}
