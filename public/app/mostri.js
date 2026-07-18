@@ -26,8 +26,8 @@ function ensureMon(n){
     m.traits = m.special || "";
     m.actions = [m.actions, (m.moves||"")].filter(Boolean).join("\n");
   }
-  const defaults = {meta:"", ac:"", speed:"", str:10, dex:10, con:10, int:10, wis:10, cha:10,
-    saves:"", skills:"", resist:"", senses:"", langs:"", cr:"", traits:"", actions:"", legendary:"",
+  const defaults = {meta:"", ac:"", init:"", speed:"", str:10, dex:10, con:10, int:10, wis:10, cha:10,
+    saves:"", skills:"", resist:"", senses:"", langs:"", cr:"", gear:"", traits:"", actions:"", legendary:"",
     hpDefault:10, foes:[]};
   for(const k in defaults) if(m[k]===undefined) m[k]=defaults[k];
   return m;
@@ -109,11 +109,11 @@ export function applySRD(id, idx){
   const s = window.SRD_MONSTERS[idx]; if(!s) return;
   const m = ensureMon(n);
   Object.assign(m, {
-    meta:s.meta, ac:s.ac, speed:s.speed,
+    meta:s.meta, ac:s.ac, init:s.init||"", speed:s.speed,
     str:s.str, dex:s.dex, con:s.con, int:s.int, wis:s.wis, cha:s.cha,
     saves:s.saves, skills:s.skills, resist:s.resist, senses:s.senses,
-    langs:s.langs, cr:s.cr, traits:s.traits, actions:s.actions, legendary:s.legendary,
-    hpDefault:s.hp
+    langs:s.langs, cr:s.cr, gear:s.gear||"", traits:s.traits, actions:s.actions,
+    legendary:s.legendary, hpDefault:s.hp
   });
   if(!m.foes.length) m.foes.push(newFoe(s.name, s.hp));
   else m.foes.forEach(f=>{ f.hpMax = s.hp; f.hp = Math.min(f.hp, s.hp) || s.hp; });
@@ -159,7 +159,7 @@ export function statblockHTML(n){
     return `<div class="field statblock-empty">
       <label>Scheda combattimento — D&D 5e</label>
       <div class="srd-wrap">
-        <input id="srd-search" placeholder="🔎 Cerca nel bestiario SRD (es. goblin, dragon…)"
+        <input id="srd-search" placeholder="🔎 Cerca nel bestiario SRD (es. goblin, drago…)"
           oninput="srdSearch('${n.id}', this.value)" autocomplete="off">
         <div id="srd-results"></div>
       </div>
@@ -178,9 +178,10 @@ export function statblockHTML(n){
         oninput="srdSearch('${n.id}', this.value)" autocomplete="off">
       <div id="srd-results"></div>
     </div>
-    <input class="mon-meta" value="${escapeAttr(m.meta)}" oninput="editMon('${n.id}','meta',this.value)" placeholder="Taglia e tipo (es. Large monstrosity, unaligned)">
+    <input class="mon-meta" value="${escapeAttr(m.meta)}" oninput="editMon('${n.id}','meta',this.value)" placeholder="Tipo e taglia (es. Mostruosità Grande, senza allineamento)">
     <div class="row">
       <div class="field"><label>CA</label><input value="${escapeAttr(m.ac)}" oninput="editMon('${n.id}','ac',this.value)"></div>
+      <div class="field"><label>Iniziativa</label><input value="${escapeAttr(m.init)}" oninput="editMon('${n.id}','init',this.value)"></div>
       <div class="field"><label>Velocità</label><input value="${escapeAttr(m.speed)}" oninput="editMon('${n.id}','speed',this.value)"></div>
     </div>
     <div class="ab-grid">
@@ -206,8 +207,9 @@ export function statblockHTML(n){
       </div>
       <div class="row">
         <div class="field"><label>Res./Immunità</label><input value="${escapeAttr(m.resist)}" oninput="editMon('${n.id}','resist',this.value)"></div>
-        <div class="field"><label>Linguaggi</label><input value="${escapeAttr(m.langs)}" oninput="editMon('${n.id}','langs',this.value)"></div>
+        <div class="field"><label>Lingue</label><input value="${escapeAttr(m.langs)}" oninput="editMon('${n.id}','langs',this.value)"></div>
       </div>
+      <div class="field"><label>Attrezzatura</label><input value="${escapeAttr(m.gear)}" oninput="editMon('${n.id}','gear',this.value)"></div>
       <label>Tratti</label>
       <textarea class="mon-sm" oninput="editMon('${n.id}','traits',this.value)">${escapeHtml(m.traits||"")}</textarea>
       <label>Azioni leggendarie</label>

@@ -1,5 +1,62 @@
 # To-do
 
+## SRD 5.2.1 in italiano (regole 2024)
+
+Fonte: il PDF ufficiale in italiano `IT_SRD_CC_v5.2.1.pdf` (dndbeyond.com/srd,
+CC-BY-4.0). Il sito è **italiano-first**: prima tutto in italiano aggiornato alle
+regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
+
+- [x] **Bestiario in italiano** — fatto (18 lug 2026). Le 331 schede di
+  `public/app/srd-mostri.js` (prima: nomi/meta/tratti/azioni in inglese, campi
+  numerici a tratti corrotti dalla vecchia conversione — l'Octopus aveva Cos 0 e
+  salvezze "+30") ora sono la traduzione ufficiale estratta dal PDF con
+  `scripts/estrai-srd-mostri.mjs`: pp. 294–405 (Mostri A–Z + Animali) più la
+  p. 282 per la Mosca gigante, l'unica scheda incassata in un oggetto magico.
+  Il parser legge l'XML di `pdftohtml`: la semantica sta nei font (colore
+  #88191f = titoli/sezioni, Optima #4a0508 = statistiche, `<i><b>` a inizio riga
+  = nome di tratto/azione), le colonne si separano a x=440, gli id dei fontspec
+  sono cumulativi nel documento. Refuso del PDF gestito (salvezza senza segno
+  nell'Int del drago bianco giovane); schede senza azioni legittime (Boleto
+  stridente, Mosca gigante). Schema invariato più due campi del formato 2024:
+  `init` (Iniziativa) e `gear` (Attrezzatura), ora editabili nella scheda
+  (`mostri.js`); azioni bonus e reazioni restano ripiegate in `actions` coi
+  marcatori. Verificato: 18/18 in Chromium (ricerca, applica Goblin capo e
+  Aboleth, campi in italiano, attribuzione CC-BY, console pulita), `tsc` ok.
+- [ ] **Allineare il generatore di dungeon al bestiario italiano** — i nomi dei
+  mostri in `src/lib/dungeon/srd-data.ts` (e nei dungeon già esportati) devono
+  combaciare con le schede italiane, sennò l'import nell'app non aggancia le
+  schede SRD.
+
+- [ ] **Sezione regole sul sito** — capitoli dell'SRD consultabili in italiano
+  (`/srd`): Come si gioca, Creazione del personaggio, Classi, Origini dei
+  personaggi, Talenti, Equipaggiamento, Incantesimi, Glossario delle regole,
+  Strumenti di gioco, Oggetti magici, panoramica delle schede mostro. Con le
+  Informazioni legali e la dichiarazione di attribuzione richiesta dalla licenza.
+- [ ] **SRD 5.1 (2014) in italiano** — in futuro, come edizione alternativa
+  affiancata alla 5.2.1 (selettore di edizione, non una sostituzione).
+- [ ] **Traduzione inglese** — in futuro, dopo il completamento dell'italiano:
+  i18n del sito e dei contenuti SRD (l'SRD inglese 5.2.1 è già disponibile
+  come fonte ufficiale).
+
+## Mappe in scala
+
+La maglia esiste già ed è una sola — `CELL` 40px = 1 quadretto = 1,5 m (5 piedi),
+identica tra pattern `#grid` in `mappa.js`, battaglia e `DG_SCALE` in `dungeon.js` —
+ma oggi le bolle non la rispettano: sono simboli, non piante.
+
+- [ ] **Muri per le stanze** — le bolle `stanza` (ed edifici/case) devono poter
+  disegnare i muri: perimetro con spessore da parete, aperture per le porte
+  (i collegamenti tra stanze sono già archi: una porta è dove l'arco attraversa
+  il muro). Il generatore di dungeon importato ha già stanze posizionate e
+  corridoi come sfondo pianta: i muri dovrebbero valere anche lì.
+- [ ] **Quadretti esattamente 1,5 m** — dimensioni delle bolle agganciate alla
+  griglia (larghezza/altezza in quadretti interi, snap ai 40px) così stanze,
+  case e piazze restano proporzionate tra loro e con le pedine in battaglia:
+  una stanza 3×2 quadretti È 4,5×3 metri, sulla pianta come nel combattimento.
+  Da decidere come conviverci con le bolle esistenti fuori scala (migrazione o
+  scala solo per le forme "architettoniche").
+
+
 - [x] **Generatore di dungeon accessibile da ogni campagna** — fatto (18 lug 2026).
   Il link stava solo nel footer della home, cioè fuori dalla campagna: ora c'è un
   `<a class="btn primary" href="/dungeon" target="_blank">` dentro la sezione
