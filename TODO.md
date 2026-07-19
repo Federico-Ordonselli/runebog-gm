@@ -64,13 +64,82 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
     trattini di sillabazione sospesi, 9/9 tabelle corrette, 156 ancore univoche,
     filtro dell'indice insensibile ad accenti e maiuscole, nessuno scorrimento
     orizzontale a 390px, console pulita, `tsc` e `build` ok.
-  - [ ] **I restanti nove capitoli**, uno alla volta. L'ordine non è quello del
+  - [x] **Estrattore riparato sul PDF riscaricato + verificatore** — fatto
+    (19 lug 2026), venuto fuori attaccando il punto 1 qui sotto. Il PDF
+    riscaricato usciva da `pdftohtml` con **il rosso dei titoli reso `#8b2321`
+    invece di `#88191f`**: l'estrattore lo confrontava per uguaglianza, quindi
+    ogni capitolo perdeva TUTTI i titoli — zero ancore, zero navigazione — e il
+    JSON usciva plausibile, con la prosa in grassetto al posto dei titoli.
+    Rigenerando il glossario si perdevano le sue 156 ancore in silenzio.
+    Colori riconosciuti ora per relazione tra i canali (`rossoTitolo`,
+    `grigioServizio`: anche i grigi del piè di pagina erano cambiati, e "202"
+    ricompariva come paragrafo). Guardie contro il fallimento muto: un capitolo
+    senza titoli non viene scritto e lo script esce con errore.
+    Scoperto di seguito che **i font subsettati mettono la "f" nella Private Use
+    Area** (quattro codici per la stessa lettera; "effetto" è `e`+U+E01D×2+`etto`):
+    sparivano lettere lasciando parole plausibili — "s~~f~~uggire", "~~f~~orma",
+    "su~~f~~ficientemente". Mappa `PUA` + `PUA_IGNOTI` che fa fallire su un codice
+    nuovo. Poi: legature sciolte in uscita (e `slug` in NFKD, sennò l'ancora di
+    "Deﬁnizione" era `de-nizione`), spazi ricostruiti dal gap orizzontale con la
+    legatura che alza la soglia invece di azzerarla ("Infiamme"/"Lucefioca") e la
+    punteggiatura che lo impone ("Terreno,flora"), sillabazione a fine riga
+    (il trattino è un frammento a sé: fondendo gli span *durante* la ricucitura
+    `accoda` torna a vederlo, prima usciva "perso- naggi").
+    Tabelle: le colonne ora le dettano le **celle** e non le intestazioni (una
+    intestazione centrata su tre righe inventava due colonne fantasma), i titoli
+    si assegnano col centro, le intestazioni di raggruppamento ("—— Difficoltà
+    del combattimento ——") si scartano, e le celle che vanno a capo senza rientro
+    si riconoscono come continuazione.
+    Nuovo `scripts/verifica-srd-regole.mjs <PDF> <id>`: 10 controlli contro
+    `pdftotext` (copertura del testo, titoli, ancore univoche e ben formate,
+    PUA, legature, sillabazione, parole fuse, tabelle rettangolari, quota di
+    celle vuote). È la condizione per mettere `pronto: true`.
+    Verificato: glossario 10/10 e **testo identico** al file versionato blocco
+    per blocco (450 su 450), con in più una cella ricomposta meglio
+    ("Grande (carro, tavolo da pranzo)", prima spezzata); `tsc` e `build` ok.
+  - [ ] **I restanti sette capitoli**, uno alla volta. L'ordine non è quello del
     PDF ma quello del valore al tavolo incrociato con la difficoltà di
     estrazione — ogni capitolo si pubblica mettendo `pronto: true` nel registro
-    di `src/lib/srd/index.ts` dopo aver verificato il JSON generato:
-    1. **Strumenti di gioco** (pp. 220–231) e **Come si gioca** (pp. 5–20):
-       prosa e tabelle, cioè esattamente ciò che il parser già sa fare. Sono il
-       banco di prova per capire se il glossario era un caso fortunato.
+    di `src/lib/srd/index.ts` dopo che `node scripts/verifica-srd-regole.mjs
+    <PDF> <id>` passa:
+    1. [x] **Strumenti di gioco** (pp. 220–231) e **Come si gioca** (pp. 5–20) —
+       pubblicati (20 lug 2026), 10/10 al verificatore entrambi, insieme al
+       glossario. Esito del banco di prova: il glossario *era* in parte un caso
+       fortunato (vedi la voce sopra), ma sulla prosa il parser regge — copertura
+       99,2% e 99,3% del testo di `pdftotext`, 80 e 54 titoli.
+       Il difetto che li teneva fuori era uno solo, e comune a tutti e tre:
+       **le tabelle a piena pagina**. "Terreno di viaggio" (6 colonne, x=95→803),
+       "Azioni" ed "Esempi di effetti dello stress mentale" attraversano la
+       separazione fra le colonne di testo (`COLONNA_DESTRA`=440) e venivano
+       spezzate a metà. Ora la pagina si legge **a fasce**: la banda si riconosce
+       da un frammento che attraversa il gutter (nella prosa a due colonne non
+       succede mai — zero su 2484 frammenti del glossario, quindi il rilevatore
+       non può far regredire ciò che già funzionava) e si propaga alle righe
+       contigue con ruolo da tabella.
+       Sono seguiti, tutti scoperti da lì: le righe d'intestazione raccolte fino
+       in fondo alla riga visiva (in "Terreno di viaggio" metà dei titoli è in
+       GillSans normale come i dati, e le loro ascisse inventavano quattro
+       colonne in più); l'ordinamento per **riga visiva** e non per top esatto
+       (apici e frazioni spostano il top di 2px: "⅓" scavalcava la formula di
+       "Passo veloce"); le note a piè di tabella staccate come paragrafi; le
+       continuazioni di cella riconosciute anche quando tutte le colonne sono
+       piene ("Disimpe-" / "gno" nella tabella Azioni).
+       Ancore univoche per capitolo (i titoli ripetuti si numerano: "Bonus di
+       competenza" compare tre volte in "Come si gioca", e due `id` uguali
+       facevano atterrare ogni link sulla prima).
+       Corretto un **bug latente del layout**, rivelato dalla prima tabella a sei
+       colonne: `.srd-corpo` è un grid a colonna singola sotto 56rem e i grid item
+       hanno `min-width: auto`, quindi la tabella allargava la colonna e con essa
+       l'indice, e a 390px scorreva la pagina invece della sola tabella
+       (`grid-template-columns: minmax(0, 1fr)` — la riga a due colonne lo faceva
+       già). Non dipendeva dai capitoli nuovi: il glossario passava solo perché
+       le sue tabelle sono più strette.
+       Verificato: 10/10 sui tre capitoli, glossario ancora **identico** al file
+       pubblicato (450 blocchi, 12.739 parole, 156 ancore invariate) più due celle
+       ricomposte meglio, 36/36 in Chromium (ancore univoche nel DOM, niente PUA
+       né legature né sillabazioni a schermo, attribuzione CC-BY, tabelle
+       coerenti, nessuno scorrimento orizzontale a 390px, console pulita),
+       `tsc` e `build` ok.
     2. **Equipaggiamento** (pp. 101–117): tabelle lunghe e fitte, molte a più di
        tre colonne. Qui si vedrà se il ritaglio delle celle fuse regge o se
        serve leggere le ascisse per parola (`pdftohtml -xml` non le dà: in tal

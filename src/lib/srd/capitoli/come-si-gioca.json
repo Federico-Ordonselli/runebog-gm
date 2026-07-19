@@ -1,0 +1,1166 @@
+{
+ "id": "come-si-gioca",
+ "titolo": "Come si gioca",
+ "pagine": [
+  5,
+  20
+ ],
+ "blocchi": [
+  {
+   "t": "h4",
+   "testo": "Bonus di competenza",
+   "id": "bonus-di-competenza"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Si può aggiungere il proprio bonus di competenza a una prova di caratteristica quando il GM determina che una competenza in un'abilità o negli strumenti è rilevante per la prova e si possiede tale competenza. Ad esempio, se una regola fa riferimento a una prova di Forza (Acrobazia o Atletica), si può aggiungere il proprio bonus di competenza alla prova se si possiede competenza nell'abilità Acrobazia o Atletica. Per ulteriori informazioni sulle competenze in un'abilità o negli strumenti, vedi la sezione \"Competenza\" nel capitolo \"Come si gioca\"."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Classe Difficoltà",
+   "id": "classe-difficolta"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "La Classe Difficoltà di una prova di caratteristica rappresenta la difficoltà dell'impresa. Più è difficile un'impresa, più alta è la sua CD. Le regole forniscono le CD per alcune prove, ma sostanzialmente vengono stabilite da chi ha il ruolo di GM. La tabella Classi Difficoltà tipiche indica un ventaglio di possibili CD per le prove di caratteristica."
+    }
+   ]
+  },
+  {
+   "t": "tabella",
+   "titolo": "Classi Difficoltà tipiche",
+   "colonne": [
+    "Difficoltà dell'impresa",
+    "CD",
+    "Difficoltà dell'impresa",
+    "CD"
+   ],
+   "righe": [
+    [
+     "Molto facile",
+     "5",
+     "Difficile",
+     "20"
+    ],
+    [
+     "Facile",
+     "10",
+     "Molto difficile",
+     "25"
+    ],
+    [
+     "Media",
+     "15",
+     "Quasi impossibile",
+     "30"
+    ]
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Tiri salvezza",
+   "id": "tiri-salvezza"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Un tiro salvezza rappresenta un tentativo di eludere o respingere una minaccia, come ad esempio un'esplosione infuocata, un'ondata di gas velenoso o un incantesimo che cerca di invadere la mente. Di norma i giocatori non decidono di effettuare un tiro salvezza; sono obbligati a effettuarne uno quando un personaggio o un mostro (se sei il GM) rischia di subire danni. Il risultato di un tiro salvezza è descritto nell'effetto che l'ha causato. Se il personaggio non vuole resistere all'effetto, può scegliere di fallire il tiro salvezza senza tirare."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Modificatore di caratteristica",
+   "id": "modificatore-di-caratteristica"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "I tiri salvezza prendono il nome dai modificatori di caratteristica che utilizzano: un tiro salvezza su Costituzione, un tiro salvezza su Saggezza e così via. Per resistere a tipi di effetti diversi, si utilizzano tiri salvezza diversi, come indicato nella tabella Esempi di tiri salvezza."
+    }
+   ]
+  },
+  {
+   "t": "tabella",
+   "titolo": "Esempi di tiri salvezza",
+   "colonne": [
+    "",
+    "Caratteristica Effettua un tiro salvezza per..."
+   ],
+   "righe": [
+    [
+     "Forza",
+     "Resistere fisicamente alla forza diretta"
+    ],
+    [
+     "Destrezza",
+     "Schivare dei pericoli"
+    ],
+    [
+     "Costituzione",
+     "Sopravvivere a un pericolo tossico"
+    ]
+   ]
+  },
+  {
+   "t": "griglia",
+   "righe": [
+    [
+     "Caratteristica",
+     "Effettua un tiro salvezza per..."
+    ],
+    [
+     "Intelligenza",
+     "Riconoscere un'illusione come falsa"
+    ],
+    [
+     "Saggezza",
+     "Resistere a un attacco psichico"
+    ],
+    [
+     "Carisma",
+     "Affermare la propria identità"
+    ]
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Bonus di competenza",
+   "id": "bonus-di-competenza-2"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Si aggiunge il proprio bonus di competenza al tiro salvezza se si dispone di competenza in quel tipo di tiro. Vedi la sezione \"Competenza\" più avanti nel capitolo \"Come si gioca\"."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Classe Difficoltà",
+   "id": "classe-difficolta-2"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "La Classe Difficoltà di un tiro salvezza è determinata dall'effetto che lo causa o da chi ha il ruolo di GM. Ad esempio, se un incantesimo costringe a effettuare un tiro salvezza, la CD è determinata dalla caratteristica da incantatore e dal bonus di competenza di chi lo ha lanciato. Le abilità dei mostri che richiedono tiri salvezza specificano la CD."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Tiri per colpire",
+   "id": "tiri-per-colpire"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Un tiro per colpire determina se un attacco colpisce un bersaglio. Il tiro va a segno se il risultato è pari o superiore alla Classe Armatura del bersaglio. Di solito i tiri per colpire vengono effettuati in battaglia, come descritto in \"Combattimento\" più avanti nel capitolo \"Come si gioca\", ma il GM potrebbe chiedere di eseguire un tiro per colpire anche in altre situazioni, come in una gara di tiro con l'arco."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Modificatore di caratteristica",
+   "id": "modificatore-di-caratteristica-2"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "La tabella Caratteristiche dei tiri per colpire mostra quale modificatore di caratteristica utilizzare per i diversi tipi di tiri per colpire."
+    }
+   ]
+  },
+  {
+   "t": "tabella",
+   "titolo": "Caratteristiche dei tiri per colpire",
+   "colonne": [
+    "",
+    "Caratteristica Tipo di attacco"
+   ],
+   "righe": [
+    [
+     "Forza",
+     "Attacco in mischia con un'arma o colpo senz'armi (vedi il \"Glossario delle regole\")"
+    ],
+    [
+     "Destrezza",
+     "Attacco a distanza con un'arma"
+    ],
+    [
+     "Variabile",
+     "Attacco con incantesimo (la caratteristica utilizzata è determinata dal privilegio Incantesimi dell'incantatore, come spiegato nel capitolo \"Incantesimi\")"
+    ]
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Alcuni privilegi consentono l'uso di diversi modificatori di caratteristica tra quelli elencati. Ad esempio, la proprietà accurata (vedi \"Equipaggiamento\") consente di utilizzare Forza o Destrezza con un'arma che possiede tale proprietà. mentre altri ne sanno usare solo alcune. Alcuni sono più bravi a capire le intenzioni delle persone, altri a svelare i segreti del multiverso. Tutte le creature hanno un bonus di competenza che rispecchia l'impatto dell'addestramento sulle loro capacità. Il bonus di competenza di un personaggio aumenta con l'aumentare dei suoi livelli (descritti nel capitolo \"Creazione del personaggio\"). Il bonus di competenza di un mostro si basa sul suo grado di sfida (vedi \"Glossario delle regole\"). La tabella Bonus di competenza mostra come viene determinato il bonus. Il bonus viene applicato a una prova con d20 quando la creatura è dotata di competenza in un'abilità, in un tiro salvezza o con un oggetto che la creatura utilizza per effettuare la prova con d20. Il bonus viene utilizzato anche per gli attacchi con incantesimo e per calcolare la CD dei tiri salvezza per gli incantesimi."
+    }
+   ]
+  },
+  {
+   "t": "tabella",
+   "titolo": "Bonus di competenza",
+   "colonne": [
+    "",
+    "Livello o GS",
+    "Competenza",
+    "Livello o GS",
+    "Competenza"
+   ],
+   "righe": [
+    [
+     "Fino",
+     "a 4 5–8 9–12 13–16",
+     "+2 +3 +4 +5",
+     "17–20 21–24 25–28 29–30",
+     "+6 +7 +8 +9"
+    ]
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "I bonus non si accumulano",
+   "id": "i-bonus-non-si-accumulano"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il bonus di competenza non può essere aggiunto a un tiro del dado o a un altro numero più di una volta. Ad esempio, se una regola consente di effettuare una prova di Carisma (Inganno o Persuasione), il personaggio aggiunge il bonus di competenza se è competente in una delle due abilità, ma non lo aggiunge due volte se è competente in entrambe. In alcune occasioni il bonus di competenza potrebbe essere moltiplicato o diviso (raddoppiato o dimezzato, per esempio) prima di essere aggiunto. Ad esempio, il privilegio Maestria (vedi \"Glossario delle regole\") raddoppia il bonus di competenza per alcune prove di caratteristica. Quando il bonus viene utilizzato, può essere moltiplicato e diviso una sola volta."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Competenze nelle abilità",
+   "id": "competenze-nelle-abilita"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "La maggior parte delle prove di caratteristica comporta l'uso di un'abilità, che rappresenta una categoria di azioni che le creature tentano di compiere con una prova di caratteristica. Le descrizioni delle azioni compiute dal personaggio (vedi \"Azioni\" più avanti nel capitolo \"Come si gioca\") specificano quale abilità si applica se si effettua una prova di caratteristica per quell'azione. Inoltre, molte altre regole indicano quando un'abilità è rilevante, ma l'ultima parola sulla rilevanza di un'abilità in una determinata situazione è sempre del GM. Se una creatura è competente in un'abilità, applica il suo bonus di competenza alle prove di caratteristica che riguardano quell'abilità. Senza competenza in un'abilità, una creatura può comunque effettuare prove di caratteristica che riguardano quell'abilità, ma senza aggiungere il bonus di competenza. Ad esempio, se un personaggio cerca di arrampicarsi su una parete rocciosa, il GM potrebbe richiedere una prova di Forza (Atletica). Se il personaggio ha competenza in Atletica, aggiunge il suo bonus di competenza alla prova di Forza. Se non possiede tale competenza, effettua una prova senza aggiungere il rispettivo bonus."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Lista delle abilità",
+   "id": "lista-delle-abilita"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Le abilità sono indicate nella tabella Abilità, che riporta esempi di utilizzo per ogni competenza e la prova di caratteristica a cui l'abilità si applica più spesso."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Determinare le abilità",
+   "id": "determinare-le-abilita"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Le competenze nelle abilità iniziali di un personaggio sono determinate nel corso della sua creazione, mentre le competenze nelle abilità di un mostro sono indicate nella sua scheda delle statistiche."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Competenze nei tiri salvezza",
+   "id": "competenze-nei-tiri-salvezza"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "La competenza in un tiro salvezza consente a un personaggio di aggiungere il suo bonus di competenza ai tiri salvezza che utilizzano una particolare caratteristica. Ad esempio, la competenza nei tiri salvezza su Saggezza consente di aggiungere il bonus di competenza a tali tiri. Anche alcuni mostri hanno competenze nei tiri salvezza, come indicato nelle loro schede delle statistiche. Ogni classe conferisce competenza in almeno due tiri salvezza, che rappresentano l'addestramento di quella classe nell'eludere o respingere determinate minacce. I maghi, ad esempio, si allenano per resistere agli attacchi psichici e sono competenti nei tiri salvezza su Intelligenza e Saggezza."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Competenze nell'equipaggiamento",
+   "id": "competenze-nell-equipaggiamento"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Un personaggio acquisisce competenza in varie armi e strumenti in base alla sua classe e al suo background. Esistono due categorie di competenza negli equipaggiamenti:"
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Armi",
+   "testo": [
+    {
+     "s": "Chiunque può brandire un'arma, ma la competenza rende il personaggio più abile nel brandirla. Se il personaggio ha competenza in un'arma, aggiunge il bonus di competenza ai tiri per colpire effettuati con essa."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Strumenti",
+   "testo": [
+    {
+     "s": "Se il personaggio ha competenza in uno strumento, può aggiungere il bonus di"
+    }
+   ]
+  },
+  {
+   "t": "tabella",
+   "titolo": "Abilità",
+   "colonne": [
+    "Abilità",
+    "",
+    "Caratteristica Esempio d'uso"
+   ],
+   "righe": [
+    [
+     "Acrobazia",
+     "Destrezza",
+     "Rimani in piedi in una situazione difficile o esegui un'acrobazia."
+    ],
+    [
+     "Addestrare animali",
+     "Saggezza",
+     "Calma o addestra un animale, o fallo comportare in una certa maniera."
+    ],
+    [
+     "Arcano",
+     "Intelligenza",
+     "Richiama la conoscenza su incantesimi, oggetti magici e piani di esistenza."
+    ],
+    [
+     "Atletica",
+     "Forza",
+     "Salta più lontano del normale, resta a galla in acque agitate o rompi qualcosa."
+    ],
+    [
+     "Indagare",
+     "Intelligenza",
+     "Trova informazioni sepolte nei libri o deduci il funzionamento degli oggetti più disparati."
+    ],
+    [
+     "Inganno",
+     "Carisma",
+     "Racconta una bugia convincente o indossa un travestimento credibile."
+    ],
+    [
+     "Intimidire",
+     "Carisma",
+     "Impressiona o minaccia qualcuno facendogli fare quello che vuoi."
+    ],
+    [
+     "Intrattenere",
+     "Carisma",
+     "Recita, narra una storia, suona o danza."
+    ],
+    [
+     "Intuizione",
+     "Saggezza",
+     "Discerni l'umore e le intenzioni di una persona."
+    ],
+    [
+     "Medicina",
+     "Saggezza",
+     "Diagnostica una malattia o determina cosa abbia recentemente ucciso qualcuno."
+    ],
+    [
+     "Natura",
+     "Intelligenza",
+     "Richiama la conoscenza su terreno, piante, animali e tempo."
+    ],
+    [
+     "Percezione",
+     "Saggezza",
+     "Usando una combinazione di sensi, nota qualcosa che è facile trascurare."
+    ],
+    [
+     "Persuasione",
+     "Carisma",
+     "Convinci qualcuno di qualcosa con onestà e buone maniere."
+    ],
+    [
+     "Rapidità di mano",
+     "Destrezza",
+     "Svuota le tasche, nascondi un oggetto tenuto in mano o esegui un gioco di prestigio."
+    ],
+    [
+     "Religione",
+     "Intelligenza",
+     "Richiama la conoscenza su divinità, rituali religiosi e simboli sacri."
+    ],
+    [
+     "Storia",
+     "Intelligenza",
+     "Ricorda dati e leggende su eventi storici, persone, nazioni e culture."
+    ]
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "competenza a qualsiasi prova di caratteristica che effettua utilizzandolo. Se è dotato di competenza nell'abilità utilizzata per quella prova, effettuerà la prova con vantaggio. Ciò significa che può beneficiare sia della competenza nell'abilità che della competenza negli strumenti nella stessa prova di caratteristica."
+    }
+   ]
+  },
+  {
+   "t": "h2",
+   "testo": "Azioni",
+   "id": "azioni"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Quando il personaggio fa qualcosa di diverso dal muoversi o dal comunicare, di solito effettua un'azione. La tabella Azioni elenca le azioni principali del gioco, definite più nel dettaglio in \"Glossario delle regole\"."
+    }
+   ]
+  },
+  {
+   "t": "tabella",
+   "titolo": "Azioni",
+   "colonne": [
+    "Azione",
+    "Riepilogo"
+   ],
+   "righe": [
+    [
+     "Aiuto",
+     "Aiuti un'altra creatura in una prova di caratteristica o in un tiro per colpire, o somministri cure di pronto soccorso."
+    ],
+    [
+     "Attacco",
+     "Attacco con un'arma o colpo senz'armi."
+    ],
+    [
+     "Disimpegno",
+     "Il tuo movimento non provoca attacchi di opportunità per il resto del turno."
+    ],
+    [
+     "Influenza",
+     "Effettui una prova di Carisma (Inganno, Intimidire, Intrattenere o Persuasione) o Saggezza (Addestrare Animali) per modificare l'atteggiamento di una creatura."
+    ],
+    [
+     "Magia",
+     "Lanci un incantesimo, utilizzi un oggetto magico o un privilegio magico."
+    ]
+   ]
+  },
+  {
+   "t": "griglia",
+   "righe": [
+    [
+     "Azione",
+     "Riepilogo"
+    ],
+    [
+     "Nascondersi",
+     "Effettui una prova di Destrezza (Furtività)."
+    ],
+    [
+     "Prepararsi Ti",
+     "prepari a effettuare un'azione in risposta a una determinata circostanza."
+    ],
+    [
+     "Ricerca",
+     "Effettui una prova di Saggezza (Intuizione, Medicina, Percezione o Sopravvivenza)."
+    ],
+    [
+     "Scatto",
+     "Per il resto del turno, ottieni movimento extra pari alla tua velocità."
+    ],
+    [
+     "Schivata",
+     "Fino all'inizio del tuo turno successivo, i tiri per colpire indirizzati a te hanno svantaggio e ogni tuo tiro salvezza su Destrezza dispone di vantaggio. Perdi questo beneficio se sei incapacitato o se la tua velocità scende a 0."
+    ],
+    [
+     "Studio",
+     "Effettui una prova di Intelligenza (Arcano, Storia, Indagare, Natura o Religione)."
+    ],
+    [
+     "Utilizzo",
+     "Utilizzi un oggetto non magico."
+    ]
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "I personaggi giocanti e i mostri possono anche compiere azioni che non rientrano tra quelle elencate. Molti privilegi di classe e altre capacità forniscono ulteriori opzioni per l'azione del personaggio, che può improvvisare azioni aggiuntive. Quando un giocatore descrive un'azione che non è definita da alcuna regola, il Game Master comunica se quell'azione è possibile ed, eventualmente, che tipo di prova con d20 occorre effettuare."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Una cosa alla volta",
+   "id": "una-cosa-alla-volta"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il gioco utilizza le azioni per regolare le attività che il personaggio può svolgere nello stesso momento. È possibile effettuare una sola azione alla volta. Questo principio è molto importante in combattimento, come spiegato in \"Combattimento\" più avanti nel capitolo \"Come si gioca\". Le azioni possono essere utilizzate anche in altre situazioni: in un'interazione sociale, il personaggio può cercare di Influenzare una creatura o usare l'azione di Ricerca per leggerne il linguaggio del corpo, ma non può fare entrambe le cose contemporaneamente. Inoltre, quando un personaggio esplora un dungeon, non può usare contemporaneamente l'azione di Ricerca per scovare trappole e l'azione di Aiuto per aiutare un altro personaggio che sta cercando di forzare una porta incastrata (con l'azione di Utilizzo)."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Azioni bonus",
+   "id": "azioni-bonus"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Vari privilegi di classe, incantesimi e altre capacità consentono al personaggio di effettuare un'azione aggiuntiva nel suo turno, chiamata azione bonus. Il privilegio Azione scaltra, per esempio, consente a un ladro di effettuare un'azione bonus. Un personaggio può effettuare un'azione bonus soltanto quando una capacità speciale, un incantesimo o un altro privilegio del gioco gli permette di fare qualcosa come azione bonus. In caso contrario, un personaggio non dispone di alcuna azione bonus da effettuare. Un personaggio può effettuare soltanto un'azione bonus nel proprio turno, quindi dovrà scegliere quale azione bonus usare qualora ne avesse più di una a disposizione. Il personaggio può scegliere quando effettuare un'azione bonus durante il proprio turno, a meno che la tempistica dell'azione bonus non sia specificata. Tutto ciò che priva un personaggio della sua possibilità di effettuare azioni lo priva anche della possibilità di effettuare un'azione bonus."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Reazioni",
+   "id": "reazioni"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Certe capacità speciali, incantesimi e situazioni consentono al personaggio di effettuare un'azione speciale chiamata reazione. Una reazione è una risposta istantanea a un innesco di qualche tipo, che può verificarsi nel turno del personaggio o di qualcun altro. L'attacco di opportunità, descritto più avanti nel capitolo \"Come si gioca\", è il tipo di reazione più comune. Quando un personaggio effettua una reazione, non può effettuarne un'altra fino all'inizio del suo turno successivo. Se la reazione interrompe il turno di un'altra creatura, quella creatura può proseguire il proprio turno subito dopo la reazione. In termini di tempi, una reazione ha luogo immediatamente dopo ciò che l'ha innescata, a meno che la descrizione della reazione non indichi diversamente."
+    }
+   ]
+  },
+  {
+   "t": "h2",
+   "testo": "Interazioni sociali",
+   "id": "interazioni-sociali"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Durante le loro avventure, i personaggi giocanti incontrano molto persone diverse e affrontano mostri desiderosi più di parlare che di combattere. In simili situazioni bisogna passare alle interazioni sociali, che possono assumere molte forme. Ad esempio, un personaggio potrebbe cercare di convincere un ladro a confessare una malefatta o di adulare una guardia. Il Game Master interpreta i ruoli di tutti i personaggi non giocanti che partecipano all'interazione. L'atteggiamento di un PNG nei confronti del personaggio è amichevole, indifferente o ostile, come descritto in \"Glossario delle regole\". I PNG amichevoli sono disposti ad aiutare il personaggio, mentre quelli ostili tenderanno a ostacolarlo. Le interazioni sociali avvengono in due modi: attraverso l'interpretazione del ruolo e le prove di caratteristica."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Interpretazione del ruolo",
+   "id": "interpretazione-del-ruolo"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "L'interpretazione del ruolo è esattamente ciò che suggerisce il termine stesso, ovvero l'atto di interpretare il ruolo di un personaggio, nella fattispecie le scelte che determinano in che modo il tuo personaggio pensa, agisce e parla. L'interpretazione del ruolo è parte di ogni aspetto del gioco, ma diventa di primaria importanza nel corso delle interazioni sociali. Durante l'interpretazione, valuta se preferisci un approccio attivo o un approccio descrittivo. Il GM usa la personalità di un PNG e le azioni e gli atteggiamenti di un personaggio per determinare in che modo un PNG reagisce. Un bandito codardo potrebbe cedere di fronte a una minaccia di reclusione. Una mercantessa testarda si rifiuta di prestare aiuto se i personaggi la importunano. Un drago vanesio adora sentirsi adulato. Durante le interazioni con un PNG è bene prestare attenzione a come il GM ne interpreta la personalità: potresti essere in grado di apprendere gli obiettivi di un PNG e usare queste informazioni per influenzarlo. Offrendo a un PNG qualcosa che desidera oppure facendo leva sui suoi obiettivi, le sue simpatie o le sue paure, puoi stringere amicizie, scongiurare il ricorso alla violenza o apprendere informazioni chiave. D'altro canto, chi insulta un orgoglioso"
+    }
+   ]
+  },
+  {
+   "t": "elenco",
+   "voci": [
+    "Vista cieca",
+    "Scurovisione",
+    "Percezione",
+    "tellurica",
+    "Vista pura"
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Nascondersi",
+   "id": "nascondersi"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Avventurieri e mostri spesso si nascondono per spiarsi l'un l'altro, per sgattaiolare oltre un guardiano o per tendere imboscate. È il Game Master a decidere le circostanze in cui è possibile nascondersi. Quando cerchi di nasconderti, effettui l'azione di Nascondersi."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Interazioni con gli oggetti",
+   "id": "interazioni-con-gli-oggetti"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "L'interazione con gli oggetti in genere si risolve in modo semplice. Il giocatore annuncia al GM che il suo personaggio sta facendo qualcosa, ad esempio azionare una leva o aprire una porta, e il GM descrive cosa accade. A volte, tuttavia, le regole governano ciò che un personaggio può fare con un oggetto, come descritto nelle seguenti sezioni."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Che cos'è un oggetto?",
+   "id": "che-cos-e-un-oggetto"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Ai fini delle regole, per oggetto si considera qualcosa di distinto e inanimato come una finestra, una porta, una spada, un libro, un tavolo, una sedia o una roccia. Edifici e veicoli non rientrano in questa categoria, perché sono composti da molti altri oggetti."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Interazioni con oggetti a tempo limitato",
+   "id": "interazioni-con-oggetti-a-tempo-limitato"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Quando il tempo stringe, come ad esempio in combattimento, le interazioni con gli oggetti sono limitate: è possibile una sola interazione libera per turno, che deve avvenire durante il movimento o l'azione di una creatura. Qualsiasi interazione aggiuntiva richiede l'azione di Utilizzo, come spiegato in \"Combattimento\" più avanti nel capitolo \"Come si gioca\"."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Trovare un oggetto nascosto",
+   "id": "trovare-un-oggetto-nascosto"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Quando un personaggio cerca un oggetto nascosto, come una porta segreta o una trappola, il GM solitamente gli chiede di effettuare una prova di Saggezza (Percezione), a condizione che il giocatore descriva il personaggio intento a cercare nelle vicinanze dell'oggetto nascosto. In caso di successo, il personaggio trova l'oggetto, altri dettagli importanti o entrambi. Se il giocatore descrive il suo personaggio che esamina un'area lontana dall'oggetto nascosto, una prova di Saggezza (Percezione) non rivelerà l'oggetto, indipendentemente dal totale della prova."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Trasportare gli oggetti",
+   "id": "trasportare-gli-oggetti"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Di solito il personaggio può trasportare l'attrezzatura e il tesoro senza preoccuparsi del peso di questi oggetti. Se cerca di trasportare un oggetto insolitamente pesante o un numero elevato di oggetti più leggeri, il GM potrebbe richiedere di attenersi alle regole di capacità di trasporto in \"Glossario delle regole\"."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Rompere gli oggetti",
+   "id": "rompere-gli-oggetti"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Con un'azione, si può distruggere o rompere automaticamente un oggetto fragile e non magico, come un contenitore di vetro o un pezzo di carta. Se si cerca di danneggiare qualcosa di più resistente, il GM potrebbe applicare le regole per rompere gli oggetti in \"Glossario delle regole\"."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Pericoli",
+   "id": "pericoli"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "I mostri sono i pericoli principali che i personaggi devono affrontare, ma non sono gli unici. Il capitolo \"Glossario delle regole\" definisce i seguenti pericoli:"
+    }
+   ]
+  },
+  {
+   "t": "elenco",
+   "voci": [
+    "In fiamme",
+    "Disidratazione",
+    "Caduta",
+    "Malnutrizione",
+    "Soffocamento"
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Viaggiare",
+   "id": "viaggiare"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Durante un'avventura, i personaggi potrebbero percorrere lunghe distanze in viaggi che richiedono ore o addirittura giorni. Il GM può riassumere questi viaggi senza calcolarne esattamente distanze e tempi, oppure può far usare le regole del Passo di viaggio riportate di seguito. Se hai bisogno di sapere a quale velocità puoi muoverti quando ogni secondo è di vitale importanza, usa le regole di movimento in \"Combattimento\" più avanti nel capitolo \"Come si gioca\"."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Passo di viaggio",
+   "id": "passo-di-viaggio"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Quando è in viaggio e non sta combattendo, un gruppo può muoversi a passo veloce, normale o lento, come indicato nella tabella \"Passo di viaggio\". La tabella determina la distanza che un gruppo riesce a coprire in un periodo di tempo; in sella a cavalli o ad altre cavalcature, il gruppo può percorrere il doppio di quella distanza per 1 ora, dopodiché le cavalcature necessitano di un riposo breve o lungo prima di potersi muovere di nuovo a passo più veloce (vedi \"Equipaggiamento\" per una selezione di cavalcature in vendita). \"Strumenti di gioco\" include regole che influenzano la scelta del passo in certi tipi di terreno."
+    }
+   ]
+  },
+  {
+   "t": "tabella",
+   "titolo": "Passo di viaggio",
+   "colonne": [
+    "Passo",
+    "Distanza percorsa ogni... Minuto",
+    "Ora",
+    "Giorno"
+   ],
+   "righe": [
+    [
+     "Veloce",
+     "120 m",
+     "6 km",
+     "45 km"
+    ],
+    [
+     "Normale",
+     "90 m",
+     "4,5 km",
+     "36 km"
+    ],
+    [
+     "Lento",
+     "60 m",
+     "3 km",
+     "27 km"
+    ]
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Ogni passo di viaggio ha un effetto sul gioco, come definito di seguito."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Veloce",
+   "testo": [
+    {
+     "s": "Viaggiare a passo veloce impone uno svantaggio alle prove di Saggezza (Percezione verifica una parità tra un mostro e un personaggio giocante, è il GM a decidere l'ordine."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Il turno di un personaggio",
+   "id": "il-turno-di-un-personaggio"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Nel proprio turno, un personaggio può muoversi di una distanza massima pari alla sua velocità ed effettuare un'azione. Il personaggio può decidere liberamente se per prima cosa vuole muoversi oppure effettuare la sua azione. Le azioni principali che si possono effettuare sono elencate in \"Azioni\" in precedenza nel capitolo \"Come si gioca\". Le opzioni di azione sono fornite anche dai privilegi di un personaggio e dalla scheda delle statistiche di un mostro. La sezione \"Movimento e posizione\", che compare più avanti nel capitolo \"Come si gioca\", descrive invece le regole relative al movimento."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Comunicazione",
+   "testo": [
+    {
+     "s": "Nel corso del turno, il personaggio può comunicare in qualsiasi modo gli sia consentito tramite brevi frasi e gesti. Così facendo, non usi né la tua azione né la tua mossa. Una comunicazione estesa, come una spiegazione dettagliata o un tentativo di persuasione di un nemico, richiede un'azione. L'azione di Influenza è il modo principale in cui cercare di influenzare un mostro."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Interazioni con le cose",
+   "testo": [
+    {
+     "s": "Durante il proprio movimento o la propria azione, il personaggio può interagire con un oggetto o un elemento dell'ambiente senza costi. Per esempio, potrebbe aprire una porta durante il suo movimento mentre avanza verso un avversario. Per interagire con un secondo oggetto è necessaria l'azione di Utilizzo. Alcuni oggetti magici e altri oggetti speciali richiedono sempre un'azione per essere utilizzati, come specificato nella loro descrizione. Il GM potrebbe richiedere al personaggio di usare un'azione per ognuna di queste attività quando è necessaria una certa attenzione o quando si presenta un ostacolo inconsueto. Per esempio, potrebbe chiedere di effettuare un'azione di Utilizzo per aprire una porta incastrata o per girare la manovella che consentirà di abbassare un ponte levatoio."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Non fare nulla nel proprio turno",
+   "testo": [
+    {
+     "s": "Un personaggio può rinunciare a muoversi o a effettuare un'azione, o anche decidere di non fare nulla nel suo turno. Se non riesce a decidere cosa fare, può prendere in considerazione l'azione difensiva di Schivata o l'azione di Prepararsi per ritardare l'azione."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Terminare il combattimento",
+   "id": "terminare-il-combattimento"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il combattimento termina quando una delle due parti viene sconfitta, ovvero quando le creature vengono uccise o messe fuori combattimento, o quando si sono arrese o sono fuggite. Il combattimento può anche terminare quando entrambe le parti sono d'accordo nel porvi fine."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Movimento e posizione",
+   "id": "movimento-e-posizione"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Durante il proprio turno, il personaggio può muoversi di una distanza massima pari alla sua velocità, ma può anche decidere di non muoversi. Il movimento può comprendere scalare, strisciare, saltare e nuotare (ciascuno spiegato nel \"Glossario delle regole\"). Queste diverse modalità di movimento possono essere combinate al modo di muoversi abituale del personaggio o possono costituire il suo intero movimento. Comunque si muova, il personaggio deve dedurre la distanza di ogni parte del suo movimento dalla sua velocità finché non l'avrà usata tutta o non deciderà di avere concluso il suo movimento, a seconda dell'opzione che si verifica per prima. La velocità di un personaggio viene determinata durante la sua creazione. La velocità di un mostro è indicata nella relativa scheda delle statistiche. Per ulteriori informazioni sulla velocità e sulle velocità speciali, come la velocità di scalata, volo o nuoto, vedi il capitolo \"Glossario delle regole\"."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Terreno difficile",
+   "id": "terreno-difficile"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "I combattenti sono spesso rallentati da terreno difficile. Mobili bassi, detriti, arbusti, scalinate ripide, neve e acqua bassa sono tutti esempi di terreno difficile. Ogni 30 centimetri di movimento su terreno difficile costano 30 centimetri extra, anche se più cose in uno stesso spazio contano come terreno difficile."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Spezzare il proprio movimento",
+   "id": "spezzare-il-proprio-movimento"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "È possibile spezzare un movimento, utilizzando parte di esso prima e dopo qualsiasi azione, azione bonus o reazione effettuata nello stesso turno. Per esempio, se il personaggio ha una velocità di 9 metri può muoversi per 3 metri, effettuare un'azione e poi muoversi per ulteriori 6 metri."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Buttarsi a terra proni",
+   "id": "buttarsi-a-terra-proni"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Nel proprio turno, il personaggio può utilizzare la condizione prono (vedi \"Glossario delle regole\") senza usare un'azione o la propria velocità, ma non può farlo se la sua velocità è pari a 0."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Taglia delle creature",
+   "id": "taglia-delle-creature"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Ogni creatura appartiene a una categoria di taglia, che determina la larghezza dello spazio quadrato che la creatura occupa su una mappa, come mostrato nella tabella Taglie e spazio delle creature, che elenca le dimensioni dalla più piccola (Minuscola) alla più grande (Mastodontica). Lo spazio di una creatura è l'area che essa controlla a tutti gli effetti in combattimento, nonché l'area di cui ha bisogno per combattere con efficacia."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Attacchi a distanza",
+   "id": "attacchi-a-distanza"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Un personaggio effettua un attacco a distanza quando tira con un arco, lancia un'ascia o scaglia in altri modi dei proiettili allo scopo di colpire un nemico distante. Anche molti incantesimi prevedono un attacco a distanza."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Gittata",
+   "id": "gittata"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Un personaggio può effettuare un attacco a distanza soltanto contro un bersaglio che si trovi entro una gittata specifica. Se un attacco a distanza (come per esempio un incantesimo) prevede una singola gittata, non è possibile attaccare un bersaglio oltre tale raggio. Alcuni attacchi a distanza, come quelli effettuati con un arco lungo, prevedono due gittate. Il numero più piccolo indica la gittata normale, mentre quello più grande indica la gittata lunga. Se bersaglio si trova oltre la gittata normale, il tiro per colpire subisce svantaggio; se si trova oltre la gittata lunga, il personaggio non può attaccarlo."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Attacchi a distanza in combattimento ravvicinato",
+   "id": "attacchi-a-distanza-in-combattimento-ravvicinato"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Colpire un bersaglio con un attacco a distanza è più difficile quando il nemico è molto vicino. Quando il personaggio effettua un tiro per colpire a distanza con un'arma, un incantesimo o altri mezzi, subisce svantaggio al tiro se si trova entro 1,5 metri da una creatura nemica non incapacitata e che sia in grado di vederlo (vedi \"Glossario delle regole\")."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Attacchi in mischia",
+   "id": "attacchi-in-mischia"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Un attacco in mischia consente di attaccare un nemico entro la portata del personaggio, e di solito prevede l'uso di un'arma impugnata o un colpo senz'armi. Molti mostri effettuano attacchi in mischia con artigli, zanne o altre parti del corpo. Anche alcuni incantesimi prevedono attacchi in mischia."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Portata",
+   "id": "portata"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Una creatura ha una portata di 1,5 metri e può quindi attaccare i bersagli entro 1,5 metri da sé quando effettua un attacco in mischia. Alcune creature possono effettuare attacchi in mischia con una portata superiore a 1,5 metri, come indicato nella loro descrizione."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Attacchi di opportunità",
+   "id": "attacchi-di-opportunita"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "I combattenti attendono che i nemici abbassino la guardia. Se cerchi di sfuggire o passare accanto ai nemici, questi ultimi ne approfitteranno per sferrare un attacco di opportunità."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Evitare un attacco di opportunità",
+   "testo": [
+    {
+     "s": "È possibile evitare di provocare un attacco di opportunità effettuando l'azione di Disimpegno. Inoltre, un personaggio non provoca un attacco di opportunità quando si teletrasporta o quando viene mosso senza che usi il proprio movimento, azione, azione bonus o reazione. Ad esempio, non provoca un attacco di opportunità se un'esplosione lo scaraventa fuori dalla portata di un nemico o se cade oltre un nemico."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Effettuare un attacco di opportunità",
+   "testo": [
+    {
+     "s": "È possibile effettuare un attacco di opportunità quando una creatura che il personaggio è in grado di vedere esce dalla sua portata. Per attaccare, il personaggio effettua una reazione per eseguire un attacco in mischia con un'arma o con un colpo senz'armi contro la creatura. L'attacco avviene poco prima che la creatura lasci la sua portata."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Combattere in sella",
+   "id": "combattere-in-sella"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Una creatura consenziente di taglia superiore di almeno una categoria a quella di un cavaliere e dotata di un'anatomia appropriata può fungere da cavalcatura per tale personaggio, purché siano rispettate le regole seguenti."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Salire e smontare dalla sella",
+   "id": "salire-e-smontare-dalla-sella"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Durante il movimento, il personaggio può salire in sella a una cavalcatura situata a 1,5 metri da sé o smontare da essa. Per farlo deve spendere un ammontare di movimento pari a metà della sua velocità (arrotondato per difetto). Per esempio, se possiede una velocità di 9 metri, spende 4,5 metri di movimento per montare a cavallo."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Controllare una cavalcatura",
+   "id": "controllare-una-cavalcatura"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Un personaggio può controllare una cavalcatura solo se questa è stata addestrata a tale scopo. I cavalli domestici, gli asini e le creature simili hanno ricevuto questo addestramento. L'iniziativa di una cavalcatura controllata cambia per coincidere con quella del personaggio nel momento in cui sale in sella. La cavalcatura si muove secondo le sue indicazioni e ha solo tre opzioni di azione: Disimpegno, Scatto e Schivata. Una cavalcatura controllata può muoversi e agire già nel turno in cui il personaggio sale in sella. Al contrario, una cavalcatura indipendente (che si lascia cavalcare ma ignora i comandi) mantiene il proprio posto nell'ordine di iniziativa, muovendosi e agendo a proprio piacimento."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Cadute",
+   "id": "cadute"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Se un effetto fa muovere la cavalcatura contro la sua volontà quando il personaggio è in sella, quel personaggio deve superare un tiro salvezza su Destrezza con CD 10, altrimenti cadrà dalla cavalcatura, atterrando prono (vedi \"Glossario delle regole\") in uno spazio libero entro 1,5 metri da essa. Se il personaggio o la cavalcatura vengono buttati a terra proni quando il personaggio è in sella, deve effettuare lo stesso tiro salvezza."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Tiri salvezza contro morte",
+   "id": "tiri-salvezza-contro-morte"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Ogni volta che un personaggio inizia il suo turno a 0 punti ferita, deve effettuare un tiro salvezza contro morte per determinare se scivola ulteriormente verso la morte o si aggrappa alla vita. A differenza degli altri tiri salvezza, questo non è collegato ad alcun punteggio di caratteristica. Il personaggio è nelle mani del destino."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Tre tiri superati/falliti",
+   "testo": [
+    {
+     "s": "Tira 1d20. Se il risultato è pari o superiore a 10, il tiro salvezza è superato. Altrimenti è fallito. Un tiro salvezza superato o fallito non ha alcun effetto in sé. Al terzo tiro salvezza superato, il personaggio diventa stabile (vedi \"Stabilizzare un personaggio\" di seguito). Al terzo tiro salvezza fallito, invece, il personaggio muore. Non è necessario che i tiri superati o falliti siano consecutivi: si tiene il conto di entrambi finché non se ne accumulano tre di un certo tipo. Il numero di entrambi i tipi torna a zero quando il personaggio recupera dei punti ferita o diventa stabile."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Ottenere un 1 o un 20",
+   "testo": [
+    {
+     "s": "Quando il personaggio ottiene 1 come risultato al tiro del d20 per un tiro salvezza contro morte, questo equivale a due tiri falliti. Se ottiene 20 come risultato al tiro del d20, recupera 1 punto ferita."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Danni a 0 punti ferita",
+   "testo": [
+    {
+     "s": "Se un personaggio subisce danni quando ha 0 punti ferita, questo equivale a un tiro salvezza contro morte fallito. Se i danni provengono da un colpo critico, equivalgono a due tiri salvezza contro morte falliti. Se i danni sono pari o superiori ai suoi punti ferita massimi, il personaggio muore istantaneamente."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Stabilizzare un personaggio",
+   "id": "stabilizzare-un-personaggio"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Si può effettuare l'azione di Aiuto per cercare di stabilizzare una creatura con 0 punti ferita, superando una prova di Saggezza (Medicina) con CD 10. Una creatura stabile non effettua tiri salvezza contro morte, anche se ha 0 punti ferita, ma continua ad avere la condizione privo di sensi. Se la creatura subisce danni, smette di essere stabile e ricomincia a effettuare tiri salvezza contro morte. Una creatura stabile che non viene curata recupera 1 punto ferita dopo 1d4 ore."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Punti ferita temporanei",
+   "id": "punti-ferita-temporanei"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Alcuni incantesimi e altri effetti possono conferire dei punti ferita temporanei che servono ad ammortizzare la perdita di punti ferita veri e propri, come spiegato di seguito."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Si perdono prima i punti ferita temporanei",
+   "id": "si-perdono-prima-i-punti-ferita-temporanei"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Se un personaggio è dotato di punti ferita temporanei e subisce danni, perde prima i punti ferita temporanei. Gli eventuali danni rimanenti vengono poi sottratti dai suoi punti ferita veri e propri. Per esempio, se un personaggio ha 5 punti ferita temporanei e subisce 7 danni, perde i punti ferita temporanei e poi subisce 2 danni."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Durata",
+   "id": "durata"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "I punti ferita temporanei permangono finché non vengono consumati o finché il personaggio non completa un riposo lungo (vedi \"Glossario delle regole\")."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Non si accumulano",
+   "id": "non-si-accumulano"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "I punti ferita temporanei non sono cumulativi. Se un personaggio possiede dei punti ferita temporanei e ne riceve altri, decide se tenere quelli che già possiede o se acquisire quelli nuovi. Per esempio, se un incantesimo gli conferisce 12 punti ferita temporanei quando ne ha già 10, può averne 12 o 10, ma non 22."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Non equivalgono a punti ferita o guarigione",
+   "id": "non-equivalgono-a-punti-ferita-o-guarigione"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "I punti ferita temporanei non possono essere aggiunti ai punti ferita normali o ripristinati dalla guarigione; ricevere punti ferita temporanei non conta come guarigione. Poiché i punti ferita temporanei sono separati dai punti ferita veri e propri, una creatura può essere al suo massimo dei punti ferita e ricevere punti ferita temporanei. Se un personaggio è a 0 punti ferita e riceve dei punti ferita temporanei, non riprende conoscenza. Soltanto una forma di guarigione vera e propria può salvarlo."
+    }
+   ]
+  }
+ ]
+}

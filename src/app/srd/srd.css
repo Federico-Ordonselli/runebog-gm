@@ -7,6 +7,13 @@
 
 .srd-corpo {
   display: grid;
+  /* minmax(0, 1fr) e non il default `auto`: un grid item ha `min-width: auto`,
+     cioè non si restringe sotto il min-content del contenuto. Una tabella larga
+     (sei colonne, "Terreno di viaggio") allargava così la colonna e con essa
+     tutta la griglia — indice compreso — e a 390px la pagina scorreva in
+     orizzontale invece di far scorrere la sola tabella. La riga a due colonne
+     qui sotto lo faceva già per la colonna del testo. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 2rem;
   align-items: start;
   margin-top: 1.5rem;
