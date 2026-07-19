@@ -4,7 +4,7 @@
 
 import { TYPES, STATUSES, SHAPES, EDGE_TYPES, NODE_COLORS, nodeColor,
          isMarker, defShape, nodeBox, node, escapeHtml, escapeAttr,
-         gridShape, CELL } from "./modello.js";
+         gridShape, wallShape, CELL } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, RO } from "./stato.js";
 import { openConfirm } from "./viste.js";
 import { renderMap, renderCrumbs, renderCanvas, bgEdit, isEmptyNode, doDeleteNodes } from "./mappa.js";
@@ -193,7 +193,13 @@ function renderDetailCore(){
             ? `Math.max(${CELL},Math.round((parseInt(this.value)||${CELL})/${CELL})*${CELL})`
             : `Math.max(30,parseInt(this.value)||30)`})"></div>
     </div>
-    ${gridShape(n)?`<p class="hint-sm">${labelScala(nodeBox(n))}</p>`:""}` : ""}
+    ${gridShape(n)?`<p class="hint-sm">${labelScala(nodeBox(n))}</p>`:""}
+    ${SHAPES[n.shape||defShape(n)]?.walls ? `<div class="opt">
+      <label><input type="checkbox" ${wallShape(n)?"checked":""}
+        onchange="editNode('${n.id}','walls',this.checked)"> Muri e porte</label>
+      <p class="hint-sm">Le porte si aprono da sole dove passa un collegamento;
+        un passaggio segreto lascia il muro chiuso.</p>
+    </div>` : ""}` : ""}
 
     <div class="field"><label>Note <span class="only-dm">solo tue</span></label>
       <textarea oninput="editNode('${n.id}','notes',this.value)" placeholder="Dettagli, agganci, statistiche mostri, letture ad alta voce…">${escapeHtml(n.notes)}</textarea></div>
@@ -305,7 +311,7 @@ export function editNode(id, key, val){
   n[key] = val;
   if(key==="type" && !isMarker(n) && !n.shape) n.shape = defShape(n);
   save();
-  if(["title","type","status","shape","w","h","color"].includes(key)){ renderCrumbs(); renderCanvas(); }
+  if(["title","type","status","shape","w","h","color","walls"].includes(key)){ renderCrumbs(); renderCanvas(); }
   // shape: cambiando forma cambia il colore predefinito, e il campione "Predefinito"
   // nel pannello deve seguirlo
   if(["type","img","main","color","shape"].includes(key)) renderDetail();

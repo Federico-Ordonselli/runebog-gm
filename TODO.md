@@ -60,11 +60,27 @@ La maglia esiste già ed è una sola — `CELL` 40px = 1 quadretto = 1,5 m (5 pi
 identica tra pattern `#grid` in `mappa.js`, battaglia e `DG_SCALE` in `dungeon.js` —
 ma oggi le bolle non la rispettano: sono simboli, non piante.
 
-- [ ] **Muri per le stanze** — le bolle `stanza` (ed edifici/case) devono poter
-  disegnare i muri: perimetro con spessore da parete, aperture per le porte
-  (i collegamenti tra stanze sono già archi: una porta è dove l'arco attraversa
-  il muro). Il generatore di dungeon importato ha già stanze posizionate e
-  corridoi come sfondo pianta: i muri dovrebbero valere anche lì.
+- [x] **Muri per le stanze** — fatto (19 lug 2026). Il muro è il perimetro
+  spezzato dalle porte (`wallPlan` in `public/app/modello.js`, disegno in
+  `shapeMarkup`/`wallsMarkup` di `mappa.js`, tinte in `app.css`), e **le porte
+  non sono un dato**: stanno dove il raggio centro→centro di un collegamento
+  buca il perimetro, ricalcolate a ogni disegno — spostare una stanza sposta la
+  porta, togliere un arco richiude il muro, e non c'è uno stato "porte" che
+  possa divergere. Default acceso solo su `stanza` (`walls:true` in `SHAPES`);
+  su `edificio` i muri sono possibili ma spenti (`walls:"opt"`) perché
+  `edificio` è la forma implicita di ogni `luogo` senza `shape`, e accenderli lì
+  avrebbe messo pareti dentro ogni bolla già disegnata — stesso principio di
+  "niente migrazione" delle forme in scala. Casella "Muri e porte" nel pannello,
+  `n.walls` batte il default e viaggia al tavolo solo se scritto esplicitamente
+  (`share.ts`). Un passaggio segreto **non apre** il muro: lascia un segno sopra
+  la parete, così al tavolo — dove `DM_ONLY_EDGES` toglie proprio quell'arco —
+  non resta un buco da spiegare. Il muro corre dentro la forma (`WALL_INSET`),
+  sennò coprirebbe il contorno che porta selezione e alone di "condiviso".
+  Verificato in Chromium: 23/23 sulla mappa (porte sui lati giusti, segreto
+  chiuso su entrambi i capi, perimetro spezzato, default per forma, casella che
+  accende/spegne, porta che scorre spostando la bolla, console pulita) e 6/6 sul
+  generatore (11 stanze generate → 11 murate, 21 porte allineate ai corridoi,
+  nessuna stanza sigillata, sfondo pianta intatto), `tsc` ok.
 - [x] **Quadretti esattamente 1,5 m** — fatto (19 lug 2026), scope concordato:
   scala **solo per le forme architettoniche** (edificio, stanza, piazza — flag
   `grid:true` in `SHAPES`), quartieri/torri/segnalini liberi, e **niente

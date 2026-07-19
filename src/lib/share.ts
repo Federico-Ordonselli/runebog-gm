@@ -188,6 +188,12 @@ function projectNode(n: Node, data: Node): Node {
     y: num(n.y),
     shape: n.shape != null ? String(n.shape) : null,
   };
+  // I muri: esce solo la SCELTA esplicita del DM (acceso o spento), perché il
+  // default lo decide la forma e il client lo conosce già. Le porte non escono
+  // affatto — il client le ricava dagli archi che ha in mano, e quelli segreti
+  // qui sopra sono già stati tolti: ai giocatori resta un muro pieno, non
+  // un'apertura da nascondere.
+  if (typeof n.walls === "boolean") out.walls = n.walls;
   const w = num(n.w), h = num(n.h);
   if (w) out.w = w;
   if (h) out.h = h;

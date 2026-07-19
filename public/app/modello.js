@@ -35,12 +35,127 @@ export const SHAPES = {
   // di non fare. Le forme in scala nascono con dimensioni esplicite agganciate
   // (vedi addSpatialChild in mappa.js).
   quartiere:{label:"Quartiere", w:200, h:140},
-  edificio: {label:"Edificio",  w:140, h:80,  grid:true},
-  stanza:   {label:"Stanza",    w:80,  h:80,  grid:true},
+  // walls: true = muri accesi di default, "opt" = muri possibili ma spenti (vedi wallShape)
+  edificio: {label:"Edificio",  w:140, h:80,  grid:true, walls:"opt"},
+  stanza:   {label:"Stanza",    w:80,  h:80,  grid:true, walls:true},
   piazza:   {label:"Piazza",    w:110, h:110, circle:true, grid:true},
   torre:    {label:"Torre",     w:80,  h:80,  diamond:true}
 };
 export const gridShape = n => !isMarker(n) && !!SHAPES[n.shape || defShape(n)]?.grid;
+
+/* ---------------- muri ----------------
+   Un muro non è un bordo più spesso: è il perimetro spezzato dalle porte. E le
+   porte non sono un dato da tenere allineato — stanno dove un collegamento
+   attraversa il muro, perché i collegamenti tra bolle SONO già le porte. Si
+   ricalcolano a ogni disegno: spostare una stanza sposta la porta, cancellare
+   un arco richiude il muro, e non esiste uno stato "porte" che possa divergere
+   dalla mappa.
+
+   Un passaggio segreto NON apre il muro: lascia un segno sopra la parete. Al
+   tavolo quegli archi il server non li manda affatto (DM_ONLY_EDGES in
+   src/lib/share.ts), quindi ai giocatori resta un muro pieno — nessun buco da
+   nascondere lato client, che è la stessa regola di share.ts vista in geometria.
+
+   Il default è acceso SOLO sulla stanza: una stanza senza muri non è una stanza,
+   e sono le stanze che escono dal generatore di dungeon. Sull'edificio i muri
+   esistono ma partono spenti, perché `edificio` è anche la forma implicita di
+   ogni `luogo` senza shape (defShape): accenderli lì avrebbe messo pareti dentro
+   ogni bolla già disegnata nelle campagne, cioè la migrazione a sorpresa che si
+   è deciso di non fare per le forme in scala. La casella nel pannello li accende
+   e spegne per bolla, e cambia solo il disegno: nessun dato si sposta. */
+export const WALL = 6;            // spessore: a 40px = 1,5 m sono ~22 cm di parete
+export const DOOR = CELL;         // un'apertura sta in un quadretto (1,5 m), come sui battlemap
+/* Il muro corre DENTRO la forma: sul bordo, un tratto da 6px coprirebbe il
+   contorno di .blk-shape, che è quello che porta la selezione (ring oro) e
+   l'alone di "condiviso". */
+const WALL_INSET = WALL/2 + 2;
+
+export function wallShape(n){
+  if(isMarker(n)) return false;
+  const w = SHAPES[n.shape || defShape(n)]?.walls;
+  if(!w) return false;
+  return n.walls == null ? w === true : !!n.walls;   // la scelta del DM batte il default
+}
+
+/* Il rettangolo su cui corre il muro, in coordinate locali della bolla. */
+export const wallBox = box => ({
+  x: WALL_INSET, y: WALL_INSET,
+  w: Math.max(2, box.w - 2*WALL_INSET),
+  h: Math.max(2, box.h - 2*WALL_INSET)
+});
+
+/* Dove il raggio centro→centro buca il perimetro: lato e ascissa lungo quel lato.
+   Metodo delle lastre — si esce dal lato che si incontra prima, cioè col t minore. */
+export function wallOpening(wb, dx, dy){
+  const tx = dx ? (wb.w/2)/Math.abs(dx) : Infinity;
+  const ty = dy ? (wb.h/2)/Math.abs(dy) : Infinity;
+  const t = Math.min(tx, ty);
+  if(!isFinite(t)) return null;                       // due centri coincidenti
+  return tx <= ty
+    ? {side: dx>0 ? "e" : "o", pos: wb.h/2 + dy*t}
+    : {side: dy>0 ? "s" : "n", pos: wb.w/2 + dx*t};
+}
+
+const sideLen = (wb,s) => (s==="n" || s==="s") ? wb.w : wb.h;
+const sidePoint = (wb,s,u) =>
+  s==="n" ? {x:wb.x+u,      y:wb.y}      :
+  s==="s" ? {x:wb.x+u,      y:wb.y+wb.h} :
+  s==="o" ? {x:wb.x,        y:wb.y+u}    :
+            {x:wb.x+wb.w,   y:wb.y+u};
+
+/* Gli estremi che toccano un angolo sporgono di mezzo spessore: con i capi piatti
+   (butt, gli unici che non arrotondano le aperture) il perimetro avrebbe un
+   intaglio quadrato in ogni angolo. Le aperture invece finiscono dove finiscono. */
+function wallSeg(wb, s, a, b, len, esatto){
+  const A = sidePoint(wb, s, (!esatto && a<=0)   ? a - WALL/2 : a);
+  const B = sidePoint(wb, s, (!esatto && b>=len) ? b + WALL/2 : b);
+  return {x1:A.x, y1:A.y, x2:B.x, y2:B.y};
+}
+
+/* Il perimetro spezzato: tratti pieni, soglie delle porte e segni dei passaggi
+   segreti, tutti in coordinate locali della bolla. `openings` viene da
+   wallOpening, uno per collegamento che tocca questa bolla. */
+export function wallPlan(box, openings){
+  const wb = wallBox(box);
+  const runs = [], doors = [], marks = [];
+  for(const s of ["n","e","s","o"]){
+    const len = sideLen(wb, s);
+    // gli angoli non si aprono: sono quelli che tengono su la stanza, e una porta
+    // a cavallo di due lati non sarebbe disegnabile come un'apertura sola
+    const bordo = Math.min(WALL, len/2);
+    const gaps = [];
+    for(const o of openings){
+      if(o.side !== s || o.secret) continue;
+      const w = Math.min(DOOR, len - 2*bordo);
+      if(w <= 0) continue;                            // lato troppo corto: resta pieno
+      const a = Math.max(bordo, Math.min(len - bordo - w, o.pos - w/2));
+      gaps.push([a, a + w]);
+    }
+    // due porte sullo stesso tratto si fondono in un'apertura sola, sennò il
+    // muro conserverebbe schegge di pochi pixel tra l'una e l'altra
+    gaps.sort((p,q)=>p[0]-q[0]);
+    const uniti = [];
+    for(const g of gaps){
+      const ultimo = uniti[uniti.length-1];
+      if(ultimo && g[0] <= ultimo[1]) ultimo[1] = Math.max(ultimo[1], g[1]);
+      else uniti.push(g.slice());
+    }
+    let cur = 0;
+    for(const [a,b] of uniti){
+      if(a > cur) runs.push(wallSeg(wb, s, cur, a, len));
+      doors.push(wallSeg(wb, s, a, b, len, true));
+      cur = b;
+    }
+    if(cur < len) runs.push(wallSeg(wb, s, cur, len, len));
+  }
+  for(const o of openings){
+    if(!o.secret) continue;
+    const len = sideLen(wb, o.side), w = Math.min(DOOR*0.7, len);
+    const a = Math.max(0, Math.min(len - w, o.pos - w/2));
+    marks.push(wallSeg(wb, o.side, a, a + w, len, true));
+  }
+  return {runs, doors, marks};
+}
 /* Colore di default PER FORMA, non per tipo: prima edificio e stanza erano
    entrambi "luogo" e quindi lo stesso teal, così una pianta di dungeon era una
    distesa di rettangoli identici e la gerarchia si leggeva solo dalla taglia.

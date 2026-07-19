@@ -164,6 +164,12 @@
   details.field[open] > summary::before{content:"▾"}
   details.field[open] > summary{margin-bottom:5px}
   details.field > summary:hover{color:var(--ink)}
+  /* Opzione di disegno del pannello: una casella, non un bottone — qui i bottoni
+     sono azioni (Rivela ai giocatori, Elimina) e un'impostazione che ne prendesse
+     l'aspetto si toccherebbe per sbaglio credendo di agire. */
+  .opt > label{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer}
+  .opt input[type=checkbox]{width:17px;height:17px;accent-color:var(--fen-dim);flex:none;cursor:pointer;padding:0}
+  .opt .hint-sm{margin-top:5px}
   .row{display:flex;gap:10px}
   .row>.field{flex:1}
   .type-badge{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:baseline}
@@ -339,6 +345,15 @@
     stroke:var(--gold);stroke-width:3;
     filter:drop-shadow(0 0 7px rgba(216,178,90,.45)) drop-shadow(0 2px 4px rgba(0,0,0,.5));
   }
+  /* I muri sono pietra, non il colore della bolla: il colore dice CHE COSA è il
+     luogo, il muro dice che è costruito. Lo spessore arriva dal markup (WALL in
+     modello.js), qui si decide solo la tinta. */
+  .walls .wall{stroke:var(--ink-dim);stroke-linecap:butt;opacity:.85}
+  /* La soglia: senza, un'apertura si legge come muro mancante invece che come porta. */
+  .walls .door{stroke:var(--track);stroke-linecap:butt}
+  /* Il passaggio segreto non apre il muro, lo segna — e solo per il DM: al tavolo
+     l'arco non arriva nemmeno (DM_ONLY_EDGES in src/lib/share.ts). */
+  .walls .wall-secret{stroke:var(--viola);stroke-linecap:butt;stroke-dasharray:2 4}
   .blk text{font-size:13px;fill:var(--ink);pointer-events:none;font-family:"Iowan Old Style",Palatino,Georgia,serif}
   .blk .link-handle{fill:var(--panel);stroke:var(--fen-dim);stroke-width:2;cursor:crosshair;opacity:0}
   .blk:hover .link-handle,.blk.sel .link-handle{opacity:1}

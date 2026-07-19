@@ -4,7 +4,7 @@
 
 import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, MARKER_R, STATUS_COLORS, nodeColor,
          isMarker, defShape, nodeBox, nodeCenter, node, uid, escapeHtml, escapeAttr,
-         gridShape, snapGrid } from "./modello.js";
+         gridShape, snapGrid, wallShape, wallBox, wallOpening, wallPlan, WALL } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, pathNodes, RO } from "./stato.js";
 import { showView, openConfirm } from "./viste.js";
 import { renderDetail, compressImage } from "./pannello.js";
@@ -124,11 +124,47 @@ function ensureLayout(parent){
   });
 }
 
-function shapeMarkup(n, box, col){
+function shapeMarkup(n, box, col, aperture){
   const s = SHAPES[n.shape||defShape(n)] || {};
   if(s.circle)  return `<ellipse class="blk-shape" cx="${box.w/2}" cy="${box.h/2}" rx="${box.w/2}" ry="${box.h/2}" style="--c:${col}"/>`;
   if(s.diamond) return `<polygon class="blk-shape" points="${box.w/2},0 ${box.w},${box.h/2} ${box.w/2},${box.h} 0,${box.h/2}" style="--c:${col}"/>`;
-  return `<rect class="blk-shape" width="${box.w}" height="${box.h}" rx="10" style="--c:${col}"/>`;
+  const muri = wallShape(n) ? wallsMarkup(box, aperture||[]) : "";
+  // una pianta ha angoli veri: il raccordo da 10px appartiene al simbolo, non al muro
+  return `<rect class="blk-shape" width="${box.w}" height="${box.h}" rx="${muri?3:10}" style="--c:${col}"/>${muri}`;
+}
+/* Lo spessore lo passa il markup, non il CSS: la sporgenza degli angoli è
+   calcolata su WALL in modello.js, e un valore che diverge aprirebbe i cantoni. */
+function wallsMarkup(box, aperture){
+  const {runs, doors, marks} = wallPlan(box, aperture);
+  const v = x => Math.round(x*10)/10;
+  const line = (g, cls, sw="") =>
+    `<line class="${cls}" x1="${v(g.x1)}" y1="${v(g.y1)}" x2="${v(g.x2)}" y2="${v(g.y2)}"${sw}/>`;
+  return `<g class="walls" pointer-events="none" stroke-width="${WALL}">
+    ${runs.map(g=>line(g,"wall")).join("")}
+    ${doors.map(g=>line(g,"door",` stroke-width="2"`)).join("")}
+    ${marks.map(g=>line(g,"wall-secret")).join("")}
+  </g>`;
+}
+/* Le aperture di TUTTE le bolle murate del livello, in un giro solo sui
+   collegamenti: servono i vicini, quindi non si possono calcolare dentro il
+   disegno della singola bolla. Un arco ne apre due, una per capo. */
+function doorOpenings(cur){
+  const map = new Map();
+  for(const e of (cur.edges||[])){
+    const a = childOf(e.a), b = childOf(e.b);
+    if(!a || !b || a === b) continue;
+    const t = EDGE_TYPES[e.type] || EDGE_TYPES.strada;
+    const A = nodeCenter(a), B = nodeCenter(b);
+    for(const [n, P, Q] of [[a,A,B],[b,B,A]]){
+      if(!wallShape(n)) continue;
+      const o = wallOpening(wallBox(nodeBox(n)), Q.x-P.x, Q.y-P.y);
+      if(!o) continue;
+      o.secret = !!t.dmOnly;              // un passaggio segreto non buca il muro
+      if(!map.has(n.id)) map.set(n.id, []);
+      map.get(n.id).push(o);
+    }
+  }
+  return map;
 }
 /* Lo stato non viaggia mai solo sul colore (oro e verde si confondono per un
    daltonico deutan): "da fare" è un anello vuoto, "in corso" un disco pieno,
@@ -291,6 +327,7 @@ export function renderCanvas(){
   }
 
   // blocchi e segnalini
+  const aperture = doorOpenings(cur);
   for(const c of cur.children){
     const col = nodeColor(c);
     const isSel = st.multiSel.has(c.id) || c.id===st.selectedId;
@@ -339,7 +376,7 @@ export function renderCanvas(){
       if(c.children.length) ensureLayout(c);
       const prev = miniPreview(c, box);
       out += `<g class="blk${selCls}${shCls}" data-block="${c.id}" ${a11y} transform="translate(${c.x},${c.y})">
-        ${shapeMarkup(c, box, col)}
+        ${shapeMarkup(c, box, col, aperture.get(c.id))}
         ${prev}
         <text x="${box.w/2}" y="${prev?18:box.h/2+5}" text-anchor="middle">${escapeHtml(c.title||"")}</text>
         ${c.children.length?`<text x="${box.w/2}" y="${box.h-8}" text-anchor="middle" style="font-size:10px;fill:var(--ink-dim)">◦ ${c.children.length}</text>`:""}
