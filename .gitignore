@@ -3,7 +3,11 @@ node_modules/
 # cache locale del detector impeccable (i report in critique/ invece si versionano)
 .impeccable/hook.cache.json
 .env
-CLAUDE.md
 .env*.local
+# CLAUDE.md si versiona: tiene gli invarianti di sicurezza e le trappole note,
+# e la sua stessa regola è di aggiornarlo nel commit che cambia ciò che descrive
+# — impossibile da rispettare, e da verificare in diff, se resta fuori dal repo.
+# Le note personali vanno in CLAUDE.local.md, che invece non entra.
+CLAUDE.local.md
 next-env.d.ts
 *.tsbuildinfo
