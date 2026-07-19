@@ -120,6 +120,11 @@
         <button id="detail-fab" title="Dettagli del livello" onclick="openDetailSheet()">✎</button>
       </div>
     </div>
+    <!-- Maniglia di larghezza del pannello: separator ARIA con valore, così il
+         trascinamento ha un equivalente da tastiera (frecce) e non è un gesto
+         solo per il mouse. Su mobile il pannello è un bottom sheet: nascosta. -->
+    <div id="detail-grip" role="separator" aria-orientation="vertical" tabindex="0"
+      aria-label="Larghezza del pannello dettagli" title="Trascina per ridimensionare (doppio clic: larghezza predefinita)"></div>
     <aside id="detail"></aside>
   </section>
 

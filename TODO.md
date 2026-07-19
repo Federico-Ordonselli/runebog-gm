@@ -101,6 +101,26 @@ ma oggi le bolle non la rispettano: sono simboli, non piante.
   (creazione delle 4 forme, hint, input, nudge, drag, demo intatta dopo
   reload, console pulita) + regressione aggancio schede 15/15, `tsc` ok.
 
+- [x] **Pannello dettagli più largo e ridimensionabile** — fatto (19 lug 2026).
+  Da 380px fissi (`max-width:42vw`) a 440px di default con maniglia di
+  trascinamento tra tela e pannello (`#detail-grip` in `app.html`, gesto e
+  persistenza in `main.js`): il contenuto è dove si legge davvero — note,
+  descrizione per i giocatori, statblock SRD — e a 380px le coppie di campi
+  affiancate (larghezza/altezza, tipo/stato) andavano strette. Limiti 320–760px
+  più il tetto in `max-width:60vw`, che resta al CSS perché segue i resize della
+  finestra: la larghezza ricordata su un monitor grande non deve mangiare la tela
+  su un portatile. La misura è una preferenza dell'**interfaccia**, non della
+  campagna: `localStorage` (`runebog-detail-w`) come il tema, non il JSON — che
+  viaggia tra export, cloud e tavolo. Scritta una volta a fine gesto, non a ogni
+  `pointermove`. Equivalente da tastiera (frecce, Shift = passo 40, Home =
+  default) perché la maniglia è un `role="separator"` con `aria-valuenow`, e
+  doppio clic per tornare al default; su mobile il pannello è un bottom sheet e
+  la maniglia sparisce. Listener del drag su `window` e non sulla maniglia: è
+  larga 5px e il puntatore ne esce subito (per lo stesso motivo il bersaglio è
+  allargato a 11px con uno `::before` debordante). Verificato in Chromium:
+  default 440, drag → 602 salvato e ritrovato dopo reload, frecce e Home,
+  clamp a 760 e a 320, maniglia invisibile a 390px di viewport, `tsc` ok.
+
 - [x] **XSS da JSON importato bonificato lato DM** — fatto (18 lug 2026). Il tavolo
   dei giocatori era già coperto da `share.ts` sul server, ma nell'app del DM i campi
   `img`, `bg.img`, `color`/`tokenColor` e gli `id` finivano grezzi dentro attributi

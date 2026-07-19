@@ -144,10 +144,27 @@
   .bubble .status-dot{pointer-events:none}
 
   /* ---------- pannello dettaglio ---------- */
+  /* La larghezza è una preferenza del DM, non una costante: --detail-w la scrive
+     main.js leggendola da localStorage, il valore qui è solo il default per chi
+     non l'ha mai toccata. max-width in vw perché su un portatile stretto il
+     valore ricordato da un monitor grande mangerebbe tutta la tela. */
   #detail{
-    width:380px;max-width:42vw;border-left:1px solid var(--line);
+    width:var(--detail-w, 440px);max-width:60vw;flex:none;
+    border-left:1px solid var(--line);
     background:var(--panel);display:flex;flex-direction:column;overflow-y:auto;
   }
+  /* La maniglia è larga 5px ma ne intercetta 11 (::before debordante): un bersaglio
+     da 5px si manca, e allargare la striscia visibile ruberebbe spazio al pannello. */
+  #detail-grip{
+    position:relative;flex:none;width:5px;cursor:col-resize;
+    background:var(--line);transition:background .15s;
+  }
+  #detail-grip::before{content:"";position:absolute;top:0;bottom:0;left:-3px;right:-3px}
+  #detail-grip:hover,#detail-grip:focus-visible,#detail-grip.dragging{background:var(--fen-dim);outline:none}
+  /* Durante il trascinamento il puntatore esce dalla maniglia e passa sopra tela e
+     pannello: senza questo, ogni elemento sorvolato rimetterebbe il suo cursore e
+     i testi si selezionerebbero. */
+  body.resizing{cursor:col-resize;user-select:none}
   #detail .inner{padding:18px;display:flex;flex-direction:column;gap:14px}
   #detail .empty{padding:30px 20px;color:var(--ink-dim);text-align:center}
   .field label{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:5px}
@@ -653,7 +670,9 @@
     #plan-hint{display:none}
     #plan-wrap *{-webkit-touch-callout:none}
 
-    /* pannello dettagli = bottom sheet */
+    /* pannello dettagli = bottom sheet: la larghezza non è più una scelta
+       (occupa tutto), quindi la maniglia sparisce — anche dal focus da tastiera. */
+    #detail-grip{display:none}
     #detail{
       position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;max-width:none;
       max-height:62dvh;border-left:none;border-top:1px solid var(--line);
