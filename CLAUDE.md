@@ -45,10 +45,10 @@ Il repo contiene **due applicazioni** che condividono un formato dati:
    `app/app.css` gli stili, `app/srd-mostri.js` il bestiario SRD in italiano
    (script classico, `window.SRD_MONSTERS`; file GENERATO — si rigenera con
    `node scripts/estrai-srd-mostri.mjs <PDF>` dal PDF ufficiale IT_SRD_CC_v5.2.1,
-   non si modifica a mano), `app/main.js` l'entry point dei 16 moduli per dominio
-   (`stato`, `mappa`, `pannello`, `mostri`, `tavolo`, …). Lo stato condiviso tra moduli
-   vive nell'oggetto `st` esportato da `app/stato.js` (i binding ES importati non sono
-   riassegnabili). Le funzioni usate dagli `onclick` inline nei template vengono esposte
+   non si modifica a mano), `app/main.js` l'entry point dei moduli per dominio
+   (`stato`, `mappa`, `pannello`, `mostri`, `tavolo`, …) più `app/dungeon-nomi.js`,
+   che è dati e non dominio. Lo stato condiviso tra moduli vive nell'oggetto `st`
+   esportato da `app/stato.js` (i binding ES importati non sono riassegnabili). Le funzioni usate dagli `onclick` inline nei template vengono esposte
    su `window` con l'`Object.assign` in fondo a ogni modulo. Le versioni
    standalone/desktop sono state ritirate: questa è l'unica copia del sorgente.
 
