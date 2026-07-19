@@ -116,6 +116,12 @@ sceglie i mostri per tag e GS, mai per nome: rinominare è sicuro, disallineare 
 `src/lib/srd/capitoli/` sono GENERATI da `scripts/estrai-srd-regole.mjs` (fratello
 di `estrai-srd-mostri.mjs`: stesso PDF, stessa strategia) e non si modificano a
 mano — si rigenerano con `node scripts/estrai-srd-regole.mjs <PDF> [id-capitolo]`.
+Il PDF sorgente **non è nel repo** (opera di terzi, ~10 MB, `*.pdf` è in
+`.gitignore`): va tenuto in locale nella root del progetto. Un capitolo si
+pubblica solo dopo `node scripts/verifica-srd-regole.mjs <PDF> <id-capitolo>`,
+che lo confronta con `pdftotext` — i difetti di questo parser non si vedono a
+occhio: una lettera persa lascia una parola plausibile e un titolo mancato
+lascia prosa in grassetto.
 `src/lib/srd/index.ts` tiene il tipo del documento e il registro `CAPITOLI`, dove
 il flag `pronto` dice se il JSON esiste: la sezione cresce un capitolo alla volta,
 l'indice elenca anche quelli mancanti e `generateStaticParams` pubblica solo i
@@ -124,12 +130,52 @@ pagine lo rendono con elementi React, così non c'è markup da sanificare.
 L'attribuzione CC-BY (`ATTRIBUZIONE_SRD`) va resa in fondo a ogni pagina — è una
 condizione della licenza, non una cortesia.
 
-Nel PDF la semantica sta nei font, non nel testo (come per il bestiario): `#88191f`
+Nel PDF la semantica sta nei font, non nel testo (come per il bestiario): il rosso
 a taglia 39/27/21/18 sono i livelli di titolo, Cambria = prosa, GillSans = celle
-ed elenchi. Due trappole già pagate: gli id dei fontspec sono **cumulativi nel
-documento** (mai azzerarli a ogni pagina), e il **rientro non separa i paragrafi**
-— il documento alterna rientro sospeso e rientro di prima riga, a volte nella
-stessa pagina, quindi si rompe sul grassetto di apertura e sul salto verticale.
+ed elenchi. Trappole già pagate:
+
+- Gli id dei fontspec sono **cumulativi nel documento** (mai azzerarli a ogni pagina).
+- Il **rientro non separa i paragrafi**: il documento alterna rientro sospeso e
+  rientro di prima riga, a volte nella stessa pagina, quindi si rompe sul
+  grassetto di apertura e sul salto verticale.
+- **I colori non si confrontano per uguaglianza.** Lo stesso rosso è uscito
+  `#88191f` e poi `#8b2321` da un PDF riscaricato: il codice esatto dipende da
+  come poppler quantizza, non dal documento. Si riconoscono per *relazione tra i
+  canali* (`rossoTitolo`, `grigioServizio`) — con la costante sbagliata un
+  capitolo perde TUTTI i titoli e il JSON esce plausibile.
+- **I font sono subsettati e mettono la "f" nella Private Use Area** quando fa
+  parte di una legatura che il font compone da sé: "effetto" è `e` + U+E01D
+  U+E01D + `etto`, con quattro codici diversi per la stessa lettera. La mappa
+  `PUA` li scioglie e `PUA_IGNOTI` fa fallire lo script su un codice nuovo,
+  invece di lasciare "eetto" — una parola plausibile con una lettera in meno,
+  invisibile in un diff.
+- Le legature (ﬁ, ﬂ, ﬃ) si sciolgono **in uscita**, non all'estrazione: durante
+  il parsing sono il segnale che distingue una parola spezzata da due frasi
+  accostate. Per lo stesso motivo `slug` normalizza in **NFKD** e non NFD.
+- **Le colonne di una tabella le dettano le celle, non le intestazioni**: i dati
+  sono molte righe allineate a sinistra, un'intestazione è una riga o due e
+  spesso centrata. Per la stessa ragione la cella si assegna col bordo sinistro
+  e il titolo col proprio centro. Le righe d'intestazione si raccolgono fino
+  all'ultima che contiene *almeno un* frammento nel font delle intestazioni, e
+  poi fino in fondo alla sua riga visiva: in "Terreno di viaggio" metà dei titoli
+  è in GillSans normale come i dati.
+- **La pagina non è a due colonne: è a fasce.** Una tabella a piena pagina
+  attraversa la separazione fra le colonne di testo (`COLONNA_DESTRA`, x=440) e
+  spezzarla a metà la distruggeva. Si riconosce da un frammento che *attraversa*
+  il gutter — nella prosa a due colonne non capita mai (zero su 2484 frammenti
+  del glossario) — e la banda si propaga alle righe contigue con un ruolo da
+  tabella, così ci rientrano didascalia e intestazioni. L'ordine di lettura si
+  calcola per fascia (`bandeFullWidth`, `fasciaDi`), sennò la tabella esce prima
+  della prosa che la introduce.
+- **Si ordina per riga visiva, non per top esatto** (`TOLLERANZA_RIGA`): il top è
+  la posizione del glifo, e apici e frazioni la spostano di un paio di pixel —
+  "Passo veloce" (199), "= Chilometri al giorno × 1" (201) e "⅓" (199) sono una
+  riga sola, e ordinando per top la frazione scavalcava la formula.
+- Le note a piè di tabella (le legende di `*` e `†`) escono dalla griglia come
+  paragrafi: si riconoscono dalla forma (molto meno piene delle righe sopra) e
+  non dal marcatore, che l'ordine dei frammenti può spostare in coda. Il
+  confronto è largo (`>=` metà colonne) perché in una tabella a doppia colonna
+  con voci dispari l'ultima riga ne riempie esattamente metà ed è un dato.
 
 **Costanti pubblicate** (email di contatto, URL donazioni, URL repo): una sola
 definizione in `src/lib/site.ts`, mai hardcodate nelle pagine.

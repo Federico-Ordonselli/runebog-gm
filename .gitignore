@@ -11,3 +11,8 @@ node_modules/
 CLAUDE.local.md
 next-env.d.ts
 *.tsbuildinfo
+# I PDF ufficiali dell'SRD sono la sorgente da cui si rigenerano srd-mostri.js e
+# src/lib/srd/capitoli/: sono opera di terzi (CC-BY-4.0, dndbeyond.com/srd) e
+# pesano ~10 MB l'uno. Si tengono in locale nella root del progetto, versionato
+# è solo ciò che gli estrattori producono.
+*.pdf

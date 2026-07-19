@@ -50,13 +50,28 @@ const PASSO_RIGA = 23;        // px: oltre questo salto verticale è un altro pa
 const unescapeXml = s => s.replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&quot;", '"')
   .replaceAll("&apos;", "'").replaceAll("&#34;", '"').replaceAll("&#39;", "'").replaceAll("&amp;", "&");
 
+/* I font del PDF sono subsettati e riassegnano la "f" alla Private Use Area
+   quando fa parte di una legatura che il font compone da sé: nel documento
+   escono quattro codici diversi (uno per subset) per la stessa lettera, e
+   "effetto" è "e" + U+E01D U+E01D + "etto". Non sostituirli non lascia un buco
+   visibile — lascia "eetto", cioè una parola plausibile con una lettera in
+   meno, invisibile in un diff. Se ne comparisse uno non previsto in un capitolo
+   futuro, PUA_IGNOTI lo fa fallire invece di far sparire altre lettere. */
+const PUA = { "\u{E007}": "f", "\u{E00C}": "f", "\u{E011}": "f", "\u{E01D}": "f" };
+const PUA_IGNOTI = new Set();
+
 /* Un frammento <text> può contenere <b>/<i> annidati: lo riduco a span piatti. */
 function spanDaHtml(html) {
   const span = [];
   let i = 0, b = 0, it = 0;
   for (const m of html.matchAll(/<(\/?)([bi])>|([^<]+)/g)) {
     if (m[3] !== undefined) {
-      const s = unescapeXml(m[3]).replace(/­/g, "");
+      const s = unescapeXml(m[3]).replace(/­/g, "")
+        .replace(/[\u{E000}-\u{F8FF}]/gu, c => {
+          if (PUA[c]) return PUA[c];
+          PUA_IGNOTI.add("U+" + c.codePointAt(0).toString(16).toUpperCase());
+          return c;
+        });
       if (s) span.push({ s, ...(b ? { b: 1 } : {}), ...(it ? { i: 1 } : {}) });
     } else if (m[2] === "b") b += m[1] ? -1 : 1;
     else it += m[1] ? -1 : 1;
@@ -67,13 +82,129 @@ function spanDaHtml(html) {
 
 const testoDi = span => span.map(s => s.s).join("");
 
+/* Span adiacenti con lo stesso stile si fondono in uno. Serve *durante* la
+   ricucitura, non solo in uscita: il PDF emette il trattino di sillabazione
+   come frammento a sé ("…i perso" + "-"), e accoda() guarda l'ultimo span per
+   decidere se sciogliere la sillabazione — con "-" da solo il test "lettera
+   seguita da trattino" fallisce e usciva "perso- naggi". */
+const fondiSpan = span => span.reduce((acc, x) => {
+  const u = acc[acc.length - 1];
+  if (u && !!u.b === !!x.b && !!u.i === !!x.i) u.s += x.s; else acc.push({ ...x });
+  return acc;
+}, []);
+
+/* Il rosso dei titoli non si confronta per uguaglianza: pdftohtml lo ha reso
+   #88191f quando è nato il glossario e #8b2321 sul PDF riscaricato a luglio, e
+   un capitolo estratto con la costante sbagliata perde TUTTI i titoli senza un
+   errore — solo prosa in grassetto e zero ancore. Il criterio è la relazione
+   tra i canali (rosso scuro saturo: verde e blu bassi e vicini tra loro), che
+   sopravvive a una quantizzazione diversa. Esclude il grigio del piè di pagina,
+   il blu dei rimandi e il #510000 dell'Optima delle schede mostro. */
+const rossoTitolo = col => {
+  const m = /^#(\w{2})(\w{2})(\w{2})$/.exec(col);
+  if (!m) return false;
+  const [r, g, b] = m.slice(1).map(h => parseInt(h, 16));
+  return r >= 0x60 && r <= 0xb0 && g < r - 0x50 && b < r - 0x50 && Math.abs(g - b) <= 0x20;
+};
+
+/* Il piè di pagina (numero di pagina e titolo corrente) è grigio, e i suoi codici
+   cambiano con la resa come quelli del rosso — inseguirli a uno a uno faceva
+   ricomparire "202" come paragrafo. Grigio = i tre canali vicini; *chiaro* per
+   non confondersi col #221f21 del corpo del testo, che è grigio anche lui. */
+const grigioServizio = col => {
+  const m = /^#(\w{2})(\w{2})(\w{2})$/.exec(col);
+  if (!m) return false;
+  const c = m.slice(1).map(h => parseInt(h, 16));
+  return Math.max(...c) - Math.min(...c) <= 0x10 && Math.min(...c) >= 0x70;
+};
+
 function ruoloFont({ size, fam, col }) {
-  if (col === "#7b7879" || col === "#8b8989") return "scarta";           // piè di pagina
-  if (col === "#88191f")
+  if (grigioServizio(col)) return "scarta";                              // piè di pagina
+  if (rossoTitolo(col))
     return size >= 34 ? "capitolo" : size >= 25 ? "h2" : size >= 20 ? "h3" : "h4";
   if (fam.includes("Cambria")) return "prosa";
   if (fam.includes("GillSans-SemiBold")) return size >= 16 ? "didascalia" : "intestazione-cella";
   return "gill";                                                          // celle, elenchi, riquadri
+}
+
+/* Due frammenti attaccati sulla stessa riga vanno ricuciti, ma non sempre con
+   uno spazio in mezzo, e il solo gap orizzontale non basta a deciderlo: a 2px
+   si trovano sia "De|ﬁ" (una parola spezzata) sia "Danni.|Se il colpo" (due
+   frasi). Il discriminante è la LEGATURA: il PDF interrompe il frammento sulle
+   legature ﬁ/ﬂ/ﬀ/ﬃ/ﬄ, e lì la parola prosegue senza spazio. Fuori da quel caso,
+   un gap di 2px o più è uno spazio vero — con la costante sbagliata usciva
+   "la sezioneVedi anche". */
+const LEGATURA = /[ﬀ-ﬆ]/;
+function serveSpazio(ult, f) {
+  const sin = testoDi(ult.span), des = testoDi(f.span);
+  if (!sin || !des) return false;
+  if (/\s$/.test(sin) || /^\s/.test(des)) return false;             // lo spazio c'è già
+  const gap = f.left - (ult.left + ult.larg);
+  /* Dopo un segno d'interpunzione seguito da una lettera lo spazio è certo, e non
+     va dedotto dai pixel: "Terreno,|ﬂora" sta a 3px, dentro la tolleranza delle
+     legature, e usciva "Terreno,flora". */
+  if (/[,;:.!?»]$/.test(sin) && /^\p{L}/u.test(des) && gap >= 1) return true;
+  /* Sul confine di una legatura la soglia si alza invece di azzerarsi: "Deﬁ|nizione"
+     sta a 2px e non vuole spazio, ma "In|ﬁamme" sta a 5px e lo vuole. Una legatura
+     rende la separazione *meno probabile*, non impossibile — trattarla come veto
+     dava "Infiamme" e "Lucefioca". */
+  const soglia = LEGATURA.test(sin.slice(-1)) || LEGATURA.test(des[0]) ? 3 : 2;
+  return gap >= soglia;
+}
+
+const TOLLERANZA_RIGA = 3;  // px: entro questo salto due frammenti sono la stessa riga visiva
+const SALTO_BANDA = 40;   // px: oltre questo due righe non sono la stessa tabella
+
+/* Le tabelle a piena pagina rompono l'assunzione portante dell'impaginato: che
+   la pagina sia a due colonne per tutta la sua altezza. "Terreno di viaggio" ha
+   sei colonne da x=95 a x=803 e la separazione a COLONNA_DESTRA la tagliava a
+   metà, mandando tre colonne di dati in un blocco a sé.
+ *
+ * Si riconoscono da un frammento che ATTRAVERSA il gutter (left < 440 < fine):
+ * nella prosa a due colonne non succede mai — misurato sul glossario, zero su
+ * 2484 frammenti — mentre in una tabella larga una cella ci cade sopra di
+ * continuo. Non tutte le righe ne hanno una, quindi la banda si propaga in su e
+ * in giù alle righe contigue con un ruolo da tabella: così ci rientrano anche la
+ * didascalia e le intestazioni, che stanno sopra il primo attraversamento.
+ *
+ * Restituisce gli intervalli verticali [y1, y2] delle bande della pagina. */
+const RUOLI_TABELLA = new Set(["gill", "intestazione-cella", "didascalia"]);
+
+function bandeFullWidth(frag) {
+  const attraversa = frag
+    .filter(f => f.left < COLONNA_DESTRA && f.left + f.larg > COLONNA_DESTRA)
+    .map(f => f.top).sort((x, y) => x - y);
+  if (!attraversa.length) return [];
+
+  const bande = [];
+  for (const t of attraversa) {
+    const ult = bande[bande.length - 1];
+    if (ult && t - ult[1] <= SALTO_BANDA) ult[1] = t; else bande.push([t, t]);
+  }
+
+  for (const b of bande) {
+    let cresciuta = true;
+    while (cresciuta) {
+      cresciuta = false;
+      for (const f of frag) {
+        if (!RUOLI_TABELLA.has(f.ruolo) || (f.top >= b[0] && f.top <= b[1])) continue;
+        if (f.top < b[0] && b[0] - f.top <= SALTO_BANDA) { b[0] = f.top; cresciuta = true; }
+        else if (f.top > b[1] && f.top - b[1] <= SALTO_BANDA) { b[1] = f.top; cresciuta = true; }
+      }
+    }
+  }
+  return bande;
+}
+
+/* L'ordine di lettura di una pagina a fasce: la prosa a due colonne sopra la
+   banda, poi la banda per intero, poi ciò che viene sotto. Numerando le fasce
+   si ordina con un solo confronto, e dentro una banda la separazione fra le
+   colonne di testo semplicemente non esiste (colonna 0 per tutti). */
+function fasciaDi(f, bande) {
+  for (let n = 0; n < bande.length; n++)
+    if (f.top >= bande[n][0] && f.top <= bande[n][1]) return { fascia: n * 2 + 1, col: 0 };
+  const sopra = bande.filter(b => f.top > b[1]).length;
+  return { fascia: sopra * 2, col: f.left >= COLONNA_DESTRA ? 1 : 0 };
 }
 
 function righeDelPdf(pdf, da, a) {
@@ -100,8 +231,32 @@ function righeDelPdf(pdf, da, a) {
       if (!testoDi(span).trim()) continue;
       frag.push({ pag, top: +m[1], left: +m[2], larg: +m[3], ruolo, font: f, span });
     }
-    // ordine visivo: colonna sinistra tutta, poi destra; non l'ordine dell'XML
-    frag.sort((x, y) => (x.left >= COLONNA_DESTRA) - (y.left >= COLONNA_DESTRA) || x.top - y.top || x.left - y.left);
+    /* Ordine visivo, non quello dell'XML: fascia per fascia, e dentro ogni
+       fascia la colonna sinistra tutta e poi la destra. Senza bande a piena
+       pagina le fasce sono una sola e si ricade nel comportamento di prima. */
+    const bande = bandeFullWidth(frag);
+    for (const f of frag) Object.assign(f, fasciaDi(f, bande));
+
+    /* Si ordina per RIGA VISIVA, non per top esatto: il top è la posizione del
+       glifo, e apici, frazioni e cambi di corpo la spostano di un paio di pixel.
+       Nel riquadro delle formule "Passo veloce" (199), "= Chilometri al giorno
+       × 1" (201) e "⅓" (199) sono una riga sola: ordinando per top la frazione
+       scavalcava la formula e la voce usciva a pezzi. */
+    const gruppi = new Map();
+    for (const f of frag) {
+      const g = `${f.fascia}:${f.col}`;
+      if (!gruppi.has(g)) gruppi.set(g, []);
+      gruppi.get(g).push(f);
+    }
+    for (const lista of gruppi.values()) {
+      lista.sort((x, y) => x.top - y.top);
+      let riga = 0, rif = lista.length ? lista[0].top : 0;
+      for (const f of lista) {
+        if (f.top - rif > TOLLERANZA_RIGA) { riga++; rif = f.top; }
+        f.riga = riga;
+      }
+    }
+    frag.sort((x, y) => x.fascia - y.fascia || x.col - y.col || x.riga - y.riga || x.left - y.left);
 
     /* Frammenti sulla stessa riga si fondono solo se *attaccati* (<6px): il PDF
        spezza una riga a ogni cambio di stile, e quei pezzi vanno ricuciti. La
@@ -110,10 +265,21 @@ function righeDelPdf(pdf, da, a) {
        colonne si ricostruiscono. */
     for (const f of frag) {
       const ult = righe[righe.length - 1];
-      const stessaRiga = ult && ult.pag === f.pag && Math.abs(ult.top - f.top) <= 2
-        && (ult.left >= COLONNA_DESTRA) === (f.left >= COLONNA_DESTRA)
+      const stessaRiga = ult && ult.pag === f.pag && ult.riga === f.riga
+        && ult.fascia === f.fascia && ult.col === f.col
         && ult.ruolo === f.ruolo && f.left - (ult.left + ult.larg) < 6;
-      if (stessaRiga) { ult.span.push(...f.span); ult.larg = f.left + f.larg - ult.left; }
+      if (stessaRiga) {
+        /* Lo spazio di separazione va nello span *senza stile*: quello che separa
+           la prosa da un corsivo come "Vedi anche" non è esso stesso in corsivo.
+           A parità (entrambi nudi o entrambi marcati) resta a sinistra. */
+        if (serveSpazio(ult, f)) {
+          const u = ult.span[ult.span.length - 1], p = f.span[0];
+          const nudo = s => !s.b && !s.i;
+          if (nudo(u) || !nudo(p)) u.s += " "; else p.s = " " + p.s;
+        }
+        ult.span = fondiSpan([...ult.span, ...f.span]);
+        ult.larg = f.left + f.larg - ult.left;
+      }
       else righe.push({ ...f, span: [...f.span] });
     }
   }
@@ -170,7 +336,10 @@ function forseDefinizione(span) {
   return { t: "def", nome: m[1].replace(/\.$/, ""), testo: ripulisci(resto) };
 }
 
-const slug = t => t.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+/* NFKD e non NFD: la scomposizione *compatibile* scioglie anche le legature del
+   PDF (ﬁ → f+i), che NFD lascia intere — l'ancora di "Deﬁnizione delle regole"
+   usciva "de-nizione-delle-regole". */
+const slug = t => t.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "")
   .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 /* --- griglie: tabelle ed elenchi impaginati su colonnine ------------------- */
@@ -245,7 +414,24 @@ function grigliaDaFrammenti(frammenti, colonne) {
        lunga è indentato, quindi la riga non è vuota ma non inizia una voce). */
     const rientrata = celle.every(c => c.left - colonne[indiceColonna(colonne, c.left)] > TOLLERANZA_X);
     const prec = righe[righe.length - 1];
-    if (prec && (!riga[0] || rientrata)) {
+
+    /* Terzo caso di continuazione: la cella lunga della prima colonna prosegue
+       a capo *senza rientro* e con le altre colonne vuote — "Quando i personaggi
+       aprono un sarco-" / "fago, fuoriesce…" / "terrificante." erano tre righe
+       di tabella invece di una cella sola. Non basta "solo la prima colonna
+       piena", che è anche la forma di una riga di sezione legittima: si chiede
+       che il testo prosegua davvero, cioè che cominci in minuscola o che la
+       riga sopra finisca con una sillabazione da sciogliere. */
+    /* Il vincolo non è su quante celle sono piene — in "Azioni" la riga di
+       continuazione le ha piene tutte e due ("gno" | "opportunità per il resto
+       del turno.") — ma su come comincia la voce: una riga nuova di queste
+       tabelle inizia con maiuscola o con una cifra, quindi una minuscola in
+       prima colonna è testo che prosegue. La sillabazione sospesa nella riga
+       sopra è il segnale più forte e vale da sola. */
+    const prosegue = prec && riga.length > 1 && riga[0]
+      && (/^[a-zàèéìòù]/.test(riga[0]) || /[a-zàèéìòù]-$/.test(prec[0]));
+
+    if (prec && (!riga[0] || rientrata || prosegue)) {
       for (let i = 0; i < riga.length; i++) {
         if (!riga[i]) continue;
         prec[i] = /[a-zàèéìòù]-$/.test(prec[i]) ? prec[i].slice(0, -1) + riga[i] : (prec[i] + " " + riga[i]).trim();
@@ -314,7 +500,16 @@ function grigliaLibera(righe, k) {
     for (let n = 0; n < colonne.length; n++)
       for (const f of meta.filter(f => indiceColonna(colonne, f.left) === n).sort((a, b) => a.top - b.top))
         voci.push(testoDi(f.span).trim());
-    blocchi.push({ t: "elenco", voci: [...new Set(voci)] });
+    /* La sillabazione va sciolta anche fra due voci: nel riquadro delle formule
+       di viaggio la voce va a capo dentro la parola ("= Chilome-" / "tri
+       all'ora × …") e le due metà finiscono in voci separate. */
+    const unite = [];
+    for (const v of [...new Set(voci)]) {
+      const u = unite[unite.length - 1];
+      if (u && /[a-zàèéìòù]-$/.test(u) && /^[a-zàèéìòù]/.test(v)) unite[unite.length - 1] = u.slice(0, -1) + v;
+      else unite.push(v);
+    }
+    blocchi.push({ t: "elenco", voci: unite });
   }
   return blocchi.length ? { blocchi, fine } : null;
 }
@@ -325,19 +520,58 @@ function grigliaLibera(righe, k) {
 function tabella(righe, k) {
   const cap = righe[k];
   if (cap.ruolo !== "didascalia") return null;
+  /* Le righe di intestazione si raccolgono guardando FIN DOVE arrivano, invece
+     di fermarsi al primo font inatteso: in "Terreno di viaggio" solo "Terreno" e
+     "Passo massimo" sono nel font delle intestazioni, mentre "Distanza degli
+     incontri" e "CD per foraggiare" sono in GillSans normale come i dati. Ci si
+     ferma all'ultima riga che contiene *almeno un* frammento d'intestazione:
+     tutto ciò che sta fra la didascalia e quella riga è intestazione anche se
+     il PDF non lo dice col font. */
+  let ultima = -1;
+  for (let j = k + 1; j < righe.length && righe[j].pag === cap.pag
+       && righe[j].top - cap.top <= 80; j++)
+    if (righe[j].ruolo === "intestazione-cella") ultima = j;
+  if (ultima < 0) return null;
+
+  /* …e poi fino in fondo alla sua riga VISIVA: i frammenti sono già ordinati per
+     top e left, quindi le altre intestazioni della stessa riga ("Distanza degli
+     incontri", "CD per cercare") vengono dopo l'ultima marcata dal font. Senza
+     questo finivano fra le celle e le loro ascisse inventavano quattro colonne
+     in più, una per ogni titolo. */
+  while (ultima + 1 < righe.length && righe[ultima + 1].pag === righe[ultima].pag
+    && Math.abs(righe[ultima + 1].top - righe[ultima].top) <= TOLLERANZA_Y) ultima++;
+
   let i = k + 1;
   const intest = [];
-  while (i < righe.length && righe[i].ruolo === "intestazione-cella") { intest.push(righe[i]); i++; }
-  if (!intest.length) return null;
+  while (i <= ultima) { intest.push(righe[i]); i++; }
 
   const celle = [];
   while (i < righe.length && righe[i].ruolo === "gill") { celle.push(righe[i]); i++; }
   if (!celle.length) return null;
 
-  let colonne = colonneDaAscisse(intest);
+  /* Le colonne le dettano le CELLE, non le intestazioni: le celle dati sono
+     molte righe allineate a sinistra, mentre un'intestazione è una riga o due
+     e spesso è centrata sulla colonna. "CD del / tiro / salvezza" sta su tre
+     righe a x=380, 391, 377 — abbastanza sparse da inventare due colonne che
+     nei dati non esistono, lasciando "CD del salvezza" e "tiro" come titoli
+     separati e una manciata di celle vuote sotto. */
+  let colonne = colonneDaAscisse(celle);
+  if (colonne.length < 2) colonne = colonneDaAscisse(intest);
+
+  /* Le intestazioni di raggruppamento ("—— Difficoltà del combattimento ——",
+     che sovrasta Facile/Media/Difficile) non sono colonne: coprono più colonne
+     e il PDF le marca coi trattini di riempimento. Senza scartarle finivano
+     incollate al titolo della colonna su cui cade il loro centro. La gerarchia
+     va persa: il formato ha una riga sola di intestazioni. */
+  const raggruppamento = r => /^[—–]|[—–]$/.test(testoDi(r.span).trim());
+
   const titoli = colonne.map(() => "");
-  for (const r of [...intest].sort((a, b) => a.top - b.top || a.left - b.left)) {
-    const idx = indiceColonna(colonne, r.left);   // intestazione su due righe: si concatena
+  for (const r of [...intest].filter(r => !raggruppamento(r)).sort((a, b) => a.top - b.top || a.left - b.left)) {
+    /* L'intestazione si assegna col suo CENTRO, la cella col suo bordo sinistro:
+       i dati sono allineati a sinistra, i titoli spesso centrati sulla colonna,
+       e "CD del" (x=380) inizia a sinistra della colonna dei numeri (x=391) pur
+       appartenendole — col bordo finiva nella colonna degli esempi. */
+    const idx = indiceColonna(colonne, r.left + r.larg / 2);   // su più righe: si concatena
     titoli[idx] = (titoli[idx] ? titoli[idx] + " " : "") + testoDi(r.span).trim();
   }
 
@@ -364,8 +598,30 @@ function tabella(righe, k) {
     }
   }
 
+  const griglia = grigliaDaFrammenti(celle, colonne);
+
+  /* Le note a piè di tabella (le legende di * e †) non sono dati: stanno sotto
+     l'ultima riga e riempiono una cella o due su sei, quindi restare nella
+     griglia le rendeva righe quasi tutte vuote. Si riconoscono dalla forma —
+     molto meno piene delle righe sopra — e non dal marcatore, che l'ordine dei
+     frammenti può spostare in coda ("…vedi \"Veicoli\".†"). Il vincolo sulle tre
+     colonne tiene fuori le tabelle a due, dove "una cella su due" è metà riga e
+     non un indizio di niente. */
+  const note = [];
+  while (griglia.length > 1 && colonne.length >= 3) {
+    const ultima = griglia[griglia.length - 1];
+    /* Confronto largo (>=): in una tabella a doppia colonna con un numero
+       dispari di voci l'ultima riga ne riempie esattamente metà — "17 | Pietra"
+       nella CA degli oggetti è un dato, non una legenda. */
+    if (ultima.filter(c => c.trim()).length >= colonne.length / 2) break;
+    note.unshift(griglia.pop().filter(c => c.trim()).join(" "));
+  }
+
   return {
-    blocco: { t: "tabella", titolo: testoDi(cap.span).trim(), colonne: titoli, righe: grigliaDaFrammenti(celle, colonne) },
+    blocchi: [
+      { t: "tabella", titolo: testoDi(cap.span).trim(), colonne: titoli, righe: griglia },
+      ...note.map(n => ({ t: "p", testo: [{ s: n }] })),
+    ],
     fine: i,
   };
 }
@@ -401,7 +657,7 @@ function blocchiDaRighe(righe) {
 
     if (r.ruolo === "didascalia") {
       const tab = tabella(righe, k);
-      if (tab) { chiudi(); blocchi.push(tab.blocco); k = tab.fine - 1; continue; }
+      if (tab) { chiudi(); blocchi.push(...tab.blocchi); k = tab.fine - 1; continue; }
     }
 
     if (r.ruolo === "gill" || r.ruolo === "intestazione-cella") {
@@ -431,6 +687,21 @@ function blocchiDaRighe(righe) {
     } else accoda(corrente.testo, r.span);
   }
   chiudi();
+
+  /* Gli id si assegnano alla fine, quando i titoli spezzati su due righe sono
+     già stati ricuciti. Un capitolo può ripetere lo stesso titolo in sezioni
+     diverse ("Bonus di competenza" compare tre volte in "Come si gioca"): due
+     ancore uguali nella stessa pagina fanno atterrare ogni link sulla prima,
+     quindi dal secondo in poi si numera. Il glossario non lo mostrava perché
+     i suoi termini sono unici per costruzione. */
+  const visti = new Map();
+  for (const b of blocchi) {
+    if (!b.id) continue;
+    const base = slug(b.testo);
+    const n = (visti.get(base) ?? 0) + 1;
+    visti.set(base, n);
+    b.id = n === 1 ? base : `${base}-${n}`;
+  }
   return blocchi;
 }
 
@@ -442,12 +713,52 @@ const soli = process.argv.slice(3);
 const daFare = soli.length ? CAPITOLI.filter(c => soli.includes(c.id)) : CAPITOLI;
 if (!daFare.length) { console.error("nessun capitolo con quegli id"); process.exit(1); }
 
+/* Le legature tipografiche del PDF (ﬁ, ﬂ, ﬃ…) vanno sciolte, sennò "Difﬁcoltà"
+   non si trova cercando "Difficoltà" e si incolla male. Si sciolgono QUI, sul
+   documento finito, e non all'estrazione: durante il parsing le legature sono
+   il segnale che distingue una parola spezzata da due frasi accostate
+   (vedi serveSpazio), quindi vanno lasciate intatte fin dopo la ricucitura.
+   Ricorsivo perché il testo vive in posti diversi: span, celle, voci. */
+const LEGATURE = { "ﬀ": "ff", "ﬁ": "fi", "ﬂ": "fl", "ﬃ": "ffi", "ﬄ": "ffl", "ﬅ": "ft", "ﬆ": "st" };
+
+/* In uscita fondiSpan passa di nuovo: sciolte le legature, span che prima
+   differivano possono ritrovarsi identici e vanno ricompattati. */
+const eSpan = v => Array.isArray(v) && v.length
+  && v.every(x => x && typeof x === "object" && typeof x.s === "string");
+
+const sciogliLegature = v =>
+  typeof v === "string" ? v.replace(/[ﬀ-ﬆ]/g, c => LEGATURE[c] ?? c)
+  : eSpan(v) ? fondiSpan(v.map(sciogliLegature))
+  : Array.isArray(v) ? v.map(sciogliLegature)
+  : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, sciogliLegature(x)]))
+  : v;
+
 mkdirSync(USCITA, { recursive: true });
+let guasti = 0;
 for (const cap of daFare) {
   const righe = righeDelPdf(pdf, cap.pagine[0], cap.pagine[1]);
   const blocchi = blocchiDaRighe(righe);
-  const doc = { id: cap.id, titolo: cap.titolo, pagine: cap.pagine, blocchi };
-  writeFileSync(join(USCITA, cap.id + ".json"), JSON.stringify(doc, null, 1) + "\n");
   const conta = blocchi.reduce((m, b) => ({ ...m, [b.t]: (m[b.t] || 0) + 1 }), {});
+
+  /* Un capitolo senza titoli non è un capitolo povero di titoli: è il segno che
+     il riconoscimento dei font non ha agganciato niente (è successo col rosso
+     reso diversamente da poppler). Senza titoli non ci sono ancore né indice, e
+     il JSON esce plausibile — quindi il guasto va gridato, non dedotto. */
+  const titoli = (conta.h2 || 0) + (conta.h3 || 0) + (conta.h4 || 0);
+  if (!titoli) {
+    console.error(`✗ ${cap.id}: nessun titolo riconosciuto — non lo scrivo. ` +
+      `Controlla il rosso dei titoli nell'XML (pdftohtml -xml -f ${cap.pagine[0]} -l ${cap.pagine[1]}).`);
+    guasti++;
+    continue;
+  }
+
+  const doc = sciogliLegature({ id: cap.id, titolo: cap.titolo, pagine: cap.pagine, blocchi });
+  writeFileSync(join(USCITA, cap.id + ".json"), JSON.stringify(doc, null, 1) + "\n");
   console.log(`${cap.id}: ${blocchi.length} blocchi`, conta);
 }
+if (PUA_IGNOTI.size) {
+  console.error(`✗ codici Private Use non previsti: ${[...PUA_IGNOTI].join(", ")} — ` +
+    `sono lettere rimaste nel testo. Trovane il valore dal contesto e aggiungile a PUA.`);
+  guasti++;
+}
+if (guasti) process.exit(1);

@@ -238,11 +238,11 @@
      "s": "Un'abilità è un'area di specializzazione associata a una prova di caratteristica. Se il tuo personaggio ha competenza in un'abilità, può aggiungere il suo bonus di competenza al risultato di una prova di caratteristica associata a quella abilità. "
     },
     {
-     "s": "Vedi anche",
+     "s": "Vedi anche ",
      "i": 1
     },
     {
-     "s": " \"Come si gioca\" (\"Competenza\")."
+     "s": "\"Come si gioca\" (\"Competenza\")."
     }
    ]
   },
@@ -785,11 +785,11 @@
      "s": "Un'avventura consiste in una serie di incontri: giocandoci, prende vita una storia. "
     },
     {
-     "s": "Vedi anche",
+     "s": "Vedi anche ",
      "i": 1
     },
     {
-     "s": " \"Incontro\"."
+     "s": "\"Incontro\"."
     }
    ]
   },
@@ -970,11 +970,11 @@
      "s": "La Classe Armatura (CA) è il numero bersaglio per un tiro per colpire: rappresenta il grado di difficoltà per colpire un bersaglio. La CA base del tuo personaggio si calcola sommando 10 al modificatore di Destrezza. Se una regola prevede che tu debba calcolare la CA base diversamente, scegli quale metodo adottare per definirla: non puoi usarne più di uno. "
     },
     {
-     "s": "Vedi anche",
+     "s": "Vedi anche ",
      "i": 1
     },
     {
-     "s": " \"Tiro per colpire\"."
+     "s": "\"Tiro per colpire\"."
     }
    ]
   },
@@ -1231,11 +1231,11 @@
      "s": "Qualsiasi essere all'interno del gioco, incluso il personaggio di un giocatore, è una creatura. "
     },
     {
-     "s": "Vedi anche",
+     "s": "Vedi anche ",
      "i": 1
     },
     {
-     "s": " \"Tipo di creatura\"."
+     "s": "\"Tipo di creatura\"."
     }
    ]
   },
@@ -1636,11 +1636,11 @@
      "s": "Una creatura indifferente non ha alcun desiderio di aiutare o ostacolare il personaggio. L'indifferenza è l'atteggiamento predefinito dei mostri. "
     },
     {
-     "s": "Vedi anche",
+     "s": "Vedi anche ",
      "i": 1
     },
     {
-     "s": " \"Influenza\"."
+     "s": "\"Influenza\"."
     }
    ]
   },
@@ -1701,8 +1701,8 @@
    "t": "tabella",
    "titolo": "Prove di Influenza",
    "colonne": [
-    "Prova di caratteristica",
-    "Interazione"
+    "Prova di caratteristica Interazione",
+    ""
    ],
    "righe": [
     [
@@ -1722,12 +1722,8 @@
      "Persuadere un mostro che capisce il personaggio"
     ],
     [
-     "Saggezza (Addestrare",
-     "Persuadere gentilmente una"
-    ],
-    [
-     "animali)",
-     "bestia o una mostruosità"
+     "Saggezza (Addestrare animali)",
+     "Persuadere gentilmente una bestia o una mostruosità"
     ]
    ]
   },
@@ -2256,11 +2252,11 @@
      "s": "Un pericolo è un rischio ambientale. "
     },
     {
-     "s": "Vedi anche",
+     "s": "Vedi anche ",
      "i": 1
     },
     {
-     "s": " \"Caduta\", \"Disidratazione\", \"In fiamme\", \"Malnutrizione\" e \"Soffocamento\"."
+     "s": "\"Caduta\", \"Disidratazione\", \"In fiamme\", \"Malnutrizione\" e \"Soffocamento\"."
     }
    ]
   },
@@ -2425,11 +2421,11 @@
      "s": "Alcuni effetti fanno sì che una creatura venga posseduta da un'altra creatura o entità. Un effetto di possessione definisce in che modo questa si verifica. È possibile impedire le possessioni utilizzando l'incantesimo "
     },
     {
-     "s": "protezione dal bene e dal male",
+     "s": "protezione dal bene e dal male ",
      "i": 1
     },
     {
-     "s": " ed è possibile terminarle con l'incantesimo "
+     "s": "ed è possibile terminarle con l'incantesimo "
     },
     {
      "s": "dissolvi il bene e il male",
@@ -2951,24 +2947,34 @@
    "t": "tabella",
    "titolo": "Classe Armatura degli oggetti",
    "colonne": [
+    "",
     "CA Materiale",
+    "",
     "CA Materiale"
    ],
    "righe": [
     [
-     "11 Stoffa, carta, corda",
-     "19 Ferro, acciaio"
+     "11",
+     "Stoffa, carta, corda",
+     "19",
+     "Ferro, acciaio"
     ],
     [
-     "13 Cristallo, vetro, ghiaccio",
-     "21 Mithral"
+     "13",
+     "Cristallo, vetro, ghiaccio",
+     "21",
+     "Mithral"
     ],
     [
-     "15 Legno",
-     "23 Adamantio"
+     "15",
+     "Legno",
+     "23",
+     "Adamantio"
     ],
     [
-     "17 Pietra",
+     "17",
+     "Pietra",
+     "",
      ""
     ]
    ]
@@ -3007,14 +3013,9 @@
      "18 (4d8)"
     ],
     [
-     "Grande (carro, tavolo da",
+     "Grande (carro, tavolo da pranzo)",
      "5 (1d10) 27",
      "(5d10)"
-    ],
-    [
-     "pranzo)",
-     "",
-     ""
     ]
    ]
   },
@@ -3136,11 +3137,11 @@
      "s": "Quando il personaggio effettua l'azione di Scatto, ottiene del movimento extra per il turno in corso. Questo incremento è pari alla sua velocità, dopo avere applicato eventuali modificatori. Per esempio, se il personaggio ha una velocità di 9 metri, nel suo turno può muoversi fino a 18 metri se scatta. Se il personaggio ha una velocità di 9 metri che viene ridotta a 4,5 metri, nel suo turno può muoversi fino a 9 metri se scatta. Se il personaggio possiede una velocità speciale, come una velocità di volo o di nuoto, può usarla in sostituzione alla sua velocità quando effettua questa azione. Ogni volta che effettua l'azione, può scegliere quale velocità utilizzare. "
     },
     {
-     "s": "Vedi anche",
+     "s": "Vedi anche ",
      "i": 1
     },
     {
-     "s": " \"Velocità\"."
+     "s": "\"Velocità\"."
     }
    ]
   },
@@ -3165,11 +3166,11 @@
      "s": "Un mostro può essere Minuscolo, Piccolo, Medio, Grande, Enorme o Mastodontico. "
     },
     {
-     "s": "Vedi anche",
+     "s": "Vedi anche ",
      "i": 1
     },
     {
-     "s": " \"Taglia\"."
+     "s": "\"Taglia\"."
     }
    ]
   },
@@ -3222,11 +3223,11 @@
      "s": "Qui viene indicata la velocità del mostro, insieme a eventuali velocità speciali. "
     },
     {
-     "s": "Vedi anche",
+     "s": "Vedi anche ",
      "i": 1
     },
     {
-     "s": " \"Velocità di nuoto\", \"Velocità di scalata\", \"Velocità di scavo\" e \"Velocità di volo\"."
+     "s": "\"Velocità di nuoto\", \"Velocità di scalata\", \"Velocità di scavo\" e \"Velocità di volo\"."
     }
    ]
   },
@@ -3279,11 +3280,11 @@
      "s": "Questa sezione indica le immunità del mostro a danni e condizioni, se presenti. "
     },
     {
-     "s": "Vedi anche",
+     "s": "Vedi anche ",
      "i": 1
     },
     {
-     "s": " \"Immunità\"."
+     "s": "\"Immunità\"."
     }
    ]
   },
@@ -3673,11 +3674,11 @@
      "s": "Quando il personaggio striscia, ogni 30 centimetri di movimento costano 30 centimetri extra (60 centimetri extra in caso di terreno difficile). "
     },
     {
-     "s": "Vedi anche",
+     "s": "Vedi anche ",
      "i": 1
     },
     {
-     "s": " \"Velocità\"."
+     "s": "\"Velocità\"."
     }
    ]
   },
@@ -3809,7 +3810,7 @@
     "Una creatura che non sia minuscola o una creatura alleata",
     "Mobili a misura di creature di taglia pari o superiore a quella del personaggio",
     "Neve alta, ghiaccio, detriti o sottobosco",
-    "Liquido a livello degli stinchi o fino alla vita",
+    " Liquido a livello degli stinchi o fino alla vita",
     "Un'apertura stretta adatta a una creatura di una taglia inferiore a quella del personaggio",
     "Una pendenza di 20 gradi o più"
    ]
@@ -4074,11 +4075,11 @@
      "s": "Un trucchetto è un incantesimo di livello 0 che si lancia senza slot incantesimo. "
     },
     {
-     "s": "Vedi anche",
+     "s": "Vedi anche ",
      "i": 1
     },
     {
-     "s": " \"Incantesimi\"."
+     "s": "\"Incantesimi\"."
     }
    ]
   },
