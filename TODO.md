@@ -48,6 +48,62 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
   personaggi, Talenti, Equipaggiamento, Incantesimi, Glossario delle regole,
   Strumenti di gioco, Oggetti magici, panoramica delle schede mostro. Con le
   Informazioni legali e la dichiarazione di attribuzione richiesta dalla licenza.
+  - [x] **Impianto + Glossario delle regole** — fatto (19 lug 2026). Estrattore
+    generico `scripts/estrai-srd-regole.mjs` (fratello di quello del bestiario:
+    la semantica sta nei font), registro dei capitoli in `src/lib/srd/index.ts`
+    col flag `pronto`, pagine `/srd` e `/srd/[capitolo]` (`blocchi.tsx`,
+    `indice.tsx`, `srd.css`). Il testo esce come array di span, non come HTML:
+    niente markup da sanificare. Sei tipi di blocco (titoli, prosa, definizioni,
+    tabelle, griglie chiave/valore, elenchi a colonne e puntati). Trappole
+    risolte: fontspec cumulativi tra le pagine; il rientro NON separa i
+    paragrafi (il PDF alterna i due stili) quindi si rompe sul grassetto e sul
+    salto verticale; la fusione dei frammenti a 12px mangiava le colonne delle
+    tabelle (ora 6px); celle e intestazioni fuse dal PDF si ritagliano
+    all'ascissa della colonna successiva, arrotondando allo spazio.
+    Verificato: 12.284 parole su 12.294 del PDF (99,9%), zero parole fuse, zero
+    trattini di sillabazione sospesi, 9/9 tabelle corrette, 156 ancore univoche,
+    filtro dell'indice insensibile ad accenti e maiuscole, nessuno scorrimento
+    orizzontale a 390px, console pulita, `tsc` e `build` ok.
+  - [ ] **I restanti nove capitoli**, uno alla volta. L'ordine non è quello del
+    PDF ma quello del valore al tavolo incrociato con la difficoltà di
+    estrazione — ogni capitolo si pubblica mettendo `pronto: true` nel registro
+    di `src/lib/srd/index.ts` dopo aver verificato il JSON generato:
+    1. **Strumenti di gioco** (pp. 220–231) e **Come si gioca** (pp. 5–20):
+       prosa e tabelle, cioè esattamente ciò che il parser già sa fare. Sono il
+       banco di prova per capire se il glossario era un caso fortunato.
+    2. **Equipaggiamento** (pp. 101–117): tabelle lunghe e fitte, molte a più di
+       tre colonne. Qui si vedrà se il ritaglio delle celle fuse regge o se
+       serve leggere le ascisse per parola (`pdftohtml -xml` non le dà: in tal
+       caso la strada è `pdftotext -bbox-layout`).
+    3. **Incantesimi** (pp. 118–201, il capitolo più lungo): serve un tipo di
+       blocco nuovo, la **scheda incantesimo** (livello e scuola, tempo di
+       lancio, gittata, componenti, durata) — oggi quelle righe finirebbero in
+       prosa indistinta. Da modellare come `def`, che è già una coppia
+       nome/valore. Attenzione: 84 pagine in un JSON solo sono troppe da
+       caricare in una pagina — probabilmente va spezzato per livello.
+    4. **Oggetti magici** (pp. 232–288): come sopra (sintonia, rarità, tipo).
+       Da sapere: `estrai-srd-mostri.mjs` **scarta** il font Cambria, perché lì
+       è la prosa di questo capitolo che sporca le schede mostro; in
+       `estrai-srd-regole.mjs` Cambria è invece il corpo del testo. I due
+       script dicono il contrario ed è corretto così — non allinearli.
+    5. **Classi** (pp. 32–92): il più irregolare. Tabelle di avanzamento a 6+
+       colonne, privilegi annidati su quattro livelli di titolo, liste di
+       incantesimi. Da fare per ultimo, quando il parser ha già visto tutto.
+    6. **Creazione del personaggio**, **Origini**, **Talenti**: brevi, si
+       pubblicano in coda senza sorprese.
+  - [ ] **Rifiniture note della sezione regole**, da fare quando danno fastidio:
+    - Tre celle restano vuote e alcuni valori arrivano fusi dove è il PDF a
+      emettere un frammento unico: il testo c'è tutto, ma in quei punti la
+      divisione in colonne è **stimata**. Con più capitoli si capirà se vale
+      il passaggio a `pdftotext -bbox-layout`.
+    - Nessuna ricerca trasversale ai capitoli: oggi il filtro è per capitolo e
+      cerca solo nei titoli, non nel corpo. Con più capitoli pubblicati serve
+      un indice di ricerca unico.
+    - I rimandi «Vedi anche "Attacco"» sono testo, non link. Diventano
+      collegamenti quando esistono le ancore di tutti i capitoli (le ancore ci
+      sono già: `id` slug su ogni titolo, univoci).
+    - La pagina "Informazioni legali" (p. 1 del PDF) non è ancora resa: oggi
+      c'è solo la dichiarazione di attribuzione in fondo alle pagine.
 - [ ] **SRD 5.1 (2014) in italiano** — in futuro, come edizione alternativa
   affiancata alla 5.2.1 (selettore di edizione, non una sostituzione).
 - [ ] **Traduzione inglese** — in futuro, dopo il completamento dell'italiano:

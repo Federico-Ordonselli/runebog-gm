@@ -1,0 +1,156 @@
+/* Sezione regole (/srd). I colori non stanno qui: vengono da public/themes.css,
+   come in globals.css — qui solo le misure dell'impianto e della prosa lunga. */
+
+/* Più larga delle altre pagine perché regge due colonne, ma la colonna del testo
+   resta stretta: la prosa si legge a 34rem, non a tutta pagina. */
+.page--srd { max-width: 62rem; }
+
+.srd-corpo {
+  display: grid;
+  gap: 2rem;
+  align-items: start;
+  margin-top: 1.5rem;
+}
+@media (min-width: 56rem) {
+  .srd-corpo { grid-template-columns: 15rem minmax(0, 1fr); }
+  /* L'indice segue la lettura e scorre per conto suo: al tavolo si salta da una
+     voce all'altra, e riportarlo in cima ogni volta sarebbe una tassa. */
+  .srd-indice {
+    position: sticky;
+    top: 1.5rem;
+    max-height: calc(100vh - 3rem);
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.srd-testo { max-width: 34rem; }
+
+/* ---------- Indice laterale ---------- */
+
+.srd-indice__filtro { width: 100%; }
+.srd-indice__lista {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0 0.5rem 0 0;
+  overflow-y: auto;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  /* Sul telefono l'indice sta sopra il testo: senza un tetto, le 154 voci del
+     glossario spingerebbero il capitolo fuori dalla prima schermata. Scorre
+     dentro di sé, e il filtro resta a portata. Su schermo largo il tetto lo
+     rimette la colonna sticky, che usa l'altezza della finestra. */
+  max-height: 45vh;
+}
+@media (min-width: 56rem) {
+  .srd-indice__lista { max-height: none; }
+}
+.srd-indice__voce + .srd-indice__voce { margin-top: 0.3rem; }
+.srd-indice__voce--l2 {
+  margin-top: 0.9rem;
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.06em;
+  color: var(--parchment);
+}
+.srd-indice__voce--l3 { padding-left: 0.5rem; }
+.srd-indice__voce--l4 { padding-left: 0.5rem; }
+.srd-indice__vuoto { margin-top: 0.75rem; }
+
+/* ---------- Titoli e prosa ---------- */
+
+.srd-h2 {
+  margin: 2.5rem 0 0.75rem;
+  font-size: 1.35rem;
+  line-height: 1.2;
+  color: var(--lantern);
+}
+.srd-h3 { margin: 1.75rem 0 0.5rem; font-size: 1.1rem; color: var(--parchment); }
+
+/* Le voci del glossario: sono centinaia e vanno distinte a colpo d'occhio
+   mentre si scorre, non solo lette. Il filetto fa da separatore tra una voce
+   e la coda della precedente. */
+.srd-voce {
+  margin: 2rem 0 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--edge-soft);
+  font-size: 1.05rem;
+  color: var(--moss-lit);
+  scroll-margin-top: 1.5rem;
+}
+.srd-h2, .srd-h3 { scroll-margin-top: 1.5rem; }
+
+.srd-p, .srd-def { margin: 0.75rem 0; }
+/* Rientro sospeso: il nome della sotto-regola sporge e resta agganciabile
+   con l'occhio in una colonna fitta di definizioni. */
+.srd-def { padding-left: 1.25rem; text-indent: -1.25rem; }
+.srd-def__nome { color: var(--parchment); }
+
+/* ---------- Elenchi ---------- */
+
+/* Elenchi impaginati su colonnine nel PDF (condizioni, azioni, tipi di
+   creatura): restano a colonne, che è ciò che li rende consultabili. */
+.srd-elenco {
+  columns: 3 8rem;
+  gap: 1rem;
+  list-style: none;
+  margin: 0.75rem 0;
+  padding: 0;
+  font-size: 0.92rem;
+}
+.srd-elenco li { break-inside: avoid; }
+.srd-punti { margin: 0.75rem 0; padding-left: 1.1rem; }
+.srd-punti li { margin: 0.3rem 0; }
+
+/* ---------- Tabelle ---------- */
+
+.srd-tab { margin: 1.5rem 0; }
+.srd-tab figcaption {
+  margin-bottom: 0.4rem;
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.06em;
+  color: var(--lantern);
+}
+/* La tabella scorre dentro il suo riquadro: la pagina non deve mai scorrere in
+   orizzontale per colpa di quattro colonne su un telefono. */
+.srd-tab__scorri { overflow-x: auto; }
+.srd-tab table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.srd-tab th, .srd-tab td {
+  padding: 0.35rem 0.6rem 0.35rem 0;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--edge-soft);
+}
+.srd-tab th {
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.04em;
+  color: var(--parchment-dim);
+  border-bottom-color: var(--edge);
+}
+/* Griglia senza intestazioni (le abbreviazioni): la chiave è la prima colonna. */
+.srd-tab table:not(:has(thead)) td:first-child { color: var(--parchment); white-space: nowrap; }
+
+/* ---------- Indice dei capitoli ---------- */
+
+.srd-capitoli { list-style: none; margin: 1.5rem 0 0; padding: 0; }
+.srd-capitoli__voce + .srd-capitoli__voce { margin-top: 0.5rem; }
+.srd-capitoli__link {
+  display: block;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 160ms var(--ease), background 160ms var(--ease);
+}
+a.srd-capitoli__link:hover { border-color: var(--edge-lit); background: var(--surface-hov); }
+.srd-capitoli__titolo { display: block; color: var(--lantern); }
+a.srd-capitoli__link:hover .srd-capitoli__titolo { color: var(--wisp-lit); }
+.srd-capitoli--attesa .srd-capitoli__link { background: none; opacity: 0.6; }
+.srd-capitoli--attesa .srd-capitoli__titolo { color: var(--parchment-dim); }
+
+.srd-attribuzione { margin-top: 1rem; }

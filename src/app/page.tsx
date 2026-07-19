@@ -130,6 +130,12 @@ export default async function Home() {
       )}
 
       <hr className="rule" />
+      {/* Le regole sono un pezzo del prodotto, non una voce di servizio: stanno
+          sopra la riga delle donazioni e dei link legali. */}
+      <p className="small">
+        <a href="/srd" className="link">Regole SRD 5.2.1 in italiano</a>{" "}
+        — il regolamento ufficiale, consultabile e ricercabile.
+      </p>
       <p className="small">
         <a href={DONATE_URL} className="link link--lantern"
            target="_blank" rel="noopener noreferrer">☕ Offrimi un caffè</a>{" "}
