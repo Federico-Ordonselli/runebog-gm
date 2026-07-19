@@ -1,6 +1,7 @@
 /* Scorciatoie da tastiera globali. Attive solo fuori dai campi di testo
    e, per quelle della mappa, solo con la vista Mappa aperta. */
 
+import { gridShape, CELL } from "./modello.js";
 import { st, save, doUndo, findNode } from "./stato.js";
 import { showView, openKeys } from "./viste.js";
 import { goUp, enterNode, planZoom, planFit, renderCanvas,
@@ -71,10 +72,13 @@ export function initScorciatoie(){
       for(const id of ids){
         const n = findNode(id);
         if(!n || typeof n.x!=="number") continue;
-        if(k==="ArrowLeft")  n.x-=step;
-        if(k==="ArrowRight") n.x+=step;
-        if(k==="ArrowUp")    n.y-=step;
-        if(k==="ArrowDown")  n.y+=step;
+        // Le forme in scala si spostano di quadretti interi, anche con Shift:
+        // un ritocco da 1px le porterebbe fuori dalla maglia che le definisce.
+        const s = gridShape(n) ? CELL : step;
+        if(k==="ArrowLeft")  n.x-=s;
+        if(k==="ArrowRight") n.x+=s;
+        if(k==="ArrowUp")    n.y-=s;
+        if(k==="ArrowDown")  n.y+=s;
         any = true;
       }
       if(any){ e.preventDefault(); save(); renderCanvas(); }

@@ -5,14 +5,14 @@
    archi "tunnel", gli incontri sono nodi encounter coi nemici già contati, e i PG
    di state.players entrano come pedine trascinabili nella stanza d'ingresso. */
 
-import { node, uid, NODE_COLORS, MARKER_R } from "./modello.js";
+import { node, uid, NODE_COLORS, MARKER_R, CELL } from "./modello.js";
 import { st, save, currentNode, RO } from "./stato.js";
 import { enterNode, planFit } from "./mappa.js";
 import { openAlert } from "./viste.js";
 import { newFoe, statblockSRD } from "./mostri.js";
 import { NOMI_EN } from "./dungeon-nomi.js";
 
-const DG_SCALE = 40;
+const DG_SCALE = CELL;   // 1 quadrato del generatore = 1 quadretto della pianta
 const DG_SIZE_IT = {Tiny:"Minuscola",Small:"Piccola",Medium:"Media",Large:"Grande",Huge:"Enorme",Gargantuan:"Mastodontica"};
 const DG_RARITY_IT = {common:"comune",uncommon:"non comune",rare:"raro",veryRare:"molto raro",legendary:"leggendario"};
 const DG_ROOM_IT = {ingresso:"Ingresso",combattimento:"Combattimento",tesoro:"Tesoro",trappola:"Trappola",

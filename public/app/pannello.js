@@ -3,11 +3,20 @@
    bottom sheet su mobile. */
 
 import { TYPES, STATUSES, SHAPES, EDGE_TYPES, NODE_COLORS, nodeColor,
-         isMarker, defShape, nodeBox, node, escapeHtml, escapeAttr } from "./modello.js";
+         isMarker, defShape, nodeBox, node, escapeHtml, escapeAttr,
+         gridShape, CELL } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, RO } from "./stato.js";
 import { openConfirm } from "./viste.js";
 import { renderMap, renderCrumbs, renderCanvas, bgEdit, isEmptyNode, doDeleteNodes } from "./mappa.js";
 import { statblockHTML } from "./mostri.js";
+
+/* Una forma in scala si legge in quadretti e metri (1 quadretto = 1,5 m):
+   i pixel non dicono niente al tavolo. */
+const labelScala = box => {
+  const q = v => (v/CELL).toLocaleString("it-IT",{maximumFractionDigits:2});
+  const m = v => (v/CELL*1.5).toLocaleString("it-IT",{maximumFractionDigits:2});
+  return `${q(box.w)}×${q(box.h)} quadretti · ${m(box.w)}×${m(box.h)} m`;
+};
 import { tokenLink } from "./battaglia.js";
 
 /* Sezioni richiudibili (<details>) del pannello: lo stato di apertura vive qui,
@@ -174,10 +183,17 @@ function renderDetailCore(){
       <select onchange="editNode('${n.id}','shape',this.value)">${shapeOpts}</select></div>
     <div class="row">
       <div class="field"><label>Larghezza</label>
-        <input type="number" step="10" min="40" value="${nodeBox(n).w}" onchange="editNode('${n.id}','w',Math.max(40,parseInt(this.value)||40))"></div>
+        <input type="number" step="${gridShape(n)?CELL:10}" min="${gridShape(n)?CELL:40}" value="${nodeBox(n).w}"
+          onchange="editNode('${n.id}','w',${gridShape(n)
+            ? `Math.max(${CELL},Math.round((parseInt(this.value)||${CELL})/${CELL})*${CELL})`
+            : `Math.max(40,parseInt(this.value)||40)`})"></div>
       <div class="field"><label>Altezza</label>
-        <input type="number" step="10" min="30" value="${nodeBox(n).h}" onchange="editNode('${n.id}','h',Math.max(30,parseInt(this.value)||30))"></div>
-    </div>` : ""}
+        <input type="number" step="${gridShape(n)?CELL:10}" min="${gridShape(n)?CELL:30}" value="${nodeBox(n).h}"
+          onchange="editNode('${n.id}','h',${gridShape(n)
+            ? `Math.max(${CELL},Math.round((parseInt(this.value)||${CELL})/${CELL})*${CELL})`
+            : `Math.max(30,parseInt(this.value)||30)`})"></div>
+    </div>
+    ${gridShape(n)?`<p class="hint-sm">${labelScala(nodeBox(n))}</p>`:""}` : ""}
 
     <div class="field"><label>Note <span class="only-dm">solo tue</span></label>
       <textarea oninput="editNode('${n.id}','notes',this.value)" placeholder="Dettagli, agganci, statistiche mostri, letture ad alta voce…">${escapeHtml(n.notes)}</textarea></div>

@@ -3,7 +3,8 @@
    navigazione tra livelli e operazioni sulla selezione. */
 
 import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, MARKER_R, STATUS_COLORS, nodeColor,
-         isMarker, defShape, nodeBox, nodeCenter, node, uid, escapeHtml, escapeAttr } from "./modello.js";
+         isMarker, defShape, nodeBox, nodeCenter, node, uid, escapeHtml, escapeAttr,
+         gridShape, snapGrid } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, pathNodes, RO } from "./stato.js";
 import { showView, openConfirm } from "./viste.js";
 import { renderDetail, compressImage } from "./pannello.js";
@@ -62,6 +63,11 @@ export function enterNode(id){
 export function jumpTo(parentId, childId){
   if(st.path[st.path.length-1] !== parentId) st.path.push(parentId);
   st.selectedId = childId;
+  // Come per il clic: la selezione È il bersaglio del salto. Lasciare la
+  // multi-selezione vecchia faceva muovere alle frecce le bolle sbagliate
+  // dopo un salto da ricerca o diario quest.
+  st.multiSel = new Set(childId ? [childId] : []);
+  st.selectedEdgeId = null;
   renderMap();
 }
 
@@ -417,7 +423,10 @@ export function arrangeGrid(){
   items.forEach((c,i)=>{
     const b = nodeBox(c);
     if(i%perRow===0 && i){ x=0; y+=rowH+GAP; rowH=0; }
-    c.x=x; c.y=y;
+    // Le forme in scala restano sulla maglia anche nell'ordinamento: il GAP di
+    // 50 assorbe l'arrotondamento (±20 max), quindi niente sovrapposizioni.
+    if(gridShape(c)){ c.x=snapGrid(x); c.y=snapGrid(y); }
+    else { c.x=x; c.y=y; }
     x += b.w+GAP; rowH = Math.max(rowH, b.h);
   });
   save(); planFit(true); renderDetail();
@@ -435,6 +444,15 @@ export function addSpatialChild(opts, x, y){
   if(battleOn() && c.type==="token"){
     c.x = snapToCell(x-b.w/2);
     c.y = snapToCell(y-b.h/2);
+  }else if(gridShape(c)){
+    // Le forme architettoniche nascono già sulla maglia: sono piante in scala
+    // (1 quadretto = 1,5 m), non simboli. Le dimensioni diventano esplicite e
+    // in quadretti interi: i default di SHAPES restano quelli delle bolle
+    // vecchie e non sono tutti multipli di cella.
+    c.w = Math.max(CELL, snapGrid(b.w));
+    c.h = Math.max(CELL, snapGrid(b.h));
+    c.x = snapGrid(x-c.w/2);
+    c.y = snapGrid(y-c.h/2);
   }else{
     c.x = Math.round((x-b.w/2)/10)*10;
     c.y = Math.round((y-b.h/2)/10)*10;
@@ -709,6 +727,12 @@ export function initMappa(){
         n.x = snapToCell(p.x-planDrag.dx);
         n.y = snapToCell(p.y-planDrag.dy);
         drawGuides(null, null);
+      }else if(gridShape(n)){
+        // Stessa ragione delle pedine: una pianta sta sulla maglia, e il
+        // magnetico verso bolle libere la tirerebbe fuori quadretto.
+        n.x = snapGrid(p.x-planDrag.dx);
+        n.y = snapGrid(p.y-planDrag.dy);
+        drawGuides(null, null);
       }else{
         n.x = Math.round((p.x-planDrag.dx)/10)*10;
         n.y = Math.round((p.y-planDrag.dy)/10)*10;
@@ -749,8 +773,13 @@ export function initMappa(){
       });
     }else if(planDrag.mode==="resize"){
       const n = childOf(planDrag.id); if(!n) return;
-      n.w = Math.max(40, Math.round((p.x-n.x)/10)*10);
-      n.h = Math.max(30, Math.round((p.y-n.y)/10)*10);
+      if(gridShape(n)){
+        n.w = Math.max(CELL, snapGrid(p.x-n.x));
+        n.h = Math.max(CELL, snapGrid(p.y-n.y));
+      }else{
+        n.w = Math.max(40, Math.round((p.x-n.x)/10)*10);
+        n.h = Math.max(30, Math.round((p.y-n.y)/10)*10);
+      }
       planDrag.moved = true;
       if(!planDrag.raf){
         planDrag.raf = true;
@@ -823,7 +852,15 @@ export function initMappa(){
         st.multiSel = new Set([planDrag.id]); st.selectedId = planDrag.id;
         renderCanvas(); renderDetail();
       }
-      if(planDrag.moved){ save(); renderCanvas(); }
+      if(planDrag.moved){
+        // Il gruppo si muove rigido con l'ancora: se l'ancora era una bolla
+        // libera, i membri in scala sarebbero atterrati fuori quadretto.
+        for(const id of planDrag.group){
+          const m = childOf(id);
+          if(m && gridShape(m)){ m.x = snapGrid(m.x); m.y = snapGrid(m.y); }
+        }
+        save(); renderCanvas();
+      }
     }else if(planDrag.mode==="resize"){
       save(); renderCanvas(); renderDetail();
     }else if(planDrag.mode==="bgmove"||planDrag.mode==="bgresize"){
@@ -986,7 +1023,9 @@ export function duplicateSelected(){
     n.children.forEach(ch=>{ const old = ch.id; reid(ch); map[old] = ch.id; });
     n.edges = (n.edges||[]).map(e=>({...e, id:uid(), a:map[e.a]||e.a, b:map[e.b]||e.b}));
   })(copy);
-  copy.x = (copy.x||0)+30; copy.y = (copy.y||0)+30;
+  // Una copia in scala trasla di un quadretto pieno: +30 la porterebbe fuori maglia.
+  const off = gridShape(copy) ? CELL : 30;
+  copy.x = (copy.x||0)+off; copy.y = (copy.y||0)+off;
   copy.title = (copy.title||"") + " (copia)";
   cur.children.push(copy);
   st.selectedId = copy.id; st.selectedEdgeId = null; st.multiSel = new Set([copy.id]);

@@ -20,13 +20,13 @@
       = 1,5 metri. La modalità combattimento non introduce una scala nuova, rende
       rigido l'aggancio a quella esistente (vedi CELL). */
 
-import { node, uid, NODE_COLORS, MARKER_R, escapeHtml } from "./modello.js";
+import { node, uid, NODE_COLORS, MARKER_R, escapeHtml, CELL } from "./modello.js";
 import { st, save, findNode, findParent, currentNode, RO } from "./stato.js";
 import { openConfirm } from "./viste.js";
 
-/* 1 quadretto = 5 piedi = 1,5 m. Deve restare uguale al pattern #grid in
-   mappa.js e a DG_SCALE in dungeon.js: sono la stessa maglia vista da tre punti. */
-export const CELL = 40;
+/* 1 quadretto = 5 piedi = 1,5 m. La costante vive in modello.js (unica
+   definizione della maglia); qui resta riesportata per gli import esistenti. */
+export { CELL };
 export const METRI_PER_CELLA = "1,5 m";
 
 /* Una pedina è alta e larga quanto MARKER_R*2+2, meno di una cella: la si

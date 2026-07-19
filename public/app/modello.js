@@ -18,13 +18,29 @@ export const TYPES = {
 export const NODE_COLORS = ["#8fd4a8","#6cc3c9","#d8b25a","#d0765a","#b393c9","#e8e3d8"];
 export const STATUSES = ["", "da fare", "in corso", "fatto"];
 
+/* La maglia della pianta: 1 quadretto = 40px = 5 piedi = 1,5 m. Definita QUI e
+   in nessun altro posto — battaglia.js la riesporta, il pattern #grid in
+   mappa.js e DG_SCALE in dungeon.js la importano: è la stessa maglia vista da
+   tre punti, e se divergessero pedine e stanze non combacerebbero più. */
+export const CELL = 40;
+export const snapGrid = v => Math.round(v / CELL) * CELL;
+
+/* Le forme con grid:true sono piante, non simboli: posizione e dimensioni
+   vivono in quadretti interi (scelta del 19 lug 2026: solo le forme
+   architettoniche — quartieri, torri e segnalini restano liberi, e le bolle
+   esistenti fuori scala non migrano: si agganciano al primo tocco). */
 export const SHAPES = {
+  // I default w/h NON si toccano: le bolle esistenti senza dimensioni esplicite
+  // li ereditano via nodeBox, e cambiarli sarebbe la migrazione che si è deciso
+  // di non fare. Le forme in scala nascono con dimensioni esplicite agganciate
+  // (vedi addSpatialChild in mappa.js).
   quartiere:{label:"Quartiere", w:200, h:140},
-  edificio: {label:"Edificio",  w:140, h:80},
-  stanza:   {label:"Stanza",    w:80,  h:80},
-  piazza:   {label:"Piazza",    w:110, h:110, circle:true},
+  edificio: {label:"Edificio",  w:140, h:80,  grid:true},
+  stanza:   {label:"Stanza",    w:80,  h:80,  grid:true},
+  piazza:   {label:"Piazza",    w:110, h:110, circle:true, grid:true},
   torre:    {label:"Torre",     w:80,  h:80,  diamond:true}
 };
+export const gridShape = n => !isMarker(n) && !!SHAPES[n.shape || defShape(n)]?.grid;
 /* Colore di default PER FORMA, non per tipo: prima edificio e stanza erano
    entrambi "luogo" e quindi lo stesso teal, così una pianta di dungeon era una
    distesa di rettangoli identici e la gerarchia si leggeva solo dalla taglia.

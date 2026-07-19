@@ -65,12 +65,25 @@ ma oggi le bolle non la rispettano: sono simboli, non piante.
   (i collegamenti tra stanze sono già archi: una porta è dove l'arco attraversa
   il muro). Il generatore di dungeon importato ha già stanze posizionate e
   corridoi come sfondo pianta: i muri dovrebbero valere anche lì.
-- [ ] **Quadretti esattamente 1,5 m** — dimensioni delle bolle agganciate alla
-  griglia (larghezza/altezza in quadretti interi, snap ai 40px) così stanze,
-  case e piazze restano proporzionate tra loro e con le pedine in battaglia:
-  una stanza 3×2 quadretti È 4,5×3 metri, sulla pianta come nel combattimento.
-  Da decidere come conviverci con le bolle esistenti fuori scala (migrazione o
-  scala solo per le forme "architettoniche").
+- [x] **Quadretti esattamente 1,5 m** — fatto (19 lug 2026), scope concordato:
+  scala **solo per le forme architettoniche** (edificio, stanza, piazza — flag
+  `grid:true` in `SHAPES`), quartieri/torri/segnalini liberi, e **niente
+  migrazione**: le bolle esistenti fuori scala non si spostano da sole, si
+  agganciano al primo tocco. Posizione e dimensioni in quadretti interi in ogni
+  punto d'ingresso: creazione (dimensioni esplicite agganciate — i default di
+  `SHAPES` non si toccano, sennò le bolle vecchie senza `w/h` migravano via
+  `nodeBox`), trascinamento (senza allineamento magnetico, come le pedine:
+  tirerebbe fuori maglia), resize, frecce (passo = 1 quadretto anche con
+  Shift), input del pannello (step 40 + arrotondamento), duplica (+1 cella),
+  Ordina (il GAP 50 assorbe l'arrotondamento ±20), atterraggio dei gruppi
+  trascinati da un'ancora libera. Il pannello mostra la misura vera:
+  "2×2 quadretti · 3×3 m". `CELL` ora è definita una sola volta in
+  `modello.js` (battaglia la riesporta, `#grid` e `DG_SCALE` la importano).
+  Scovato dal test un bug pre-esistente: `jumpTo` (ricerca, diario quest) non
+  azzerava `multiSel`, quindi le frecce dopo un salto muovevano la selezione
+  vecchia — ora il salto seleziona come il clic. Verificato: 12/12 in Chromium
+  (creazione delle 4 forme, hint, input, nudge, drag, demo intatta dopo
+  reload, console pulita) + regressione aggancio schede 15/15, `tsc` ok.
 
 - [x] **XSS da JSON importato bonificato lato DM** — fatto (18 lug 2026). Il tavolo
   dei giocatori era già coperto da `share.ts` sul server, ma nell'app del DM i campi
