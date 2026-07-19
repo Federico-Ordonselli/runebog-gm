@@ -9,7 +9,8 @@ import { node, uid, NODE_COLORS, MARKER_R } from "./modello.js";
 import { st, save, currentNode, RO } from "./stato.js";
 import { enterNode, planFit } from "./mappa.js";
 import { openAlert } from "./viste.js";
-import { newFoe } from "./mostri.js";
+import { newFoe, statblockSRD } from "./mostri.js";
+import { NOMI_EN } from "./dungeon-nomi.js";
 
 const DG_SCALE = 40;
 const DG_SIZE_IT = {Tiny:"Minuscola",Small:"Piccola",Medium:"Media",Large:"Grande",Huge:"Enorme",Gargantuan:"Mastodontica"};
@@ -98,14 +99,23 @@ function dungeonFromExport(data){
     idmap[r.id] = rn.id;
     if(r.encounter){
       for(const m of r.encounter.monsters){
-        const en = node(`${m.count}× ${m.name}`, "encounter");
-        en.notes = `GS ${m.crLabel} · ${m.xp} PE l'uno · ${DG_SIZE_IT[m.size]||m.size} ${m.type}`;
-        en.monster = {
+        // Gli export nuovi portano già i nomi italiani del bestiario; quelli
+        // vecchi (pre 19 lug 2026) sono in inglese e passano dalla mappa legacy.
+        // Se la scheda SRD esiste, entra lo statblock completo (stessa ricetta
+        // del bottone del bestiario); sennò restano i dati grezzi dell'export.
+        const nome = NOMI_EN[m.name] || m.name;
+        const sch = (window.SRD_MONSTERS||[]).find(s=>s.name===nome);
+        const hp = sch ? sch.hp : m.hp;
+        const en = node(`${m.count}× ${nome}`, "encounter");
+        en.notes = sch
+          ? `GS ${sch.cr} · ${sch.meta}`
+          : `GS ${m.crLabel} · ${m.xp} PE l'uno · ${DG_SIZE_IT[m.size]||m.size} ${m.type}`;
+        en.monster = sch ? statblockSRD(sch) : {
           meta: `${DG_SIZE_IT[m.size]||m.size} ${m.type}`,
           ac: String(m.ac), speed: `${m.speed} ft`, cr: `${m.crLabel} (${m.xp} PE)`,
           hpDefault: m.hp,
-          foes: Array.from({length:m.count}, (_,i)=>newFoe(m.count>1?`${m.name} ${i+1}`:m.name, m.hp)),
         };
+        en.monster.foes = Array.from({length:m.count}, (_,i)=>newFoe(m.count>1?`${nome} ${i+1}`:nome, hp));
         rn.children.push(en);
       }
     }

@@ -22,11 +22,27 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
   (`mostri.js`); azioni bonus e reazioni restano ripiegate in `actions` coi
   marcatori. Verificato: 18/18 in Chromium (ricerca, applica Goblin capo e
   Aboleth, campi in italiano, attribuzione CC-BY, console pulita), `tsc` ok.
-- [ ] **Allineare il generatore di dungeon al bestiario italiano** — i nomi dei
-  mostri in `src/lib/dungeon/srd-data.ts` (e nei dungeon già esportati) devono
-  combaciare con le schede italiane, sennò l'import nell'app non aggancia le
-  schede SRD.
-
+- [x] **Allineare il generatore di dungeon al bestiario italiano** — fatto
+  (19 lug 2026). I 334 mostri di `src/lib/dungeon/srd-data.ts` erano il dataset
+  5.1 in inglese: ora sono 312 voci coi nomi delle schede italiane 5.2.1 e
+  `ac`/`hp`/`hpDice`/`cr`/`xp` sincronizzati dal bestiario (`srd-mostri.js`),
+  così la card di /dungeon e la scheda agganciata dicono gli stessi numeri.
+  Non era una traduzione 1:1: il 2024 rinomina per ruolo (Goblin → "Goblin
+  guerriero", Thug → "Bruto", Merfolk → "Marinide schermagliatore"), fonde le
+  varianti-forma (licantropi ×3 e vampiro ×3 → scheda unica) e toglie mostri
+  dall'SRD (Drow, Orc, Duergar, Lizardfolk, gnomo delle profondità, sciami
+  specifici → "Sciame di insetti"): le voci senza controparte sono cadute.
+  `type`/`size`/`speed`/`tags` restano dal dataset 5.1 (servono solo al motore,
+  che sceglie per tag e GS, mai per nome). L'import (`public/app/dungeon.js`)
+  ora **aggancia davvero la scheda**: cerca il nome in `window.SRD_MONSTERS` e
+  applica lo statblock completo con la stessa ricetta del bottone del bestiario
+  (`statblockSRD()` estratta in `mostri.js`, un solo punto per i due percorsi);
+  i dungeon esportati prima di oggi (nomi inglesi) passano dalla mappa legacy
+  `public/app/dungeon-nomi.js` (272 voci EN→IT), e un mostro senza scheda 2024
+  ripiega sui dati grezzi dell'export come prima. Verificato: 15/15 in Chromium
+  (export nuovo e legacy, PF pedine = scheda, tratti/azioni identici alla
+  scheda, Orc in fallback, console pulita), `tsc` ok, motore rigenerato in node
+  con tutti i mostri estratti dotati di scheda.
 - [ ] **Sezione regole sul sito** — capitoli dell'SRD consultabili in italiano
   (`/srd`): Come si gioca, Creazione del personaggio, Classi, Origini dei
   personaggi, Talenti, Equipaggiamento, Incantesimi, Glossario delle regole,

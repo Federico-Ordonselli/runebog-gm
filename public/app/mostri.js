@@ -104,17 +104,22 @@ export function srdSearch(id, q){
   }).join("");
   box.classList.add("show");
 }
-export function applySRD(id, idx){
-  const n = findNode(id); if(!n) return;
-  const s = window.SRD_MONSTERS[idx]; if(!s) return;
-  const m = ensureMon(n);
-  Object.assign(m, {
+// Unica ricetta scheda SRD -> campi monster: la usa anche l'import del
+// generatore di dungeon (dungeon.js), così i due percorsi non divergono.
+export function statblockSRD(s){
+  return {
     meta:s.meta, ac:s.ac, init:s.init||"", speed:s.speed,
     str:s.str, dex:s.dex, con:s.con, int:s.int, wis:s.wis, cha:s.cha,
     saves:s.saves, skills:s.skills, resist:s.resist, senses:s.senses,
     langs:s.langs, cr:s.cr, gear:s.gear||"", traits:s.traits, actions:s.actions,
     legendary:s.legendary, hpDefault:s.hp
-  });
+  };
+}
+export function applySRD(id, idx){
+  const n = findNode(id); if(!n) return;
+  const s = window.SRD_MONSTERS[idx]; if(!s) return;
+  const m = ensureMon(n);
+  Object.assign(m, statblockSRD(s));
   if(!m.foes.length) m.foes.push(newFoe(s.name, s.hp));
   else m.foes.forEach(f=>{ f.hpMax = s.hp; f.hp = Math.min(f.hp, s.hp) || s.hp; });
   if(!n.title) editNode(id, "title", s.name);
