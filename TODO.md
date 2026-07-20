@@ -166,6 +166,21 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
        `come-si-gioca` migliorati (in "Bonus di competenza" le quattro righe
        tornano righe invece di una sola con i valori impilati; sei intestazioni
        fuse si separano), 10/10 su tutti e tre, `tsc` e `build` ok.
+       **Resta da fare** per pubblicarlo (oggi 7/10 al verificatore, il JSON
+       esiste in locale ma non è versionato e `pronto` è `false`):
+       - I **riquadri degli strumenti** ("Caratteristica: / Utilizzo: /
+         Creazione:", ~30 blocchi) escono come `griglia` scomposta — è da lì
+         che viene "conteniArma". Non sono tabelle: sono schede a coppie
+         etichetta/valore, e il parser non le modella. È il vero ostacolo, e
+         probabilmente un tipo di blocco nuovo (vicino a `def`, come per le
+         schede incantesimo del punto 3: conviene disegnarli insieme).
+       - Tre sillabazioni non ricucite a cavallo di un riquadro
+         ("com- Intelligenza", "can- Strumenti", "vin- Dadi"): il testo che
+         segue il trattino viene da un'altra colonna, quindi `accoda` incolla
+         la parola sbagliata. Va riconosciuto che il seguito non c'è.
+       - 6,6% di celle vuote, sopra la soglia bloccante del verificatore (5%):
+         verificare se si richiude da sé una volta sistemati i riquadri, che
+         oggi sporcano anche il conteggio.
     3. **Incantesimi** (pp. 118–201, il capitolo più lungo): serve un tipo di
        blocco nuovo, la **scheda incantesimo** (livello e scuola, tempo di
        lancio, gittata, componenti, durata) — oggi quelle righe finirebbero in
