@@ -97,6 +97,39 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
     Verificato: glossario 10/10 e **testo identico** al file versionato blocco
     per blocco (450 su 450), con in più una cella ricomposta meglio
     ("Grande (carro, tavolo da pranzo)", prima spezzata); `tsc` e `build` ok.
+  - [ ] **PROSSIMO PASSO — il blocco «scheda» (coppie etichetta/valore)**, che
+    sblocca due capitoli con un lavoro solo. Lo stesso ostacolo compare due
+    volte: i **riquadri degli strumenti** di Equipaggiamento
+    ("Caratteristica: / Utilizzo: / Creazione:", ~30 blocchi, l'unica cosa che
+    lo tiene a 7/10) e le **schede incantesimo** del punto 3 (livello e scuola,
+    tempo di lancio, gittata, componenti, durata) sono la stessa forma: un
+    titolo più una serie di coppie etichetta/valore. Farli separatamente vuol
+    dire progettare due volte il tipo di blocco, il rendering React e il CSS, e
+    poi tenerli allineati.
+    Ordine consigliato, e il primo passo NON è scrivere codice:
+    1. **Guardare come escono davvero** quei riquadri oggi. Il JSON sta in
+       locale non versionato (`src/lib/srd/capitoli/equipaggiamento.json`, si
+       rigenera con `node scripts/estrai-srd-regole.mjs IT_SRD_CC_v5.2.1.pdf
+       equipaggiamento`): cercare i blocchi `griglia`, che è dove finiscono
+       adesso. Far derivare la forma del blocco dai dati e non dalle proprie
+       aspettative è ciò che ha risparmiato l'errore sulle colonne — la
+       geometria sembrava dire una cosa e i dati ne dicevano un'altra.
+    2. Definire il tipo in `src/lib/srd/index.ts` accanto agli altri blocchi.
+       Vicino a `def`, che è già una coppia nome/valore; il valore resta un
+       array di span (`{s, i?, b?}`), **mai** HTML — le pagine lo rendono con
+       elementi React, e questo invariante non si tocca.
+    3. Riconoscerlo nell'estrattore, renderlo in `src/app/srd/`, e verificare
+       con `node scripts/verifica-srd-regole.mjs IT_SRD_CC_v5.2.1.pdf
+       equipaggiamento` (oggi 7/10).
+    4. **Rigenerare i tre capitoli già pubblicati e leggere il diff** prima di
+       committare. Il verificatore non vede la struttura: ha dato 10/10 a un
+       glossario con le colonne fuse (20 lug 2026). Non saltare questo passo.
+    Perché Equipaggiamento per primo: è corto, già estratto, e fa da banco di
+    prova a basso rischio: se il modello regge lì, si arriva a Incantesimi
+    (84 pagine, il capitolo dove sbagliare la forma dei dati costa di più) con
+    il blocco già collaudato. Da tenere separato: Incantesimi ha anche un
+    problema suo e indipendente (84 pagine in un JSON solo sono troppe per una
+    pagina, va spezzato per livello) — è un'altra decisione, non impastarla.
   - [ ] **I restanti sette capitoli**, uno alla volta. L'ordine non è quello del
     PDF ma quello del valore al tavolo incrociato con la difficoltà di
     estrazione — ogni capitolo si pubblica mettendo `pronto: true` nel registro
