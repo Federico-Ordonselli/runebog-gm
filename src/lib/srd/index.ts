@@ -19,6 +19,12 @@ export type Blocco =
   | { t: "def"; nome: string; testo: Span[] }
   | { t: "tabella"; titolo: string; colonne: string[]; righe: string[][] }
   | { t: "griglia"; righe: string[][] }
+  /* Un riquadro a coppie etichetta/valore: gli strumenti di Equipaggiamento
+     ("Caratteristica: / Utilizzo: / Creazione: / Peso:") e — stessa forma — le
+     schede degli incantesimi. Non è una tabella: le colonne sono un artefatto
+     dell'impaginato (la prima riga ne affianca due coppie), e leggerlo come
+     griglia rimescolava i valori a capo. */
+  | { t: "scheda"; voci: { nome: string; testo: Span[] }[] }
   | { t: "elenco"; voci: string[] }
   | { t: "punti"; voci: string[] };
 

@@ -108,6 +108,38 @@
 .srd-punti { margin: 0.75rem 0; padding-left: 1.1rem; }
 .srd-punti li { margin: 0.3rem 0; }
 
+/* ---------- Schede (coppie etichetta/valore) ---------- */
+
+/* Il riquadro di uno strumento, e domani la scheda di un incantesimo. Nel PDF è
+   un riquadro con due coppie affiancate sulla prima riga: qui è una colonna
+   sola, perché quell'affiancamento serviva a risparmiare carta e a schermo
+   costringerebbe a scorrere. */
+.srd-scheda {
+  margin: 0.75rem 0;
+  padding: 0.75rem 0 0.75rem 0.9rem;
+  border-left: 2px solid var(--edge);
+}
+/* minmax(0, …) su entrambe: un grid item nasce con min-width auto, quindi un
+   valore lungo senza spazi allargherebbe la griglia invece di andare a capo
+   (stessa trappola già pagata da .srd-corpo con le tabelle a sei colonne). */
+.srd-scheda__voce {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 0.75rem;
+}
+.srd-scheda__voce + .srd-scheda__voce { margin-top: 0.5rem; }
+.srd-scheda dt {
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.04em;
+  color: var(--parchment-dim);
+}
+.srd-scheda dd { margin: 0; }
+
+@media (min-width: 30rem) {
+  .srd-scheda__voce { grid-template-columns: minmax(0, 7rem) minmax(0, 1fr); }
+  .srd-scheda__voce + .srd-scheda__voce { margin-top: 0.35rem; }
+}
+
 /* ---------- Tabelle ---------- */
 
 .srd-tab { margin: 1.5rem 0; }

@@ -511,6 +511,51 @@ function grigliaDaFrammenti(frammenti, colonne) {
   return righe;
 }
 
+/* Riquadro a coppie etichetta/valore: gli strumenti di Equipaggiamento
+   ("Caratteristica: Intelligenza / Utilizzo: … / Creazione: … / Peso: 4 kg") e,
+   con altre etichette, le schede degli incantesimi.
+ *
+ * NON è una griglia, benché ne abbia l'aspetto: la prima riga affianca due
+ * coppie ("Caratteristica: X" a sinistra, "Peso: Y" a destra) e da lì il
+ * rilevatore di colonne deduceva due colonne, incolonnandoci poi anche le righe
+ * di continuazione — che sono prosa andata a capo, non celle. Il risultato erano
+ * valori scambiati fra le etichette ("Utilizzo:" con dentro la seconda metà di
+ * un'altra voce).
+ *
+ * Il riconoscimento non è geometrico ma tipografico, come tutto il resto qui:
+ * l'etichetta è nel font delle intestazioni di cella (GillSans-SemiBold 14) e
+ * finisce coi due punti, il valore è GillSans normale. Le ascisse non servono —
+ * le righe arrivano già in ordine di lettura, quindi ogni riga di valore
+ * appartiene all'ultima etichetta vista, anche a cavallo di un cambio colonna.
+ *
+ * Va riconosciuto PRIMA di grigliaLibera, che altrimenti se lo prende. */
+const ETICHETTA = /^[^\s:][^:]{0,30}:$/;
+
+function scheda(righe, k) {
+  if (righe[k].ruolo !== "intestazione-cella") return null;
+  if (!ETICHETTA.test(testoDi(righe[k].span).trim())) return null;
+
+  let fine = k;
+  while (fine < righe.length && (righe[fine].ruolo === "gill" || righe[fine].ruolo === "intestazione-cella")) fine++;
+
+  const voci = [];
+  for (const r of righe.slice(k, fine)) {
+    const testo = testoDi(r.span).trim();
+    if (r.ruolo === "intestazione-cella" && ETICHETTA.test(testo)) {
+      voci.push({ nome: testo.slice(0, -1), testo: [] });
+      continue;
+    }
+    accoda(voci[voci.length - 1].testo, r.span);
+  }
+
+  /* Una coppia sola non è un riquadro (e un'etichetta senza valore vuol dire
+     che quello che stiamo leggendo non è fatto così): meglio ricadere sulla
+     griglia, che almeno non inventa una forma. */
+  if (voci.length < 2 || voci.some(v => !testoDi(v.testo).trim())) return null;
+  for (const v of voci) v.testo = ripulisci(v.testo);
+  return { blocco: { t: "scheda", voci }, fine };
+}
+
 /* Elenco puntato: le voci aprono col pallino al margine, i capoversi sono
    rientrati. Va riconosciuto prima delle griglie, sennò il rientro dei
    capoversi passa per una seconda colonna. */
@@ -776,6 +821,8 @@ function blocchiDaRighe(righe) {
     }
 
     if (r.ruolo === "gill" || r.ruolo === "intestazione-cella") {
+      const sch = scheda(righe, k);
+      if (sch) { chiudi(); blocchi.push(sch.blocco); k = sch.fine - 1; continue; }
       const pt = puntato(righe, k);
       if (pt) { chiudi(); blocchi.push(pt.blocco); k = pt.fine - 1; continue; }
       const gr = grigliaLibera(righe, k);

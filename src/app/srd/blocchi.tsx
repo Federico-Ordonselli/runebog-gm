@@ -61,6 +61,20 @@ export function Blocchi({ blocchi }: { blocchi: Blocco[] }) {
             return <Tabella key={k} titolo={b.titolo} colonne={b.colonne} righe={b.righe} />;
           case "griglia":
             return <Tabella key={k} righe={b.righe} />;
+          /* Il riquadro di uno strumento è una lista di descrizioni, non una
+             tabella: le sue due colonne nel PDF sono impaginazione, e su un
+             telefono devono poter diventare una sola senza scorrimento. */
+          case "scheda":
+            return (
+              <dl key={k} className="srd-scheda">
+                {b.voci.map((v, n) => (
+                  <div key={n} className="srd-scheda__voce">
+                    <dt>{v.nome}</dt>
+                    <dd><Testo span={v.testo} /></dd>
+                  </div>
+                ))}
+              </dl>
+            );
           case "elenco":
             return (
               <ul key={k} className="srd-elenco">

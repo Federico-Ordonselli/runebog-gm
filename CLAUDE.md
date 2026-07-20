@@ -157,6 +157,16 @@ ed elenchi. Trappole già pagate:
 - Le legature (ﬁ, ﬂ, ﬃ) si sciolgono **in uscita**, non all'estrazione: durante
   il parsing sono il segnale che distingue una parola spezzata da due frasi
   accostate. Per lo stesso motivo `slug` normalizza in **NFKD** e non NFD.
+- **Non tutto ciò che sembra una tabella lo è.** I riquadri a coppie
+  etichetta/valore (gli strumenti di Equipaggiamento, e domani le schede
+  incantesimo) affiancano due coppie sulla prima riga per risparmiare carta:
+  il rilevatore di colonne ci leggeva due colonne e ci incolonnava anche le
+  righe di continuazione, che sono prosa andata a capo. Escono come blocco
+  `scheda`, riconosciuto **prima** di `grigliaLibera` e non per geometria ma
+  per font: etichetta = intestazione di cella (GillSans-SemiBold 14) coi due
+  punti finali, valore = GillSans normale. Le ascisse non servono, perché le
+  righe arrivano già in ordine di lettura — così il riquadro si ricompone anche
+  quando prosegue nella colonna successiva.
 - **Le colonne di una tabella le dichiarano le intestazioni, non le celle**, e si
   raggruppano per *sovrapposizione* degli intervalli, non per ascissa: i titoli
   sono pochi, spesso centrati e spezzati su più righe (che così si ricompongono),

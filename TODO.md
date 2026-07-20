@@ -97,39 +97,32 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
     Verificato: glossario 10/10 e **testo identico** al file versionato blocco
     per blocco (450 su 450), con in più una cella ricomposta meglio
     ("Grande (carro, tavolo da pranzo)", prima spezzata); `tsc` e `build` ok.
-  - [ ] **PROSSIMO PASSO — il blocco «scheda» (coppie etichetta/valore)**, che
-    sblocca due capitoli con un lavoro solo. Lo stesso ostacolo compare due
-    volte: i **riquadri degli strumenti** di Equipaggiamento
-    ("Caratteristica: / Utilizzo: / Creazione:", ~30 blocchi, l'unica cosa che
-    lo tiene a 7/10) e le **schede incantesimo** del punto 3 (livello e scuola,
-    tempo di lancio, gittata, componenti, durata) sono la stessa forma: un
-    titolo più una serie di coppie etichetta/valore. Farli separatamente vuol
-    dire progettare due volte il tipo di blocco, il rendering React e il CSS, e
-    poi tenerli allineati.
-    Ordine consigliato, e il primo passo NON è scrivere codice:
-    1. **Guardare come escono davvero** quei riquadri oggi. Il JSON sta in
-       locale non versionato (`src/lib/srd/capitoli/equipaggiamento.json`, si
-       rigenera con `node scripts/estrai-srd-regole.mjs IT_SRD_CC_v5.2.1.pdf
-       equipaggiamento`): cercare i blocchi `griglia`, che è dove finiscono
-       adesso. Far derivare la forma del blocco dai dati e non dalle proprie
-       aspettative è ciò che ha risparmiato l'errore sulle colonne — la
-       geometria sembrava dire una cosa e i dati ne dicevano un'altra.
-    2. Definire il tipo in `src/lib/srd/index.ts` accanto agli altri blocchi.
-       Vicino a `def`, che è già una coppia nome/valore; il valore resta un
-       array di span (`{s, i?, b?}`), **mai** HTML — le pagine lo rendono con
-       elementi React, e questo invariante non si tocca.
-    3. Riconoscerlo nell'estrattore, renderlo in `src/app/srd/`, e verificare
-       con `node scripts/verifica-srd-regole.mjs IT_SRD_CC_v5.2.1.pdf
-       equipaggiamento` (oggi 7/10).
-    4. **Rigenerare i tre capitoli già pubblicati e leggere il diff** prima di
-       committare. Il verificatore non vede la struttura: ha dato 10/10 a un
-       glossario con le colonne fuse (20 lug 2026). Non saltare questo passo.
-    Perché Equipaggiamento per primo: è corto, già estratto, e fa da banco di
-    prova a basso rischio: se il modello regge lì, si arriva a Incantesimi
-    (84 pagine, il capitolo dove sbagliare la forma dei dati costa di più) con
-    il blocco già collaudato. Da tenere separato: Incantesimi ha anche un
-    problema suo e indipendente (84 pagine in un JSON solo sono troppe per una
-    pagina, va spezzato per livello) — è un'altra decisione, non impastarla.
+  - [x] **Il blocco «scheda» (coppie etichetta/valore)** — fatto (20 lug 2026),
+    ed è la stessa forma che servirà alle schede incantesimo, quindi il tipo,
+    il rendering React e il CSS sono già in casa quando toccherà a Incantesimi.
+    Guardare i dati prima di scrivere codice ha di nuovo pagato: i ~25 riquadri
+    degli strumenti non erano schede *da modellare*, erano schede **già
+    rovinate**. Il rilevatore di tabelle vedeva due coppie affiancate sulla
+    prima riga ("Caratteristica: X" a x=470, "Peso: Y" a x=686), dichiarava due
+    colonne e ci incolonnava anche le righe di continuazione — che sono prosa
+    andata a capo, non celle: i valori uscivano scambiati fra le etichette.
+    Un tipo nuovo a valle non avrebbe recuperato niente; il blocco va
+    riconosciuto **prima** di `grigliaLibera`.
+    Il riconoscimento non è geometrico ma tipografico, come tutto il resto qui:
+    etichetta = font delle intestazioni di cella (GillSans-SemiBold 14) e due
+    punti finali, valore = GillSans normale. Le ascisse non servono: le righe
+    arrivano già in ordine di lettura, quindi ogni riga di valore appartiene
+    all'ultima etichetta vista — anche a cavallo di un cambio di colonna, che
+    prima spezzava in due il riquadro dei "Strumenti da soffiatore".
+    Reso come `<dl>` (è letteralmente una lista di descrizioni), a due colonne
+    sopra i 30rem e impilato sotto: l'affiancamento del PDF risparmiava carta,
+    a schermo costringerebbe a scorrere. `Peso` resta al secondo posto, dov'è
+    nel PDF.
+    Verificato: 25 riquadri su 25 corretti e identici al PDF (`pdftotext
+    -layout`), equipaggiamento da 7/10 a **9/10**, i tre capitoli pubblicati
+    rigenerati e **byte-identici** (è il controllo che il verificatore non sa
+    fare), 390px e 1200px in Chromium senza scorrimento orizzontale né PUA né
+    legature, console pulita, `tsc` ok.
   - [ ] **I restanti sette capitoli**, uno alla volta. L'ordine non è quello del
     PDF ma quello del valore al tavolo incrociato con la difficoltà di
     estrazione — ogni capitolo si pubblica mettendo `pronto: true` nel registro
@@ -199,27 +192,34 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
        `come-si-gioca` migliorati (in "Bonus di competenza" le quattro righe
        tornano righe invece di una sola con i valori impilati; sei intestazioni
        fuse si separano), 10/10 su tutti e tre, `tsc` e `build` ok.
-       **Resta da fare** per pubblicarlo (oggi 7/10 al verificatore, il JSON
-       esiste in locale ma non è versionato e `pronto` è `false`):
-       - I **riquadri degli strumenti** ("Caratteristica: / Utilizzo: /
-         Creazione:", ~30 blocchi) escono come `griglia` scomposta — è da lì
-         che viene "conteniArma". Non sono tabelle: sono schede a coppie
-         etichetta/valore, e il parser non le modella. È il vero ostacolo, e
-         probabilmente un tipo di blocco nuovo (vicino a `def`, come per le
-         schede incantesimo del punto 3: conviene disegnarli insieme).
-       - Tre sillabazioni non ricucite a cavallo di un riquadro
-         ("com- Intelligenza", "can- Strumenti", "vin- Dadi"): il testo che
-         segue il trattino viene da un'altra colonna, quindi `accoda` incolla
-         la parola sbagliata. Va riconosciuto che il seguito non c'è.
-       - 6,6% di celle vuote, sopra la soglia bloccante del verificatore (5%):
-         verificare se si richiude da sé una volta sistemati i riquadri, che
-         oggi sporcano anche il conteggio.
-    3. **Incantesimi** (pp. 118–201, il capitolo più lungo): serve un tipo di
-       blocco nuovo, la **scheda incantesimo** (livello e scuola, tempo di
-       lancio, gittata, componenti, durata) — oggi quelle righe finirebbero in
-       prosa indistinta. Da modellare come `def`, che è già una coppia
-       nome/valore. Attenzione: 84 pagine in un JSON solo sono troppe da
-       caricare in una pagina — probabilmente va spezzato per livello.
+       **Resta da fare** per pubblicarlo (oggi **9/10** al verificatore, il JSON
+       esiste in locale ma non è versionato e `pronto` è `false`). I riquadri
+       degli strumenti sono risolti dal blocco `scheda` qui sopra — con loro
+       sono sparite anche le tre sillabazioni incollate male a cavallo di
+       colonna ("com- Intelligenza", "can- Strumenti", "vin- Dadi"), che erano
+       un sintomo dello stesso guasto. Resta **un ostacolo solo**, ed è
+       l'ultimo controllo rosso:
+       - **7,6% di celle vuote** (50 su 657), sopra la soglia bloccante del 5%.
+         Non è sparso: viene da sei tabelle fitte e larghe — Armi, Armature,
+         Munizioni, Cavalcature e altri animali, Finimenti e veicoli da tiro,
+         Vitto e alloggio. Le prime due lasciano ancora quattro blocchi
+         `griglia` scomposti nel JSON (cercare `t: "griglia"`: l'elenco delle
+         armi esce con nomi e danni in colonne sfalsate), quindi lì la struttura
+         è proprio sbagliata, non solo lacunosa.
+         È la domanda già scritta al punto 2 e ancora aperta: se il ritaglio
+         delle celle fuse non regge su queste, la strada è leggere le ascisse
+         **per parola**, che `pdftohtml -xml` non dà — si passa a
+         `pdftotext -bbox-layout`. Prima di riscrivere, però, guardare i quattro
+         `griglia` rimasti: due volte su due l'ipotesi geometrica era sbagliata
+         e i dati dicevano altro.
+    3. **Incantesimi** (pp. 118–201, il capitolo più lungo): la **scheda
+       incantesimo** (livello e scuola, tempo di lancio, gittata, componenti,
+       durata) ha la stessa forma dei riquadri degli strumenti, quindi il
+       blocco `scheda` c'è già — da verificare è se anche lì le etichette
+       finiscono coi due punti nel font delle intestazioni di cella, che è
+       l'unico segnale su cui il riconoscitore si regge. Attenzione: 84 pagine
+       in un JSON solo sono troppe da caricare in una pagina — probabilmente va
+       spezzato per livello, ed è una decisione indipendente.
     4. **Oggetti magici** (pp. 232–288): come sopra (sintonia, rarità, tipo).
        Da sapere: `estrai-srd-mostri.mjs` **scarta** il font Cambria, perché lì
        è la prosa di questo capitolo che sporca le schede mostro; in
