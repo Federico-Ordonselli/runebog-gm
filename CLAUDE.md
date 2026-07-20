@@ -167,6 +167,26 @@ ed elenchi. Trappole già pagate:
   punti finali, valore = GillSans normale. Le ascisse non servono, perché le
   righe arrivano già in ordine di lettura — così il riquadro si ricompone anche
   quando prosegue nella colonna successiva.
+- **I valori numerici sono allineati a destra**, quindi un frammento comincia
+  prima della colonna che l'intestazione dichiara ("17,5 kg" a x=319 sotto un
+  "Peso" a 330). `indiceColonna` riceve anche la larghezza e lo sposta alla
+  colonna dopo quando comincia *più vicino* al suo inizio che a quello della
+  colonna in cui cadrebbe. Regole più larghe sono state provate e scartate: "il
+  centro è già oltre" sposta ogni etichetta più larga di mezza colonna, e
+  pretendere che il frammento non sfondi la colonna dopo blocca proprio le
+  celle fuse che devono spostarsi ("32,5 kg 1.500 mo").
+- **Una tabella che cambia pagina è ancora la stessa tabella**: il PDF ne ripete
+  l'intestazione senza la didascalia, e quel blocco fermava la raccolta delle
+  celle. Si riconosce dalle stesse intestazioni, ma vale **solo a pagina nuova**
+  (le stesse intestazioni si ripetono anche in una tabella corta impaginata a
+  metà per colonna, che non è una coda) e la coda va **traslata**: può
+  ricominciare in un'altra colonna di pagina, e lo scarto lo dà la posizione
+  delle intestazioni ripetute.
+- **Le righe di sezione dentro una tabella** ("Armatura leggera (1 minuto per
+  indossare o togliere)") si riconoscono dal **corsivo**, non dalla geometria:
+  "sola sulla riga" le confonde con le celle davvero fuse, che invece vanno
+  divise. Il verificatore non le conta fra le celle mancanti — erano 46 su 52 in
+  Equipaggiamento e nascondevano i buchi veri.
 - **Le colonne di una tabella le dichiarano le intestazioni, non le celle**, e si
   raggruppano per *sovrapposizione* degli intervalli, non per ascissa: i titoli
   sono pochi, spesso centrati e spezzati su più righe (che così si ricompongono),
@@ -174,14 +194,19 @@ ed elenchi. Trappole già pagate:
   ascissa in più diventava una colonna in più ("0,5" e "kg" in due colonne).
   Le celle servono solo a **raffinare** un gruppo, quando il PDF fonde due titoli
   in un frammento solo ("CA Materiale" sopra i numeri E i materiali). Il confine
-  si adotta a due condizioni, e servono entrambe: sotto il gruppo devono esserci
+  si adotta a tre condizioni, e servono tutte: sotto il gruppo devono esserci
   **almeno due** colonne di celle (una sola vuol dire che il gruppo è già una
   colonna con le celle spostate — "Distanza degli incontri" a x=335 coi suoi dati
   a x=359), e il titolo deve avere **uno spazio dove spezzarsi** ("CA Materiale"
   sì, "Peso" no). La geometria da sola non basta: "Peso" sopra "0,5"/"kg" e "CA
   Materiale" sopra "11"/"Stoffa" sono indistinguibili, e a decidere è il titolo.
-  La cella si assegna col bordo sinistro e il titolo col proprio centro, che i
-  dati sono allineati a sinistra e i titoli no. Le righe d'intestazione si raccolgono fino
+  Terza condizione, se il gruppo è coperto da **un solo** frammento: ogni pezzo
+  che ne esce deve poter essere un titolo, cioè cominciare per maiuscola o cifra
+  ("Capacità di trasporto" no — lasciava una colonna vuota e una intitolata "di
+  trasporto"). Solo col frammento unico: quando i titoli sono più d'uno le
+  sottocolonne sono dichiarate, e sopra ci passa un raggruppamento che le
+  scavalca ("Distanza percorsa ogni…" sopra Minuto e Ora).
+  Il titolo si assegna col proprio centro, che i titoli sono centrati e i dati no. Le righe d'intestazione si raccolgono fino
   all'ultima che contiene *almeno un* frammento nel font delle intestazioni, e
   poi fino in fondo alla sua riga visiva: in "Terreno di viaggio" metà dei titoli
   è in GillSans normale come i dati.

@@ -166,11 +166,52 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
        né legature né sillabazioni a schermo, attribuzione CC-BY, tabelle
        coerenti, nessuno scorrimento orizzontale a 390px, console pulita),
        `tsc` e `build` ok.
-    2. **Equipaggiamento** (pp. 101–117): tabelle lunghe e fitte, molte a più di
-       tre colonne. Qui si vedrà se il ritaglio delle celle fuse regge o se
-       serve leggere le ascisse per parola (`pdftohtml -xml` non le dà: in tal
-       caso la strada è `pdftotext -bbox-layout`).
-       Non pubblicato, ma il lavoro fatto lì ha **rovesciato la regola delle
+    2. [x] **Equipaggiamento** (pp. 101–117) — pubblicato (20 lug 2026), 10/10
+       al verificatore. Le tabelle fitte hanno retto senza passare a
+       `pdftotext -bbox-layout`: la geometria per parola non serviva, servivano
+       tre regole in più, tutte trovate guardando i dati e non ipotizzandole.
+       - **I valori numerici sono allineati a destra**, quindi cominciano prima
+         della colonna che l'intestazione dichiara ("17,5 kg" a x=319 sotto un
+         "Peso" dichiarato a 330). Assegnati al bordo sinistro finivano nella
+         colonna precedente, dove il taglio delle celle fuse li spezzava:
+         "Ariete portatile 17,5" e un "kg" solo nel peso. Ventidue righe in
+         sette tabelle, **nessuna visibile al verificatore**. Ora `indiceColonna`
+         riceve anche la larghezza e sposta il frammento se comincia più vicino
+         all'inizio della colonna dopo che a quello in cui cadrebbe.
+       - **Le code di tabella**: il PDF spezza le tabelle lunghe a fine pagina e
+         ripete l'intestazione senza la didascalia. Si riconoscono dalle stesse
+         intestazioni, e valgono solo a pagina nuova (a metà per colonna la
+         ripetizione c'è ma non è una coda). La coda può ricominciare in
+         un'altra colonna di pagina: la traslazione delle intestazioni ripetute
+         è lo scarto da togliere alle celle.
+       - **Le righe di sezione** dentro una tabella ("Armatura leggera (1 minuto
+         per indossare o togliere)") si riconoscono dal **corsivo**, non dalla
+         geometria: "sola sulla riga" le confonde con le celle davvero fuse
+         ("Contundente Oggetti contundenti…"), che invece vanno divise.
+       Il verificatore non conta più le righe di sezione fra le celle mancanti:
+       in Equipaggiamento erano 46 su 52 e nascondevano i buchi veri dietro una
+       percentuale che non si poteva far scendere. La condizione è stretta
+       (tutte le celle dopo la prima vuote) e una riga piena a metà continua a
+       contare — è quella che ha fatto trovare la colonna fantasma di
+       "Cavalcature e altri animali" ("Capacità di trasporto" spezzato in due).
+       **Debito noto, 4 righe su ~660 celle**, accettate consapevolmente al
+       momento di pubblicare:
+       - `Armi` / Martello da guerra: "1d8 contundenti Versatile (1d10)" resta
+         fuso in Danni e Proprietà è vuota (la cella fusa non viene divisa).
+       - `Armature` / Armatura a piastre: Peso "32,5 kg 1.500" e Costo "mo" —
+         `tagliaAllAscissa` stima il confine una parola più in là.
+       - `Vitto e alloggio`, 2 righe: è una tabella Oggetto|Costo ripetuta due
+         volte affiancata, e le due coppie si confondono.
+       Verificato: 25 riquadri su 25 identici al PDF, tabella Armi completa
+       (44 righe, comprese le armi a distanza da guerra che prima mancavano),
+       8/8 in Chromium fra i quattro capitoli a 1200px e 390px (158 ancore
+       univoche, nessuno scorrimento orizzontale, niente PUA né legature né
+       sillabazioni, attribuzione CC-BY, console pulita), `tsc` e `build` ok.
+       Storia utile a chi tocca l'estrattore: tre formulazioni di
+       `indiceColonna` sono state provate e scartate **leggendo il diff dei
+       capitoli pubblicati**, non ragionando. Il verificatore ha dato 10/10 a
+       ognuna.
+       Il lavoro fatto qui aveva già **rovesciato la regola delle
        colonne** (20 lug 2026): le detta l'intestazione, raggruppata per
        sovrapposizione degli intervalli e non per ascissa, perché le ascisse
        delle celle sono sparse (numeri allineati a destra) e ognuna diventava
@@ -192,26 +233,11 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
        `come-si-gioca` migliorati (in "Bonus di competenza" le quattro righe
        tornano righe invece di una sola con i valori impilati; sei intestazioni
        fuse si separano), 10/10 su tutti e tre, `tsc` e `build` ok.
-       **Resta da fare** per pubblicarlo (oggi **9/10** al verificatore, il JSON
-       esiste in locale ma non è versionato e `pronto` è `false`). I riquadri
-       degli strumenti sono risolti dal blocco `scheda` qui sopra — con loro
-       sono sparite anche le tre sillabazioni incollate male a cavallo di
-       colonna ("com- Intelligenza", "can- Strumenti", "vin- Dadi"), che erano
-       un sintomo dello stesso guasto. Resta **un ostacolo solo**, ed è
-       l'ultimo controllo rosso:
-       - **7,6% di celle vuote** (50 su 657), sopra la soglia bloccante del 5%.
-         Non è sparso: viene da sei tabelle fitte e larghe — Armi, Armature,
-         Munizioni, Cavalcature e altri animali, Finimenti e veicoli da tiro,
-         Vitto e alloggio. Le prime due lasciano ancora quattro blocchi
-         `griglia` scomposti nel JSON (cercare `t: "griglia"`: l'elenco delle
-         armi esce con nomi e danni in colonne sfalsate), quindi lì la struttura
-         è proprio sbagliata, non solo lacunosa.
-         È la domanda già scritta al punto 2 e ancora aperta: se il ritaglio
-         delle celle fuse non regge su queste, la strada è leggere le ascisse
-         **per parola**, che `pdftohtml -xml` non dà — si passa a
-         `pdftotext -bbox-layout`. Prima di riscrivere, però, guardare i quattro
-         `griglia` rimasti: due volte su due l'ipotesi geometrica era sbagliata
-         e i dati dicevano altro.
+       Il seguito di questo lavoro è nel punto 2 qui sopra, che nel frattempo è
+       stato chiuso: i riquadri degli strumenti sono risolti dal blocco `scheda`,
+       e con loro sono sparite le tre sillabazioni incollate male a cavallo di
+       colonna ("com- Intelligenza", "can- Strumenti", "vin- Dadi"), che erano un
+       sintomo dello stesso guasto.
     3. **Incantesimi** (pp. 118–201, il capitolo più lungo): la **scheda
        incantesimo** (livello e scuola, tempo di lancio, gittata, componenti,
        durata) ha la stessa forma dei riquadri degli strumenti, quindi il
