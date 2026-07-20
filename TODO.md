@@ -144,6 +144,28 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
        tre colonne. Qui si vedrà se il ritaglio delle celle fuse regge o se
        serve leggere le ascisse per parola (`pdftohtml -xml` non le dà: in tal
        caso la strada è `pdftotext -bbox-layout`).
+       Non pubblicato, ma il lavoro fatto lì ha **rovesciato la regola delle
+       colonne** (20 lug 2026): le detta l'intestazione, raggruppata per
+       sovrapposizione degli intervalli e non per ascissa, perché le ascisse
+       delle celle sono sparse (numeri allineati a destra) e ognuna diventava
+       una colonna — sotto "Peso" i valori "0,5" e "kg" finivano in due colonne
+       e `tagliaAllAscissa`, nato per dividere le celle fuse, tagliava celle
+       sane. Le celle ora servono solo a **raffinare** un gruppo quando il PDF
+       fonde due titoli in un frammento ("CA Materiale"), a due condizioni che
+       servono entrambe: almeno due colonne di celle sotto il gruppo, e uno
+       spazio nel titolo dove spezzarlo. La geometria da sola non distingue
+       "Peso" sopra "0,5"/"kg" da "CA Materiale" sopra "11"/"Stoffa": decide il
+       titolo.
+       Lezione sul metodo: la prima stesura passava **10/10 al verificatore
+       mentre fondeva le colonne del glossario già pubblicato** ("11 Stoffa,
+       carta, corda" in una cella). Il verificatore non vede la struttura delle
+       tabelle — il testo c'è tutto e le righe restano rettangolari. L'unico
+       controllo che coglie questa classe di guasti è rigenerare i capitoli
+       pubblicati e leggere il diff, ed è ora scritto in CLAUDE.md.
+       Verificato: `strumenti-di-gioco` identico al pubblicato, glossario e
+       `come-si-gioca` migliorati (in "Bonus di competenza" le quattro righe
+       tornano righe invece di una sola con i valori impilati; sei intestazioni
+       fuse si separano), 10/10 su tutti e tre, `tsc` e `build` ok.
     3. **Incantesimi** (pp. 118–201, il capitolo più lungo): serve un tipo di
        blocco nuovo, la **scheda incantesimo** (livello e scuola, tempo di
        lancio, gittata, componenti, durata) — oggi quelle righe finirebbero in

@@ -1701,8 +1701,8 @@
    "t": "tabella",
    "titolo": "Prove di Influenza",
    "colonne": [
-    "Prova di caratteristica Interazione",
-    ""
+    "Prova di caratteristica",
+    "Interazione"
    ],
    "righe": [
     [
@@ -2947,10 +2947,10 @@
    "t": "tabella",
    "titolo": "Classe Armatura degli oggetti",
    "colonne": [
-    "",
-    "CA Materiale",
-    "",
-    "CA Materiale"
+    "CA",
+    "Materiale",
+    "CA",
+    "Materiale"
    ],
    "righe": [
     [

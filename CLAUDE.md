@@ -122,6 +122,11 @@ pubblica solo dopo `node scripts/verifica-srd-regole.mjs <PDF> <id-capitolo>`,
 che lo confronta con `pdftotext` — i difetti di questo parser non si vedono a
 occhio: una lettera persa lascia una parola plausibile e un titolo mancato
 lascia prosa in grassetto.
+La verifica però **non vede la struttura delle tabelle**: un capitolo con le
+colonne fuse ("11 Stoffa, carta, corda" in una cella sola) passa 10/10, perché
+il testo c'è tutto e le righe restano rettangolari. Quindi ogni volta che si
+tocca l'estrattore vanno **rigenerati anche i capitoli già pubblicati** e
+letto il diff: è l'unico controllo che coglie questa classe di guasti.
 `src/lib/srd/index.ts` tiene il tipo del documento e il registro `CAPITOLI`, dove
 il flag `pronto` dice se il JSON esiste: la sezione cresce un capitolo alla volta,
 l'indice elenca anche quelli mancanti e `generateStaticParams` pubblica solo i
@@ -152,10 +157,21 @@ ed elenchi. Trappole già pagate:
 - Le legature (ﬁ, ﬂ, ﬃ) si sciolgono **in uscita**, non all'estrazione: durante
   il parsing sono il segnale che distingue una parola spezzata da due frasi
   accostate. Per lo stesso motivo `slug` normalizza in **NFKD** e non NFD.
-- **Le colonne di una tabella le dettano le celle, non le intestazioni**: i dati
-  sono molte righe allineate a sinistra, un'intestazione è una riga o due e
-  spesso centrata. Per la stessa ragione la cella si assegna col bordo sinistro
-  e il titolo col proprio centro. Le righe d'intestazione si raccolgono fino
+- **Le colonne di una tabella le dichiarano le intestazioni, non le celle**, e si
+  raggruppano per *sovrapposizione* degli intervalli, non per ascissa: i titoli
+  sono pochi, spesso centrati e spezzati su più righe (che così si ricompongono),
+  mentre le celle hanno ascisse sparse — i numeri sono allineati a destra, e ogni
+  ascissa in più diventava una colonna in più ("0,5" e "kg" in due colonne).
+  Le celle servono solo a **raffinare** un gruppo, quando il PDF fonde due titoli
+  in un frammento solo ("CA Materiale" sopra i numeri E i materiali). Il confine
+  si adotta a due condizioni, e servono entrambe: sotto il gruppo devono esserci
+  **almeno due** colonne di celle (una sola vuol dire che il gruppo è già una
+  colonna con le celle spostate — "Distanza degli incontri" a x=335 coi suoi dati
+  a x=359), e il titolo deve avere **uno spazio dove spezzarsi** ("CA Materiale"
+  sì, "Peso" no). La geometria da sola non basta: "Peso" sopra "0,5"/"kg" e "CA
+  Materiale" sopra "11"/"Stoffa" sono indistinguibili, e a decidere è il titolo.
+  La cella si assegna col bordo sinistro e il titolo col proprio centro, che i
+  dati sono allineati a sinistra e i titoli no. Le righe d'intestazione si raccolgono fino
   all'ultima che contiene *almeno un* frammento nel font delle intestazioni, e
   poi fino in fondo alla sua riga visiva: in "Terreno di viaggio" metà dei titoli
   è in GillSans normale come i dati.

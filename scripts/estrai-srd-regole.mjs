@@ -347,6 +347,76 @@ const slug = t => t.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "")
 const TOLLERANZA_X = 10;      // px entro cui due ascisse sono la stessa colonna
 const TOLLERANZA_Y = 6;       // px entro cui due frammenti stanno sulla stessa riga
 
+/* Raggruppa i frammenti per SOVRAPPOSIZIONE orizzontale invece che per ascissa,
+   e restituisce l'inizio di ogni colonna.
+ *
+ * Raggruppare per ascissa presume che le celle siano allineate a sinistra, il
+ * che in questo PDF è falso in due modi opposti: i valori numerici sono
+ * allineati a destra ("2 kg" comincia a x=335 e "0,5 kg" a x=324, e ognuno si
+ * prendeva una colonna), mentre le intestazioni sono centrate e spezzate su più
+ * righe ("CD del" / "tiro" / "salvezza" a x=380, 391, 377). La sovrapposizione
+ * non presume niente: quei tre titoli si coprono a vicenda e fanno una colonna
+ * sola, mentre "Oggetto" / "Peso" / "Costo" non si toccano e restano tre.
+ *
+ * Serve alle intestazioni, che sono poche e affidabili: dedurre le colonne dalle
+ * celle creava confini spuri, e allora tagliaAllAscissa() — nato per dividere le
+ * celle che il PDF fonde — tagliava celle sane, da cui "0,5" e "kg" in due
+ * colonne diverse. */
+function colonneDaIntervalli(frammenti) {
+  const intervalli = frammenti
+    .map(f => [f.left, f.left + f.larg])
+    .sort((a, b) => a[0] - b[0]);
+  const gruppi = [];
+  for (const [x1, x2] of intervalli) {
+    const ult = gruppi[gruppi.length - 1];
+    if (ult && x1 <= ult[1]) ult[1] = Math.max(ult[1], x2);   // si toccano: stessa colonna
+    else gruppi.push([x1, x2]);
+  }
+  return gruppi;
+}
+
+/* Le intestazioni dicono la struttura, ma il PDF a volte ne fonde due in un
+   frammento solo ("CA Materiale" sta sopra i numeri E i materiali, ed è una
+   colonna dove le celle ne mostrano due). Le celle rivelano il confine, e qui
+   sono l'unica prova disponibile — ma non ogni ascissa in più è una colonna:
+   sotto "Peso" i valori "0,5" e "kg" ne producono due e sono un dato solo.
+   A distinguere i due casi, che hanno la STESSA geometria, è l'intestazione:
+   si adotta il confine solo se il titolo si lascia tagliare lì, cioè se ha uno
+   spazio dove spezzarsi ("CA Materiale" sì, "Peso" no). */
+function raffinaConCelle(gruppi, titolari, celle) {
+  const daCelle = colonneDaAscisse(celle);
+  const colonne = [];
+  for (const [x1, x2] of gruppi) {
+    colonne.push(x1);
+
+    /* Si CONTANO le colonne di celle sotto il gruppo, comprese quelle allineate
+       al suo inizio: una sola vuol dire che il gruppo è già una colonna, con le
+       celle spostate rispetto al titolo ("Distanza degli incontri" sta a 335 e
+       i suoi "6d6 × 3 metri" a 359, e cercare confini interni lo spaccava in
+       due). Da due in su il titolo sovrasta davvero più colonne. */
+    const sotto = daCelle.filter(x => x > x1 - TOLLERANZA_X && x < x2 - TOLLERANZA_X);
+    if (sotto.length < 2) continue;
+    const dentro = sotto.slice(1);
+
+    /* Il titolo da spezzare è il frammento che copre tutto il gruppo — o quello
+       fuso ("CA Materiale"), o quello a cavallo delle sottocolonne ("Distanza
+       percorsa ogni..." sopra Minuto/Ora, che fondeva le due in una). Se non
+       c'è, il gruppo è un'intestazione impilata su più righe e si lascia stare. */
+    const r = titolari.find(r =>
+      r.left <= x1 + TOLLERANZA_X && r.left + r.larg >= x2 - TOLLERANZA_X);
+    if (!r) continue;
+
+    let resto = testoDi(r.span).trim(), x = r.left, larg = r.larg, tagliato = true;
+    for (const c of dentro) {
+      const div = tagliaAllAscissa(resto, x, larg, c);
+      if (!div) { tagliato = false; break; }
+      [resto, larg, x] = [div[1], x + larg - c, c];
+    }
+    if (tagliato) colonne.push(...dentro);
+  }
+  return colonne.sort((a, b) => a - b);
+}
+
 /* Agglomera le ascisse dei frammenti nelle colonne che stanno sotto. */
 function colonneDaAscisse(frammenti) {
   const col = [];
@@ -549,30 +619,51 @@ function tabella(righe, k) {
   while (i < righe.length && righe[i].ruolo === "gill") { celle.push(righe[i]); i++; }
   if (!celle.length) return null;
 
-  /* Le colonne le dettano le CELLE, non le intestazioni: le celle dati sono
-     molte righe allineate a sinistra, mentre un'intestazione è una riga o due
-     e spesso è centrata sulla colonna. "CD del / tiro / salvezza" sta su tre
-     righe a x=380, 391, 377 — abbastanza sparse da inventare due colonne che
-     nei dati non esistono, lasciando "CD del salvezza" e "tiro" come titoli
-     separati e una manciata di celle vuote sotto. */
-  let colonne = colonneDaAscisse(celle);
-  if (colonne.length < 2) colonne = colonneDaAscisse(intest);
-
   /* Le intestazioni di raggruppamento ("—— Difficoltà del combattimento ——",
      che sovrasta Facile/Media/Difficile) non sono colonne: coprono più colonne
-     e il PDF le marca coi trattini di riempimento. Senza scartarle finivano
-     incollate al titolo della colonna su cui cade il loro centro. La gerarchia
-     va persa: il formato ha una riga sola di intestazioni. */
+     e il PDF le marca coi trattini di riempimento. Vanno tolte PRIMA di dedurre
+     la struttura, non solo prima di assegnare i titoli: una sola di queste si
+     sovrappone a tutte le colonne che sovrasta e le fonde in una — "Budget di
+     PE" collassava in due colonne con dieci livelli in una cella. */
   const raggruppamento = r => /^[—–]|[—–]$/.test(testoDi(r.span).trim());
+  const titolari = intest.filter(r => !raggruppamento(r));
+
+  /* Le colonne le dettano le INTESTAZIONI, raggruppate per sovrapposizione:
+     sono poche, e una tabella dichiara lì la sua struttura. Le celle no —
+     numeri allineati a destra e testi rientrati producono ascisse sparse, e
+     ogni ascissa in più è una colonna in più. */
+  const gruppi = colonneDaIntervalli(titolari);
+  let colonne = gruppi.length < 2
+    ? colonneDaAscisse(celle)
+    : raffinaConCelle(gruppi, titolari, celle);
+
 
   const titoli = colonne.map(() => "");
-  for (const r of [...intest].filter(r => !raggruppamento(r)).sort((a, b) => a.top - b.top || a.left - b.left)) {
+  for (const r of [...titolari].sort((a, b) => a.top - b.top || a.left - b.left)) {
     /* L'intestazione si assegna col suo CENTRO, la cella col suo bordo sinistro:
        i dati sono allineati a sinistra, i titoli spesso centrati sulla colonna,
        e "CD del" (x=380) inizia a sinistra della colonna dei numeri (x=391) pur
        appartenendole — col bordo finiva nella colonna degli esempi. */
+    const testo = testoDi(r.span).trim();
+
+    /* Un'intestazione che si estende su più colonne è un frammento fuso dal PDF
+       ("Peso Costo"): si taglia alle ascisse delle colonne che attraversa,
+       arrotondando allo spazio più vicino, invece di finire tutta nella prima. */
+    const da = indiceColonna(colonne, r.left + 1);
+    const a = indiceColonna(colonne, r.left + r.larg - 1);
+    if (a > da) {
+      let resto = testo, x = r.left, larg = r.larg, tagliato = true;
+      for (let n = da; n < a && tagliato; n++) {
+        const div = tagliaAllAscissa(resto, x, larg, colonne[n + 1]);
+        if (!div) { tagliato = false; break; }
+        titoli[n] = (titoli[n] ? titoli[n] + " " : "") + div[0];
+        [resto, larg, x] = [div[1], x + larg - colonne[n + 1], colonne[n + 1]];
+      }
+      if (tagliato) { titoli[a] = (titoli[a] ? titoli[a] + " " : "") + resto; continue; }
+    }
+
     const idx = indiceColonna(colonne, r.left + r.larg / 2);   // su più righe: si concatena
-    titoli[idx] = (titoli[idx] ? titoli[idx] + " " : "") + testoDi(r.span).trim();
+    titoli[idx] = (titoli[idx] ? titoli[idx] + " " : "") + testo;
   }
 
   /* A volte il PDF emette le intestazioni di tutte le colonne come un unico
@@ -599,6 +690,30 @@ function tabella(righe, k) {
   }
 
   const griglia = grigliaDaFrammenti(celle, colonne);
+
+  /* I confini di troppo si richiudono guardando il RISULTATO, non la geometria:
+     il raffinamento qui sopra apre un confine ogni volta che un valore più largo
+     comincia più a sinistra ("1.000" e "Variabile" contro "25 mo"), e inseguire
+     ogni allineamento del PDF è una battaglia persa.
+     Il criterio è: due colonne adiacenti che quasi mai sono piene nella stessa
+     riga non sono due colonne. Se lo fossero, le righe le userebbero entrambe —
+     sono invece un'unica colonna i cui valori, allineati a destra, cadono ora di
+     qua ora di là del confine. "Quasi" e non "mai": su quaranta righe ne basta
+     una storta per bloccare la fusione, e allora la colonna resta spaccata.
+     Si richiede che almeno una delle due non abbia titolo: due colonne che il
+     PDF dichiara restano distinte anche se qui non capita che coesistano. */
+  const SOGLIA_COESISTENZA = 0.05;
+  for (let n = titoli.length - 2; n >= 0; n--) {
+    if (titoli[n].trim() && titoli[n + 1].trim()) continue;
+    const insieme = griglia.filter(r => r[n]?.trim() && r[n + 1]?.trim()).length;
+    if (insieme > griglia.length * SOGLIA_COESISTENZA) continue;
+    for (const r of griglia) {
+      r[n] = [r[n]?.trim(), r[n + 1]?.trim()].filter(Boolean).join(" ");
+      r.splice(n + 1, 1);
+    }
+    titoli[n] = titoli[n].trim() || titoli[n + 1].trim();
+    titoli.splice(n + 1, 1);
+  }
 
   /* Le note a piè di tabella (le legende di * e †) non sono dati: stanno sotto
      l'ultima riga e riempiono una cella o due su sei, quindi restare nella
