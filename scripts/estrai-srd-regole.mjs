@@ -453,10 +453,17 @@ function tagliaAllAscissa(testo, left, larg, x) {
    una cella lunga va a capo restando nella sua colonna. */
 function grigliaDaFrammenti(frammenti, colonne) {
   const perRiga = [];
-  for (const f of [...frammenti].sort((a, b) => a.top - b.top || a.left - b.left)) {
+  /* La PAGINA viene prima del top: una tabella che prosegue nella pagina dopo
+     ha celle il cui top ricomincia da capo, e ordinando per solo top la coda
+     risalirebbe in mezzo alle prime righe. È l'unica chiave aggiunta di
+     proposito: ordinare anche per fascia e colonna sarebbe più "giusto" in
+     astratto, ma riordina griglie che oggi escono bene e ne ha rotta una
+     (il budget di PE dei livelli 11-20, che finiva in prosa). */
+  const ordinati = [...frammenti].sort((a, b) => a.pag - b.pag || a.top - b.top || a.left - b.left);
+  for (const f of ordinati) {
     const ult = perRiga[perRiga.length - 1];
-    if (ult && Math.abs(ult.top - f.top) <= TOLLERANZA_Y) ult.celle.push(f);
-    else perRiga.push({ top: f.top, celle: [f] });
+    if (ult && ult.pag === f.pag && Math.abs(ult.top - f.top) <= TOLLERANZA_Y) ult.celle.push(f);
+    else perRiga.push({ top: f.top, pag: f.pag, celle: [f] });
   }
 
   const righe = [];
@@ -660,8 +667,50 @@ function tabella(righe, k) {
   const intest = [];
   while (i <= ultima) { intest.push(righe[i]); i++; }
 
+  /* Una tabella lunga prosegue nella pagina successiva, e lì il PDF RIPETE la
+     riga di intestazione senza ripetere la didascalia. Quel blocco di
+     intestazioni interrompeva la raccolta delle celle: la coda della tabella
+     (in "Armi" tutti gli spadoni e le armi a distanza da guerra) usciva come
+     griglia a sé, con le colonne ridedotte da capo su un campione più povero.
+     Si riconosce perché ripete le STESSE intestazioni — non è una tabella
+     nuova, è la stessa che continua — e si salta, riprendendo a raccogliere
+     celle con la geometria già dichiarata dalla didascalia. */
+  const firma = r => r.map(x => testoDi(x.span).trim().toLowerCase()).filter(Boolean).sort().join("|");
+  const miaFirma = firma(intest);
+
   const celle = [];
-  while (i < righe.length && righe[i].ruolo === "gill") { celle.push(righe[i]); i++; }
+  let scarto = 0;      // traslazione della coda rispetto alle colonne dichiarate
+  for (;;) {
+    while (i < righe.length && righe[i].ruolo === "gill") {
+      const r = righe[i++];
+      celle.push(scarto ? { ...r, left: r.left - scarto } : r);
+    }
+    let j = i;
+    const ripetute = [];
+    while (j < righe.length && righe[j].ruolo === "intestazione-cella") ripetute.push(righe[j++]);
+    if (!ripetute.length || firma(ripetute) !== miaFirma) break;
+    if (j >= righe.length || righe[j].ruolo !== "gill") break;   // intestazioni senza celle: non è una coda
+    /* Solo a PAGINA NUOVA. Le stesse intestazioni si ripetono anche quando una
+       tabella corta è impaginata a metà per colonna ("Esempi di tiri salvezza":
+       Forza/Destrezza/Costituzione a sinistra, Intelligenza/Saggezza/Carisma a
+       destra), e quella non è una coda: è la stessa griglia affiancata, con le
+       sue ascisse tutte spostate a destra. Unirla come continuazione allargava
+       la tabella a quattro colonne e impilava tre righe in una. Restano come
+       oggi (tabella + griglia sotto), che è già leggibile — unirle davvero è un
+       lavoro a sé, annotato nel TODO. */
+    if (ripetute[0].pag === celle[celle.length - 1].pag) break;
+
+    /* La coda può ricominciare in un'ALTRA colonna di pagina: "Budget di PE"
+       sta nella colonna destra di p. 229 e riprende nella sinistra di p. 230,
+       coi livelli 11-20 a ~350px più a sinistra. Con le ascisse di prima
+       finivano tutti nella prima colonna, ogni riga restava piena per un quarto
+       e lo spoglio delle note a piè di tabella se le portava via una per una,
+       come paragrafi. Le intestazioni ripetute sono la stessa riga di prima:
+       la loro traslazione è lo scarto da togliere alle celle che seguono. */
+    const sin = r => Math.min(...r.map(x => x.left));
+    scarto = sin(ripetute) - sin(intest);
+    i = j;
+  }
   if (!celle.length) return null;
 
   /* Le intestazioni di raggruppamento ("—— Difficoltà del combattimento ——",
