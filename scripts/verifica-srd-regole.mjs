@@ -95,11 +95,23 @@ controlla(storte.length === 0, "tabelle rettangolari",
    male — tipicamente una tabella a piena pagina, che attraversa la separazione
    fra le due colonne di testo e il parser spezza a metà. Sopra il 5% blocca,
    così un capitolo con una tabella rotta non si pubblica per distrazione. */
-const totCelle = tabelle.reduce((n, t) => n + t.righe.flat().length, 0);
-const vuote = tabelle.flatMap((t) => t.righe.flat()).filter((c) => !c.trim()).length;
+/* Le righe di SEZIONE non sono buchi: dentro molte tabelle il PDF intercala
+   un'etichetta a tutta larghezza ("Armi da mischia semplici", "Armatura
+   leggera (1 minuto per indossare o togliere)") che per costruzione riempie
+   solo la prima cella. Contarle come celle mancanti misurava la tabella
+   sbagliata: in Equipaggiamento erano 46 su 52, e nascondevano i 6 buchi veri
+   dietro una percentuale che non si poteva far scendere.
+   La condizione è stretta apposta — TUTTE le celle dopo la prima vuote — e non
+   scusa nulla di ciò per cui il controllo esiste: una riga in cui alcune
+   colonne sono piene e altre no continua a contare, ed è quella che ha fatto
+   trovare la colonna fantasma di "Cavalcature e altri animali". */
+const sezione = (r) => r[0]?.trim() && r.slice(1).every((c) => !c.trim());
+const celleDati = (t) => t.righe.filter((r) => !sezione(r)).flat();
+const totCelle = tabelle.reduce((n, t) => n + celleDati(t).length, 0);
+const vuote = tabelle.flatMap(celleDati).filter((c) => !c.trim()).length;
 const quota = totCelle ? vuote / totCelle : 0;
 const rotte = tabelle
-  .filter((t) => t.righe.flat().filter((c) => !c.trim()).length > t.righe.flat().length * 0.05)
+  .filter((t) => celleDati(t).filter((c) => !c.trim()).length > celleDati(t).length * 0.05)
   .map((t) => t.titolo);
 (quota > 0.05 ? controlla : avvisa)(vuote === 0, "nessuna cella vuota",
   vuote ? `${vuote} celle vuote su ${totCelle} (${(quota * 100).toFixed(1)}%)`

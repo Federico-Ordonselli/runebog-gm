@@ -407,11 +407,32 @@ function raffinaConCelle(gruppi, titolari, celle) {
     if (!r) continue;
 
     let resto = testoDi(r.span).trim(), x = r.left, larg = r.larg, tagliato = true;
+    const pezzi = [];
     for (const c of dentro) {
       const div = tagliaAllAscissa(resto, x, larg, c);
       if (!div) { tagliato = false; break; }
+      pezzi.push(div[0]);
       [resto, larg, x] = [div[1], x + larg - c, c];
     }
+    pezzi.push(resto);
+
+    /* Terza condizione, e nasce dove le prime due non bastano: se il gruppo è
+       coperto da UN SOLO frammento, ogni pezzo che ne esce deve poter essere un
+       titolo di colonna, cioè cominciare per maiuscola o per cifra.
+       "Capacità di trasporto" sopra "225 kg" ha la stessa geometria di
+       "CA Materiale" sopra "11 Stoffa" — un titolo con uno spazio e due colonne
+       di celle sotto — e passava, lasciando una colonna "Capacità" sempre vuota
+       e una intitolata "di trasporto". Nessun titolo di questo PDF comincia per
+       preposizione: è il testo a dire che quel gruppo è un blocco solo.
+       Il vincolo del frammento unico non è cosmetico: quando i frammenti sono
+       più d'uno le sottocolonne sono DICHIARATE da titoli veri, e sopra ci passa
+       un titolo di raggruppamento che li scavalca ("Distanza percorsa ogni…"
+       sopra Minuto e Ora). Lì la concatenazione delle due righe produce pezzi
+       che cominciano in minuscola ("ogni… Ora") ma le colonne sono giuste, e
+       rifiutare il taglio fondeva 120 m e 6 km in una cella sola. */
+    const soli = titolari.filter(t =>
+      t.left < x2 - TOLLERANZA_X && t.left + t.larg > x1 + TOLLERANZA_X).length === 1;
+    if (tagliato && soli && !pezzi.every(p => /^[A-ZÀ-Ý0-9]/.test(p.trim()))) tagliato = false;
     if (tagliato) colonne.push(...dentro);
   }
   return colonne.sort((a, b) => a - b);
@@ -425,10 +446,29 @@ function colonneDaAscisse(frammenti) {
   return col;
 }
 
-const indiceColonna = (colonne, x) => {
+/* La colonna di un frammento la dice il suo bordo sinistro, che i dati sono
+   allineati a sinistra. Tranne i valori numerici, che sono allineati a DESTRA e
+   perciò cominciano un po' prima della colonna dichiarata dall'intestazione:
+   "17,5 kg" sta a 319 sotto un "Peso" dichiarato a 330, e cadeva nella colonna
+   dell'oggetto — dove poi il taglio delle celle fuse lo spezzava, lasciando
+   "Ariete portatile 17,5" e un "kg" solo nella colonna del peso.
+   Passando anche la larghezza il caso si chiude senza costanti nuove: il
+   frammento passa alla colonna dopo se comincia PIÙ VICINO al suo inizio che a
+   quello della colonna in cui cadrebbe, e se non la sfonda. "17,5 kg" comincia
+   a 11px dal "Peso" dichiarato a 330 e a 218px dall'oggetto: è del peso. Le
+   celle di prima colonna cominciano invece esattamente al loro margine, quindi
+   non si muovono — regola più stretta di "il centro è già oltre", che spostava
+   ogni etichetta più larga di mezza colonna ("Caratteristica", "Contundente").
+   Vale anche per una cella FUSA che comincia allineata a destra: "32,5 kg
+   1.500 mo" è un frammento solo che copre peso e costo, e chiedergli in più di
+   non sfondare la colonna dopo lo bloccava proprio nel caso in cui deve
+   spostarsi. Spostato, il taglio delle celle fuse lo divide al confine giusto. */
+const indiceColonna = (colonne, x, larg) => {
   let idx = 0;
   for (let n = 0; n < colonne.length; n++) if (x >= colonne[n] - TOLLERANZA_X) idx = n;
-  return idx;
+  if (larg === undefined) return idx;
+  const dopo = colonne[idx + 1];
+  return dopo !== undefined && Math.abs(x - dopo) < Math.abs(x - colonne[idx]) ? idx + 1 : idx;
 };
 
 /* Taglia un testo largo `larg` px, che inizia a `left`, all'ascissa `x`.
@@ -470,12 +510,22 @@ function grigliaDaFrammenti(frammenti, colonne) {
   for (const { celle } of perRiga) {
     const riga = colonne.map(() => "");
     for (const c of celle) {
-      const i = indiceColonna(colonne, c.left);
+      const i = indiceColonna(colonne, c.left, c.larg);
       const testo = testoDi(c.span).trim();
       /* Cella che sconfina nella colonna dopo mentre quella colonna, su questa
-         riga, non ha frammenti suoi: è una cella fusa dal PDF, si divide. */
-      const seguente = colonne[i + 1];
-      const occupata = seguente !== undefined && celle.some(a => a !== c && indiceColonna(colonne, a.left) === i + 1);
+         riga, non ha frammenti suoi: è una cella fusa dal PDF, si divide.
+         Non però se è una riga di SEZIONE, la cui etichetta corre per tutta la
+         larghezza della tabella ("Armatura leggera (1 minuto per indossare o
+         togliere)"): tagliarla al confine della colonna seguente la spezzava a
+         metà, con la coda in una colonna che vuol dire un'altra cosa.
+         Il segnale è il corsivo, non la geometria: nel PDF le righe di sezione
+         sono in corsivo e al margine della tabella, i dati in tondo e rientrati.
+         "Sola sulla riga" non basta a distinguerle — lo sono anche le celle
+         davvero fuse ("Contundente Oggetti contundenti, stritolamento, caduta",
+         "17 Pietra"), che invece vanno divise. */
+      const sezione = celle.length === 1 && c.span.length && c.span.every(s => s.i);
+      const seguente = sezione ? undefined : colonne[i + 1];
+      const occupata = seguente !== undefined && celle.some(a => a !== c && indiceColonna(colonne, a.left, a.larg) === i + 1);
       const diviso = seguente !== undefined && !occupata && c.left + c.larg > seguente + TOLLERANZA_X
         ? tagliaAllAscissa(testo, c.left, c.larg, seguente)
         : null;
