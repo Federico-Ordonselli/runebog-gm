@@ -238,14 +238,68 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
        e con loro sono sparite le tre sillabazioni incollate male a cavallo di
        colonna ("com- Intelligenza", "can- Strumenti", "vin- Dadi"), che erano un
        sintomo dello stesso guasto.
-    3. **Incantesimi** (pp. 118–201, il capitolo più lungo): la **scheda
-       incantesimo** (livello e scuola, tempo di lancio, gittata, componenti,
-       durata) ha la stessa forma dei riquadri degli strumenti, quindi il
-       blocco `scheda` c'è già — da verificare è se anche lì le etichette
-       finiscono coi due punti nel font delle intestazioni di cella, che è
-       l'unico segnale su cui il riconoscitore si regge. Attenzione: 84 pagine
-       in un JSON solo sono troppe da caricare in una pagina — probabilmente va
-       spezzato per livello, ed è una decisione indipendente.
+    3. [x] **Incantesimi** (pp. 118–201, il capitolo più lungo) — pubblicato
+       (20 lug 2026), 9/10 al verificatore. Le due previsioni erano giuste: il
+       blocco `scheda` ha riconosciuto 338 schede incantesimo **senza una riga
+       di codice nuova** (le etichette finiscono davvero coi due punti nel font
+       delle intestazioni), e le 84 pagine vanno spezzate. Non il JSON però: è
+       importato lato server e al browser non arriva mai, quindi a pesare è
+       l'HTML — si spezzano le pagine e la sorgente resta una.
+       `/srd/incantesimi` elenca i 339 incantesimi per livello (l'elenco
+       **prima** delle regole di lancio: chi apre la pagina cerca un
+       incantesimo) e `/srd/incantesimi/[livello]` ne dà le descrizioni. Ogni
+       pagina di livello sta sotto i 244 KB di HTML, meno del glossario già
+       pubblicato (328 KB); tutte insieme sarebbero state 1,4 MB.
+       Tre difetti dell'estrattore, tutti trovati guardando i dati:
+       - **97 definizioni su 109 si chiamavano `riore`.** «Usando uno slot di
+         livello supe-» / «riore.» — il nome di una definizione può stare a
+         cavallo di due righe, e `forseDefinizione` pretendeva il punto finale
+         sulla prima. Faceva due lavori: spezzare i paragrafi ed estrarre il
+         nome. Ora sono separati (`apreDefinizione` insegue il grassetto in
+         avanti, `chiudi` promuove il paragrafo quando il grassetto è completo).
+         Ha corretto anche il glossario già pubblicato, dove due
+         sotto-definizioni si chiamavano `attacchi`.
+       - **Le tabelle senza didascalia**: nelle descrizioni degli incantesimi la
+         tabella la annuncia la prosa, e la struttura la dichiara la sola riga
+         d'intestazione. `grigliaLibera` le riduceva a coppie chiave/valore
+         rimescolate. Guadagno inatteso sui capitoli già pubblicati: in
+         Equipaggiamento una tabella aveva perso **tutte** le colonne Peso e
+         Costo (celle vuote), e il soffio del drago in Strumenti di gioco aveva
+         i valori impilati fuori posto.
+       - **Gli attacchi di cella in grassetto** («1 | *Rosso.* Tiro salvezza
+         fallito…») sono nello stesso font dei titoli di colonna: venivano presi
+         per intestazioni e «Strati prismatici» usciva a brandelli, con testo
+         perso e duplicato (`fulTiro`). Li distingue il **punto finale**.
+       Lezione sul metodo, di nuovo: la prima formulazione («l'intestazione
+       finisce dove la riga non si apre nel font dei titoli») dava 9/10 su
+       Incantesimi **mentre distruggeva «Terreno di viaggio»**, la tabella a sei
+       colonne più difficile del repo — e il verificatore le dava 10/10. Solo il
+       diff dei capitoli pubblicati l'ha vista.
+       Verificato: i quattro capitoli già pubblicati rigenerati, tutti 10/10 e
+       ogni differenza un miglioramento (nessuna regressione); 21/22 in Chromium
+       (339 incantesimi elencati, 42 al 3º livello, ancore univoche, scheda di
+       palla di fuoco completa, nessun PUA né legatura né sillabazione a
+       schermo, attribuzione CC-BY, nessuno scorrimento orizzontale a 1200px e
+       390px, console pulita — il 22º è il 404 che provoca il test stesso);
+       `tsc` e `build` ok, 10 rotte di livello prerese.
+       **Debito noto**, accettato consapevolmente al momento di pubblicare:
+       - **La prima frase del capitolo non è nel PDF.** Pagina 118 è una tavola
+         illustrata: `pdffonts` dice zero font, `pdfimages` una sola immagine a
+         piena pagina. Il capitolo comincia a metà frase («…regole di lancio
+         degli incantesimi, oppure può essere lanciato come rituale»), e non c'è
+         niente da estrarre — non è un difetto del parser.
+       - **Cinque griglie restano imperfette** su 1698 blocchi: le quattro
+         schede delle creature evocate (Oggetto animato, Insetto gigante,
+         Spirito draconico, Cavalcatura ultraterrena), dove la griglia dei
+         punteggi di caratteristica esce a pezzi (`es ag`, `C os`), e la tabella
+         di Scrutare, dove i modificatori (allineati a destra) finiscono in
+         fondo invece che nelle celle. Il testo c'è tutto, è la struttura a
+         mancare. Le schede di creatura sono un blocco a sé che
+         `estrai-srd-mostri.mjs` sa già leggere: se e quando diventano
+         fastidiose, la ricetta è lì.
+       - Tre sillabazioni sospese («modi- ficatore») nei due riquadri delle
+         formule e in un riquadro di prosa, dove le due metà finiscono in celle
+         diverse.
     4. **Oggetti magici** (pp. 232–288): come sopra (sintonia, rarità, tipo).
        Da sapere: `estrai-srd-mostri.mjs` **scarta** il font Cambria, perché lì
        è la prosa di questo capitolo che sporca le schede mostro; in

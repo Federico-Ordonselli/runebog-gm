@@ -45,7 +45,7 @@ export const CAPITOLI: { id: string; titolo: string; sommario: string; pronto: b
   { id: "origini-dei-personaggi", titolo: "Origini dei personaggi", sommario: "Background e specie giocabili.", pronto: false },
   { id: "talenti", titolo: "Talenti", sommario: "Talenti di origine, generali, stile di combattimento e dono epico.", pronto: false },
   { id: "equipaggiamento", titolo: "Equipaggiamento", sommario: "Armi, armature, oggetti d'avventura, servizi e stile di vita.", pronto: true },
-  { id: "incantesimi", titolo: "Incantesimi", sommario: "Lanciare gli incantesimi e le descrizioni complete, dai trucchetti al 9º livello.", pronto: false },
+  { id: "incantesimi", titolo: "Incantesimi", sommario: "Lanciare gli incantesimi e le descrizioni complete, dai trucchetti al 9º livello.", pronto: true },
   { id: "glossario-delle-regole", titolo: "Glossario delle regole", sommario: "Ogni termine di regola in ordine alfabetico: condizioni, azioni, aree di effetto, pericoli.", pronto: true },
   { id: "strumenti-di-gioco", titolo: "Strumenti di gioco", sommario: "Trappole, malattie, veleni, follia e gli altri arnesi del GM.", pronto: true },
   { id: "oggetti-magici", titolo: "Oggetti magici", sommario: "Attivazione, sintonia, oggetti maledetti e il catalogo completo.", pronto: false },
@@ -61,6 +61,54 @@ export const ATTRIBUZIONE_SRD =
   'disponibile all’indirizzo https://creativecommons.org/licenses/by/4.0/legalcode.';
 
 export const capitoloPronto = (id: string) => CAPITOLI.some((c) => c.id === id && c.pronto);
+
+/* --- Incantesimi: un capitolo, dieci pagine ------------------------------- */
+
+/* Incantesimi è 84 pagine di PDF: servito intero sarebbero 600 KB di testo e un
+   indice laterale da 364 voci per chi cerca "dardo incantato". Il JSON invece
+   resta UNO — è importato lato server e al browser non arriva mai, quindi a
+   pesare è l'HTML reso, non il file. Si spezzano le pagine, non la sorgente. */
+
+export const LIVELLI = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+export const slugLivello = (n: number) => (n === 0 ? "trucchetti" : `livello-${n}`);
+export const titoloLivello = (n: number) =>
+  n === 0 ? "Trucchetti" : `Incantesimi di ${n}º livello`;
+export const livelloDaSlug = (s: string) =>
+  LIVELLI.find((n) => slugLivello(n) === s) ?? null;
+
+export type Incantesimo = { nome: string; id: string; livello: number; blocchi: Blocco[] };
+
+/* Il livello lo dichiara la riga in corsivo sotto il nome ("Invocazione di 3º
+   livello (mago, stregone)", oppure "Trucchetto di invocazione (…)"): è anche
+   il solo segnale che distingue un incantesimo da un sottotitolo qualsiasi —
+   nel capitolo ci sono 355 h4 e 339 incantesimi. */
+function livelloDichiarato(b: Blocco | undefined): number | null {
+  if (!b || b.t !== "p" || !b.testo[0]?.i) return null;
+  const testo = b.testo.map((s) => s.s).join("");
+  const m = /\b(\d)º livello/.exec(testo);
+  if (m) return +m[1];
+  return /^\s*Trucchetto\b/i.test(testo) ? 0 : null;
+}
+
+/* Divide il capitolo in una parte introduttiva (le regole di lancio, che
+   restano sull'indice) e i singoli incantesimi. Un incantesimo comincia a un
+   h4 col livello dichiarato sotto e arriva fino al successivo: i titoli
+   interni — le schede delle creature evocate, "Oggetto animato" sotto animare
+   oggetti — sono h3 e restano dentro, dove il PDF li mette. */
+export function dividiIncantesimi(doc: Capitolo) {
+  const intro: Blocco[] = [];
+  const incantesimi: Incantesimo[] = [];
+  for (let i = 0; i < doc.blocchi.length; i++) {
+    const b = doc.blocchi[i];
+    const livello = b.t === "h4" ? livelloDichiarato(doc.blocchi[i + 1]) : null;
+    if (livello !== null && b.t === "h4") {
+      incantesimi.push({ nome: b.testo, id: b.id, livello, blocchi: [b] });
+    } else if (incantesimi.length) incantesimi[incantesimi.length - 1].blocchi.push(b);
+    else intro.push(b);
+  }
+  return { intro, incantesimi };
+}
 
 /** Carica un capitolo generato. L'import dinamico tiene fuori dal bundle di una
  *  pagina i JSON degli altri capitoli: il solo glossario pesa 75 KB di testo. */

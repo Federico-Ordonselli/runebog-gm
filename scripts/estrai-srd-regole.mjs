@@ -322,6 +322,13 @@ function forseDefinizione(span) {
   for (; k < span.length && span[k].b; k++) nome += span[k].s;
   const m = /^(.{2,70}?\.)\s*/.exec(nome);
   if (!m) return null;
+  /* Un grassetto che apre in minuscola non è un nome: è la CODA di un nome
+     spezzato a fine riga ("Usando uno slot di livello supe-" / "riore."), e
+     prenderlo per una definizione nuova apriva 97 blocchi intitolati "riore".
+     Restituendo null la riga si accoda al paragrafo precedente e il nome si
+     ricompone: a promuoverlo a definizione ci pensa `chiudi`, che vede la
+     corsa di grassetto intera. */
+  if (!/^[\p{Lu}0-9«"]/u.test(m[1])) return null;
   const consumato = m[0].length;
   let resto = [];
   let visti = 0;
@@ -334,6 +341,29 @@ function forseDefinizione(span) {
     if (testo) resto.push({ s: testo, ...(s.i ? { i: 1 } : {}) });
   }
   return { t: "def", nome: m[1].replace(/\.$/, ""), testo: ripulisci(resto) };
+}
+
+/* Dice se la riga `k` APRE una definizione, che è il solo segnale affidabile di
+   paragrafo nuovo insieme al salto verticale. Non basta guardare la riga: il
+   nome può stare a cavallo di due righe ("Usando uno slot di livello supe-" /
+   "riore."), e pretendendo il punto finale sulla prima si perdeva la rottura —
+   in Incantesimi succede a 97 paragrafi su 158, perché quel nome è lungo.
+   Quindi la corsa di grassetto si insegue in avanti finché apre le righe, e il
+   punto che chiude il nome si cerca lì dentro. Il grassetto che CONTINUA dalla
+   riga sopra non apre niente: è la coda di un nome spezzato. */
+function apreDefinizione(righe, k) {
+  const r = righe[k], prec = righe[k - 1];
+  if (!r.span.length || !r.span[0].b) return false;
+  if (prec && prec.span.length && prec.span[prec.span.length - 1].b) return false;
+  let nome = "";
+  for (let n = k; n < righe.length && nome.length < 70; n++) {
+    const sp = righe[n].span;
+    if (!sp.length || !sp[0].b) break;
+    for (let j = 0; j < sp.length && sp[j].b; j++) nome += sp[j].s;
+    if (sp.some(s => !s.b)) break;          // il grassetto finisce qui: non prosegue
+    nome = nome.replace(/[a-zàèéìòù]-$/, "");   // sillabazione a fine riga
+  }
+  return /^.{2,70}?\./s.test(nome);
 }
 
 /* NFKD e non NFD: la scomposizione *compatibile* scioglie anche le legature del
@@ -691,7 +721,13 @@ function grigliaLibera(righe, k) {
    intestazioni, non quelle delle celle: una cella può essere rientrata. */
 function tabella(righe, k) {
   const cap = righe[k];
-  if (cap.ruolo !== "didascalia") return null;
+  /* Dentro le descrizioni degli incantesimi le tabelle non hanno didascalia: la
+     prosa le annuncia ("consultando la tabella sottostante") e la struttura la
+     dichiara la sola riga di intestazione. Sono tabelle a tutti gli effetti —
+     lasciarle a grigliaLibera le riduceva a coppie chiave/valore e ne
+     rimescolava le celle, perdendo e duplicando testo. */
+  const senzaDidascalia = cap.ruolo === "intestazione-cella";
+  if (cap.ruolo !== "didascalia" && !senzaDidascalia) return null;
   /* Le righe di intestazione si raccolgono guardando FIN DOVE arrivano, invece
      di fermarsi al primo font inatteso: in "Terreno di viaggio" solo "Terreno" e
      "Passo massimo" sono nel font delle intestazioni, mentre "Distanza degli
@@ -699,10 +735,20 @@ function tabella(righe, k) {
      ferma all'ultima riga che contiene *almeno un* frammento d'intestazione:
      tutto ciò che sta fra la didascalia e quella riga è intestazione anche se
      il PDF non lo dice col font. */
+  /* …ma il font da solo non basta: in "Strati prismatici" le celle si aprono
+     con un attacco in grassetto nello STESSO font dei titoli ("1 | Rosso.
+     Tiro salvezza fallito…"), e prendendolo per intestazione la tabella
+     usciva a brandelli — tre colonne inventate, il testo rimescolato.
+     Il discriminante è il PUNTO FINALE, la stessa convenzione con cui il
+     documento apre le definizioni in mezzo alla prosa (vedi forseDefinizione):
+     un titolo di colonna non finisce col punto, un attacco di cella sì.
+     Il confronto esclude i puntini di sospensione, che invece un titolo può
+     avere ("L'incantatore conosce il bersaglio in maniera..." in Scrutare). */
+  const attaccoDiCella = r => /[^.]\.$/.test(testoDi(r.span).trim());
   let ultima = -1;
-  for (let j = k + 1; j < righe.length && righe[j].pag === cap.pag
+  for (let j = senzaDidascalia ? k : k + 1; j < righe.length && righe[j].pag === cap.pag
        && righe[j].top - cap.top <= 80; j++)
-    if (righe[j].ruolo === "intestazione-cella") ultima = j;
+    if (righe[j].ruolo === "intestazione-cella" && !attaccoDiCella(righe[j])) ultima = j;
   if (ultima < 0) return null;
 
   /* …e poi fino in fondo alla sua riga VISIVA: i frammenti sono già ordinati per
@@ -713,9 +759,20 @@ function tabella(righe, k) {
   while (ultima + 1 < righe.length && righe[ultima + 1].pag === righe[ultima].pag
     && Math.abs(righe[ultima + 1].top - righe[ultima].top) <= TOLLERANZA_Y) ultima++;
 
-  let i = k + 1;
+  let i = senzaDidascalia ? k : k + 1;
   const intest = [];
   while (i <= ultima) { intest.push(righe[i]); i++; }
+
+  /* Senza didascalia il font delle intestazioni è l'unico segnale, e da solo
+     non distingue una tabella da una griglia chiave/valore (la scheda di una
+     creatura evocata: "CA | 15", "PF | 10…", una chiave in grassetto PER OGNI
+     riga). Il discriminante è che una tabella intitola le colonne UNA volta
+     sola: se il grassetto ricompare più in basso, non è un'intestazione ma una
+     colonna di chiavi, e la si lascia a grigliaLibera com'era. */
+  if (senzaDidascalia) {
+    if (intest.some(r => Math.abs(r.top - intest[0].top) > TOLLERANZA_Y)) return null;
+    if (righe[i]?.ruolo !== "gill") return null;
+  }
 
   /* Una tabella lunga prosegue nella pagina successiva, e lì il PDF RIPETE la
      riga di intestazione senza ripetere la didascalia. Quel blocco di
@@ -728,18 +785,24 @@ function tabella(righe, k) {
   const firma = r => r.map(x => testoDi(x.span).trim().toLowerCase()).filter(Boolean).sort().join("|");
   const miaFirma = firma(intest);
 
+  /* Un attacco di cella in grassetto ("Rosso.") è una CELLA, non la fine della
+     tabella: fermandosi lì "Strati prismatici" si chiudeva dopo una riga e i
+     sei strati restanti finivano in una griglia a parte, rimescolati. */
+  const eCella = r => r.ruolo === "gill" || (r.ruolo === "intestazione-cella" && attaccoDiCella(r));
+
   const celle = [];
   let scarto = 0;      // traslazione della coda rispetto alle colonne dichiarate
   for (;;) {
-    while (i < righe.length && righe[i].ruolo === "gill") {
+    while (i < righe.length && eCella(righe[i])) {
       const r = righe[i++];
       celle.push(scarto ? { ...r, left: r.left - scarto } : r);
     }
     let j = i;
     const ripetute = [];
-    while (j < righe.length && righe[j].ruolo === "intestazione-cella") ripetute.push(righe[j++]);
+    while (j < righe.length && righe[j].ruolo === "intestazione-cella"
+      && !attaccoDiCella(righe[j])) ripetute.push(righe[j++]);
     if (!ripetute.length || firma(ripetute) !== miaFirma) break;
-    if (j >= righe.length || righe[j].ruolo !== "gill") break;   // intestazioni senza celle: non è una coda
+    if (j >= righe.length || !eCella(righe[j])) break;   // intestazioni senza celle: non è una coda
     /* Solo a PAGINA NUOVA. Le stesse intestazioni si ripetono anche quando una
        tabella corta è impaginata a metà per colonna ("Esempi di tiri salvezza":
        Forza/Destrezza/Costituzione a sinistra, Intelligenza/Saggezza/Carisma a
@@ -777,8 +840,16 @@ function tabella(righe, k) {
      numeri allineati a destra e testi rientrati producono ascisse sparse, e
      ogni ascissa in più è una colonna in più. */
   const gruppi = colonneDaIntervalli(titolari);
+  /* Quando il PDF fonde TUTTE le intestazioni in un frammento solo ("Ordine
+     Effetti") non resta che dedurre le colonne dalle celle — ma non più di
+     quante il titolo possa dichiararne: si spezza sugli spazi, quindi due
+     parole fanno al massimo due colonne. Senza questo tetto le ascisse
+     frastagliate delle celle a capo ne inventavano cinque, e in "Strati
+     prismatici" ogni riga di testo finiva in una colonna diversa. È la stessa
+     regola di raffinaConCelle — il titolo deve avere dove spezzarsi — applicata
+     al caso in cui il titolo è uno solo. */
   let colonne = gruppi.length < 2
-    ? colonneDaAscisse(celle)
+    ? colonneDaAscisse(celle).slice(0, testoDi(titolari[0].span).trim().split(/\s+/).length)
     : raffinaConCelle(gruppi, titolari, celle);
 
 
@@ -878,7 +949,9 @@ function tabella(righe, k) {
 
   return {
     blocchi: [
-      { t: "tabella", titolo: testoDi(cap.span).trim(), colonne: titoli, righe: griglia },
+      /* Senza didascalia il titolo è vuoto: `cap` è la riga di intestazione,
+         e prenderlo per titolo ripeteva la prima colonna sopra la tabella. */
+      { t: "tabella", titolo: senzaDidascalia ? "" : testoDi(cap.span).trim(), colonne: titoli, righe: griglia },
       ...note.map(n => ({ t: "p", testo: [{ s: n }] })),
     ],
     fine: i,
@@ -891,8 +964,11 @@ function blocchiDaRighe(righe) {
 
   const chiudi = () => {
     if (!corrente) return;
-    if (corrente.t === "p") corrente.testo = ripulisci(corrente.testo);
-    else corrente.testo = ripulisci(corrente.testo);
+    corrente.testo = ripulisci(corrente.testo);
+    /* Seconda occasione per riconoscere una definizione: il nome può stare a
+       cavallo di due righe, e sulla prima la corsa di grassetto non ha ancora
+       il punto finale che la chiude. Ora il paragrafo è intero. */
+    if (corrente.t === "p") corrente = forseDefinizione(corrente.testo) || corrente;
     if (testoDi(corrente.testo).trim() || corrente.nome) blocchi.push(corrente);
     corrente = null;
   };
@@ -924,6 +1000,10 @@ function blocchiDaRighe(righe) {
       if (sch) { chiudi(); blocchi.push(sch.blocco); k = sch.fine - 1; continue; }
       const pt = puntato(righe, k);
       if (pt) { chiudi(); blocchi.push(pt.blocco); k = pt.fine - 1; continue; }
+      /* Prima di grigliaLibera: una tabella senza didascalia si riconosce dalla
+         riga di intestazione, e grigliaLibera la accetterebbe comunque. */
+      const tab2 = tabella(righe, k);
+      if (tab2) { chiudi(); blocchi.push(...tab2.blocchi); k = tab2.fine - 1; continue; }
       const gr = grigliaLibera(righe, k);
       if (gr) { chiudi(); blocchi.push(...gr.blocchi); k = gr.fine - 1; continue; }
       // resto: righe fuori tabella in GillSans → prosa di riquadro
@@ -941,10 +1021,9 @@ function blocchiDaRighe(righe) {
     const stessoFlusso = prec && prec.pag === r.pag
       && (prec.left >= COLONNA_DESTRA) === (r.left >= COLONNA_DESTRA);
     const salto = stessoFlusso ? r.top - prec.top : 0;
-    const def = forseDefinizione(r.span);
-    if (def || !corrente || salto > PASSO_RIGA) {
+    if (apreDefinizione(righe, k) || !corrente || salto > PASSO_RIGA) {
       chiudi();
-      corrente = def || { t: "p", testo: [...r.span] };
+      corrente = { t: "p", testo: [...r.span] };
     } else accoda(corrente.testo, r.span);
   }
   chiudi();

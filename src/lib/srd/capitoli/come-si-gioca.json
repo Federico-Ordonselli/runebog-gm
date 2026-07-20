@@ -111,12 +111,13 @@
    ]
   },
   {
-   "t": "griglia",
+   "t": "tabella",
+   "titolo": "",
+   "colonne": [
+    "Caratteristica",
+    "Effettua un tiro salvezza per..."
+   ],
    "righe": [
-    [
-     "Caratteristica",
-     "Effettua un tiro salvezza per..."
-    ],
     [
      "Intelligenza",
      "Riconoscere un'illusione come falsa"
@@ -488,12 +489,13 @@
    ]
   },
   {
-   "t": "griglia",
+   "t": "tabella",
+   "titolo": "",
+   "colonne": [
+    "Azione",
+    "Riepilogo"
+   ],
    "righe": [
-    [
-     "Azione",
-     "Riepilogo"
-    ],
     [
      "Nascondersi",
      "Effettui una prova di Destrezza (Furtività)."

@@ -2175,263 +2175,218 @@
    ]
   },
   {
-   "t": "griglia",
+   "t": "tabella",
+   "titolo": "",
+   "colonne": [
+    "Oggetto",
+    "Peso",
+    "Costo"
+   ],
    "righe": [
     [
-     "Oggetto",
-     ""
-    ],
-    [
      "Fuoco dell'alchimista",
-     ""
+     "0,5 kg",
+     "50 mo"
     ],
     [
      "Giaciglio",
-     ""
+     "3,5 kg",
+     "1 mo"
     ],
     [
      "Inchiostro",
-     ""
+     "—",
+     "10 mo"
     ],
     [
      "Lampada",
-     ""
+     "0,5 kg",
+     "5 ma"
     ],
     [
      "Lanterna a lente sporgente",
-     ""
+     "1 kg",
+     "10 mo"
     ],
     [
      "Lanterna schermabile",
-     ""
+     "1 kg",
+     "5 mo"
     ],
     [
      "Lente d'ingrandimento",
-     ""
+     "—",
+     "100 mo"
     ],
     [
      "Libro",
-     ""
+     "2,5 kg",
+     "25 mo"
     ],
     [
      "Manette",
-     ""
+     "3 kg",
+     "2 mo"
     ],
     [
      "Mappa",
-     ""
+     "—",
+     "1 mo"
     ],
     [
      "Munizioni",
+     "Variabile",
      "Variabile"
     ],
     [
      "Olio",
-     ""
+     "0,5 kg",
+     "1 ma"
     ],
     [
      "Otre",
-     ""
+     "2,5 kg (pieno)",
+     "2 ma"
     ],
     [
      "Pala",
-     ""
+     "2,5 kg",
+     "2 mo"
     ],
     [
      "Pennino",
-     ""
+     "—",
+     "2 mr"
     ],
     [
      "Pentola di ferro",
-     ""
+     "5 kg",
+     "2 mo"
     ],
     [
      "Pergamena",
-     ""
+     "—",
+     "1 ma"
     ],
     [
      "Pergamena magica (livello 1)",
-     ""
+     "—",
+     "50 mo"
     ],
     [
      "Pergamena magica (trucchetto)",
-     ""
+     "—",
+     "30 mo"
     ],
     [
      "Piede di porco",
-     ""
+     "2,5 kg",
+     "2 mo"
     ],
     [
      "Pozione di guarigione",
-     ""
+     "0,25 kg",
+     "50 mo"
     ],
     [
      "Profumo",
-     ""
+     "—",
+     "5 mo"
     ],
     [
      "Rampino",
-     ""
+     "2 kg",
+     "2 mo"
     ],
     [
      "Razioni",
-     ""
+     "1 kg",
+     "5 ma"
     ],
     [
      "Rete",
-     ""
+     "1,5 kg",
+     "1 mo"
     ],
     [
      "Sacco",
-     ""
+     "0,25 kg",
+     "1 mr"
     ],
     [
      "Scala a pioli",
-     ""
+     "12,5 kg",
+     "1 ma"
     ],
     [
      "Secchio",
-     ""
+     "1 kg",
+     "5 mr"
     ],
     [
      "Serratura",
-     ""
+     "0,5 kg",
+     "10 mo"
     ],
     [
      "Sfere metalliche",
-     ""
+     "1 kg",
+     "1 mo"
     ],
     [
      "Simbolo sacro",
+     "Variabile",
      "Variabile"
     ],
     [
      "Spago",
-     ""
+     "—",
+     "1 ma"
     ],
     [
      "Specchio",
-     ""
+     "0,25 kg",
+     "5 mo"
     ],
     [
      "Spuntoni di ferro",
-     ""
+     "2,5 kg",
+     "1 mo"
     ],
     [
      "Tagliola",
-     ""
+     "12,5 kg",
+     "5 mo"
     ],
     [
      "Tenda",
-     ""
+     "10 kg",
+     "2 mo"
     ],
     [
      "Torcia",
-     ""
+     "0,5 kg",
+     "1 mr"
     ],
     [
      "Triboli",
-     ""
+     "1 kg",
+     "1 mo"
     ],
     [
      "Tunica",
-     ""
+     "2 kg",
+     "1 mo"
     ],
     [
      "Veleno, base",
-     ""
+     "—",
+     "100 mo"
     ],
     [
      "Zaino",
-     ""
-    ],
-    [
-     "",
-     "Peso"
-    ],
-    [
-     "0,5",
-     "kg"
-    ],
-    [
-     "3,5",
-     "kg —"
-    ],
-    [
-     "0,5",
-     "kg 1 kg 1 kg —"
-    ],
-    [
-     "2,5",
-     "kg 3 kg —"
-    ],
-    [
-     "0,5",
-     "kg"
-    ],
-    [
-     "2,5",
-     "kg"
-    ],
-    [
-     "(pieno)",
-     ""
-    ],
-    [
-     "2,5",
-     "kg — 5 kg — — —"
-    ],
-    [
-     "2,5",
-     "kg"
-    ],
-    [
-     "0,25",
-     "kg — 2 kg 1 kg 1,5 kg"
-    ],
-    [
-     "0,25",
-     "kg"
-    ],
-    [
-     "12,5",
-     "kg 1 kg"
-    ],
-    [
-     "0,5",
-     "kg 1 kg —"
-    ],
-    [
-     "0,25",
-     "kg"
-    ],
-    [
-     "2,5",
-     "kg"
-    ],
-    [
-     "12,5",
-     "kg 10 kg"
-    ],
-    [
-     "0,5",
-     "kg 1 kg 2 kg —"
-    ],
-    [
-     "2,5",
-     "kg"
-    ],
-    [
-     "",
-     "Costo 50 mo 1 mo 10 mo 5 ma 10 mo 5 mo 100 mo 25 mo 2 mo 1 mo"
-    ],
-    [
-     "Variabile",
-     "1 ma 2 ma 2 mo 2 mr 2 mo 1 ma 50 mo 30 mo 2 mo 50 mo 5 mo 2 mo 5 ma 1 mo 1 mr 1 ma 5 mr 10 mo 1 mo"
-    ],
-    [
-     "Variabile",
-     "1 ma 5 mo 1 mo 5 mo 2 mo 1 mr 1 mo 1 mo 100 mo 2 mo"
+     "2,5 kg",
+     "2 mo"
     ]
    ]
   },

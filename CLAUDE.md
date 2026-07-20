@@ -127,6 +127,16 @@ colonne fuse ("11 Stoffa, carta, corda" in una cella sola) passa 10/10, perché
 il testo c'è tutto e le righe restano rettangolari. Quindi ogni volta che si
 tocca l'estrattore vanno **rigenerati anche i capitoli già pubblicati** e
 letto il diff: è l'unico controllo che coglie questa classe di guasti.
+**Incantesimi** è il solo capitolo servito su più pagine: `/srd/incantesimi` è
+l'elenco per livello più le regole di lancio, `/srd/incantesimi/[livello]` (dieci
+rotte, `trucchetti` e `livello-1`…`livello-9`) le descrizioni. Il JSON resta
+**uno**: è importato lato server e al browser non arriva mai, quindi a pesare è
+l'HTML reso — spezzare le pagine basta, spezzare il file no. `dividiIncantesimi`
+in `src/lib/srd/index.ts` fa il taglio, e il livello lo dichiara la riga in
+corsivo sotto il nome: è anche il solo segnale che distingue un incantesimo da
+un sottotitolo qualsiasi (355 `h4`, 339 incantesimi). Per questo il capitolo è
+escluso dai `generateStaticParams` di `[capitolo]`.
+
 `src/lib/srd/index.ts` tiene il tipo del documento e il registro `CAPITOLI`, dove
 il flag `pronto` dice se il JSON esiste: la sezione cresce un capitolo alla volta,
 l'indice elenca anche quelli mancanti e `generateStaticParams` pubblica solo i
@@ -157,6 +167,33 @@ ed elenchi. Trappole già pagate:
 - Le legature (ﬁ, ﬂ, ﬃ) si sciolgono **in uscita**, non all'estrazione: durante
   il parsing sono il segnale che distingue una parola spezzata da due frasi
   accostate. Per lo stesso motivo `slug` normalizza in **NFKD** e non NFD.
+- **Il nome di una definizione può stare a cavallo di due righe.** Il grassetto
+  di apertura è il solo delimitatore affidabile di paragrafo, ma pretendere il
+  punto finale sulla PRIMA riga perdeva la rottura ogni volta che il nome è
+  lungo: in Incantesimi «Usando uno slot di livello supe-» / «riore.» apriva 97
+  blocchi intitolati `riore`. I due ruoli sono separati — `apreDefinizione`
+  insegue la corsa di grassetto in avanti per decidere dove spezzare, `chiudi`
+  promuove il paragrafo a `def` quando il grassetto è completo. Un grassetto che
+  apre in minuscola non è mai un nome: è la coda di una sillabazione.
+- **Una tabella può non avere didascalia.** Dentro le descrizioni degli
+  incantesimi le annuncia la prosa («consultando la tabella sottostante») e la
+  struttura la dichiara la sola riga di intestazione. Si accettano prima di
+  `grigliaLibera`, che altrimenti le riduce a coppie chiave/valore rimescolate.
+  Il discriminante contro le griglie chiave/valore vere (le schede delle
+  creature evocate: `CA | 15`, `PF | 10…`) è che una tabella intitola le colonne
+  **una volta sola**: se il grassetto ricompare più in basso è una colonna di
+  chiavi, non un'intestazione.
+- **Il font delle intestazioni non basta a riconoscere un'intestazione**: le
+  celle si aprono con un attacco in grassetto nello stesso font («1 | *Rosso.*
+  Tiro salvezza fallito…»). Il discriminante è il **punto finale** — un titolo
+  di colonna non ce l'ha, un attacco di cella sì — escludendo i puntini di
+  sospensione, che un titolo può avere («…in maniera...» in Scrutare). Vale in
+  entrambi i sensi: quei frammenti non sono intestazioni **e** sono celle, e
+  fermare lì la raccolta chiudeva «Strati prismatici» dopo una riga sola.
+  La regola per riga visiva («l'intestazione finisce dove la riga non si apre
+  nel font dei titoli») è stata provata e scartata: distrugge «Terreno di
+  viaggio», dove metà dei titoli è in GillSans normale — e il verificatore dava
+  10/10 lo stesso.
 - **Non tutto ciò che sembra una tabella lo è.** I riquadri a coppie
   etichetta/valore (gli strumenti di Equipaggiamento, e domani le schede
   incantesimo) affiancano due coppie sulla prima riga per risparmiare carta:

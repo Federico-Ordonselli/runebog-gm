@@ -755,18 +755,13 @@
    "t": "p",
    "testo": [
     {
-     "s": "Quando il personaggio ha la condizione \"avvelenato\", subisce il seguente effetto: "
-    },
-    {
-     "s": "Influenza sulle prove di caratteristica e sugli",
-     "b": 1,
-     "i": 1
+     "s": "Quando il personaggio ha la condizione \"avvelenato\", subisce il seguente effetto:"
     }
    ]
   },
   {
    "t": "def",
-   "nome": "attacchi",
+   "nome": "Influenza sulle prove di caratteristica e sugli attacchi",
    "testo": [
     {
      "s": "Il personaggio subisce svantaggio ai tiri per colpire e alle prove di caratteristica."
@@ -3549,18 +3544,13 @@
    "t": "p",
    "testo": [
     {
-     "s": "Quando il tuo personaggio ha la condizione \"spaventato\", subisce i seguenti effetti: "
-    },
-    {
-     "s": "Influenza sulle prove di caratteristica e sugli",
-     "b": 1,
-     "i": 1
+     "s": "Quando il tuo personaggio ha la condizione \"spaventato\", subisce i seguenti effetti:"
     }
    ]
   },
   {
    "t": "def",
-   "nome": "attacchi",
+   "nome": "Influenza sulle prove di caratteristica e sugli attacchi",
    "testo": [
     {
      "s": "Il personaggio subisce svantaggio alle prove di caratteristica e ai tiri per colpire finché la fonte della sua paura è nel suo campo visivo."

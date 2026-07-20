@@ -193,3 +193,30 @@ a.srd-capitoli__link:hover .srd-capitoli__titolo { color: var(--wisp-lit); }
 .srd-capitoli--attesa .srd-capitoli__titolo { color: var(--parchment-dim); }
 
 .srd-attribuzione { margin-top: 1rem; }
+
+/* --- Incantesimi: l'indice per livello e la navigazione fra i livelli ------ */
+
+/* I nomi degli incantesimi sono corti e sono tanti (57 al 1º livello): a una
+   colonna diventerebbero un nastro lungo mezzo schermo. Le colonne si contano
+   da sole con auto-fill, così a 390px ne resta una senza media query. */
+.srd-livello { margin-top: 2rem; }
+.srd-nomi {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+  gap: 0.35rem 1rem;
+}
+
+/* In fondo a una pagina di livello: i dieci livelli, per saltare senza tornare
+   all'indice. Il livello corrente resta scritto ma non è un link. */
+.srd-livelli-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.9rem;
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--edge);
+}
+.srd-livelli-nav__qui { color: var(--lantern); }

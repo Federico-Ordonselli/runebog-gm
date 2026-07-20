@@ -2133,37 +2133,26 @@
    ]
   },
   {
-   "t": "griglia",
+   "t": "tabella",
+   "titolo": "",
+   "colonne": [
+    "Livelli",
+    "Danni da fuoco",
+    "Area di effetto"
+   ],
    "righe": [
     [
-     "Livelli",
-     "Danni da fuoco"
-    ],
-    [
      "5º–10º",
-     ""
-    ],
-    [
-     "11º–16º",
-     ""
-    ],
-    [
-     "17º–20º",
-     ""
-    ],
-    [
-     "",
-     "Area di effetto"
-    ],
-    [
      "22 (4d10)",
      "Cono di 9 m"
     ],
     [
+     "11º–16º",
      "55 (10d10)",
      "Cono di 18 m"
     ],
     [
+     "17º–20º",
      "99 (18d10)",
      "Cono di 36 m"
     ]

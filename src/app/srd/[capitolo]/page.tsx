@@ -5,9 +5,11 @@ import { IndiceCapitolo, type Voce } from "../indice";
 import "../srd.css";
 
 /* Solo i capitoli già generati: gli altri sono elencati su /srd ma non hanno
-   ancora una pagina, e devono dare 404, non una pagina vuota. */
+   ancora una pagina, e devono dare 404, non una pagina vuota. Incantesimi ha le
+   sue rotte statiche (una pagina per livello) e non passa di qui. */
 export function generateStaticParams() {
-  return CAPITOLI.filter((c) => c.pronto).map((c) => ({ capitolo: c.id }));
+  return CAPITOLI.filter((c) => c.pronto && c.id !== "incantesimi")
+    .map((c) => ({ capitolo: c.id }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ capitolo: string }> }) {
