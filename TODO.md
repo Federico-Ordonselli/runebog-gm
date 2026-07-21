@@ -366,10 +366,20 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
     salvataggio in sospeso finisce su disco al `pagehide` mentre prima no) più
     il menu del tavolo (regole sì, Esporta/Importa/Annulla no) e la geometria
     della topbar identica a 390/900/1280/1600/1920px col padding del bersaglio.
-    **Resta**: sopra i 1400px il bottone `⋯` è nascosto (i suoi contenuti sono
-    bottoni veri in topbar), quindi lì la voce non è raggiungibile e la via è
-    titolo → home → Regole. Un bottone in più non ci sta: a 1600px la topbar ha
-    13px di margine, e in cloud pure meno perché c'è anche "Tavolo".
+    Il bottone `⋯` era nascosto sopra i 1400px — lì i suoi contenuti sono
+    bottoni veri in topbar — e la voce delle regole, che in topbar non ci sta,
+    non era raggiungibile proprio sul desktop. Ora è visibile a ogni larghezza.
+    I 34px in più cadevano tutti nella fascia 1551–1650, dove il sottotitolo
+    dell'h1 e la ricerca larga tornano insieme: a 1600px il margine passava da
+    13px a zero e il selettore della campagna si stringeva di 35px. Risolto
+    alzando il primo gradino da 1550 a 1600, cioè nascondendo il sottotitolo
+    (già dichiarato decorativo) dove serve lo spazio. Misurato l'A/B a
+    1401/1450/1550/1600/1700/1920px: ora l'unica cosa che cambia è lo spacer,
+    nient'altro si comprime e l'altezza della barra non varia mai.
+    Da correggere un'ipotesi sbagliata scritta prima di misurare: in **cloud
+    c'è più spazio, non meno**. Il bottone "Tavolo" in più costa meno di quanto
+    faccia risparmiare il selettore di campagna, che lì è nascosto perché le
+    campagne le gestisce il sito.
   - [ ] **Rifiniture note della sezione regole**, da fare quando danno fastidio:
     - Tre celle restano vuote e alcuni valori arrivano fusi dove è il PDF a
       emettere un frammento unico: il testo c'è tutto, ma in quei punti la
