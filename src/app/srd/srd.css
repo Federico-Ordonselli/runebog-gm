@@ -119,25 +119,36 @@
   padding: 0.75rem 0 0.75rem 0.9rem;
   border-left: 2px solid var(--edge);
 }
-/* minmax(0, …) su entrambe: un grid item nasce con min-width auto, quindi un
-   valore lungo senza spazi allargherebbe la griglia invece di andare a capo
-   (stessa trappola già pagata da .srd-corpo con le tabelle a sei colonne). */
-.srd-scheda__voce {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 0 0.75rem;
-}
-.srd-scheda__voce + .srd-scheda__voce { margin-top: 0.5rem; }
+/* Stretta, la scheda scorre nel testo ("Tempo di lancio: azione"), che è la
+   forma del PDF. Impilare etichetta e valore faceva di quattro coppie otto
+   righe, e su un telefono la scheda di un incantesimo occupava mezza schermata
+   per dire "azione / 36 metri / V, S / istantanea". */
+.srd-scheda__voce + .srd-scheda__voce { margin-top: 0.35rem; }
 .srd-scheda dt {
+  display: inline;
   font-variant-caps: all-small-caps;
   letter-spacing: 0.04em;
   color: var(--parchment-dim);
 }
-.srd-scheda dd { margin: 0; }
+/* Lo spazio è unificatore e sta dentro il content: uno normale qui lo mangia la
+   normalizzazione degli spazi, e l'etichetta restava incollata al valore. */
+.srd-scheda dt::after { content: ":\00a0"; }
+.srd-scheda dd { display: inline; margin: 0; }
 
-@media (min-width: 30rem) {
-  .srd-scheda__voce { grid-template-columns: minmax(0, 7rem) minmax(0, 1fr); }
-  .srd-scheda__voce + .srd-scheda__voce { margin-top: 0.35rem; }
+/* Larga, le etichette prendono una colonna loro e si leggono in verticale: sono
+   sempre le stesse quattro, e incolonnate si saltano con l'occhio.
+   minmax(0, …) su entrambe: un grid item nasce con min-width auto, quindi un
+   valore lungo senza spazi allargherebbe la griglia invece di andare a capo
+   (stessa trappola già pagata da .srd-corpo con le tabelle a sei colonne). */
+@media (min-width: 34rem) {
+  .srd-scheda__voce {
+    display: grid;
+    grid-template-columns: minmax(0, 7rem) minmax(0, 1fr);
+    gap: 0 0.75rem;
+  }
+  .srd-scheda dt { display: block; }
+  .srd-scheda dt::after { content: none; }
+  .srd-scheda dd { display: block; }
 }
 
 /* ---------- Tabelle ---------- */
@@ -169,6 +180,7 @@
   color: var(--parchment-dim);
   border-bottom-color: var(--edge);
 }
+.srd-tab__unita { white-space: nowrap; }
 /* Griglia senza intestazioni (le abbreviazioni): la chiave è la prima colonna. */
 .srd-tab table:not(:has(thead)) td:first-child { color: var(--parchment); white-space: nowrap; }
 

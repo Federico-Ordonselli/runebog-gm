@@ -297,9 +297,47 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
          mancare. Le schede di creatura sono un blocco a sé che
          `estrai-srd-mostri.mjs` sa già leggere: se e quando diventano
          fastidiose, la ricetta è lì.
-       - Tre sillabazioni sospese («modi- ficatore») nei due riquadri delle
-         formule e in un riquadro di prosa, dove le due metà finiscono in celle
-         diverse.
+       - ~~Tre sillabazioni sospese («modi- ficatore») nei due riquadri delle
+         formule e in un riquadro di prosa~~ — risolto il 21 lug 2026, vedi
+         sotto.
+    3b. [x] **Incantesimi, seconda passata** (21 lug 2026) — tre difetti visti a
+       schermo dopo la pubblicazione. Incantesimi passa da 9/10 a **10/10**, gli
+       altri quattro capitoli restano 10/10.
+       - **I due riquadri delle formule** («CD del tiro salvezza
+         sull'incantesimo = 8 + il modiﬁcatore…») uscivano come tabelle a due
+         colonne, con la frase spezzata in celle e i trattini di sillabazione a
+         metà parola. Ora sono paragrafi: `riquadroDiProsa` li riconosce dalla
+         composizione centrata più il grassetto che intitola una volta sola
+         (vedi CLAUDE.md). Misurato prima di scrivere la regola: sui dieci
+         capitoli del PDF non prende nient'altro.
+       - **Le legature mancavano dalle classi di sillabazione.** `ﬁ` e `ﬂ` sono
+         minuscole ma non stanno in `[a-z]`, quindi «modiﬁ-» + «catore» non si
+         ricuciva. Ora `SILLABATA`/`PROSEGUE` le comprendono da entrambi i lati.
+         Era anche la causa del terzo caso, nella descrizione di *Schianto*.
+       - **La tabella di *confusione*** aveva tre colonne invece di due (una
+         senza titolo) e tutto il testo in una cella sola: l'intestazione è un
+         frammento fuso e le colonne si deducevano dalle celle senza distinguere
+         un'ascissa vera da una chiave centrata. Ora il titolo dice **quante**
+         colonne e le celle **quali**. `dividiCella` corregge in più lo
+         scivolamento di una parola nel taglio delle celle fuse — che ha
+         raddrizzato anche «Prepararsi | Ti prepari…» in Come si gioca e
+         «32,5 kg | 1.500 mo» in Equipaggiamento, due celle sbagliate da sempre.
+       Resa: la **scheda incantesimo** sotto i 34rem torna a scorrere nel testo
+       («Tempo di lancio: azione», la forma del PDF) invece di impilare etichetta
+       e valore — su un telefono quattro coppie facevano otto righe. E una cella
+       di tabella senza spazi non si spezza più (`srd-tab__unita`): «9–10» usciva
+       su due righe, perché il trattino d'intervallo è un a capo legittimo.
+       Verificato: 16/16 in Chromium (le due formule confrontate parola per
+       parola, le chiavi di confusione, la scheda incolonnata a 1280px e in
+       linea a 390px, nessun residuo del PDF su **tutte e dieci** le pagine di
+       livello, nessuno scorrimento orizzontale a 1280/768/390px, console
+       pulita), i quattro capitoli già pubblicati rigenerati e ogni differenza
+       letta (due sole, entrambe correzioni), `tsc` e `build` ok.
+       **Resta** il debito delle cinque griglie qui sopra, più due cose viste
+       adesso e non toccate: «Strati prismatici» esce come due tabelle (la coda
+       riprende nella colonna accanto, non a pagina nuova — è il caso già
+       annotato fra le rifiniture) e la tabella Temperatura/Vento di *controllare
+       il clima* fonde le intestazioni delle due metà affiancate («Vento Grado»).
     4. **Oggetti magici** (pp. 232–288): come sopra (sintonia, rarità, tipo).
        Da sapere: `estrai-srd-mostri.mjs` **scarta** il font Cambria, perché lì
        è la prosa di questo capitolo che sporca le schede mostro; in

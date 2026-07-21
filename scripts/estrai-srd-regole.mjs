@@ -135,6 +135,18 @@ function ruoloFont({ size, fam, col }) {
    un gap di 2px o più è uno spazio vero — con la costante sbagliata usciva
    "la sezioneVedi anche". */
 const LEGATURA = /[ﬀ-ﬆ]/;
+
+/* Fine di riga sillabata, e inizio di riga che la prosegue. Entrambe le classi
+   comprendono le LEGATURE: ﬁ e ﬂ sono minuscole a tutti gli effetti, ma non
+   stanno in [a-z] e durante il parsing sono ancora intere (si sciolgono solo in
+   uscita, vedi sciogliLegature). Senza, la sillabazione non si ricuciva e
+   usciva "modi- ficatore" — una parola spezzata a metà, con dentro uno spazio e
+   un trattino, che a rileggere il JSON non salta all'occhio. Servono tutt'e
+   due: il PDF spezza la riga sia prima della legatura ("modi-" / "ﬁcatore") sia
+   dopo ("modiﬁ-" / "catore"), a seconda di dove cade il margine. */
+const SILLABATA = /[a-zàèéìòùﬀ-ﬆ]-$/;
+const PROSEGUE = /^[a-zàèéìòùﬀ-ﬆ]/;
+
 function serveSpazio(ult, f) {
   const sin = testoDi(ult.span), des = testoDi(f.span);
   if (!sin || !des) return false;
@@ -294,7 +306,7 @@ function righeDelPdf(pdf, da, a) {
    svantaggio" o un "-" voluto a fine riga non vengono mangiati. */
 function accoda(span, altri) {
   const ult = span[span.length - 1], primo = altri[0];
-  if (ult && primo && /[a-zàèéìòù]-$/.test(ult.s) && /^[a-zàèéìòù]/.test(primo.s))
+  if (ult && primo && SILLABATA.test(ult.s) && PROSEGUE.test(primo.s))
     ult.s = ult.s.slice(0, -1);
   else if (ult && primo && !/\s$/.test(ult.s) && !/^\s/.test(primo.s))
     ult.s += " ";
@@ -361,7 +373,7 @@ function apreDefinizione(righe, k) {
     if (!sp.length || !sp[0].b) break;
     for (let j = 0; j < sp.length && sp[j].b; j++) nome += sp[j].s;
     if (sp.some(s => !s.b)) break;          // il grassetto finisce qui: non prosegue
-    nome = nome.replace(/[a-zàèéìòù]-$/, "");   // sillabazione a fine riga
+    nome = nome.replace(SILLABATA, "");   // sillabazione a fine riga
   }
   return /^.{2,70}?\./s.test(nome);
 }
@@ -518,6 +530,25 @@ function tagliaAllAscissa(testo, left, larg, x) {
   return [testo.slice(0, taglio).trim(), testo.slice(taglio + 1).trim()];
 }
 
+/* La divisione di una cella FUSA: tagliaAllAscissa più un aggancio al testo.
+   La stima proporzionale presume che i caratteri siano larghi uguale, e sulle
+   chiavi non è vero — "2–6 " sono quattro caratteri che occupano i 38px di sei
+   di prosa, e in confusione il taglio scivolava di una parola ("2–6 Il" |
+   "bersaglio non si muove"). A rimetterlo a posto è la convenzione che regge il
+   resto del file: una cella comincia per maiuscola o per cifra, mai a metà
+   frase. Se il pezzo di destra apre in minuscola si arretra di una parola —
+   una sola, perché l'errore della stima è di una parola, non di mezza riga.
+   Vale per le celle e non per le intestazioni: là lo stesso test serve a
+   RIFIUTARE un confine sbagliato (raffinaConCelle, "Capacità di trasporto"), e
+   agganciare il taglio glielo farebbe passare sempre. */
+function dividiCella(testo, left, larg, x) {
+  const div = tagliaAllAscissa(testo, left, larg, x);
+  if (!div || !PROSEGUE.test(div[1])) return div;
+  const indietro = div[0].lastIndexOf(" ");
+  if (indietro <= 0) return div;
+  return [div[0].slice(0, indietro), div[0].slice(indietro + 1) + " " + div[1]];
+}
+
 /* Dispone i frammenti nella griglia delle colonne date. Una riga la cui prima
    cella è vuota non è una riga: è il seguito a capo di quella sopra — nel PDF
    una cella lunga va a capo restando nella sua colonna. */
@@ -557,7 +588,7 @@ function grigliaDaFrammenti(frammenti, colonne) {
       const seguente = sezione ? undefined : colonne[i + 1];
       const occupata = seguente !== undefined && celle.some(a => a !== c && indiceColonna(colonne, a.left, a.larg) === i + 1);
       const diviso = seguente !== undefined && !occupata && c.left + c.larg > seguente + TOLLERANZA_X
-        ? tagliaAllAscissa(testo, c.left, c.larg, seguente)
+        ? dividiCella(testo, c.left, c.larg, seguente)
         : null;
       if (diviso) {
         riga[i] = (riga[i] ? riga[i] + " " : "") + diviso[0];
@@ -658,10 +689,83 @@ function puntato(righe, k) {
     if (testo.startsWith("•")) voci.push(testo.replace(/^•\s*/, ""));
     else if (voci.length) {
       const u = voci.length - 1;
-      voci[u] = /[a-zàèéìòù]-$/.test(voci[u]) ? voci[u].slice(0, -1) + testo : voci[u] + " " + testo;
+      voci[u] = SILLABATA.test(voci[u]) && PROSEGUE.test(testo)
+        ? voci[u].slice(0, -1) + testo : voci[u] + " " + testo;
     }
   }
   return { blocco: { t: "punti", voci: voci.filter(Boolean) }, fine };
+}
+
+/* Le righe visive di un blocco: i frammenti arrivano già in ordine di lettura,
+   quindi basta accorparli finché il top non cambia. Di ogni riga interessano
+   solo i due bordi, che è ciò su cui si misura l'allineamento. */
+function righeVisive(run) {
+  const linee = [];
+  for (const r of run) {
+    const u = linee[linee.length - 1];
+    if (u && r.pag === u.pag && Math.abs(r.top - u.top) <= TOLLERANZA_Y) {
+      u.sin = Math.min(u.sin, r.left);
+      u.des = Math.max(u.des, r.left + r.larg);
+    } else linee.push({ pag: r.pag, top: r.top, sin: r.left, des: r.left + r.larg });
+  }
+  return linee;
+}
+
+const ASSE = 6;   // px entro cui due righe visive sono centrate sullo stesso asse
+
+/* Composto centrato: ogni riga visiva ha lo stesso asse e i bordi sinistri no.
+   Una griglia è allineata a sinistra dentro le sue colonne, quindi o i centri
+   ballano o le sinistre coincidono — il testo centrato è l'unico caso in cui
+   capita il contrario. Serve a distinguere un riquadro di formula da una
+   tabella a due colonne, che ha la stessa geometria a occhio. */
+function centrato(run) {
+  const linee = righeVisive(run);
+  if (linee.length < 2) return false;
+  const centri = linee.map(l => (l.sin + l.des) / 2);
+  return Math.max(...centri) - Math.min(...centri) <= ASSE
+    && new Set(linee.map(l => l.sin)).size > 1;
+}
+
+/* Il riquadro di una formula: "CD del tiro salvezza sull'incantesimo = 8 + il
+   modificatore di caratteristica da incantatore dell'incantatore + il bonus di
+   competenza", che è UNA frase impaginata su tre righe centrate. Sia tabella()
+   sia grigliaLibera() lo prendevano per una tabella a due colonne — etichetta in
+   grassetto a sinistra, valore a destra — e ne incolonnavano le righe di
+   continuazione, lasciando i trattini di sillabazione in mezzo alle parole.
+ *
+ * Lo riconoscono due segnali insieme, che da soli non bastano:
+ *
+ * - la composizione CENTRATA (vedi `centrato`). Non basta perché anche la
+ *   tabella "Taglia | Acqua" del glossario è un blocco centrato.
+ * - il grassetto che intitola UNA volta sola, lo stesso discriminante di
+ *   tabella(): se ricompare più in basso è una colonna di chiavi. Qui in più
+ *   deve aprire una riga visiva — se il grassetto ricompare sulla stessa riga
+ *   sono le intestazioni affiancate di una griglia ("Taglia | Acqua | Taglia |
+ *   Acqua"), non due riquadri.
+ *
+ * Due riquadri di fila si spezzano sul grassetto, che è come li impagina
+ * "Creazione del personaggio": lì i quattro riquadri stanno a due a due dentro
+ * lo stesso blocco di righe. */
+function riquadroDiProsa(righe, k) {
+  let fine = k;
+  while (fine < righe.length && (righe[fine].ruolo === "gill" || righe[fine].ruolo === "intestazione-cella")) fine++;
+  const run = righe.slice(k, fine);
+  if (run.length < 3) return null;
+
+  const apreRiga = n => n === 0 || run[n].pag !== run[n - 1].pag
+    || Math.abs(run[n].top - run[n - 1].top) > TOLLERANZA_Y;
+  const grassetti = run.flatMap((r, n) => r.ruolo === "intestazione-cella" ? [n] : []);
+  if (grassetti[0] !== 0 || !grassetti.every(apreRiga)) return null;
+
+  const blocchi = [];
+  for (const [n, inizio] of grassetti.entries()) {
+    const pezzo = run.slice(inizio, grassetti[n + 1] ?? run.length);
+    if (!centrato(pezzo)) return null;
+    const testo = [...pezzo[0].span];
+    for (const r of pezzo.slice(1)) accoda(testo, r.span);
+    blocchi.push({ t: "p", testo: ripulisci(testo) });
+  }
+  return { blocchi, fine };
 }
 
 /* Un blocco di righe GillSans senza didascalia: o un elenco impaginato su più
@@ -708,7 +812,7 @@ function grigliaLibera(righe, k) {
     const unite = [];
     for (const v of [...new Set(voci)]) {
       const u = unite[unite.length - 1];
-      if (u && /[a-zàèéìòù]-$/.test(u) && /^[a-zàèéìòù]/.test(v)) unite[unite.length - 1] = u.slice(0, -1) + v;
+      if (u && SILLABATA.test(u) && PROSEGUE.test(v)) unite[unite.length - 1] = u.slice(0, -1) + v;
       else unite.push(v);
     }
     blocchi.push({ t: "elenco", voci: unite });
@@ -841,17 +945,36 @@ function tabella(righe, k) {
      ogni ascissa in più è una colonna in più. */
   const gruppi = colonneDaIntervalli(titolari);
   /* Quando il PDF fonde TUTTE le intestazioni in un frammento solo ("Ordine
-     Effetti") non resta che dedurre le colonne dalle celle — ma non più di
-     quante il titolo possa dichiararne: si spezza sugli spazi, quindi due
-     parole fanno al massimo due colonne. Senza questo tetto le ascisse
-     frastagliate delle celle a capo ne inventavano cinque, e in "Strati
-     prismatici" ogni riga di testo finiva in una colonna diversa. È la stessa
-     regola di raffinaConCelle — il titolo deve avere dove spezzarsi — applicata
-     al caso in cui il titolo è uno solo. */
-  let colonne = gruppi.length < 2
-    ? colonneDaAscisse(celle).slice(0, testoDi(titolari[0].span).trim().split(/\s+/).length)
-    : raffinaConCelle(gruppi, titolari, celle);
-
+     Effetti") non resta che dedurre le colonne dalle celle. Ma le ascisse delle
+     celle sono più di quelle vere — testi rientrati, numeri allineati a destra,
+     chiavi corte centrate nella loro colonna — e in "Strati prismatici" ogni
+     riga di testo finiva in una colonna diversa. Servono due vincoli.
+   *
+   * QUANTE: le dichiara il titolo, contando le parole che possono esserlo, cioè
+   * quelle che cominciano per maiuscola o cifra. È la stessa regola di
+   * raffinaConCelle applicata al caso di titolo unico. Il conteggio nudo delle
+   * parole non basta: "1d10 Comportamento per il turno" ne ha cinque ma dichiara
+   * due colonne, e le tre di troppo lasciavano passare l'ascissa spuria.
+   *
+   * QUALI: quelle con più celle sotto. La prima si tiene comunque, che è il
+   * margine della tabella; fra le altre vince chi ne raccoglie di più. In
+   * confusione le candidate sono x=102 (le celle fuse "9–10 Il bersaglio…"),
+   * x=113 (la sola chiave "1", centrata nella stessa colonna) e x=143 (otto
+   * righe di testo): tenere le prime due — che è ciò che faceva un taglio in
+   * testa all'elenco — dava una colonna senza titolo e tutto il testo nell'altra. */
+  let colonne;
+  if (gruppi.length < 2) {
+    const dedotte = colonneDaAscisse(celle);
+    const quante = testoDi(titolari[0].span).trim().split(/\s+/)
+      .filter(p => /^[A-ZÀ-Ý0-9]/.test(p)).length;
+    const scelte = dedotte
+      .map((x, n) => ({ x, sotto: celle.filter(c => indiceColonna(dedotte, c.left) === n).length }))
+      .slice(1)
+      .sort((a, b) => b.sotto - a.sotto)
+      .slice(0, Math.max(0, quante - 1))
+      .map(s => s.x);
+    colonne = dedotte.slice(0, 1).concat(scelte).sort((a, b) => a - b);
+  } else colonne = raffinaConCelle(gruppi, titolari, celle);
 
   const titoli = colonne.map(() => "");
   for (const r of [...titolari].sort((a, b) => a.top - b.top || a.left - b.left)) {
@@ -1000,6 +1123,10 @@ function blocchiDaRighe(righe) {
       if (sch) { chiudi(); blocchi.push(sch.blocco); k = sch.fine - 1; continue; }
       const pt = puntato(righe, k);
       if (pt) { chiudi(); blocchi.push(pt.blocco); k = pt.fine - 1; continue; }
+      /* Prima delle griglie: un riquadro di formula ne ha la geometria e se lo
+         prenderebbero entrambe, spezzando la frase in celle. */
+      const riq = riquadroDiProsa(righe, k);
+      if (riq) { chiudi(); blocchi.push(...riq.blocchi); k = riq.fine - 1; continue; }
       /* Prima di grigliaLibera: una tabella senza didascalia si riconosce dalla
          riga di intestazione, e grigliaLibera la accetterebbe comunque. */
       const tab2 = tabella(righe, k);

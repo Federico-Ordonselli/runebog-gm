@@ -279,17 +279,15 @@
    ]
   },
   {
-   "t": "tabella",
-   "titolo": "",
-   "colonne": [
-    "CD del tiro salvezza sull'incantesimo",
-    "= 8 + il modi-"
-   ],
-   "righe": [
-    [
-     "ficatore di caratteristica da incantatore re + il bonus di competenza",
-     "dell'incantato-"
-    ]
+   "t": "p",
+   "testo": [
+    {
+     "s": "CD del tiro salvezza sull'incantesimo ",
+     "b": 1
+    },
+    {
+     "s": "= 8 + il modificatore di caratteristica da incantatore dell'incantatore + il bonus di competenza"
+    }
    ]
   },
   {
@@ -306,17 +304,15 @@
    ]
   },
   {
-   "t": "tabella",
-   "titolo": "",
-   "colonne": [
-    "Modificatore di attacco dell'incantesimo",
-    "= il modifi-"
-   ],
-   "righe": [
-    [
-     "catore di caratteristica da incantatore + il bonus di competenza",
-     "dell'incantatore"
-    ]
+   "t": "p",
+   "testo": [
+    {
+     "s": "Modificatore di attacco dell'incantesimo ",
+     "b": 1
+    },
+    {
+     "s": "= il modificatore di caratteristica da incantatore dell'incantatore + il bonus di competenza"
+    }
    ]
   },
   {
@@ -1311,7 +1307,7 @@
      "i": 1
     },
     {
-     "s": " danni da forza pari a 1d4 + 3 (taglia Media o inferiore), 2d6 + 3 + il modi- ficatore di caratteristica da incantatore dell'incantatore (taglia Grande) o 2d12 + 3 + il modificatore di caratteristica da incantatore dell'incantatore (taglia Enorme)."
+     "s": " danni da forza pari a 1d4 + 3 (taglia Media o inferiore), 2d6 + 3 + il modificatore di caratteristica da incantatore dell'incantatore (taglia Grande) o 2d12 + 3 + il modificatore di caratteristica da incantatore dell'incantatore (taglia Enorme)."
     }
    ]
   },
@@ -4530,20 +4526,25 @@
    "t": "tabella",
    "titolo": "",
    "colonne": [
-    "",
     "1d10",
     "Comportamento per il turno"
    ],
    "righe": [
     [
-     "",
-     "1 2–6 Il 7–8 Il",
-     "Il bersaglio non effettua alcuna azione e usa tutto il suo movimento per muoversi, tirando 1d4 per la direzione: 1, nord; 2, est; 3, sud; o 4, ovest. bersaglio non si muove e non effettua azioni. bersaglio non si muove ed effettua l'azione di Attacco per eseguire un attacco in mischia contro una creatura casuale entro portata. Se nessuna creatura si trova entro la sua portata, il bersaglio non effettua azioni."
+     "1",
+     "Il bersaglio non effettua alcuna azione e usa tutto il suo movimento per muoversi, tirando 1d4 per la direzione: 1, nord; 2, est; 3, sud; o 4, ovest."
+    ],
+    [
+     "2–6",
+     "Il bersaglio non si muove e non effettua azioni."
+    ],
+    [
+     "7–8",
+     "Il bersaglio non si muove ed effettua l'azione di Attacco per eseguire un attacco in mischia contro una creatura casuale entro portata. Se nessuna creatura si trova entro la sua portata, il bersaglio non effettua azioni."
     ],
     [
      "9–10",
-     "Il bersaglio sceglie il comportamento.",
-     ""
+     "Il bersaglio sceglie il comportamento."
     ]
    ]
   },

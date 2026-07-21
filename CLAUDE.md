@@ -167,6 +167,12 @@ ed elenchi. Trappole già pagate:
 - Le legature (ﬁ, ﬂ, ﬃ) si sciolgono **in uscita**, non all'estrazione: durante
   il parsing sono il segnale che distingue una parola spezzata da due frasi
   accostate. Per lo stesso motivo `slug` normalizza in **NFKD** e non NFD.
+  Restando intere fino alla fine, però, ogni test su "minuscola" deve
+  comprenderle — sono minuscole ma non stanno in `[a-z]`. Le due classi
+  condivise sono `SILLABATA` e `PROSEGUE`, e servono **entrambe**, perché il PDF
+  spezza la riga sia prima della legatura ("modi-" / "ﬁcatore") sia dopo
+  ("modiﬁ-" / "catore"): senza, la sillabazione non si ricuciva e usciva
+  "modi- ficatore", una parola con dentro uno spazio e un trattino.
 - **Il nome di una definizione può stare a cavallo di due righe.** Il grassetto
   di apertura è il solo delimitatore affidabile di paragrafo, ma pretendere il
   punto finale sulla PRIMA riga perdeva la rottura ogni volta che il nome è
@@ -204,6 +210,18 @@ ed elenchi. Trappole già pagate:
   punti finali, valore = GillSans normale. Le ascisse non servono, perché le
   righe arrivano già in ordine di lettura — così il riquadro si ricompone anche
   quando prosegue nella colonna successiva.
+- **Nemmeno un riquadro di formula è una tabella.** "CD del tiro salvezza
+  sull'incantesimo = 8 + il modiﬁcatore…" è una frase sola impaginata su tre
+  righe centrate, e ha la stessa geometria di una tabella a due colonne:
+  `tabella` e `grigliaLibera` se la prendevano e ne incolonnavano le righe di
+  continuazione. La riconoscono due segnali insieme (`riquadroDiProsa`, prima
+  delle griglie): la **composizione centrata** — ogni riga visiva ha lo stesso
+  asse e i bordi sinistri no, mentre una griglia è allineata a sinistra dentro
+  le sue colonne — e il **grassetto che intitola una volta sola**, che qui deve
+  anche aprire una riga visiva. Il primo da solo non basta (anche la tabella
+  "Taglia | Acqua" del glossario è centrata), il secondo nemmeno. Due riquadri
+  di fila si spezzano sul grassetto: è come li impagina "Creazione del
+  personaggio", dove stanno a due a due nello stesso blocco di righe.
 - **I valori numerici sono allineati a destra**, quindi un frammento comincia
   prima della colonna che l'intestazione dichiara ("17,5 kg" a x=319 sotto un
   "Peso" a 330). `indiceColonna` riceve anche la larghezza e lo sposta alla
@@ -247,6 +265,23 @@ ed elenchi. Trappole già pagate:
   all'ultima che contiene *almeno un* frammento nel font delle intestazioni, e
   poi fino in fondo alla sua riga visiva: in "Terreno di viaggio" metà dei titoli
   è in GillSans normale come i dati.
+  Quando invece il PDF fonde **tutte** le intestazioni in un frammento solo
+  ("1d10 Comportamento per il turno") le colonne si deducono dalle celle, ma con
+  due vincoli separati. *Quante*: le dichiara il titolo, contando le parole che
+  possono esserlo (maiuscola o cifra) — il conteggio nudo ne dava cinque dove il
+  titolo ne dichiara due. *Quali*: quelle con più celle sotto, tenendo comunque
+  la prima, che è il margine della tabella. Tagliare in testa all'elenco delle
+  ascisse non basta, perché la colonna di troppo può essere fra le prime: in
+  *confusione* la chiave "1" è centrata a x=113 dentro la stessa colonna delle
+  celle fuse a x=102, e quell'ascissa faceva una terza colonna senza titolo.
+- **La stima proporzionale che divide una cella fusa sbaglia di una parola**
+  quando la chiave è più larga della prosa ("2–6 " sono quattro caratteri larghi
+  come sei), e usciva `2–6 Il | bersaglio non si muove`. `dividiCella` la
+  riaggancia col solito criterio: una cella comincia per maiuscola o cifra, mai
+  a metà frase, quindi se il pezzo di destra apre in minuscola si arretra di una
+  parola. Vale per le celle e **non** per le intestazioni: là lo stesso test
+  serve a *rifiutare* un confine sbagliato (`raffinaConCelle`, "Capacità di
+  trasporto"), e agganciare il taglio glielo farebbe passare sempre.
 - **La pagina non è a due colonne: è a fasce.** Una tabella a piena pagina
   attraversa la separazione fra le colonne di testo (`COLONNA_DESTRA`, x=440) e
   spezzarla a metà la distruggeva. Si riconosce da un frammento che *attraversa*

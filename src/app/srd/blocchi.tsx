@@ -14,6 +14,12 @@ function Testo({ span }: { span: Span[] }) {
   );
 }
 
+/* Una cella senza spazi è un pezzo solo e non va spezzata. Il browser lo fa
+   comunque, perché il trattino d'intervallo delle chiavi ("2–6", "9–10") è un
+   punto di a capo legittimo per il line breaker: in una tabella dalla seconda
+   colonna larga la prima si restringe fin lì, e "9–10" usciva su due righe. */
+const unita = (c: string) => (/\s/.test(c) ? undefined : "srd-tab__unita");
+
 /* Le tabelle scorrono per conto loro sotto una certa larghezza: la pagina non
    deve mai scorrere in orizzontale per colpa di una tabella a quattro colonne. */
 function Tabella({ titolo, colonne, righe }: { titolo?: string; colonne?: string[]; righe: string[][] }) {
@@ -29,7 +35,7 @@ function Tabella({ titolo, colonne, righe }: { titolo?: string; colonne?: string
           )}
           <tbody>
             {righe.map((r, k) => (
-              <tr key={k}>{r.map((c, n) => <td key={n}>{c}</td>)}</tr>
+              <tr key={k}>{r.map((c, n) => <td key={n} className={unita(c)}>{c}</td>)}</tr>
             ))}
           </tbody>
         </table>
