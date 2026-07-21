@@ -3536,50 +3536,90 @@
     "Nave",
     "Velocità",
     "Equipaggio",
-    "Passeggeri"
+    "Passeggeri",
+    "Carico (tonnellate)",
+    "CA",
+    "PF",
+    "Soglia di danno",
+    "Costo"
    ],
    "righe": [
     [
      "Barca a remi",
      "2,25 km/h",
      "1",
-     "3"
+     "3",
+     "—",
+     "11",
+     "50",
+     "—",
+     "50 mo"
     ],
     [
      "Barcone",
      "1,5 km/h",
      "1",
-     "6"
+     "6",
+     "1/2",
+     "15",
+     "100",
+     "10",
+     "3.000 mo"
     ],
     [
      "Dirigibile",
      "12 km/h",
      "10",
-     "20"
+     "20",
+     "1",
+     "13",
+     "300",
+     "—",
+     "40.000 mo"
     ],
     [
      "Galea",
      "6 km/h",
      "80",
-     "—"
+     "—",
+     "150",
+     "15",
+     "500",
+     "20",
+     "30.000 mo"
     ],
     [
      "Nave a vela",
      "3 km/h",
      "20",
-     "20"
+     "20",
+     "100",
+     "15",
+     "300",
+     "15",
+     "10.000 mo"
     ],
     [
      "Nave da guerra",
      "3,75 km/h",
      "60",
-     "60"
+     "60",
+     "200",
+     "15",
+     "500",
+     "20",
+     "25.000 mo"
     ],
     [
      "Nave lunga",
      "4,5 km/h",
      "40",
-     "150"
+     "150",
+     "10",
+     "15",
+     "300",
+     "15",
+     "10.000 mo"
     ]
    ]
   },
@@ -3684,122 +3724,7 @@
    "t": "p",
    "testo": [
     {
-     "s": "Una nave più grande di un barcone o una barca a remi necessita di un equipaggio di gregari abili (vedi \"Gregari\" più avanti in \"Equipaggiamento\") per poter essere governata. Il numero minimo di"
-    }
-   ]
-  },
-  {
-   "t": "griglia",
-   "righe": [
-    [
-     "(tonnellate)",
-     "Carico"
-    ],
-    [
-     "",
-     "CA"
-    ],
-    [
-     "—",
-     "11"
-    ],
-    [
-     "1/2",
-     "15"
-    ],
-    [
-     "1",
-     "13"
-    ],
-    [
-     "150",
-     "15"
-    ],
-    [
-     "100",
-     "15"
-    ],
-    [
-     "200",
-     "15"
-    ],
-    [
-     "10",
-     "15"
-    ],
-    [
-     "PF",
-     "Soglia di danno"
-    ],
-    [
-     "50",
-     ""
-    ],
-    [
-     "100",
-     ""
-    ],
-    [
-     "300",
-     ""
-    ],
-    [
-     "500",
-     ""
-    ],
-    [
-     "300",
-     ""
-    ],
-    [
-     "500",
-     ""
-    ],
-    [
-     "300",
-     ""
-    ],
-    [
-     "—",
-     ""
-    ],
-    [
-     "10",
-     "3.000 mo"
-    ],
-    [
-     "—",
-     "40.000 mo"
-    ],
-    [
-     "20",
-     "30.000 mo"
-    ],
-    [
-     "15",
-     "10.000 mo"
-    ],
-    [
-     "20",
-     "25.000 mo"
-    ],
-    [
-     "15",
-     "10.000 mo"
-    ],
-    [
-     "Costo"
-    ],
-    [
-     "50 mo"
-    ]
-   ]
-  },
-  {
-   "t": "p",
-   "testo": [
-    {
-     "s": "gregari abili necessari per l'equipaggio di una nave dipende dalla tipologia, come mostrato nella tabella."
+     "s": "Una nave più grande di un barcone o una barca a remi necessita di un equipaggio di gregari abili (vedi \"Gregari\" più avanti in \"Equipaggiamento\") per poter essere governata. Il numero minimo di gregari abili necessari per l'equipaggio di una nave dipende dalla tipologia, come mostrato nella tabella."
     }
    ]
   },

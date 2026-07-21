@@ -206,6 +206,30 @@ a.srd-capitoli__link:hover .srd-capitoli__titolo { color: var(--wisp-lit); }
 
 .srd-attribuzione { margin-top: 1rem; }
 
+/* --- Classi: la scelta della classe --------------------------------------- */
+
+/* Il capitolo non ha introduzione, quindi /srd/classi è solo questa griglia:
+   dodici carte da confrontare a colpo d'occhio, non un elenco da scorrere.
+   Le colonne si contano da sole, come in .srd-nomi. */
+.srd-classi {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  gap: 0.5rem;
+}
+.srd-classi .srd-capitoli__link { height: 100%; }
+.srd-classi__tratti { display: block; margin-top: 0.15rem; }
+/* La sottoclasse è il dettaglio meno pesante delle tre: sta in fondo e più
+   spenta, perché si legge dopo aver deciso che la classe interessa. */
+.srd-classi__sotto {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--parchment-dim);
+  font-style: italic;
+}
+
 /* --- Incantesimi: l'indice per livello e la navigazione fra i livelli ------ */
 
 /* I nomi degli incantesimi sono corti e sono tanti (57 al 1º livello): a una

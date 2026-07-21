@@ -43,6 +43,12 @@ const CAPITOLI = [
 ];
 
 const COLONNA_DESTRA = 440;   // ascissa di separazione delle due colonne
+/* Il corridoio vuoto fra le due colonne di testo: la sinistra chiude a 435, la
+   destra apre a 470. Sono margini tipografici, non stime — sui 39.077
+   frammenti del documento 434 bordi destri cadono a 434-435 e 10.242 bordi
+   sinistri a 470, mentre nei 34 px in mezzo ne cadono 37 in tutto, tutti
+   dentro tabelle a piena pagina. */
+const GUTTER = [435, 470];
 /* px: oltre questo salto verticale è un altro paragrafo. Dentro un paragrafo il
    passo è 18–19; a 23 il PDF stacca la riga in corsivo che dichiara categoria e
    rarità ("Verga, molto rara") dalla descrizione che segue, e a 23 esatti stava
@@ -213,20 +219,79 @@ const SALTO_BANDA = 40;   // px: oltre questo due righe non sono la stessa tabel
    sei colonne da x=95 a x=803 e la separazione a COLONNA_DESTRA la tagliava a
    metà, mandando tre colonne di dati in un blocco a sé.
  *
- * Si riconoscono da un frammento che ATTRAVERSA il gutter (left < 440 < fine):
- * nella prosa a due colonne non succede mai — misurato sul glossario, zero su
- * 2484 frammenti — mentre in una tabella larga una cella ci cade sopra di
- * continuo. Non tutte le righe ne hanno una, quindi la banda si propaga in su e
+ * Si riconoscono da un frammento che INVADE il corridoio fra le due colonne:
+ * nella prosa non succede mai, perché il corridoio è il margine delle colonne,
+ * mentre in una tabella larga una cella ci cade dentro di continuo. Non basta
+ * chiedere che il frammento scavalchi la mezzeria (left < 440 < fine): la
+ * tabella "Privilegi del bardo" ha quattordici colonne e nessuna cella che
+ * passi per il centro — "Trucchetti" sta a 445-508, appena dentro il corridoio
+ * — e usciva tagliata in due, quattro colonne da una parte e le altre dieci
+ * lette per colonnine come se fossero un elenco.
+ * Non tutte le righe ne hanno una, quindi la banda si propaga in su e
  * in giù alle righe contigue con un ruolo da tabella: così ci rientrano anche la
  * didascalia e le intestazioni, che stanno sopra il primo attraversamento.
  *
+ * La propagazione però non deve scavalcare le righe dove la pagina è a due
+ * colonne DAVVERO: all'apertura di ogni classe il riquadro "Tratti del
+ * <classe>" è una tabella alta mezza pagina nella colonna sinistra, la tabella
+ * dei privilegi sta sotto a piena pagina, e le righe del riquadro hanno tutte
+ * un ruolo da tabella a meno di SALTO_BANDA l'una dall'altra. La banda risaliva
+ * di riga in riga fino in cima e le due colonne uscivano interlacciate ("Dado
+ * Vita | D10 per ogni livello da guerriero cati nella tabella Privilegi del
+ * guerriero."). Quelle righe le riconosce `righeADueColonne`.
+ *
  * Restituisce gli intervalli verticali [y1, y2] delle bande della pagina. */
 const RUOLI_TABELLA = new Set(["gill", "intestazione-cella", "didascalia"]);
+const RUOLI_PROSA = new Set(["prosa", "capitolo", "h2", "h3", "h4"]);
+/* px: entro questo scarto verticale due righe di colonne diverse convivono,
+   cioè si affiancano sulla pagina. È mezza riga — l'interlinea è 18–19 px e le
+   due colonne non vanno a capo insieme. */
+const AFFIANCATE = 11;
+
+const invadeIlGutter = f => f.left + f.larg > GUTTER[0] && f.left < GUTTER[1];
+
+/* 0 = colonna sinistra, 1 = destra, null = nessuna delle due (sta nel gutter,
+   quindi appartiene a una fascia a piena pagina). */
+const latoDi = f => invadeIlGutter(f) ? null : f.left < COLONNA_DESTRA ? 0 : 1;
+
+/* Le righe che stanno nella pagina a due colonne, e che quindi nessuna banda
+   può inghiottire. Il segnale diretto è la prosa dell'altra colonna che le
+   affianca; ma la prosa finisce prima del riquadro accanto, e le ultime righe
+   del riquadro restano sole in mezzo alla pagina — geometricamente
+   indistinguibili dalla didascalia di una tabella a piena pagina, che nel PDF
+   comincia 19 px sotto la prosa mentre quelle ne distano 18. A separarle non è
+   la misura ma la CONTINUITÀ: una riga prosegue ciò che ha sopra nella sua
+   colonna, quindi eredita. Una didascalia no — apre una tabella per
+   definizione, e non è mai il seguito di niente. */
+function righeADueColonne(frag) {
+  const prosa = frag.filter(f => RUOLI_PROSA.has(f.ruolo));
+  const marcate = new Set();
+  /* Le righe si contano DENTRO la colonna. Raggrupparle per sola ordinata, a
+     cavallo del gutter, fondeva in una riga sola le due colonne affiancate —
+     che alla stessa altezza sono due righe diverse — e quella riga sembrava
+     larga quanto la pagina: esattamente ciò che si sta cercando di escludere. */
+  for (const lato of [0, 1]) {
+    const righe = [];
+    for (const f of frag.filter(f => latoDi(f) === lato).sort((x, y) => x.top - y.top)) {
+      const ult = righe[righe.length - 1];
+      if (ult && f.top - ult.top <= TOLLERANZA_RIGA) ult.frag.push(f);
+      else righe.push({ top: f.top, frag: [f] });
+    }
+    let sopra = null;
+    for (const r of righe) {
+      const eredita = sopra && sopra.marcata && r.top - sopra.top <= SALTO_BANDA
+        && !r.frag.some(f => f.ruolo === "didascalia");
+      r.marcata = eredita
+        || prosa.some(p => latoDi(p) === 1 - lato && Math.abs(p.top - r.top) <= AFFIANCATE);
+      if (r.marcata) for (const f of r.frag) marcate.add(f);
+      sopra = r;
+    }
+  }
+  return marcate;
+}
 
 function bandeFullWidth(frag) {
-  const attraversa = frag
-    .filter(f => f.left < COLONNA_DESTRA && f.left + f.larg > COLONNA_DESTRA)
-    .map(f => f.top).sort((x, y) => x - y);
+  const attraversa = frag.filter(f => latoDi(f) === null).map(f => f.top).sort((x, y) => x - y);
   if (!attraversa.length) return [];
 
   const bande = [];
@@ -235,12 +300,14 @@ function bandeFullWidth(frag) {
     if (ult && t - ult[1] <= SALTO_BANDA) ult[1] = t; else bande.push([t, t]);
   }
 
+  const dueColonne = righeADueColonne(frag);
   for (const b of bande) {
     let cresciuta = true;
     while (cresciuta) {
       cresciuta = false;
       for (const f of frag) {
         if (!RUOLI_TABELLA.has(f.ruolo) || (f.top >= b[0] && f.top <= b[1])) continue;
+        if (dueColonne.has(f)) continue;
         if (f.top < b[0] && b[0] - f.top <= SALTO_BANDA) { b[0] = f.top; cresciuta = true; }
         else if (f.top > b[1] && f.top - b[1] <= SALTO_BANDA) { b[1] = f.top; cresciuta = true; }
       }
@@ -598,6 +665,24 @@ function dividiCella(testo, left, larg, x) {
   return [div[0].slice(0, indietro), div[0].slice(indietro + 1) + " " + div[1]];
 }
 
+/* Una cella fusa che copre PIÙ DI DUE colonne. Nelle tabelle di avanzamento
+   degli incantatori il PDF emette in un frammento solo lo slot e tutti i
+   trattini che seguono ("2 — — — — — — — —", da x=597 a x=815, sopra nove
+   colonne): dividiCella stima un confine per volta, e qui ne servirebbero otto
+   — la riga usciva con un valore in una cella e sette celle vuote.
+   Qui però non si stima niente, perché il CONTO TORNA: le parole sono tante
+   quante le colonne coperte, quindi la corrispondenza è un'identità e non
+   un'approssimazione. È anche la condizione che rende la regola innocua —
+   quando il conto non torna la cella resta fusa com'era, e nessuna tabella già
+   pubblicata si muove. */
+function dividiSuColonne(colonne, i, left, larg, testo) {
+  let fine = i;
+  while (colonne[fine + 1] !== undefined && colonne[fine + 1] <= left + larg) fine++;
+  if (fine - i < 2) return null;
+  const pezzi = testo.split(/\s+/);
+  return pezzi.length === fine - i + 1 ? pezzi : null;
+}
+
 /* Più frammenti nella stessa cella si accodano con uno spazio, ma non davanti a
    un segno di chiusura: nelle tabelle degli oggetti magici il nome di una
    creatura è in grassetto e il PDF stacca lì il frammento, quindi "elefante" e
@@ -664,6 +749,14 @@ function grigliaDaFrammenti(frammenti, colonne) {
       const sezione = celle.length === 1 && c.span.length && c.span.every(s => s.i);
       const seguente = sezione ? undefined : colonne[i + 1];
       const occupata = seguente !== undefined && celle.some(a => a !== c && indiceColonna(colonne, a.left, a.larg) === i + 1);
+      /* Prima della divisione a due: se la cella ne copre più di due, il
+         confine da stimare non è uno solo. */
+      const multiplo = seguente !== undefined && !occupata
+        ? dividiSuColonne(colonne, i, c.left, c.larg, testo) : null;
+      if (multiplo) {
+        multiplo.forEach((p, n) => { riga[i + n] = unisciNellaCella(riga[i + n], p); });
+        continue;
+      }
       const diviso = seguente !== undefined && !occupata && c.left + c.larg > seguente + TOLLERANZA_X
         ? dividiCella(testo, c.left, c.larg, seguente)
         : null;
@@ -756,6 +849,17 @@ function scheda(righe, k) {
   return { blocco: { t: "scheda", voci }, fine };
 }
 
+/* Il pallino apre una voce di elenco. Si toglie dal testo — nella pagina lo
+   rimette la lista — ma la voce resta un array di span: nei riquadri degli
+   oggetti magici le voci sono nomi di incantesimo in corsivo, e ridurle a
+   stringa perderebbe il corsivo insieme al pallino. */
+const aprePunto = span => /^\s*•/.test(testoDi(span));
+const senzaPallino = span => {
+  const out = span.map(s => ({ ...s }));
+  out[0].s = out[0].s.replace(/^\s*•\s*/, "");
+  return out;
+};
+
 /* Elenco puntato: le voci aprono col pallino al margine, i capoversi sono
    rientrati. Va riconosciuto prima delle griglie, sennò il rientro dei
    capoversi passa per una seconda colonna. */
@@ -763,19 +867,14 @@ function puntato(righe, k) {
   let fine = k;
   while (fine < righe.length && righe[fine].ruolo === "gill") fine++;
   const frammenti = righe.slice(k, fine);
-  if (frammenti.filter(f => testoDi(f.span).trimStart().startsWith("•")).length < 2) return null;
+  if (frammenti.filter(f => aprePunto(f.span)).length < 2) return null;
 
   const voci = [];
   for (const f of frammenti) {
-    const testo = testoDi(f.span).trim();
-    if (testo.startsWith("•")) voci.push(testo.replace(/^•\s*/, ""));
-    else if (voci.length) {
-      const u = voci.length - 1;
-      voci[u] = SILLABATA.test(voci[u]) && PROSEGUE.test(testo)
-        ? voci[u].slice(0, -1) + testo : voci[u] + " " + testo;
-    }
+    if (aprePunto(f.span)) voci.push(senzaPallino(f.span));
+    else if (voci.length) accoda(voci[voci.length - 1], f.span);
   }
-  return { blocco: { t: "punti", voci: voci.filter(Boolean) }, fine };
+  return { blocco: { t: "punti", voci: voci.map(ripulisci).filter(v => testoDi(v).trim()) }, fine };
 }
 
 /* Le righe visive di un blocco: i frammenti arrivano già in ordine di lettura,
@@ -1220,6 +1319,12 @@ function blocchiDaRighe(righe) {
 
   const chiudi = () => {
     if (!corrente) return;
+    if (corrente.t === "punti") {
+      corrente.voci = corrente.voci.map(ripulisci).filter(v => testoDi(v).trim());
+      if (corrente.voci.length) blocchi.push(corrente);
+      corrente = null;
+      return;
+    }
     corrente.testo = ripulisci(corrente.testo);
     /* Seconda occasione per riconoscere una definizione: il nome può stare a
        cavallo di due righe, e sulla prima la corsa di grassetto non ha ancora
@@ -1249,6 +1354,18 @@ function blocchiDaRighe(righe) {
     if (r.ruolo === "didascalia") {
       const tab = tabella(righe, k);
       if (tab) { chiudi(); blocchi.push(...tab.blocchi); k = tab.fine - 1; continue; }
+      /* Una didascalia che non apre una tabella può aprire una GRIGLIA: il
+         riquadro "Tratti del <classe>" è una griglia chiave/valore — le chiavi
+         in grassetto e nessuna riga di intestazione, quindi `tabella` non la
+         riconosce — e la sua didascalia restava orfana, un paragrafo in
+         grassetto sopra una tabella senza nome, dodici volte nel capitolo. */
+      const gr = grigliaLibera(righe, k + 1);
+      if (gr && gr.blocchi.length === 1 && gr.blocchi[0].t === "griglia") {
+        chiudi();
+        blocchi.push({ ...gr.blocchi[0], titolo: testoDi(r.span).trim() });
+        k = gr.fine - 1;
+        continue;
+      }
     }
 
     if (r.ruolo === "gill" || r.ruolo === "intestazione-cella") {
@@ -1281,7 +1398,25 @@ function blocchiDaRighe(righe) {
     const stessoFlusso = prec && prec.pag === r.pag
       && (prec.left >= COLONNA_DESTRA) === (r.left >= COLONNA_DESTRA);
     const salto = stessoFlusso ? r.top - prec.top : 0;
-    if (apreDefinizione(righe, k) || !corrente || salto > PASSO_RIGA) {
+    const rompe = apreDefinizione(righe, k) || !corrente || salto > PASSO_RIGA;
+
+    /* Un pallino apre sempre una voce. Nella prosa gli elenchi hanno il passo
+       di riga normale — il PDF non stacca le voci una dall'altra — quindi il
+       salto verticale non le separava e finivano incollate in un paragrafo
+       solo: "• Chi è la tua famiglia? • Chi era il tuo più caro amico
+       d'infanzia? • …". Le righe di continuazione, che il pallino non ce
+       l'hanno, proseguono la voce aperta come farebbero in un paragrafo. */
+    if (aprePunto(r.span)) {
+      if (rompe || corrente.t !== "punti") { chiudi(); corrente = { t: "punti", voci: [] }; }
+      corrente.voci.push(senzaPallino(r.span));
+      continue;
+    }
+    if (corrente && corrente.t === "punti" && !rompe) {
+      accoda(corrente.voci[corrente.voci.length - 1], r.span);
+      continue;
+    }
+
+    if (rompe) {
       chiudi();
       corrente = { t: "p", testo: [...r.span] };
     } else accoda(corrente.testo, r.span);

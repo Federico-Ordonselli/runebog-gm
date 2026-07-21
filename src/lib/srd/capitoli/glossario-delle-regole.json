@@ -2791,11 +2791,23 @@
    ]
   },
   {
-   "t": "p",
-   "testo": [
-    {
-     "s": "• Tirare per l'iniziativa • Lanciare un incantesimo diverso da un trucchetto • Subire danni"
-    }
+   "t": "punti",
+   "voci": [
+    [
+     {
+      "s": "Tirare per l'iniziativa"
+     }
+    ],
+    [
+     {
+      "s": "Lanciare un incantesimo diverso da un trucchetto"
+     }
+    ],
+    [
+     {
+      "s": "Subire danni"
+     }
+    ]
    ]
   },
   {
@@ -2874,11 +2886,28 @@
    ]
   },
   {
-   "t": "p",
-   "testo": [
-    {
-     "s": "• Tirare per l'iniziativa • Lanciare un incantesimo diverso da un trucchetto • Subire danni • 1 ora di camminata o di un altro tipo di sforzo fisico"
-    }
+   "t": "punti",
+   "voci": [
+    [
+     {
+      "s": "Tirare per l'iniziativa"
+     }
+    ],
+    [
+     {
+      "s": "Lanciare un incantesimo diverso da un trucchetto"
+     }
+    ],
+    [
+     {
+      "s": "Subire danni"
+     }
+    ],
+    [
+     {
+      "s": "1 ora di camminata o di un altro tipo di sforzo fisico"
+     }
+    ]
    ]
   },
   {
@@ -3797,12 +3826,36 @@
   {
    "t": "punti",
    "voci": [
-    "Una creatura che non sia minuscola o una creatura alleata",
-    "Mobili a misura di creature di taglia pari o superiore a quella del personaggio",
-    "Neve alta, ghiaccio, detriti o sottobosco",
-    " Liquido a livello degli stinchi o fino alla vita",
-    "Un'apertura stretta adatta a una creatura di una taglia inferiore a quella del personaggio",
-    "Una pendenza di 20 gradi o più"
+    [
+     {
+      "s": "Una creatura che non sia minuscola o una creatura alleata"
+     }
+    ],
+    [
+     {
+      "s": "Mobili a misura di creature di taglia pari o superiore a quella del personaggio"
+     }
+    ],
+    [
+     {
+      "s": "Neve alta, ghiaccio, detriti o sottobosco"
+     }
+    ],
+    [
+     {
+      "s": "Liquido a livello degli stinchi o fino alla vita"
+     }
+    ],
+    [
+     {
+      "s": "Un'apertura stretta adatta a una creatura di una taglia inferiore a quella del personaggio"
+     }
+    ],
+    [
+     {
+      "s": "Una pendenza di 20 gradi o più"
+     }
+    ]
    ]
   },
   {

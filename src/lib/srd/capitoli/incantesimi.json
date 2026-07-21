@@ -2709,11 +2709,18 @@
    ]
   },
   {
-   "t": "p",
-   "testo": [
-    {
-     "s": "• La creatura è immune alle condizioni affascinato e spaventato fino al termine dell'incantesimo. Se la creatura è già affascinata o spaventata, queste condizioni sono soppresse per la durata dell'incantesimo. • La creatura diventa indifferente alle creature (a scelta dell'incantatore) verso cui è ostile. Questa indifferenza termina se il bersaglio subisce danni o se vede uno dei suoi alleati subire danni. Al termine dell'incantesimo, l'atteggiamento della creatura torna alla normalità."
-    }
+   "t": "punti",
+   "voci": [
+    [
+     {
+      "s": "La creatura è immune alle condizioni affascinato e spaventato fino al termine dell'incantesimo. Se la creatura è già affascinata o spaventata, queste condizioni sono soppresse per la durata dell'incantesimo."
+     }
+    ],
+    [
+     {
+      "s": "La creatura diventa indifferente alle creature (a scelta dell'incantatore) verso cui è ostile. Questa indifferenza termina se il bersaglio subisce danni o se vede uno dei suoi alleati subire danni. Al termine dell'incantesimo, l'atteggiamento della creatura torna alla normalità."
+     }
+    ]
    ]
   },
   {
@@ -3541,11 +3548,23 @@
    ]
   },
   {
-   "t": "p",
-   "testo": [
-    {
-     "s": "• La creatura non può entrare volontariamente nel cilindro tramite mezzi non magici. Se prova a utilizzare il teletrasporto o il viaggio interplanare, deve prima superare un tiro salvezza su Carisma. • La creatura subisce svantaggio ai tiri per colpire contro i bersagli all'interno del cilindro. • I bersagli all'interno del cilindro non possono essere posseduti, affascinati o spaventati dalla creatura."
-    }
+   "t": "punti",
+   "voci": [
+    [
+     {
+      "s": "La creatura non può entrare volontariamente nel cilindro tramite mezzi non magici. Se prova a utilizzare il teletrasporto o il viaggio interplanare, deve prima superare un tiro salvezza su Carisma."
+     }
+    ],
+    [
+     {
+      "s": "La creatura subisce svantaggio ai tiri per colpire contro i bersagli all'interno del cilindro."
+     }
+    ],
+    [
+     {
+      "s": "I bersagli all'interno del cilindro non possono essere posseduti, affascinati o spaventati dalla creatura."
+     }
+    ]
    ]
   },
   {
@@ -4448,11 +4467,33 @@
    ]
   },
   {
-   "t": "p",
-   "testo": [
-    {
-     "s": "• Luoghi di insediamento • Ubicazione dei portali che conducono verso altri piani di esistenza • Ubicazione di una creatura con grado di sfida pari o superiore a 10 (a scelta del GM) che sia un celestiale, un elementale, un folletto, un immondo o un non morto • Il tipo di pianta, minerale o bestia più diffuso (l'incantatore sceglie quale apprendere) • Ubicazione di distese d'acqua"
-    }
+   "t": "punti",
+   "voci": [
+    [
+     {
+      "s": "Luoghi di insediamento"
+     }
+    ],
+    [
+     {
+      "s": "Ubicazione dei portali che conducono verso altri piani di esistenza"
+     }
+    ],
+    [
+     {
+      "s": "Ubicazione di una creatura con grado di sfida pari o superiore a 10 (a scelta del GM) che sia un celestiale, un elementale, un folletto, un immondo o un non morto"
+     }
+    ],
+    [
+     {
+      "s": "Il tipo di pianta, minerale o bestia più diffuso (l'incantatore sceglie quale apprendere)"
+     }
+    ],
+    [
+     {
+      "s": "Ubicazione di distese d'acqua"
+     }
+    ]
    ]
   },
   {
@@ -18503,11 +18544,33 @@
    ]
   },
   {
-   "t": "p",
-   "testo": [
-    {
-     "s": "• 1 livello di indebolimento • La condizione affascinato o pietrificato • Una maledizione, inclusa la sintonia del bersaglio con un oggetto magico maledetto • Qualsiasi riduzione di un punteggio di caratteristica del bersaglio • Qualsiasi riduzione dei punti ferita massimi del bersaglio"
-    }
+   "t": "punti",
+   "voci": [
+    [
+     {
+      "s": "1 livello di indebolimento"
+     }
+    ],
+    [
+     {
+      "s": "La condizione affascinato o pietrificato"
+     }
+    ],
+    [
+     {
+      "s": "Una maledizione, inclusa la sintonia del bersaglio con un oggetto magico maledetto"
+     }
+    ],
+    [
+     {
+      "s": "Qualsiasi riduzione di un punteggio di caratteristica del bersaglio"
+     }
+    ],
+    [
+     {
+      "s": "Qualsiasi riduzione dei punti ferita massimi del bersaglio"
+     }
+    ]
    ]
   },
   {
@@ -19071,11 +19134,38 @@
    ]
   },
   {
-   "t": "p",
-   "testo": [
-    {
-     "s": "• I suoni non possono attraversare la barriera ai confini dell'area protetta. • La barriera nell'area protetta appare oscura e nebulosa, rendendo impossibile vedere oltre (anche utilizzando scurovisione). • I sensori creati dagli incantesimi di divinazione non possono apparire all'interno dell'area protetta né oltrepassarne il perimetro. • Le creature nell'area non possono essere bersaglio di incantesimi di divinazione. • Nulla può teletrasportarsi dentro o fuori dall'area protetta. • I viaggi planari sono bloccati all'interno dell'area protetta."
-    }
+   "t": "punti",
+   "voci": [
+    [
+     {
+      "s": "I suoni non possono attraversare la barriera ai confini dell'area protetta."
+     }
+    ],
+    [
+     {
+      "s": "La barriera nell'area protetta appare oscura e nebulosa, rendendo impossibile vedere oltre (anche utilizzando scurovisione)."
+     }
+    ],
+    [
+     {
+      "s": "I sensori creati dagli incantesimi di divinazione non possono apparire all'interno dell'area protetta né oltrepassarne il perimetro."
+     }
+    ],
+    [
+     {
+      "s": "Le creature nell'area non possono essere bersaglio di incantesimi di divinazione."
+     }
+    ],
+    [
+     {
+      "s": "Nulla può teletrasportarsi dentro o fuori dall'area protetta."
+     }
+    ],
+    [
+     {
+      "s": "I viaggi planari sono bloccati all'interno dell'area protetta."
+     }
+    ]
    ]
   },
   {
@@ -19155,11 +19245,28 @@
    ]
   },
   {
-   "t": "p",
-   "testo": [
-    {
-     "s": "• L'incantatore sceglie una caratteristica. Il bersaglio subisce svantaggio alle prove di caratteristica e ai tiri salvezza effettuati con quella caratteristica. • Il bersaglio subisce svantaggio ai tiri per colpire contro l'incantatore. • In combattimento, il bersaglio deve superare un tiro salvezza su Saggezza all'inizio di ogni suo turno, altrimenti in quel turno è costretto a effettuare l'azione Schivata. • Se l'incantatore infligge danni al bersaglio con un tiro per colpire o un incantesimo, il bersaglio subisce 1d8 danni necrotici extra."
-    }
+   "t": "punti",
+   "voci": [
+    [
+     {
+      "s": "L'incantatore sceglie una caratteristica. Il bersaglio subisce svantaggio alle prove di caratteristica e ai tiri salvezza effettuati con quella caratteristica."
+     }
+    ],
+    [
+     {
+      "s": "Il bersaglio subisce svantaggio ai tiri per colpire contro l'incantatore."
+     }
+    ],
+    [
+     {
+      "s": "In combattimento, il bersaglio deve superare un tiro salvezza su Saggezza all'inizio di ogni suo turno, altrimenti in quel turno è costretto a effettuare l'azione Schivata."
+     }
+    ],
+    [
+     {
+      "s": "Se l'incantatore infligge danni al bersaglio con un tiro per colpire o un incantesimo, il bersaglio subisce 1d8 danni necrotici extra."
+     }
+    ]
    ]
   },
   {
@@ -22169,11 +22276,38 @@
    ]
   },
   {
-   "t": "p",
-   "testo": [
-    {
-     "s": "• \"Cerchio permanente\" indica un cerchio di teletrasporto permanente di cui l'incantatore conosce la sequenza di sigilli. • \"Oggetto collegato\" indica un oggetto in possesso dell'incantatore prelevato dalla destinazione desiderata negli ultimi sei mesi, come un libro della biblioteca di un mago. • \"Molto familiare\" indica un luogo che l'incantatore ha visitato spesso, un luogo che ha studiato con attenzione o un luogo che è in grado di vedere quando lancia l'incantesimo. • \"Visto occasionalmente\" indica un luogo che l'incantatore ha visto più di una volta, ma che non gli è troppo familiare. • \"Visto una volta o descritto\" indica un luogo che l'incantatore ha visto una volta, magari usando la magia, o un luogo noto attraverso la descrizione di un'altra persona o una mappa. • \"Falsa destinazione\" è un luogo inesistente. Per esempio, l'incantatore ha cercato di scrutare il rifugio segreto di un nemico ma ha visto invece un'illusione, oppure tenta di teletrasportarsi in un luogo che non esiste più."
-    }
+   "t": "punti",
+   "voci": [
+    [
+     {
+      "s": "\"Cerchio permanente\" indica un cerchio di teletrasporto permanente di cui l'incantatore conosce la sequenza di sigilli."
+     }
+    ],
+    [
+     {
+      "s": "\"Oggetto collegato\" indica un oggetto in possesso dell'incantatore prelevato dalla destinazione desiderata negli ultimi sei mesi, come un libro della biblioteca di un mago."
+     }
+    ],
+    [
+     {
+      "s": "\"Molto familiare\" indica un luogo che l'incantatore ha visitato spesso, un luogo che ha studiato con attenzione o un luogo che è in grado di vedere quando lancia l'incantesimo."
+     }
+    ],
+    [
+     {
+      "s": "\"Visto occasionalmente\" indica un luogo che l'incantatore ha visto più di una volta, ma che non gli è troppo familiare."
+     }
+    ],
+    [
+     {
+      "s": "\"Visto una volta o descritto\" indica un luogo che l'incantatore ha visto una volta, magari usando la magia, o un luogo noto attraverso la descrizione di un'altra persona o una mappa."
+     }
+    ],
+    [
+     {
+      "s": "\"Falsa destinazione\" è un luogo inesistente. Per esempio, l'incantatore ha cercato di scrutare il rifugio segreto di un nemico ma ha visto invece un'illusione, oppure tenta di teletrasportarsi in un luogo che non esiste più."
+     }
+    ]
    ]
   },
   {
@@ -23820,57 +23954,67 @@
    ]
   },
   {
-   "t": "p",
-   "testo": [
-    {
-     "s": "• Luci danzanti "
-    },
-    {
-     "s": "in quattro corridoi, specificando anche un semplice schema che le luci ripetono per la durata di",
-     "i": 1
-    },
-    {
-     "s": " vigilanza e interdizione"
-    },
-    {
-     "s": ". ",
-     "i": 1
-    },
-    {
-     "s": "• Bocca magica "
-    },
-    {
-     "s": "in due luoghi. ",
-     "i": 1
-    },
-    {
-     "s": "• Nube maleodorante "
-    },
-    {
-     "s": "in due luoghi (il vapore riappare nel giro di 10 minuti se disperso fintantoché ",
-     "i": 1
-    },
-    {
-     "s": "vigilanza e interdizione "
-    },
-    {
-     "s": "permane). ",
-     "i": 1
-    },
-    {
-     "s": "• Folata di vento "
-    },
-    {
-     "s": "in un corridoio o una stanza (il vento soffia ininterrottamente per la durata dell'incantesimo). ",
-     "i": 1
-    },
-    {
-     "s": "• Suggestione "
-    },
-    {
-     "s": "in un'area quadrata con lato di 1,5 metri. Qualsiasi creatura che entri nell'area riceve mentalmente la suggestione.",
-     "i": 1
-    }
+   "t": "punti",
+   "voci": [
+    [
+     {
+      "s": "Luci danzanti "
+     },
+     {
+      "s": "in quattro corridoi, specificando anche un semplice schema che le luci ripetono per la durata di",
+      "i": 1
+     },
+     {
+      "s": " vigilanza e interdizione"
+     },
+     {
+      "s": ".",
+      "i": 1
+     }
+    ],
+    [
+     {
+      "s": "Bocca magica "
+     },
+     {
+      "s": "in due luoghi.",
+      "i": 1
+     }
+    ],
+    [
+     {
+      "s": "Nube maleodorante "
+     },
+     {
+      "s": "in due luoghi (il vapore riappare nel giro di 10 minuti se disperso fintantoché ",
+      "i": 1
+     },
+     {
+      "s": "vigilanza e interdizione "
+     },
+     {
+      "s": "permane).",
+      "i": 1
+     }
+    ],
+    [
+     {
+      "s": "Folata di vento "
+     },
+     {
+      "s": "in un corridoio o una stanza (il vento soffia ininterrottamente per la durata dell'incantesimo).",
+      "i": 1
+     }
+    ],
+    [
+     {
+      "s": "Suggestione "
+     },
+     {
+      "s": "in un'area quadrata con lato di 1,5 metri. Qualsiasi creatura che entri nell'area riceve mentalmente la suggestione.",
+      "i": 1
+     }
+    ]
    ]
   },
   {

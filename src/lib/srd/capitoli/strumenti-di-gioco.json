@@ -885,11 +885,23 @@
    ]
   },
   {
-   "t": "p",
-   "testo": [
-    {
-     "s": "• La creatura spaventata deve effettuare l'azione di Scatto a ogni turno e usare il proprio movimento per allontanarsi dalla fonte del suo terrore. • I tiri per colpire contro la creatura spaventata ottengono vantaggio. • Durante i suoi turni, la creatura spaventata può eseguire solo quanto segue: muoversi, effettuare un'azione o un'azione bonus."
-    }
+   "t": "punti",
+   "voci": [
+    [
+     {
+      "s": "La creatura spaventata deve effettuare l'azione di Scatto a ogni turno e usare il proprio movimento per allontanarsi dalla fonte del suo terrore."
+     }
+    ],
+    [
+     {
+      "s": "I tiri per colpire contro la creatura spaventata ottengono vantaggio."
+     }
+    ],
+    [
+     {
+      "s": "Durante i suoi turni, la creatura spaventata può eseguire solo quanto segue: muoversi, effettuare un'azione o un'azione bonus."
+     }
+    ]
    ]
   },
   {
@@ -2470,9 +2482,42 @@
   {
    "t": "punti",
    "voci": [
-    "1 guerriero bugbear (200 PE)",
-    "2 vespe giganti (100 PE ciascuna), per un totale di 200 PE",
-    "6 topi giganti (25 PE ciascuno), per un totale di 150 PE"
+    [
+     {
+      "s": "1 "
+     },
+     {
+      "s": "guerriero bugbear",
+      "b": 1
+     },
+     {
+      "s": " (200 PE)"
+     }
+    ],
+    [
+     {
+      "s": "2 "
+     },
+     {
+      "s": "vespe giganti",
+      "b": 1
+     },
+     {
+      "s": " (100 PE ciascuna), per un totale di 200 PE"
+     }
+    ],
+    [
+     {
+      "s": "6 "
+     },
+     {
+      "s": "topi giganti",
+      "b": 1
+     },
+     {
+      "s": " (25 PE ciascuno), per un totale di 150 PE"
+     }
+    ]
    ]
   },
   {
@@ -2487,8 +2532,51 @@
   {
    "t": "punti",
    "voci": [
-    "2 druidi (450 PE ciascuno) e 9 uccelli stigei (25 PE ciascuno), per un totale di 1.125 PE",
-    "1 wight (700 PE), 1 scheletro di cavallo da guerra (100 PE) e 6 scheletri (50 PE ciascuno), per un totale di 1.100 PE"
+    [
+     {
+      "s": "2 "
+     },
+     {
+      "s": "druidi",
+      "b": 1
+     },
+     {
+      "s": " (450 PE ciascuno) e 9 "
+     },
+     {
+      "s": "uccelli stigei ",
+      "b": 1
+     },
+     {
+      "s": "(25 PE ciascuno), per un totale di 1.125 PE"
+     }
+    ],
+    [
+     {
+      "s": "1 "
+     },
+     {
+      "s": "wight",
+      "b": 1
+     },
+     {
+      "s": " (700 PE), 1 "
+     },
+     {
+      "s": "scheletro di cavallo da guerra",
+      "b": 1
+     },
+     {
+      "s": " (100 PE) e 6 "
+     },
+     {
+      "s": "scheletri",
+      "b": 1
+     },
+     {
+      "s": " (50 PE ciascuno), per un totale di 1.100 PE"
+     }
+    ]
    ]
   },
   {

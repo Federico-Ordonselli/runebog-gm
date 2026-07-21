@@ -48,6 +48,9 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
   personaggi, Talenti, Equipaggiamento, Incantesimi, Glossario delle regole,
   Strumenti di gioco, Oggetti magici, panoramica delle schede mostro. Con le
   Informazioni legali e la dichiarazione di attribuzione richiesta dalla licenza.
+  **Tutti e dieci i capitoli sono pubblicati dal 21 lug 2026**: la voce resta
+  aperta per la panoramica delle schede mostro, le Informazioni legali e le
+  rifiniture in fondo.
   - [x] **Impianto + Glossario delle regole** — fatto (19 lug 2026). Estrattore
     generico `scripts/estrai-srd-regole.mjs` (fratello di quello del bestiario:
     la semantica sta nei font), registro dei capitoli in `src/lib/srd/index.ts`
@@ -407,9 +410,92 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
        è la prosa di questo capitolo che sporca le schede mostro; in
        `estrai-srd-regole.mjs` Cambria è invece il corpo del testo. I due
        script dicono il contrario ed è corretto così — non allinearli.
-    5. **Classi** (pp. 32–92): il più irregolare. Tabelle di avanzamento a 6+
-       colonne, privilegi annidati su quattro livelli di titolo, liste di
-       incantesimi. Da fare per ultimo, quando il parser ha già visto tutto.
+    5. [x] **Classi** (pp. 32–92) — pubblicato (21 lug 2026), 10/10 al
+       verificatore e **zero celle vuote su 4.616**, il primo capitolo senza
+       debito nelle tabelle. Era il più irregolare, e i tre difetti che ha
+       portato erano tutti nel rilevatore delle **bande a piena pagina**.
+       - **La banda risaliva dentro la pagina a due colonne.** All'apertura di
+         ogni classe il riquadro "Tratti del <classe>" è una tabella alta mezza
+         pagina nella colonna sinistra, con la tabella dei privilegi sotto: le
+         sue righe hanno tutte un ruolo da tabella e distano meno di
+         `SALTO_BANDA`, quindi la propagazione arrivava fino in cima e le due
+         colonne uscivano **interlacciate riga per riga** ("Dado Vita | D10 per
+         ogni livello da guerriero cati nella tabella Privilegi del
+         guerriero."). Dodici aperture di classe su dodici, illeggibili.
+         Il criterio giusto **non è una distanza**: la didascalia di una tabella
+         a piena pagina comincia 19 px sotto la prosa, e le ultime righe del
+         riquadro ne distano 18 — con la soglia a 19 si perdeva la tabella
+         "Armature" di Equipaggiamento, con quella a 18 si tarava sul rumore.
+         A separarle è la **continuità** (`righeADueColonne`): una riga prosegue
+         ciò che ha sopra nella sua colonna e quindi eredita, una didascalia no
+         perché apre una tabella e non è mai il seguito di niente.
+         Errore intermedio, che vale la pena ricordare: le righe vanno contate
+         **dentro** la colonna. Raggruppate per sola ordinata, a cavallo del
+         gutter, le due colonne affiancate diventavano una riga sola larga
+         quanto la pagina — cioè proprio la cosa da escludere.
+       - **Il segnale di una tabella a piena pagina non è "attraversa la
+         mezzeria".** "Privilegi del bardo" ha quattordici colonne e nessuna
+         cella che passi sopra x=440: usciva tagliata in due, quattro colonne
+         come tabella e le altre dieci lette per colonnine come se fossero un
+         elenco (tutta la colonna "Trucchetti" in una cella). Il segnale è
+         **invadere il corridoio vuoto** fra le colonne (`GUTTER`, 435–470), che
+         non è una stima: sui 39.077 frammenti del documento 434 bordi destri
+         cadono a 434–435 e 10.242 bordi sinistri a 470, e nei 34 px in mezzo ne
+         cadono 37 in tutto — tutti dentro tabelle a piena pagina.
+       - **Una cella fusa può coprire più di due colonne.** Nelle tabelle di
+         avanzamento degli incantatori il PDF emette lo slot e tutti i trattini
+         che lo seguono in un frammento solo ("2 — — — — — — — —", da x=597 a
+         x=815, sopra nove colonne), e `dividiCella` sa stimare un confine per
+         volta: la riga usciva con un valore e sette celle vuote (176 su 4.628).
+         `dividiSuColonne` non stima niente — divide solo se il **conto torna**,
+         parole quante le colonne coperte, e allora la corrispondenza è
+         un'identità. Quando non torna la cella resta fusa: è la condizione che
+         rende la regola innocua.
+       Due difetti di forma, che valgono per tutta la sezione:
+       - **La didascalia di una griglia restava orfana**: il riquadro "Tratti
+         del <classe>" è una griglia chiave/valore, senza riga di intestazione,
+         quindi `tabella` non lo riconosce e il suo nome finiva come paragrafo
+         in grassetto sopra una tabella anonima, dodici volte.
+       - **I pallini della prosa non erano un segnale.** Nel PDF gli elenchi
+         hanno il passo di riga normale, quindi il salto verticale non separava
+         le voci e finivano incollate in un paragrafo solo ("• Chi è la tua
+         famiglia? • Chi era il tuo più caro amico d'infanzia? • …"). Ora un
+         pallino apre sempre una voce. Le voci di `punti` sono diventate
+         `Span[][]` invece che stringhe, perché negli oggetti magici sono nomi
+         di incantesimo in corsivo: la conversione ha anche restituito il
+         grassetto ai gruppi di mostri di "Strumenti di gioco", che prima si
+         perdeva.
+       **Dodici pagine, non una**: 340 KB di testo resi insieme sarebbero quasi
+       un mega di HTML. Qui però il taglio non è una riga in corsivo come per
+       incantesimi e oggetti magici, ma la **struttura** — il capitolo non ha
+       introduzione (nel PDF comincia direttamente col Barbaro) e ha esattamente
+       un `h2` per classe. `dividiClassi` sono i dodici `h2`; la pagina più
+       pesante è il druido, 176 KB, contro i 332 KB del glossario.
+       Non avendo prosa da mostrare, `/srd/classi` porta la **carta d'identità**
+       di ogni classe (`cartaClasse`): caratteristica primaria, Dado Vita e
+       sottoclasse, letti per *etichetta* dentro il riquadro "Tratti del
+       <classe>" — se il capitolo cambia forma la carta perde una riga, non
+       inventa un dato.
+       Verificato: le dieci pagine SRD toccate rigenerate, tutte 10/10; i
+       quattro capitoli non toccati byte-identici, e i sei che cambiano
+       cambiano **in meglio** — letto il diff riga per riga: Equipaggiamento
+       recupera le cinque colonne perdute della tabella dei veicoli (era il
+       debito annotato al punto 4) e ricompone il paragrafo che quella griglia
+       degenere spezzava in due. Confronto dell'ordine di lettura con
+       `pdftotext` sui 21.061 bigrammi di prosa del capitolo: 69 divergenze,
+       tutte casi in cui **pdftotext sbaglia** — le sue colonne interlacciate e
+       le parole con la "f" in Private Use Area, che lui perde ("Così acendo").
+       In Chromium: le tre pagine nuove senza scorrimento orizzontale a 1280px
+       e 390px, console pulita, nessuna richiesta fallita; `tsc` e `build` ok,
+       dodici rotte prerese.
+       **Debito noto**: nessuna cella vuota, ma la tabella dei privilegi del
+       mago e del bardo ha quattordici/quindici colonne e a 1280px scorre dentro
+       il suo riquadro — è il comportamento previsto per le tabelle larghe, però
+       questa è la più larga della sezione e forse merita una resa sua.
+       Resta anche un `elenco` di una voce sola in "Strumenti di gioco" che
+       tiene il pallino nel testo e si spezza in tre righe ("• 2 draghi rossi
+       adulti…"): `puntato` ne pretende almeno due per riconoscere un elenco, e
+       lì il PDF ne ha uno solo. Difetto **preesistente**, non toccato.
     6. [x] **Creazione del personaggio** (pp. 21–31), **Origini dei personaggi**
        (pp. 93–97) e **Talenti** (pp. 98–100) — pubblicati insieme (21 lug 2026),
        10/10 tutti e tre. Brevi sì, ma non senza sorprese: i tre passavano 10/10
@@ -497,10 +583,14 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
     faccia risparmiare il selettore di campagna, che lì è nascosto perché le
     campagne le gestisce il sito.
   - [ ] **Rifiniture note della sezione regole**, da fare quando danno fastidio:
-    - Tre celle restano vuote e alcuni valori arrivano fusi dove è il PDF a
-      emettere un frammento unico: il testo c'è tutto, ma in quei punti la
-      divisione in colonne è **stimata**. Con più capitoli si capirà se vale
-      il passaggio a `pdftotext -bbox-layout`.
+    - Sette celle restano vuote in tutta la sezione (tre in Equipaggiamento,
+      quattro in Oggetti magici) dove è il PDF a emettere un frammento unico per
+      due colonne: il testo c'è tutto, ma lì la divisione è **stimata**. Ora che
+      i capitoli ci sono tutti si può valutare `pdftotext -bbox-layout`.
+    - La tabella dei privilegi di un incantatore ha quattordici o quindici
+      colonne e a 1280px scorre dentro il suo riquadro: è il comportamento
+      previsto per le tabelle larghe, ma queste sono le più larghe della sezione
+      e forse meritano una resa loro (gli slot per livello come una riga a sé?).
     - Nessuna ricerca trasversale ai capitoli: oggi il filtro è per capitolo e
       cerca solo nei titoli, non nel corpo. Con più capitoli pubblicati serve
       un indice di ricerca unico.

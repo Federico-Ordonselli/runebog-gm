@@ -18,7 +18,10 @@ export type Blocco =
   | { t: "p"; testo: Span[] }
   | { t: "def"; nome: string; testo: Span[] }
   | { t: "tabella"; titolo: string; colonne: string[]; righe: string[][] }
-  | { t: "griglia"; righe: string[][] }
+  /* Una tabella senza riga di intestazione: la struttura la dichiarano le
+     chiavi della prima colonna. La didascalia c'è quando il PDF gliene dà una
+     ("Tratti del barbaro"), e nelle griglie chiave/valore succede spesso. */
+  | { t: "griglia"; titolo?: string; righe: string[][] }
   /* Un riquadro a coppie etichetta/valore: gli strumenti di Equipaggiamento
      ("Caratteristica: / Utilizzo: / Creazione: / Peso:") e — stessa forma — le
      schede degli incantesimi. Non è una tabella: le colonne sono un artefatto
@@ -26,7 +29,10 @@ export type Blocco =
      griglia rimescolava i valori a capo. */
   | { t: "scheda"; voci: { nome: string; testo: Span[] }[] }
   | { t: "elenco"; voci: string[] }
-  | { t: "punti"; voci: string[] };
+  /* Un elenco puntato. Le voci sono span e non stringhe perché il pallino non
+     è l'unica cosa che portano: negli oggetti magici sono nomi di incantesimo
+     in corsivo, nei gruppi di mostri il nome della creatura è in grassetto. */
+  | { t: "punti"; voci: Span[][] };
 
 export type Capitolo = {
   id: string;
@@ -41,7 +47,7 @@ export type Capitolo = {
 export const CAPITOLI: { id: string; titolo: string; sommario: string; pronto: boolean }[] = [
   { id: "come-si-gioca", titolo: "Come si gioca", sommario: "Prove con d20, azioni, esplorazione, combattimento, danni e guarigione.", pronto: true },
   { id: "creazione-del-personaggio", titolo: "Creazione del personaggio", sommario: "Creare un personaggio, avanzamento di livello, multiclasse.", pronto: true },
-  { id: "classi", titolo: "Classi", sommario: "Le dodici classi con privilegi, tabelle di avanzamento e una sottoclasse ciascuna.", pronto: false },
+  { id: "classi", titolo: "Classi", sommario: "Le dodici classi con privilegi, tabelle di avanzamento e una sottoclasse ciascuna.", pronto: true },
   { id: "origini-dei-personaggi", titolo: "Origini dei personaggi", sommario: "Background e specie giocabili.", pronto: true },
   { id: "talenti", titolo: "Talenti", sommario: "Talenti di origine, generali, stile di combattimento e dono epico.", pronto: true },
   { id: "equipaggiamento", titolo: "Equipaggiamento", sommario: "Armi, armature, oggetti d'avventura, servizi e stile di vita.", pronto: true },
@@ -66,7 +72,50 @@ export const capitoloPronto = (id: string) => CAPITOLI.some((c) => c.id === id &
  *  (`/srd/incantesimi/[livello]`, `/srd/oggetti-magici/[categoria]`) e vanno
  *  tolti dai generateStaticParams di `[capitolo]`, che altrimenti prerenderebbe
  *  la pagina intera che si è deciso di non servire. */
-export const CAPITOLI_A_PIU_PAGINE = ["incantesimi", "oggetti-magici"];
+export const CAPITOLI_A_PIU_PAGINE = ["classi", "incantesimi", "oggetti-magici"];
+
+/* --- Classi: un capitolo, dodici pagine ----------------------------------- */
+
+/* Stessa ragione degli altri due (340 KB di testo, che resi in una pagina sola
+   fanno quasi un mega di HTML) ma taglio più semplice: qui non serve leggere
+   una riga in corsivo per capire dove finisce una voce, perché lo dichiara la
+   STRUTTURA. Il capitolo non ha introduzione — nel PDF comincia direttamente
+   col Barbaro — e ha esattamente un h2 per classe, quindi le dodici classi
+   sono i dodici h2 e tutto ciò che li segue. */
+
+export type Classe = { nome: string; id: string; blocchi: Blocco[] };
+
+export function dividiClassi(doc: Capitolo): Classe[] {
+  const classi: Classe[] = [];
+  for (const b of doc.blocchi) {
+    if (b.t === "h2") classi.push({ nome: b.testo, id: b.id, blocchi: [b] });
+    else if (classi.length) classi[classi.length - 1].blocchi.push(b);
+  }
+  return classi;
+}
+
+/** La carta d'identità di una classe, per l'indice: è ciò che si confronta fra
+ *  una classe e l'altra prima di aprirne una. I due tratti si cercano per
+ *  ETICHETTA dentro il riquadro "Tratti del <classe>", non per posizione, e la
+ *  sottoclasse è il titolo della sezione che la descrive — se il capitolo
+ *  cambia forma la carta perde una riga, non inventa un dato. */
+export type CartaClasse = { primaria?: string; dado?: string; sottoclasse?: string };
+
+export function cartaClasse(c: Classe): CartaClasse {
+  const tratti = c.blocchi.find((b) => b.t === "griglia");
+  const voce = (etichetta: string) =>
+    tratti?.t === "griglia"
+      ? tratti.righe.find((r) => r[0] === etichetta)?.[1]
+      : undefined;
+  const sezione = c.blocchi.find((b) => b.t === "h3" && b.testo.startsWith("Sottoclasse"));
+  return {
+    primaria: voce("Caratteristiche primarie"),
+    /* Del Dado Vita interessa il dado: "D12 per ogni livello da barbaro" è la
+       frase del riquadro, e in una carta di confronto conta "D12". */
+    dado: voce("Dado Vita")?.split(/\s/)[0],
+    sottoclasse: sezione?.t === "h3" ? sezione.testo.split(": ").slice(1).join(": ") : undefined,
+  };
+}
 
 /* --- Incantesimi: un capitolo, dieci pagine ------------------------------- */
 

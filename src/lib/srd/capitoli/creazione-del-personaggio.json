@@ -336,11 +336,38 @@
    ]
   },
   {
-   "t": "p",
-   "testo": [
-    {
-     "s": "• Chi è la tua famiglia? • Chi era il tuo più caro amico d'infanzia? • Hai trascorso l'infanzia con un animale domestico? • Hai una relazione romantica? Se sì, con chi? • Fai parte di un'organizzazione, come una gilda o una religione? Se sì, ne sei ancora membro? • Quali elementi del tuo passato ti hanno ispirato a vivere un presente votato all'avventura?"
-    }
+   "t": "punti",
+   "voci": [
+    [
+     {
+      "s": "Chi è la tua famiglia?"
+     }
+    ],
+    [
+     {
+      "s": "Chi era il tuo più caro amico d'infanzia?"
+     }
+    ],
+    [
+     {
+      "s": "Hai trascorso l'infanzia con un animale domestico?"
+     }
+    ],
+    [
+     {
+      "s": "Hai una relazione romantica? Se sì, con chi?"
+     }
+    ],
+    [
+     {
+      "s": "Fai parte di un'organizzazione, come una gilda o una religione? Se sì, ne sei ancora membro?"
+     }
+    ],
+    [
+     {
+      "s": "Quali elementi del tuo passato ti hanno ispirato a vivere un presente votato all'avventura?"
+     }
+    ]
    ]
   },
   {
@@ -1280,11 +1307,18 @@
    ]
   },
   {
-   "t": "p",
-   "testo": [
-    {
-     "s": "• Tutti i suoi livelli nelle classi del bardo, chierico, druido, stregone e mago • Metà dei suoi livelli (arrotondati per eccesso) nelle classi del paladino e del ranger"
-    }
+   "t": "punti",
+   "voci": [
+    [
+     {
+      "s": "Tutti i suoi livelli nelle classi del bardo, chierico, druido, stregone e mago"
+     }
+    ],
+    [
+     {
+      "s": "Metà dei suoi livelli (arrotondati per eccesso) nelle classi del paladino e del ranger"
+     }
+    ]
    ]
   },
   {

@@ -4,7 +4,7 @@ import "./srd.css";
 export const metadata = {
   title: "Regole SRD 5.2.1 in italiano — Runebog GM",
   description:
-    "I capitoli del System Reference Document 5.2.1 consultabili in italiano: glossario delle regole, incantesimi, equipaggiamento, oggetti magici. Testo ufficiale CC-BY-4.0.",
+    "I dieci capitoli del System Reference Document 5.2.1 consultabili in italiano: classi, incantesimi, equipaggiamento, oggetti magici, glossario delle regole. Testo ufficiale CC-BY-4.0.",
 };
 
 export default function SrdPage() {

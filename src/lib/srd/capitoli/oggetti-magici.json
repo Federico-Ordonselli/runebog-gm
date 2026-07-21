@@ -874,11 +874,23 @@
    ]
   },
   {
-   "t": "p",
-   "testo": [
-    {
-     "s": "• Impedire al portatore di entrare in sintonia con lui. • Sopprimere una o più delle sue proprietà attivate. • Tentare di prendere il controllo del portatore, il quale effettua un tiro salvezza su Carisma (CD 12 più il modificatore di Carisma dell'oggetto). Se lo fallisce, il portatore subisce la condizione affascinato per 1d12 ore. Mentre è affascinato in questo modo, il portatore deve cercare di eseguire gli ordini dell'oggetto. Se chi lo porta subisce danni, ripete il tiro salvezza, mettendo fine all'effetto in caso di successo. Che il tentativo di controllare il possessore riesca o meno, l'oggetto non può usare di nuovo questo potere fino all'alba successiva."
-    }
+   "t": "punti",
+   "voci": [
+    [
+     {
+      "s": "Impedire al portatore di entrare in sintonia con lui."
+     }
+    ],
+    [
+     {
+      "s": "Sopprimere una o più delle sue proprietà attivate."
+     }
+    ],
+    [
+     {
+      "s": "Tentare di prendere il controllo del portatore, il quale effettua un tiro salvezza su Carisma (CD 12 più il modificatore di Carisma dell'oggetto). Se lo fallisce, il portatore subisce la condizione affascinato per 1d12 ore. Mentre è affascinato in questo modo, il portatore deve cercare di eseguire gli ordini dell'oggetto. Se chi lo porta subisce danni, ripete il tiro salvezza, mettendo fine all'effetto in caso di successo. Che il tentativo di controllare il possessore riesca o meno, l'oggetto non può usare di nuovo questo potere fino all'alba successiva."
+     }
+    ]
    ]
   },
   {
@@ -1533,29 +1545,29 @@
    ]
   },
   {
-   "t": "p",
-   "testo": [
-    {
-     "s": "• "
-    },
-    {
-     "s": "Amicizia con gli animali ",
-     "i": 1
-    },
-    {
-     "s": "• "
-    },
-    {
-     "s": "Paura",
-     "i": 1
-    },
-    {
-     "s": " (ha effetto solo sulle bestie) • "
-    },
-    {
-     "s": "Parlare con gli animali",
-     "i": 1
-    }
+   "t": "punti",
+   "voci": [
+    [
+     {
+      "s": "Amicizia con gli animali",
+      "i": 1
+     }
+    ],
+    [
+     {
+      "s": "Paura",
+      "i": 1
+     },
+     {
+      "s": " (ha effetto solo sulle bestie)"
+     }
+    ],
+    [
+     {
+      "s": "Parlare con gli animali",
+      "i": 1
+     }
+    ]
    ]
   },
   {
@@ -11224,11 +11236,38 @@
    ]
   },
   {
-   "t": "p",
-   "testo": [
-    {
-     "s": "• Asta • Corda (arrotolata) • Lanterna a lente sporgente (piena e accesa) • Pugnale • Sacco • Specchio"
-    }
+   "t": "punti",
+   "voci": [
+    [
+     {
+      "s": "Asta"
+     }
+    ],
+    [
+     {
+      "s": "Corda (arrotolata)"
+     }
+    ],
+    [
+     {
+      "s": "Lanterna a lente sporgente (piena e accesa)"
+     }
+    ],
+    [
+     {
+      "s": "Pugnale"
+     }
+    ],
+    [
+     {
+      "s": "Sacco"
+     }
+    ],
+    [
+     {
+      "s": "Specchio"
+     }
+    ]
    ]
   },
   {
@@ -11471,36 +11510,32 @@
    ]
   },
   {
-   "t": "p",
-   "testo": [
-    {
-     "s": "• "
-    },
-    {
-     "s": "Individuazione del bene e del male ",
-     "i": 1
-    },
-    {
-     "s": "• "
-    },
-    {
-     "s": "Individuazione del magico ",
-     "i": 1
-    },
-    {
-     "s": "• "
-    },
-    {
-     "s": "Individuazione delle malattie e dei veleni ",
-     "i": 1
-    },
-    {
-     "s": "• "
-    },
-    {
-     "s": "Vedere invisibilità",
-     "i": 1
-    }
+   "t": "punti",
+   "voci": [
+    [
+     {
+      "s": "Individuazione del bene e del male",
+      "i": 1
+     }
+    ],
+    [
+     {
+      "s": "Individuazione del magico",
+      "i": 1
+     }
+    ],
+    [
+     {
+      "s": "Individuazione delle malattie e dei veleni",
+      "i": 1
+     }
+    ],
+    [
+     {
+      "s": "Vedere invisibilità",
+      "i": 1
+     }
+    ]
    ]
   },
   {

@@ -127,30 +127,46 @@ colonne fuse ("11 Stoffa, carta, corda" in una cella sola) passa 10/10, perché
 il testo c'è tutto e le righe restano rettangolari. Quindi ogni volta che si
 tocca l'estrattore vanno **rigenerati anche i capitoli già pubblicati** e
 letto il diff: è l'unico controllo che coglie questa classe di guasti.
-**Due capitoli sono serviti su più pagine** — quelli elencati in
+**Tre capitoli sono serviti su più pagine** — quelli elencati in
 `CAPITOLI_A_PIU_PAGINE`, che per questo sono esclusi dai `generateStaticParams`
-di `[capitolo]`. Il JSON però resta **uno** in entrambi i casi: è importato lato
-server e al browser non arriva mai, quindi a pesare è l'HTML reso — spezzare le
-pagine basta, spezzare il file no. In tutti e due il taglio lo dichiara **la riga
-in corsivo sotto il nome**, che è anche il solo segnale che distingue una voce
-vera da un sottotitolo qualsiasi:
+di `[capitolo]`. Il JSON però resta **uno** in tutti e tre i casi: è importato
+lato server e al browser non arriva mai, quindi a pesare è l'HTML reso —
+spezzare le pagine basta, spezzare il file no. Il tetto è il glossario, 331 KB
+di HTML in una pagina sola:
 
-- **Incantesimi**: `/srd/incantesimi` è l'elenco per livello più le regole di
-  lancio, `/srd/incantesimi/[livello]` (dieci rotte, `trucchetti` e
-  `livello-1`…`livello-9`) le descrizioni. Il corsivo dice il livello
-  (355 `h4`, 339 incantesimi); il taglio è `dividiIncantesimi`.
-- **Oggetti magici**: `/srd/oggetti-magici` è l'elenco per categoria più le
-  regole, `/srd/oggetti-magici/[categoria]` le descrizioni. Il corsivo dice la
-  categoria (268 `h4`, 258 oggetti); il taglio è `dividiOggetti` e il registro
-  delle pagine è `SEZIONI_OGGETTI`. Gli oggetti meravigliosi sono metà del
-  capitolo e stanno su due pagine (A–L, M–Z): è l'unica sezione spezzata, e per
-  peso — 942 KB tutto insieme contro i 331 KB del glossario, che è il tetto.
+- **Classi**: `/srd/classi` è la scelta della classe, `/srd/classi/[classe]`
+  (dodici rotte) la classe intera. Qui il taglio lo dichiara la **struttura**,
+  non un corsivo: il capitolo non ha introduzione — nel PDF comincia
+  direttamente col Barbaro — e ha esattamente un `h2` per classe, quindi
+  `dividiClassi` sono i dodici `h2`. L'indice non ha prosa da mostrare, perciò
+  porta la carta d'identità di ogni classe (`cartaClasse`: caratteristica
+  primaria, Dado Vita, sottoclasse), letta **per etichetta** dentro il riquadro
+  "Tratti del <classe>" — se il capitolo cambia forma la carta perde una riga,
+  non inventa un dato.
+- **Incantesimi** e **Oggetti magici**: lì il taglio lo dichiara **la riga in
+  corsivo sotto il nome**, che è anche il solo segnale che distingue una voce
+  vera da un sottotitolo qualsiasi.
+  - `/srd/incantesimi` è l'elenco per livello più le regole di lancio,
+    `/srd/incantesimi/[livello]` (dieci rotte, `trucchetti` e
+    `livello-1`…`livello-9`) le descrizioni. Il corsivo dice il livello
+    (355 `h4`, 339 incantesimi); il taglio è `dividiIncantesimi`.
+  - `/srd/oggetti-magici` è l'elenco per categoria più le regole,
+    `/srd/oggetti-magici/[categoria]` le descrizioni. Il corsivo dice la
+    categoria (268 `h4`, 258 oggetti); il taglio è `dividiOggetti` e il registro
+    delle pagine è `SEZIONI_OGGETTI`. Gli oggetti meravigliosi sono metà del
+    capitolo e stanno su due pagine (A–L, M–Z): è l'unica sezione spezzata, e
+    per peso — 942 KB tutto insieme.
 
 `src/lib/srd/index.ts` tiene il tipo del documento e il registro `CAPITOLI`, dove
 il flag `pronto` dice se il JSON esiste: la sezione cresce un capitolo alla volta,
 l'indice elenca anche quelli mancanti e `generateStaticParams` pubblica solo i
-pronti. Il testo esce come array di span (`{s, i?, b?}`), **non** come HTML: le
-pagine lo rendono con elementi React, così non c'è markup da sanificare.
+pronti — **tutti e dieci, da luglio 2026**: il flag resta perché la forma del
+registro è quella e un domani ci saranno altre edizioni. Il testo esce come
+array di span (`{s, i?, b?}`), **non** come HTML: le pagine lo rendono con
+elementi React, così non c'è markup da sanificare. Vale anche per le voci di un
+elenco puntato (`punti`), che sono `Span[][]` e non stringhe — negli oggetti
+magici le voci sono nomi di incantesimo in corsivo, e ridurle a testo perdeva il
+corsivo insieme al pallino.
 L'attribuzione CC-BY (`ATTRIBUZIONE_SRD`) va resa in fondo a ogni pagina — è una
 condizione della licenza, non una cortesia.
 
@@ -355,14 +371,43 @@ ed elenchi. Trappole già pagate:
   nome di creatura in grassetto e il suo punto e virgola arrivano separati e
   uscivano "elefante ;". Parentesi aperte e virgolette basse restano fuori: lo
   spazio davanti lo vogliono.
+- **Una cella fusa può coprire più di due colonne.** Nelle tabelle di
+  avanzamento degli incantatori il PDF emette lo slot e tutti i trattini che lo
+  seguono in un frammento solo ("2 — — — — — — — —", da x=597 a x=815, sopra
+  nove colonne): `dividiCella` stima un confine per volta e la riga usciva con
+  un valore e sette celle vuote. `dividiSuColonne` non stima niente — divide
+  solo se il **conto torna**, cioè se le parole sono tante quante le colonne
+  coperte, e allora la corrispondenza è un'identità. Quando non torna la cella
+  resta fusa: è la condizione che rende la regola innocua.
 - **La pagina non è a due colonne: è a fasce.** Una tabella a piena pagina
-  attraversa la separazione fra le colonne di testo (`COLONNA_DESTRA`, x=440) e
-  spezzarla a metà la distruggeva. Si riconosce da un frammento che *attraversa*
-  il gutter — nella prosa a due colonne non capita mai (zero su 2484 frammenti
-  del glossario) — e la banda si propaga alle righe contigue con un ruolo da
-  tabella, così ci rientrano didascalia e intestazioni. L'ordine di lettura si
-  calcola per fascia (`bandeFullWidth`, `fasciaDi`), sennò la tabella esce prima
-  della prosa che la introduce.
+  attraversa la separazione fra le colonne di testo e spezzarla a metà la
+  distruggeva. La riconosce un frammento che **invade il corridoio vuoto** fra
+  le colonne (`GUTTER`, 435–470): sono margini tipografici, non stime — sui
+  39.077 frammenti del documento nel mezzo ne cadono 37, tutti in tabelle a
+  piena pagina. Chiedere invece che il frammento *scavalchi la mezzeria*
+  (x=440) è stato provato e non basta: "Privilegi del bardo" ha quattordici
+  colonne e nessuna cella che ci passi sopra, e usciva tagliata in due —
+  quattro colonne da una parte e le altre dieci lette per colonnine come un
+  elenco. L'ordine di lettura si calcola per fascia (`bandeFullWidth`,
+  `fasciaDi`), sennò la tabella esce prima della prosa che la introduce.
+- **La banda si propaga alle righe contigue con un ruolo da tabella** — così ci
+  rientrano didascalia e intestazioni, che stanno sopra il primo
+  attraversamento — **ma non deve scavalcare le righe dove la pagina è a due
+  colonne davvero.** All'apertura di ogni classe il riquadro "Tratti del
+  <classe>" è una tabella alta mezza pagina nella colonna sinistra, con la
+  tabella dei privilegi sotto: le sue righe hanno tutte un ruolo da tabella e
+  distano meno di `SALTO_BANDA` l'una dall'altra, quindi la banda risaliva fino
+  in cima e le due colonne uscivano interlacciate riga per riga ("Dado Vita |
+  D10 per ogni livello da guerriero cati nella tabella Privilegi del
+  guerriero."). Le riconosce `righeADueColonne`, e il criterio **non è una
+  distanza**: la didascalia di una tabella a piena pagina comincia 19 px sotto
+  la prosa e le ultime righe di quel riquadro ne distano 18: tarare lì sarebbe
+  tarare sul rumore. È la **continuità** — una riga prosegue ciò che ha sopra
+  nella sua colonna, quindi eredita; una didascalia no, perché apre una tabella
+  e non è mai il seguito di niente. Le righe si contano **dentro** la colonna:
+  raggrupparle per sola ordinata a cavallo del gutter fondeva le due colonne
+  affiancate in una riga sola, che sembrava larga quanto la pagina — cioè
+  esattamente ciò che si sta cercando di escludere.
 - **Si ordina per riga visiva, non per top esatto** (`TOLLERANZA_RIGA`): il top è
   la posizione del glifo, e apici e frazioni la spostano di un paio di pixel —
   "Passo veloce" (199), "= Chilometri al giorno × 1" (201) e "⅓" (199) sono una

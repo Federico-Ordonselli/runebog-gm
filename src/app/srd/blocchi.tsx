@@ -66,7 +66,7 @@ export function Blocchi({ blocchi }: { blocchi: Blocco[] }) {
           case "tabella":
             return <Tabella key={k} titolo={b.titolo} colonne={b.colonne} righe={b.righe} />;
           case "griglia":
-            return <Tabella key={k} righe={b.righe} />;
+            return <Tabella key={k} titolo={b.titolo} righe={b.righe} />;
           /* Il riquadro di uno strumento è una lista di descrizioni, non una
              tabella: le sue due colonne nel PDF sono impaginazione, e su un
              telefono devono poter diventare una sola senza scorrimento. */
@@ -90,7 +90,7 @@ export function Blocchi({ blocchi }: { blocchi: Blocco[] }) {
           case "punti":
             return (
               <ul key={k} className="srd-punti">
-                {b.voci.map((v, n) => <li key={n}>{v}</li>)}
+                {b.voci.map((v, n) => <li key={n}><Testo span={v} /></li>)}
               </ul>
             );
         }
