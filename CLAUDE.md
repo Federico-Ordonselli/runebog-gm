@@ -363,6 +363,14 @@ Non negoziabili; se tocchi queste aree, mantienili:
 - **`#empty-node` copre l'intera tela** (`inset:0`): il suo `pointer-events:none` non
   è cosmetico: senza, un livello vuoto non riceve né drop dalla palette, né tocchi,
   né doppi clic. Se aggiungi elementi cliccabili lì dentro, ridagli `pointer-events:auto`.
+- **Il salvataggio è ritardato di 700 ms** (`save()` in `stato.js`, per non
+  scrivere a ogni battitura) e a chiudere quella finestra è il `pagehide`
+  registrato da `initStato`. Serve perché dall'editor si esce con un clic: il
+  titolo in topbar è un link alla home. `pagehide` e non `beforeunload`, che su
+  iOS non arriva, e vale per ogni modo di andarsene — link, tasto Indietro,
+  scheda chiusa. In locale la scrittura è sincrona e finisce lì; nel cloud la
+  PATCH viene marcata `keepalive`, che però la specifica concede solo sotto i
+  64 KB — sopra resta un tentativo, non una garanzia.
 - Le immagini stanno in base64 dentro il JSON della campagna: occhio al limite di 4 MB.
 - `package.json` ha due **overrides npm** nati da alert Dependabot (lug 2026): postcss
   ≥8.5.10 (Next lo pinna vulnerabile) ed esbuild ^0.25 sotto `@esbuild-kit` (dipendenza

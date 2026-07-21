@@ -115,6 +115,13 @@ export function openTopbarMenu(ev){
   const TEMI = {torbiera:"Torbiera", pergamena:"Pergamena", cripta:"Cripta",
                 brace:"Brace", contrasto:"Alto contrasto"};
   const items = [];
+  /* Le regole stanno accanto al generatore di dungeon perché sono la stessa
+     cosa: uno strumento che vive altrove nel sito e si apre in una scheda
+     nuova, così la campagna aperta non si perde. Serve anche ai giocatori al
+     tavolo — un incantesimo lo cerca chi lo lancia — e lì il menu è corto,
+     quindi apre l'elenco invece di stare in coda a cinque temi. */
+  const regole = {id:"srd", label:"Regole SRD 5.2.1 ↗",
+                  run:()=>window.open("/srd","_blank","noopener")};
   if(!RO){
     items.push(
       // Sempre presente, non solo a stack pieno: è la via touch all'undo e deve
@@ -127,9 +134,10 @@ export function openTopbarMenu(ev){
       // non c'è un segnalino selezionato: qui è raggiungibile sempre, da dentro
       // qualsiasi campagna. Scheda nuova: la campagna aperta non si perde.
       {id:"dg", label:"Genera un dungeon ↗", run:()=>window.open("/dungeon","_blank","noopener")},
+      regole,
       "---"
     );
-  }
+  }else items.push(regole, "---");
   items.push({head:"Tema"});
   for(const [k,label] of Object.entries(TEMI))
     // setTheme vive in main.js (l'entry point): importarlo da qui invertirebbe

@@ -45,6 +45,16 @@
   }
   #topbar h1{font-size:20px;letter-spacing:.06em;color:var(--fen);white-space:nowrap}
   #topbar h1 small{color:var(--ink-dim);font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin-left:8px}
+  /* Il titolo è un link alla home ma non deve sembrare un link finché non lo
+     tocchi: sottolinearlo di continuo trasformerebbe l'identità in un comando.
+     La sottolineatura arriva al passaggio e col focus da tastiera, dove serve
+     davvero a dire che è raggiungibile. */
+  /* Il padding VERTICALE su un elemento inline non entra nel calcolo della riga
+     (quello orizzontale sì): allarga il bersaglio del dito da 17 a 35px senza
+     spostare di un pixel il resto della topbar. Sul telefono le tab della
+     seconda riga cominciano più sotto, quindi non gli ruba tocchi. */
+  #topbar h1 a{color:inherit;text-decoration:none;padding:9px 0}
+  #topbar h1 a:hover, #topbar h1 a:focus-visible{text-decoration:underline}
   nav.tabs{display:flex;gap:4px;margin-left:12px}
   /* Stessa ricetta di .btn (7px 13px): tab e bottoni sono la stessa taglia di
      controllo, la differenza 13/14 era rumore. */

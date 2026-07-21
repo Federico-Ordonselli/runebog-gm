@@ -203,6 +203,7 @@ export function initStato(){
   migrateState(st.state);                         // migrazione salvataggi vecchi
   resetUndo();
   st.path = [st.state.root.id];
+  addEventListener("pagehide", flushSave);
 }
 
 /* ==================== undo ====================
@@ -301,7 +302,14 @@ function sizeWarning(len){
   return null;
 }
 
-async function cloudPush(){
+/* `finale` = stiamo uscendo dalla pagina (vedi flushSave). La richiesta va
+   marcata keepalive, sennò la navigazione la uccide a metà; la specifica le
+   concede però 64 KB in tutto, e una campagna con immagini li supera di molto.
+   Sopra quella soglia keepalive farebbe fallire la fetch invece di salvare, e
+   allora si parte normale: è un tentativo, non una garanzia. */
+const TETTO_KEEPALIVE = 60 * 1024;
+
+async function cloudPush(finale = false){
   if(!window.__cloud) return;
   if(cloudBusy){ cloudDirty = true; return; }
   cloudBusy = true;
@@ -312,6 +320,7 @@ async function cloudPush(){
     const res = await fetch(`/api/campaigns/${window.__cloud.id}`, {
       method: "PATCH",
       headers: {"Content-Type":"application/json"},
+      keepalive: finale && body.length < TETTO_KEEPALIVE,
       body
     });
     if(res.status === 413){
@@ -330,13 +339,13 @@ async function cloudPush(){
     if(cloudDirty){ cloudDirty = false; cloudPush(); }
   }
 }
-function doSave(){
+function doSave(finale = false){
   const json = JSON.stringify(st.state);
   lastSnap = json;                                // da qui in poi l'undo torna a questo punto
   refreshUndoBtn();                               // lastSnap è cambiato: il proxy va rivalutato
   if(window.__cloud){
     store.set(SAVE_KEY, json);                    // cache offline
-    cloudPush(); return;
+    cloudPush(finale); return;
   }
   persistent = store.set(ckey(campaignId), json);
   const c = campaignsIdx.find(x=>x.id===campaignId);
@@ -357,6 +366,19 @@ export function save(){
   noteChange();
   clearTimeout(saveTimer);
   saveTimer = setTimeout(doSave, 700);
+}
+
+/* Chiude la finestra dei 700 ms scrivendo subito. Finché dall'editor si usciva
+   solo chiudendo la scheda quella finestra si perdonava da sé; ora il titolo in
+   topbar è un link alla home, uscire è un clic, e lì dentro ci sta l'ultima
+   modifica. `pagehide` e non `beforeunload`: il secondo su iOS non arriva, e
+   copre comunque anche la chiusura della scheda e il tasto Indietro — la
+   regola è una sola per ogni modo di andarsene, non una per il link nuovo. */
+function flushSave(){
+  if(!saveTimer) return;
+  clearTimeout(saveTimer);
+  saveTimer = null;
+  doSave(true);
 }
 
 /* ==================== utilità albero ==================== */

@@ -28,7 +28,11 @@
 <body>
 
 <header id="topbar">
-  <h1>Runebog <small>GM · Diario del GM</small></h1>
+  <!-- Il titolo è la via di uscita dall'editor: senza, si torna al sito solo col
+       tasto Indietro del browser. Link vero (non un onclick) così regge il tasto
+       centrale e "apri in una scheda nuova". Il salvataggio in sospeso lo chiude
+       il pagehide in stato.js, che vale per qualsiasi uscita, non solo per questa. -->
+  <h1><a href="/">Runebog <small>GM · Diario del GM</small></a></h1>
   <div id="camp-wrap">
     <select id="campaign-select" onchange="switchCampaign(this.value)" title="Campagna attiva"></select>
     <button class="btn tiny" title="Nuova campagna" onclick="newCampaign()">＋</button>

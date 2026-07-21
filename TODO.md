@@ -348,6 +348,28 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
        incantesimi. Da fare per ultimo, quando il parser ha già visto tutto.
     6. **Creazione del personaggio**, **Origini**, **Talenti**: brevi, si
        pubblicano in coda senza sorprese.
+  - [x] **La sezione regole è raggiungibile dall'editor** (21 lug 2026). Era
+    pubblicata ma linkata da un punto solo di tutto il sito, in fondo alla home:
+    dall'editor — cioè da dove serve, a metà sessione — non ci si arrivava
+    (zero occorrenze di `/srd` in `public/`). Ora "Regole SRD 5.2.1 ↗" sta nel
+    menu `⋯`, accanto a "Genera un dungeon ↗" perché è la stessa cosa: uno
+    strumento che vive altrove e si apre in una scheda nuova. Fuori dal blocco
+    `!RO`, che un incantesimo lo cerca chi lo lancia.
+    Il titolo in topbar è diventato un link alla home (prima l'unica uscita era
+    il tasto Indietro). Questo però apriva un buco: `save()` è ritardato di
+    700 ms, e uscire con un clic dentro quella finestra perdeva l'ultima
+    modifica. Chiuso con un `flushSave` su `pagehide` — che copre anche la
+    chiusura della scheda e l'Indietro, cioè il difetto "niente flush alla
+    chiusura" della critique del 17 lug.
+    Verificato in Chromium: 10/10 (link vero a `/`, non sottolineato a riposo,
+    la voce apre `/srd` in una scheda nuova lasciando l'editor dietro, il
+    salvataggio in sospeso finisce su disco al `pagehide` mentre prima no) più
+    il menu del tavolo (regole sì, Esporta/Importa/Annulla no) e la geometria
+    della topbar identica a 390/900/1280/1600/1920px col padding del bersaglio.
+    **Resta**: sopra i 1400px il bottone `⋯` è nascosto (i suoi contenuti sono
+    bottoni veri in topbar), quindi lì la voce non è raggiungibile e la via è
+    titolo → home → Regole. Un bottone in più non ci sta: a 1600px la topbar ha
+    13px di margine, e in cloud pure meno perché c'è anche "Tavolo".
   - [ ] **Rifiniture note della sezione regole**, da fare quando danno fastidio:
     - Tre celle restano vuote e alcuni valori arrivano fusi dove è il PDF a
       emettere un frammento unico: il testo c'è tutto, ma in quei punti la
