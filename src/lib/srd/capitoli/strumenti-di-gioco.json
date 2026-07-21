@@ -1118,9 +1118,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Veleno da inalazione ",
+     "s": "Veleno da inalazione",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Una creatura colpita dal veleno essenza di etere deve superare un tiro salvezza su Costituzione con CD 15, altrimenti sarà avvelenata per 8 ore e priva di sensi finché la condizione permane. La creatura si risveglia se subisce danni o se un'altra creatura usa un'azione per svegliarla scuotendola."
     }
@@ -1135,9 +1140,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Veleno da inalazione ",
+     "s": "Veleno da inalazione",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Una creatura vittima del veleno fumi di othur bruciato deve superare un tiro salvezza su Costituzione con CD 13, altrimenti subisce 10 (3d6) danni da veleno e deve ripetere il tiro salvezza all'inizio di ogni suo turno. A ogni successivo tiro salvezza fallito, subisce 3 (1d6) danni da veleno. Dopo tre tiri salvezza superati, gli effetti del veleno terminano."
     }
@@ -1174,9 +1184,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Veleno da inalazione ",
+     "s": "Veleno da inalazione",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Una creatura colpita dal veleno malizia deve superare un tiro salvezza su Costituzione con CD 15, altrimenti sarà avvelenata per 1 ora e accecata finché la condizione permane."
     }
@@ -1235,9 +1250,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Veleno da contatto ",
+     "s": "Veleno da contatto",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Una creatura colpita dal veleno olio di taggit deve superare un tiro salvezza su Costituzione con CD 13, altrimenti sarà avvelenata per 24 ore e priva di sensi finché la condizione permane. La creatura si risveglia se subisce danni."
     }
@@ -1274,9 +1294,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Veleno da ingestione ",
+     "s": "Veleno da ingestione",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Una creatura colpita dal veleno siero della verità deve superare un tiro salvezza su Costituzione con CD 11, altrimenti sarà avvelenata per 1 ora e non potrà volontariamente dire menzogne finché la condizione permane."
     }
@@ -1313,9 +1338,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Veleno da ingestione ",
+     "s": "Veleno da ingestione",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Una creatura colpita dal veleno torpore deve superare un tiro salvezza su Costituzione con CD 15, altrimenti sarà avvelenata per 4d6 ore e la sua velocità sarà dimezzata finché la condizione permane."
     }
@@ -1352,9 +1382,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Veleno da ferimento ",
+     "s": "Veleno da ferimento",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Una creatura vittima del veleno di verme purpureo effettua un tiro salvezza su Costituzione con CD 21, subendo 35 (10d6) danni da veleno in caso di fallimento, o la metà dei danni in caso di successo."
     }
@@ -1369,9 +1404,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Veleno da ferimento ",
+     "s": "Veleno da ferimento",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Una creatura vittima del veleno di viverna effettua un tiro salvezza su Costituzione con CD 14, subendo 24 (7d6) danni da veleno in caso di fallimento, o la metà dei danni in caso di successo."
     }

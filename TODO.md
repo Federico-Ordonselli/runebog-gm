@@ -334,10 +334,11 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
        pulita), i quattro capitoli già pubblicati rigenerati e ogni differenza
        letta (due sole, entrambe correzioni), `tsc` e `build` ok.
        **Resta** il debito delle cinque griglie qui sopra, più due cose viste
-       adesso e non toccate: «Strati prismatici» esce come due tabelle (la coda
-       riprende nella colonna accanto, non a pagina nuova — è il caso già
-       annotato fra le rifiniture) e la tabella Temperatura/Vento di *controllare
-       il clima* fonde le intestazioni delle due metà affiancate («Vento Grado»).
+       adesso e non toccate: ~~«Strati prismatici» esce come due tabelle (la coda
+       riprende nella colonna accanto, non a pagina nuova)~~ — risolto il 21 lug
+       2026 col punto 6 qui sotto — e la tabella Temperatura/Vento di
+       *controllare il clima*, che fonde le intestazioni delle due metà
+       affiancate («Vento Grado»).
     4. [x] **Oggetti magici** (pp. 232–288) — pubblicato (21 lug 2026), 10/10 al
        verificatore, 258 oggetti su dieci pagine. Il capitolo ha portato un
        difetto nuovo e uno di forma.
@@ -409,8 +410,60 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
     5. **Classi** (pp. 32–92): il più irregolare. Tabelle di avanzamento a 6+
        colonne, privilegi annidati su quattro livelli di titolo, liste di
        incantesimi. Da fare per ultimo, quando il parser ha già visto tutto.
-    6. **Creazione del personaggio**, **Origini**, **Talenti**: brevi, si
-       pubblicano in coda senza sorprese.
+    6. [x] **Creazione del personaggio** (pp. 21–31), **Origini dei personaggi**
+       (pp. 93–97) e **Talenti** (pp. 98–100) — pubblicati insieme (21 lug 2026),
+       10/10 tutti e tre. Brevi sì, ma non senza sorprese: i tre passavano 10/10
+       **al primo colpo** e avevano tre tabelle su quindici distrutte. È il caso
+       da manuale di ciò che il verificatore non vede, e lo si trova solo
+       rileggendo i dati.
+       - **Il rientro non vuol dire niente in una tabella tutta allineata a
+         destra.** In "Avanzamento dei personaggi" sotto "Livello" c'è "1" e
+         sotto "Punti esperienza" c'è "0": ogni cella comincia dopo l'inizio
+         della sua colonna, cioè è "rientrata", e il rientro è il segnale con cui
+         si riconosce una riga che è il seguito di quella sopra. Quindici righe
+         impilate in una, coi PE di tutti i livelli in una cella. Lo dice la
+         PRIMA riga di dati, che non può essere il seguito di niente: se è
+         rientrata anche lei, in quella tabella il rientro è impaginazione.
+         Ha raddrizzato anche "Costi in punti", "Punteggi e modificatori" e due
+         tabelle di `classi`.
+       - **La didascalia può andare a capo** ("Incantatore multiclasse:" / "slot
+         incantesimo per livello di incantesimo"): la seconda riga è nel font
+         delle didascalie e finiva fra i titoli di colonna — un frammento largo
+         quanto la tabella, che li fondeva tutti. Venti righe per dieci colonne
+         uscivano a due. Va a capo e non di fianco: le uniche due didascalie
+         consecutive del PDF sono questa e Temperatura/Vento di *controllare il
+         clima*, che stanno sulla stessa riga visiva e sono due tabelle.
+       - **Una coda è una tabella a cui è finito lo spazio, non una tabella che
+         cambia pagina.** "Monili" è un d100 che riprende tre volte, due delle
+         quali nella colonna accanto della stessa pagina, e usciva in quattro
+         tabelle di cui tre senza titolo. Il confine non è la pagina e non è una
+         misura in pixel: lo dicono le righe stesse, che sotto l'ultima cella e
+         sopra le intestazioni ripetute non ne hanno altre nella loro colonna.
+         Serve tutt'e due — in "Azioni" le intestazioni si ripetono a metà della
+         colonna destra, con della prosa sopra, e lì comincia una tabella nuova.
+         Con la coda arriva l'ordine di lettura: `grigliaDaFrammenti` ordinava
+         per pagina e top, e una coda nella colonna accanto ha un top piccolo,
+         quindi risaliva in mezzo alle prime righe. Ora si ordina per colonna di
+         pagina, e due frammenti sono la stessa riga solo se stanno nella stessa
+         colonna. **Ha chiuso tre debiti annotati**: «Strati prismatici» era due
+         tabelle, «Esempi di tiri salvezza» pure, e in «Azioni» il testo delle
+         due metà era interlacciato cella per cella («Effettui una prova di
+         Storia, Indagare, Natura o Religione). c…»).
+       - **La soglia del salto di paragrafo era di un pixel troppo alta.**
+         `PASSO_RIGA` valeva 23 e a 23 esatti il PDF stacca la riga in corsivo
+         che dichiara categoria e rarità dalla descrizione: "Talento Origini" si
+         incollava alla frase dopo in un talento su due. Misurati tutti i salti
+         del PDF fra 19 e 26: quelli da 23 sono 212 e **nessuno** prosegue una
+         frase, né per sillabazione né aprendo in minuscola. A 22 tutti e 258 gli
+         oggetti magici hanno la loro riga di rarità staccata, come già l'avevano
+         gli incantesimi.
+       Verificato: 26/26 in Chromium (i tre capitoli con ancore univoche, nessun
+       residuo del PDF a schermo, niente scorrimento orizzontale a 1280 e 390px,
+       le sei tabelle riparate lette riga per riga, console pulita); tutti e nove
+       i capitoli 10/10 al verificatore; i sei già pubblicati rigenerati e ogni
+       differenza letta — sono tutte tabelle che si uniscono o righe in corsivo
+       che si staccano, nessuna regressione; `tsc` e `build` ok. Le tre pagine
+       stanno in una sola rotta ciascuna (186, 92 e 51 KB di HTML).
   - [x] **La sezione regole è raggiungibile dall'editor** (21 lug 2026). Era
     pubblicata ma linkata da un punto solo di tutto il sito, in fondo alla home:
     dall'editor — cioè da dove serve, a metà sessione — non ci si arrivava

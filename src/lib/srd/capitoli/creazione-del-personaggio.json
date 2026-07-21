@@ -1,0 +1,1996 @@
+{
+ "id": "creazione-del-personaggio",
+ "titolo": "Creazione del personaggio",
+ "pagine": [
+  21,
+  31
+ ],
+ "blocchi": [
+  {
+   "t": "h2",
+   "testo": "Scegliere una scheda del personaggio",
+   "id": "scegliere-una-scheda-del-personaggio"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Registra i dettagli principali del tuo personaggio su una scheda del personaggio. In questo capitolo, il termine \"scheda del personaggio\" indicherà qualunque cosa usi per annotare informazioni sul tuo personaggio, che si tratti di una scheda ufficiale, di un supporto digitale o di un semplice pezzo di carta. Scegli il tipo di scheda che fa per te e lanciati nella creazione di un personaggio!"
+    }
+   ]
+  },
+  {
+   "t": "h2",
+   "testo": "Creare il personaggio",
+   "id": "creare-il-personaggio"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Le fasi di creazione di un personaggio sono le seguenti, ciascuna approfondita di seguito:"
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "1: Scegliere una classe",
+   "testo": [
+    {
+     "s": "Ogni avventuriero è membro di una classe. La classe descrive a grandi linee la vocazione di un personaggio, i suoi talenti speciali e le sue tattiche preferite."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "2: Determinare le origini",
+   "testo": [
+    {
+     "s": "Le origini di un personaggio comprendono due elementi: il background e la specie. Come ha trascorso gli anni che lo hanno condotto a un'esistenza votata all'avventura? Chi sono i suoi antenati? È inoltre possibile scegliere le lingue del personaggio."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "3: Determinare i punteggi di caratteristica",
+   "testo": [
+    {
+     "s": "Gran parte delle azioni del personaggio nel gioco dipende dalle sue sei caratteristiche."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "4: Scegliere un allineamento",
+   "testo": [
+    {
+     "s": "L'allineamento corrisponde alla bussola morale del personaggio."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "5: Inserire i dettagli",
+   "testo": [
+    {
+     "s": "Utilizzando le scelte fatte, compila i dettagli rimanenti sulla scheda del personaggio."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Fase 1: Scegliere una classe",
+   "id": "fase-1-scegliere-una-classe"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Scegli una classe e scrivila sulla scheda del personaggio. Le classi sono sintetizzate nella tabella Panoramica delle classi. Per i dettagli sulle classi, consulta il capitolo \"Classi\"."
+    }
+   ]
+  },
+  {
+   "t": "tabella",
+   "titolo": "Panoramica delle classi",
+   "colonne": [
+    "Classe",
+    "Predilige...",
+    "Caratteristiche primarie",
+    "Complessità"
+   ],
+   "righe": [
+    [
+     "Barbaro",
+     "Battaglia",
+     "Forza",
+     "Media"
+    ],
+    [
+     "Bardo",
+     "Esibizione",
+     "Carisma",
+     "Alta"
+    ],
+    [
+     "Chierico",
+     "Dèi",
+     "Saggezza",
+     "Media"
+    ],
+    [
+     "Druido",
+     "Natura",
+     "Saggezza",
+     "Alta"
+    ],
+    [
+     "Guerriero",
+     "Armi",
+     "Forza o Destrezza",
+     "Bassa"
+    ],
+    [
+     "Ladro",
+     "Furtività",
+     "Destrezza",
+     "Bassa"
+    ],
+    [
+     "Mago",
+     "Libri di incantesimi",
+     "Intelligenza",
+     "Media"
+    ],
+    [
+     "Monaco",
+     "Combattimento senz'armi",
+     "Destrezza e Saggezza",
+     "Alta"
+    ],
+    [
+     "Paladino",
+     "Difesa",
+     "Forza e Carisma",
+     "Media"
+    ],
+    [
+     "Ranger",
+     "Sopravvivenza",
+     "Destrezza e Saggezza",
+     "Media"
+    ],
+    [
+     "Stregone",
+     "Potere",
+     "Carisma",
+     "Alta"
+    ],
+    [
+     "Warlock",
+     "Scienze occulte",
+     "Carisma",
+     "Alta"
+    ]
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Scrivere il livello",
+   "id": "scrivere-il-livello"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Scrivi il livello del personaggio sulla scheda del personaggio. In genere, il personaggio inizia al 1º livello e tramite le avventure a cui partecipa guadagna dei punti esperienza (PE) che gli consentono di avanzare di livello."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Scrivere i PE",
+   "testo": [
+    {
+     "s": "Annota anche i punti esperienza. Un personaggio di livello 1 ha 0 PE."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Iniziare a un livello superiore",
+   "testo": [
+    {
+     "s": "Il GM potrebbe farti iniziare a un livello superiore. Se parti da un livello pari o superiore al 3º, scrivi la sottoclasse scelta sulla scheda del personaggio. Per ulteriori informazioni, vedi la sezione \"Iniziare a livelli superiori\" più avanti nel capitolo \"Creazione del personaggio\"."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Annotare la competenza nelle armature",
+   "id": "annotare-la-competenza-nelle-armature"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "La tua classe potrebbe fornirti competenza con determinate categorie di armature. Annota la competenza nelle armature sulla scheda del personaggio. La competenza in un tipo di armatura significa che quell'armatura può essere indossata in modo efficace, ottenendo da essa bonus difensivi. Le categorie di armature sono descritte nel capitolo \"Equipaggiamento\"."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Fase 2: Origini del personaggio",
+   "id": "fase-2-origini-del-personaggio"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Per determinare le origini del personaggio è necessario scegliere un background, una specie e due lingue. Il background di un personaggio rappresenta il luogo e l'occupazione che lo hanno formato maggiormente. La combinazione di background, specie e lingue offre terreno fertile per l'immaginazione nel momento in cui rifletti sugli albori del personaggio."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Scegliere un background",
+   "id": "scegliere-un-background"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Scegli il background e scrivilo sulla scheda del personaggio. Puoi scegliere un background qualsiasi tra quelli descritti nel capitolo \"Origini dei personaggi\". Inoltre, il GM potrebbe offrire ulteriori background come opzioni. Il background scelto influenza la fase 3, in cui determinerai i punteggi di caratteristica del personaggio. Se hai difficoltà nella scelta, la tabella Punteggi di caratteristica e background mostra quali background avvantaggiano determinati punteggi di caratteristica. Lì puoi trovare la caratteristica primaria della tua classe."
+    }
+   ]
+  },
+  {
+   "t": "tabella",
+   "titolo": "Punteggi di caratteristica e background",
+   "colonne": [
+    "Caratteristica",
+    "Background"
+   ],
+   "righe": [
+    [
+     "Forza",
+     "Soldato"
+    ],
+    [
+     "Destrezza",
+     "Soldato"
+    ],
+    [
+     "Costituzione",
+     "Soldato"
+    ],
+    [
+     "Intelligenza",
+     "Accolito"
+    ],
+    [
+     "Saggezza",
+     "Accolito"
+    ],
+    [
+     "Carisma",
+     "Accolito"
+    ]
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Registra il tuo talento",
+   "testo": [
+    {
+     "s": "Un background conferisce un talento, che fornisce al personaggio particolari capacità. I talenti sono descritti nel capitolo \"Talenti\". Scrivi il talento sulla scheda del personaggio."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Annota le competenze",
+   "testo": [
+    {
+     "s": "Il background fornisce competenza in due abilità e in uno strumento. Registra queste informazioni sulla scheda del personaggio. Anche la classe fornisce competenze. Controlla la descrizione della tua classe nel capitolo \"Classi\" e annota le competenze sulla scheda del personaggio. La tabella dei privilegi nella descrizione della classe mostra il bonus di competenza (descritto nel capitolo \"Come si gioca\"), che corrisponde a +2 per un personaggio di 1º livello. Annota questo numero sulla scheda del personaggio. Nella fase 5 inserirai altri numeri legati a queste competenze."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Scegliere l'equipaggiamento di partenza",
+   "id": "scegliere-l-equipaggiamento-di-partenza"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Sia il background che la classe forniscono l'equipaggiamento di partenza. Puoi spendere immediatamente le monete che guadagni in questa fase per acquistare l'equipaggiamento del capitolo \"Equipaggiamento\". Registra l'equipaggiamento scelto sulla scheda del personaggio. L'equipaggiamento è descritto nel capitolo \"Equipaggiamento\", ma per il momento è sufficiente annotarlo e cercare le specifiche in quel capitolo più tardi. Annota le monete rimaste dopo l'acquisto dell'equipaggiamento."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Scegliere una specie",
+   "id": "scegliere-una-specie"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Scegli una specie per il personaggio. Le seguenti opzioni di specie sono descritte nel capitolo \"Origini dei personaggi\": Dragonide, elfo, gnomo, goliath, halfling, nano, orco, tiefling e umano. Dopo che hai scelto la specie, scrivila sulla scheda del personaggio, poi registrane i tratti. La taglia e la velocità del personaggio sono determinate dalla sua specie; annotale negli appositi spazi della scheda del personaggio (è sufficiente scrivere la prima lettera della taglia)."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Immaginare il passato e il presente",
+   "id": "immaginare-il-passato-e-il-presente"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Lasciati ispirare dal background e dalla specie del personaggio per immaginare il suo passato, che ora alimenta il presente. Tienilo a mente e rispondi alle seguenti domande come se fossi il tuo personaggio:"
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "• Chi è la tua famiglia? • Chi era il tuo più caro amico d'infanzia? • Hai trascorso l'infanzia con un animale domestico? • Hai una relazione romantica? Se sì, con chi? • Fai parte di un'organizzazione, come una gilda o una religione? Se sì, ne sei ancora membro? • Quali elementi del tuo passato ti hanno ispirato a vivere un presente votato all'avventura?"
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Scegliere le lingue",
+   "id": "scegliere-le-lingue"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il personaggio conosce almeno tre lingue: il Comune più altre due lingue a sua scelta o assegnate in maniera casuale effettuando un tiro sulla tabella Lingue standard. Conoscere una lingua significa poterla usare per comunicare, leggere e scrivere. Anche la classe e altri privilegi potrebbero fornire accesso a delle lingue. La tabella Lingue standard elenca le lingue più diffuse nell'ambientazione. Tutti i personaggi giocanti conoscono il Comune. Le altre lingue standard nacquero con i primi membri delle specie più importanti dell'ambientazione e da allora si sono ampiamente diffuse."
+    }
+   ]
+  },
+  {
+   "t": "tabella",
+   "titolo": "Lingue standard",
+   "colonne": [
+    "1d12",
+    "Lingua"
+   ],
+   "righe": [
+    [
+     "—",
+     "Comune"
+    ],
+    [
+     "1",
+     "Lingua dei segni comune"
+    ],
+    [
+     "2",
+     "Draconico"
+    ],
+    [
+     "3–4",
+     "Nanico"
+    ],
+    [
+     "5–6",
+     "Elfico"
+    ],
+    [
+     "7",
+     "Gigante"
+    ],
+    [
+     "8",
+     "Gnomesco"
+    ],
+    [
+     "9",
+     "Goblin"
+    ],
+    [
+     "10–11",
+     "Halfling"
+    ],
+    [
+     "12",
+     "Orchesco"
+    ]
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "La tabella Lingue rare elenca le lingue segrete o derivate da altri piani di esistenza e quindi meno diffuse nei mondi del Piano Materiale. Alcuni privilegi permettono al personaggio di imparare una lingua rara."
+    }
+   ]
+  },
+  {
+   "t": "tabella",
+   "titolo": "Lingue rare",
+   "colonne": [
+    "Lingua",
+    "Lingua"
+   ],
+   "righe": [
+    [
+     "Abissale",
+     "Primordiale*"
+    ],
+    [
+     "Celestiale",
+     "Silvano"
+    ],
+    [
+     "Druidico",
+     "Sottocomune"
+    ],
+    [
+     "Gergo delle profondità",
+     "Gergo ladresco"
+    ],
+    [
+     "Infernale",
+     ""
+    ],
+    [
+     "*Il Primordiale include i dialetti",
+     "Aquan, Auran, Ignan e Terran."
+    ],
+    [
+     "Le creature che parlano in grado di comunicare tra loro.",
+     "dialetti diversi di una stessa lingua sono"
+    ]
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Fase 3: Punteggi di caratteristica",
+   "id": "fase-3-punteggi-di-caratteristica"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Per determinare i punteggi di caratteristica del personaggio, occorre innanzitutto generare una serie di sei numeri utilizzando le istruzioni riportate di seguito e poi assegnarli alle sei caratteristiche. Il capitolo \"Come si gioca\" spiega il significato di ciascuna caratteristica."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Generare i punteggi",
+   "id": "generare-i-punteggi"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Determina i punteggi di caratteristica utilizzando uno dei tre metodi seguenti. Il GM potrebbe preferire che ne venga usato uno in particolare."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Serie standard",
+   "testo": [
+    {
+     "s": "Utilizza i seguenti sei punteggi per le tue caratteristiche: 15, 14, 13, 12, 10, 8."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Generazione casuale",
+   "testo": [
+    {
+     "s": "Tira quattro d6 e registra il totale dei tre dadi più alti. Poi ripeti l'operazione altre cinque volte in modo da avere sei numeri."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Costo in punti",
+   "testo": [
+    {
+     "s": "Hai a disposizione 27 punti da spendere per i punteggi di caratteristica. Il costo di ciascun punteggio è indicato nella tabella Costi in punti del punteggio di caratteristica. Ad esempio, un punteggio di 14 costa 7 dei tuoi 27 punti."
+    }
+   ]
+  },
+  {
+   "t": "tabella",
+   "titolo": "Costi in punti del punteggio di caratteristica",
+   "colonne": [
+    "Punteggio",
+    "Costo",
+    "Punteggio",
+    "Costo"
+   ],
+   "righe": [
+    [
+     "8",
+     "0",
+     "12",
+     "4"
+    ],
+    [
+     "9",
+     "1",
+     "13",
+     "5"
+    ],
+    [
+     "10",
+     "2",
+     "14",
+     "7"
+    ],
+    [
+     "11",
+     "3",
+     "15",
+     "9"
+    ]
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Assegnare i punteggi di caratteristica",
+   "id": "assegnare-i-punteggi-di-caratteristica"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Dopo che hai generato i sei punteggi, assegnali a Forza, Destrezza, Costituzione, Intelligenza, Saggezza e Carisma, tenendo presente la caratteristica primaria della tua classe. Poi, aggiungi i modificatori di caratteristica. Se utilizzi l'opzione serie standard, consulta la tabella Serie standard per classe per suggerimenti su come assegnare i punteggi per la classe del tuo personaggio. La tabella riporta i punteggi più alti nelle caratteristiche principali di una classe. Se hai utilizzato un metodo diverso per generare i punteggi, puoi comunque utilizzare questa tabella per orientarti nella collocazione dei punteggi più alti e più bassi."
+    }
+   ]
+  },
+  {
+   "t": "tabella",
+   "titolo": "Serie standard per classe",
+   "colonne": [
+    "Classe",
+    "For",
+    "Des",
+    "Cos",
+    "Int",
+    "Sag",
+    "Car"
+   ],
+   "righe": [
+    [
+     "Barbaro",
+     "15",
+     "13",
+     "14",
+     "10",
+     "12",
+     "8"
+    ],
+    [
+     "Bardo",
+     "8",
+     "14",
+     "12",
+     "13",
+     "10",
+     "15"
+    ],
+    [
+     "Chierico",
+     "14",
+     "8",
+     "13",
+     "10",
+     "15",
+     "12"
+    ],
+    [
+     "Druido",
+     "8",
+     "12",
+     "14",
+     "13",
+     "15",
+     "10"
+    ],
+    [
+     "Guerriero",
+     "15",
+     "14",
+     "13",
+     "8",
+     "10",
+     "12"
+    ],
+    [
+     "Ladro",
+     "12",
+     "15",
+     "13",
+     "14",
+     "10",
+     "8"
+    ],
+    [
+     "Mago",
+     "8",
+     "12",
+     "13",
+     "15",
+     "14",
+     "10"
+    ],
+    [
+     "Monaco",
+     "12",
+     "15",
+     "13",
+     "10",
+     "14",
+     "8"
+    ],
+    [
+     "Paladino",
+     "15",
+     "10",
+     "13",
+     "8",
+     "12",
+     "14"
+    ],
+    [
+     "Ranger",
+     "12",
+     "15",
+     "13",
+     "8",
+     "14",
+     "10"
+    ],
+    [
+     "Stregone",
+     "10",
+     "13",
+     "14",
+     "8",
+     "12",
+     "15"
+    ],
+    [
+     "Warlock",
+     "8",
+     "14",
+     "13",
+     "12",
+     "10",
+     "15"
+    ]
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Modificare i punteggi di caratteristica",
+   "id": "modificare-i-punteggi-di-caratteristica"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Dopo aver assegnato i punteggi di caratteristica, modificali in base al background. Il background elenca tre caratteristiche; aumenta un punteggio di 2 e un altro di 1, oppure aumenta tutti e tre i punteggi di 1. Nessuno di questi incrementi può far salire il punteggio al di sopra di 20. Ad alcuni giocatori piace aumentare la caratteristica primaria della propria classe, mentre altri preferiscono aumentare un punteggio basso."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Determinare i modificatori di caratteristica",
+   "id": "determinare-i-modificatori-di-caratteristica"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Infine, calcola i modificatori di caratteristica del personaggio usando la tabella Punteggi di caratteristica e modificatori. Ogni modificatore va annotato accanto alla relativa caratteristica del personaggio."
+    }
+   ]
+  },
+  {
+   "t": "tabella",
+   "titolo": "Punteggi di caratteristica e modificatori",
+   "colonne": [
+    "Punteggio",
+    "Modificatore",
+    "Punteggio",
+    "Modificatore"
+   ],
+   "righe": [
+    [
+     "3",
+     "−4",
+     "12–13",
+     "+1"
+    ],
+    [
+     "4–5",
+     "−3",
+     "14–15",
+     "+2"
+    ],
+    [
+     "6–7",
+     "−2",
+     "16–17",
+     "+3"
+    ],
+    [
+     "8–9",
+     "−1",
+     "18–19",
+     "+4"
+    ],
+    [
+     "10–11",
+     "+0",
+     "20",
+     "+5"
+    ]
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Fase 4: Allineamento",
+   "id": "fase-4-allineamento"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Scegli l'allineamento del personaggio tra le opzioni sottostanti e annotalo sulla scheda del personaggio. Il gioco presuppone che i personaggi giocanti non siano di allineamento malvagio. Prima di creare un personaggio malvagio, consulta il GM."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Punti ferita",
+   "testo": [
+    {
+     "s": "La tua classe e il modificatore di Costituzione determinano i tuoi punti ferita massimi al 1º livello, come indicato nella tabella Punti ferita per classe al 1º livello."
+    }
+   ]
+  },
+  {
+   "t": "tabella",
+   "titolo": "Punti ferita per classe al 1º livello",
+   "colonne": [
+    "Classe",
+    "Punti ferita massimi"
+   ],
+   "righe": [
+    [
+     "Barbaro",
+     "12 + modificatore di Cos"
+    ],
+    [
+     "Guerriero, paladino o ranger",
+     "10 + modificatore di Cos"
+    ],
+    [
+     "Bardo, chierico, druido, monaco, ladro o warlock",
+     "8 + modificatore di Cos"
+    ],
+    [
+     "Stregone o mago",
+     "6 + modificatore di Cos"
+    ]
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "La scheda del personaggio include uno spazio per annotare i punti ferita attuali quando si subiscono danni, nonché i punti ferita temporanei che è possibile guadagnare. Inoltre, c'è spazio per annotare i tiri salvezza contro morte."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Dadi Vita",
+   "testo": [
+    {
+     "s": "La descrizione della classe indica il tipo di Dado Vita del personaggio; annotalo sulla scheda del personaggio. Al 1º livello, il personaggio ha 1 Dado Vita. Durante un riposo breve, si possono spendere Dadi Vita per recuperare punti ferita. La scheda del personaggio include anche uno spazio per annotare quanti Dadi Vita sono stati spesi."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Iniziativa",
+   "testo": [
+    {
+     "s": "Annota il tuo modificatore di Destrezza nello spazio dedicato all'iniziativa sulla scheda del personaggio."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Classe Armatura",
+   "testo": [
+    {
+     "s": "Senza armatura o scudo, la Classe Armatura base è pari a 10 più il modificatore di Destrezza. Se l'equipaggiamento di partenza comprende un'armatura o uno scudo (o entrambi), calcola la CA utilizzando le regole del capitolo \"Equipaggiamento\". Alcuni privilegi di classe potrebbero offrire un modo diverso per calcolare la CA."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Attacchi",
+   "testo": [
+    {
+     "s": "Nella sezione Armi e trucchetti da combattimento della scheda del personaggio, annota le armi di partenza. Il bonus al tiro per colpire di un'arma in cui si ha competenza è uno dei seguenti, a meno che l'arma non abbia una proprietà che indichi diversamente:"
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Bonus di attacco in mischia ",
+     "b": 1
+    },
+    {
+     "s": "= il modificatore di Forza + il bonus di competenza"
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Bonus di attacco a distanza ",
+     "b": 1
+    },
+    {
+     "s": "= il modificatore di Destrezza + il bonus di competenza"
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Consulta il capitolo \"Equipaggiamento\" per i danni e le proprietà delle armi. Aggiungi ai tiri per i danni con un'arma lo stesso modificatore di caratteristica che usi per gli attacchi con quell'arma."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Incantesimi",
+   "testo": [
+    {
+     "s": "Annota sia la CD del tiro salvezza per i tuoi incantesimi, sia il bonus d'attacco per gli attacchi che effettui con essi, utilizzando queste formule:"
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "CD del tiro salvezza sull'incantesimo ",
+     "b": 1
+    },
+    {
+     "s": "= 8 + il modificatore di caratteristica da incantatore + il bonus di competenza"
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Bonus di attacco dell'incantesimo ",
+     "b": 1
+    },
+    {
+     "s": "= il modificatore di caratteristica da incantatore + il bonus di competenza"
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il modificatore di caratteristica da incantatore per un incantesimo è determinato dal privilegio che conferisce l'abilità di lanciare l'incantesimo."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Slot incantesimo, trucchetti e incantesimi preparati",
+   "testo": [
+    {
+     "s": "Se la classe del personaggio conferisce il privilegio Incantesimi o Magia del patto, la tabella dei privilegi di classe indica il numero di slot incantesimo disponibili, il numero di trucchetti conosciuti e il numero di incantesimi che il personaggio può preparare. Scegli i trucchetti e gli incantesimi preparati e annotali sulla scheda del personaggio insieme al numero di slot incantesimo."
+    }
+   ]
+  },
+  {
+   "t": "h2",
+   "testo": "Avanzamento di livello",
+   "id": "avanzamento-di-livello"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Man mano che intraprende avventure, il personaggio accumula esperienza, rappresentata dai punti esperienza (PE). Quando raggiunge un numero specifico di punti esperienza, le sue capacità sono soggette a un avanzamento, chiamato acquisire un livello. La tabella Avanzamento dei personaggi riassume i PE di cui un personaggio necessita per avanzare di livello e il bonus di competenza di un personaggio di quel livello. Quando i PE totali sono pari o superiori a un numero della colonna Punti esperienza, il personaggio raggiunge il livello corrispondente."
+    }
+   ]
+  },
+  {
+   "t": "tabella",
+   "titolo": "Avanzamento dei personaggi",
+   "colonne": [
+    "Livello",
+    "Punti esperienza",
+    "Bonus di competenza"
+   ],
+   "righe": [
+    [
+     "1",
+     "0",
+     "+2"
+    ],
+    [
+     "2",
+     "300",
+     "+2"
+    ],
+    [
+     "3",
+     "900",
+     "+2"
+    ],
+    [
+     "4",
+     "2.700",
+     "+2"
+    ],
+    [
+     "5",
+     "6.500",
+     "+3"
+    ],
+    [
+     "6",
+     "14.000",
+     "+3"
+    ],
+    [
+     "7",
+     "23.000",
+     "+3"
+    ],
+    [
+     "8",
+     "34.000",
+     "+3"
+    ],
+    [
+     "9",
+     "48.000",
+     "+4"
+    ],
+    [
+     "10",
+     "64.000",
+     "+4"
+    ],
+    [
+     "11",
+     "85.000",
+     "+4"
+    ],
+    [
+     "12",
+     "100.000",
+     "+4"
+    ],
+    [
+     "13",
+     "120.000",
+     "+5"
+    ],
+    [
+     "14",
+     "140.000",
+     "+5"
+    ],
+    [
+     "15",
+     "165.000",
+     "+5"
+    ]
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Fascia 3 (Livelli 11–16)",
+   "id": "fascia-3-livelli-11-16"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Nella fascia 3, i personaggi hanno raggiunto un livello di potere che li rende speciali tra gli avventurieri. All'11º livello, molti incantatori apprendono incantesimi di alterazione della realtà. Altri personaggi ottengono privilegi che permettono loro di effettuare più attacchi o di compiere azioni straordinarie con quegli attacchi. Gli avventurieri spesso affrontano minacce che riguardano interi continenti."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Fascia 4 (Livelli 17–20)",
+   "id": "fascia-4-livelli-17-20"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Nella fascia 4, i personaggi raggiungono l'apice dei loro privilegi di classe, diventando archetipi eroici. Il destino del mondo o addirittura l'ordine del multiverso potrebbero essere in bilico durante le loro avventure."
+    }
+   ]
+  },
+  {
+   "t": "h2",
+   "testo": "Iniziare a livelli superiori",
+   "id": "iniziare-a-livelli-superiori"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il GM potrebbe far partire i personaggi del gruppo da un livello superiore al 1º. In particolare, è consigliato iniziare dal 3º livello se il gruppo è composto da giocatori esperti di D&D."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Creare il personaggio",
+   "id": "creare-il-personaggio-2"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "La creazione di un personaggio di livello superiore comprende le stesse fasi descritte in questo capitolo, nonché le regole di avanzamento oltre il 1º livello fornite nella sezione \"Avanzamento di livello\". Si inizia con il numero minimo di PE necessari per raggiungere il livello di partenza. Ad esempio, se il GM fa iniziare i giocatori al 10º livello, i personaggi avranno 64.000 PE."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Equipaggiamento iniziale",
+   "id": "equipaggiamento-iniziale"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il GM decide se il personaggio inizia con un equipaggiamento superiore a quello standard per un personaggio di 1º livello, eventualmente anche con uno o più oggetti magici. La tabella Equipaggiamento di partenza a livelli superiori funge da guida per il GM. Puoi anche verificare con il GM quale equipaggiamento puoi comprare con il tuo denaro iniziale. Ad esempio, le armi da fuoco descritte nel capitolo \"Equipaggiamento\" sono troppo costose per i personaggi di 1º livello, ma potrebbe essere possibile acquistarle se il GM lo consente."
+    }
+   ]
+  },
+  {
+   "t": "h2",
+   "testo": "Multiclasse",
+   "id": "multiclasse"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "L'avanzamento multiclasse consente a un personaggio di acquisire livelli in più classi. Grazie a questa regola, un personaggio può acquisire un livello in una nuova classe ogni volta che avanza di livello, anziché guadagnare un livello nella sua classe attuale. In questo modo, è possibile combinare le abilità di quelle classi per realizzare un tipo di personaggio che potrebbe non essere rappresentato a dovere da una singola classe."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Prerequisiti",
+   "id": "prerequisiti"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Per essere idoneo a una nuova classe, un personaggio deve avere un punteggio pari o superiore a 13 nella caratteristica primaria della nuova classe e nelle classi attuali. Ad esempio, un barbaro che decide di diventare multiclasse acquisendo la classe del druido deve possedere sia un punteggio di Forza che un punteggio di Saggezza pari o superiori a 13, poiché la Forza è la caratteristica primaria dei barbari e la saggezza è la caratteristica primaria dei druidi."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Punti esperienza",
+   "id": "punti-esperienza"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il costo in punti esperienza per acquisire un livello è basato sul livello totale del personaggio, come indicato nella tabella Avanzamento dei personaggi nel capitolo \"Creazione del personaggio\", e non sul suo livello in una particolare classe. Per esempio, un personaggio multiclasse chierico 6/guerriero 1 deve accumulare abbastanza PE per arrivare all'8º livello prima di poter acquisire il suo secondo livello come guerriero o il suo settimo livello come chierico."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Punti ferita e Dadi Vita",
+   "id": "punti-ferita-e-dadi-vita"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il personaggio ottiene i punti ferita della sua nuova classe come descritto per i livelli successivi al 1º. Si ottengono punti ferita di 1º livello per una classe solo quando il livello totale del personaggio corrisponde al 1º. Il personaggio somma i Dadi Vita conferitigli da tutte le sue classi per formare la sua riserva"
+    }
+   ]
+  },
+  {
+   "t": "tabella",
+   "titolo": "Equipaggiamento di partenza a livelli superiori",
+   "colonne": [
+    "Livello di partenza",
+    "Equipaggiamento e denaro",
+    "Oggetti magici"
+   ],
+   "righe": [
+    [
+     "2–4",
+     "Equipaggiamento di partenza ordinario",
+     "1 comune"
+    ],
+    [
+     "5–10",
+     "500 mo più 1d10 × 25 mo più equipaggiamento di partenza ordinario",
+     "1 comune, 1 non comune"
+    ],
+    [
+     "11–16",
+     "5.000 mo più 1d10 × 250 mo più equipaggiamento di partenza ordinario",
+     "2 comuni, 3 non comuni, 1 raro"
+    ],
+    [
+     "17–20",
+     "20.000 mo più 1d10 × 250 mo più equipaggiamento di partenza ordinario",
+     "2 comuni, 4 non comuni, 3 rari, 1 molto raro"
+    ]
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "di Dadi Vita. Se i dadi sono dello stesso tipo, può semplicemente raggrupparli in un unico insieme. Per esempio, sia il guerriero che il paladino hanno un Dado Vita d10, quindi un personaggio multiclasse guerriero 5/paladino 5 avrà dieci Dadi Vita d10. Se le sue classi gli forniscono Dadi Vita di tipi diversi, dovrà annotarli separatamente. Per esempio, un personaggio multiclasse chierico 5/paladino 5 avrà cinque Dadi Vita d8 e cinque Dadi Vita d10."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Bonus di competenza",
+   "id": "bonus-di-competenza"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il bonus di competenza è basato sul livello totale del personaggio, come indicato nella tabella Avanzamento dei personaggi, e non sul suo livello in una particolare classe. Ad esempio, un personaggio multiclasse guerriero 3/ladro 2 avrà il bonus di competenza di un personaggio di 5º livello, che corrisponde a +3."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Competenze",
+   "id": "competenze"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Quando un personaggio ottiene il suo primo livello in una classe diversa dalla sua classe iniziale, riceve soltanto alcune delle nuove competenze di partenza della nuova classe, come indicato nella descrizione di ogni classe nel capitolo \"Classi\"."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Privilegi di classe",
+   "id": "privilegi-di-classe"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Quando un personaggio ottiene un nuovo livello in una classe, ottiene i privilegi di quella classe relativi a quel livello. Alcuni privilegi hanno regole aggiuntive quando il personaggio è multiclasse. Controlla le informazioni sui personaggi multiclasse incluse nelle descrizioni di ciascuna classe. Le regole speciali si applicano ai privilegi Attacco extra, Incantesimi e ai privilegi (come Difesa senza armatura) che offrono modi alternativi per calcolare la Classe Armatura."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Classe Armatura",
+   "id": "classe-armatura"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Se un personaggio dispone di modi diversi di calcolare la Classe Armatura, può usarne solamente uno alla volta. Ad esempio, un monaco/stregone con il privilegio da monaco Difesa senza armatura e il privilegio da stregone Resilienza draconica deve sceglierne soltanto uno per calcolare la Classe Armatura."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Attacco extra",
+   "id": "attacco-extra"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Se il personaggio ottiene il privilegio Attacco extra da più di una classe, i privilegi non sono cumulativi. Non può effettuare più di due attacchi con questo privilegio, a meno che non abbia un privilegio che lo preveda (come Due attacchi extra del guerriero). Analogamente, l'invocazione Lama assetata del warlock, che concede il privilegio Attacco extra con l'arma del patto, non conferisce attacchi aggiuntivi se si ha anche Attacco extra."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Incantesimi",
+   "id": "incantesimi"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Le capacità da incantatore del personaggio dipendono in parte dai suoi livelli combinati in tutte le sue classi da incantatore e in parte dai suoi livelli individuali in quelle classi. Una volta ottenuto il privilegio Incantesimi da più di una classe, il personaggio usa le regole sottostanti. Se un personaggio multiclasse possiede il privilegio Incantesimi soltanto da una classe, segue le regole descritte in quella classe."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Incantesimi preparati",
+   "testo": [
+    {
+     "s": "Il personaggio determina gli incantesimi che può preparare per ogni classe separatamente, come se fosse un membro monoclasse appartenente a quella classe. Per esempio, un personaggio multiclasse ranger 4/stregone 3 può preparare cinque incantesimi da ranger di 1º livello e sei incantesimi da stregone di 1º o 2º livello (oltre a quattro trucchetti da stregone). Ogni incantesimo che il personaggio prepara è associato a una delle sue classi; il personaggio userà la caratteristica da incantatore di quella classe quando lancia l'incantesimo."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Trucchetti",
+   "testo": [
+    {
+     "s": "Se un trucchetto aumenta di potenza a livelli superiori, l'incremento si basa sul livello totale del personaggio, non sul livello in una classe particolare, a meno che l'incantesimo non indichi diversamente."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Slot incantesimo",
+   "testo": [
+    {
+     "s": "Per determinare gli slot incantesimo disponibili, il personaggio somma i seguenti valori:"
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "• Tutti i suoi livelli nelle classi del bardo, chierico, druido, stregone e mago • Metà dei suoi livelli (arrotondati per eccesso) nelle classi del paladino e del ranger"
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Cercherà poi questo totale nella colonna Livello della tabella Incantatore multiclasse. Il personaggio utilizza gli slot di quel livello per lanciare incantesimi del livello appropriato da qualsiasi classe di cui possiede il privilegio Incantesimi. Questa tabella potrebbe fornire al personaggio slot incantesimo di livello superiore a quello degli incantesimi preparati. Può usare quegli slot, ma soltanto per lanciare i suoi incantesimi di livello inferiore. Se un incantesimo di livello inferiore da lui lanciato, come "
+    },
+    {
+     "s": "mani brucianti",
+     "i": 1
+    },
+    {
+     "s": ", prevede un effetto potenziato se lanciato con uno slot di livello superiore, il personaggio può usare l'effetto potenziato come di consueto. Per esempio, un personaggio multiclasse ranger 4/stregone 3 è considerato un personaggio di 5º livello al fine di determinare i suoi slot incantesimo, contando tutti i livelli da stregone e metà dei livelli da ranger. Come indicato nella tabella Incantatore multiclasse, il personaggio possiede quattro slot incantesimo di 1º livello, tre slot di 2º livello e due slot di 3º livello. Tuttavia, non può preparare alcun incantesimo di 3º livello, né alcun incantesimo da ranger di 2º livello. Può usare gli slot incantesimo di quei livelli per lanciare gli incantesimi che prepara e, se lo desidera, potenziare i loro effetti."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Magia del patto",
+   "testo": [
+    {
+     "s": "Se il personaggio possiede il privilegio Magia del patto della classe warlock e il privilegio Incantesimi, può usare gli slot incantesimo che ottiene dalla Magia del patto per lanciare gli incantesimi che ha preparato dalle classi con il privilegio Incantesimi. Inoltre, può usare gli slot incantesimo che ottiene dal privilegio Incantesimi per lanciare gli incantesimi da warlock che ha preparato."
+    }
+   ]
+  },
+  {
+   "t": "tabella",
+   "titolo": "Incantatore multiclasse: slot incantesimo per livello di incantesimo",
+   "colonne": [
+    "Livello",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9"
+   ],
+   "righe": [
+    [
+     "1",
+     "2",
+     "—",
+     "—",
+     "—",
+     "—",
+     "—",
+     "—",
+     "—",
+     "—"
+    ],
+    [
+     "2",
+     "3",
+     "—",
+     "—",
+     "—",
+     "—",
+     "—",
+     "—",
+     "—",
+     "—"
+    ],
+    [
+     "3",
+     "4",
+     "2",
+     "—",
+     "—",
+     "—",
+     "—",
+     "—",
+     "—",
+     "—"
+    ],
+    [
+     "4",
+     "4",
+     "3",
+     "—",
+     "—",
+     "—",
+     "—",
+     "—",
+     "—",
+     "—"
+    ],
+    [
+     "5",
+     "4",
+     "3",
+     "2",
+     "—",
+     "—",
+     "—",
+     "—",
+     "—",
+     "—"
+    ],
+    [
+     "6",
+     "4",
+     "3",
+     "3",
+     "—",
+     "—",
+     "—",
+     "—",
+     "—",
+     "—"
+    ],
+    [
+     "7",
+     "4",
+     "3",
+     "3",
+     "1",
+     "—",
+     "—",
+     "—",
+     "—",
+     "—"
+    ],
+    [
+     "8",
+     "4",
+     "3",
+     "3",
+     "2",
+     "—",
+     "—",
+     "—",
+     "—",
+     "—"
+    ],
+    [
+     "9",
+     "4",
+     "3",
+     "3",
+     "3",
+     "1",
+     "—",
+     "—",
+     "—",
+     "—"
+    ],
+    [
+     "10",
+     "4",
+     "3",
+     "3",
+     "3",
+     "2",
+     "—",
+     "—",
+     "—",
+     "—"
+    ],
+    [
+     "11",
+     "4",
+     "3",
+     "3",
+     "3",
+     "2",
+     "1",
+     "—",
+     "—",
+     "—"
+    ],
+    [
+     "12",
+     "4",
+     "3",
+     "3",
+     "3",
+     "2",
+     "1",
+     "—",
+     "—",
+     "—"
+    ],
+    [
+     "13",
+     "4",
+     "3",
+     "3",
+     "3",
+     "2",
+     "1",
+     "1",
+     "—",
+     "—"
+    ],
+    [
+     "14",
+     "4",
+     "3",
+     "3",
+     "3",
+     "2",
+     "1",
+     "1",
+     "—",
+     "—"
+    ],
+    [
+     "15",
+     "4",
+     "3",
+     "3",
+     "3",
+     "2",
+     "1",
+     "1",
+     "1",
+     "—"
+    ],
+    [
+     "16",
+     "4",
+     "3",
+     "3",
+     "3",
+     "2",
+     "1",
+     "1",
+     "1",
+     "—"
+    ],
+    [
+     "17",
+     "4",
+     "3",
+     "3",
+     "3",
+     "2",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "18",
+     "4",
+     "3",
+     "3",
+     "3",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "19",
+     "4",
+     "3",
+     "3",
+     "3",
+     "3",
+     "2",
+     "1",
+     "1",
+     "1"
+    ],
+    [
+     "20",
+     "4",
+     "3",
+     "3",
+     "3",
+     "3",
+     "2",
+     "2",
+     "1",
+     "1"
+    ]
+   ]
+  },
+  {
+   "t": "h2",
+   "testo": "Monili",
+   "id": "monili"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Quando crei il personaggio, puoi tirare una volta sulla tabella Monili per ottenere un monile minuscolo, un oggetto semplice e avvolto da un sottile velo di mistero. Anche il GM potrebbe utilizzare questa tabella per rifornire la stanza di un dungeon o per riempire le tasche di una creatura."
+    }
+   ]
+  },
+  {
+   "t": "tabella",
+   "titolo": "Monili",
+   "colonne": [
+    "1d100",
+    "Monile"
+   ],
+   "righe": [
+    [
+     "01",
+     "Una mano di goblin mummificata"
+    ],
+    [
+     "02",
+     "Un frammento di cristallo che risplende debolmente alla luce della luna"
+    ],
+    [
+     "03",
+     "Una moneta d'oro forgiata in una terra ignota"
+    ],
+    [
+     "04",
+     "Un diario scritto in una lingua ignota"
+    ],
+    [
+     "05",
+     "Un anello di ottone che non si consuma mai"
+    ],
+    [
+     "06",
+     "Un vecchio pezzo degli scacchi fatto in vetro"
+    ],
+    [
+     "07",
+     "Un paio di dadi fatto in ossa di falange; ognuno mostra il simbolo di un teschio sul lato che normalmente mostrerebbe sei punti"
+    ],
+    [
+     "08",
+     "Un piccolo idolo che raffigura una creatura da incubo e fa fare brutti sogni a chi dorme nelle sue vicinanze"
+    ],
+    [
+     "09",
+     "Una ciocca di capelli"
+    ],
+    [
+     "10",
+     "L'atto di proprietà di un appezzamento di terra in un reame sconosciuto"
+    ],
+    [
+     "11",
+     "Un cubetto fatto di un materiale sconosciuto del peso di 30 grammi"
+    ],
+    [
+     "12",
+     "Una piccola bambola di pezza trafitta da aghi"
+    ],
+    [
+     "13",
+     "Una zanna di una bestia sconosciuta"
+    ],
+    [
+     "14",
+     "Una scaglia enorme, forse appartenente a un drago"
+    ],
+    [
+     "15",
+     "Una sgargiante piuma verde"
+    ],
+    [
+     "16",
+     "Una vecchia carta da chiromante su cui compare il ritratto del personaggio"
+    ],
+    [
+     "17",
+     "Un globo di vetro pieno di sbuffi di fumo"
+    ],
+    [
+     "18",
+     "Un uovo da mezzo chilo dal guscio color rosso chiaro"
+    ],
+    [
+     "19",
+     "Un tubo per soffiare bolle di sapone"
+    ],
+    [
+     "20",
+     "Un vaso di vetro che contiene uno strano pezzo di carne immerso in un liquido conservante"
+    ],
+    [
+     "21",
+     "Un carillon di fattura gnomesca il cui motivo richiama vagamente una melodia che il personaggio ricorda dall'infanzia"
+    ],
+    [
+     "22",
+     "Una statuetta di legno con le fattezze di un halfling strafottente"
+    ],
+    [
+     "23",
+     "Un globo di ottone ricoperto di strane incisioni runiche"
+    ],
+    [
+     "24",
+     "Un disco di pietra multicolore"
+    ],
+    [
+     "25",
+     "Un'icona d'argento a forma di corvo"
+    ],
+    [
+     "26",
+     "Un sacchetto contenente quarantasette denti, tra cui uno marcio"
+    ],
+    [
+     "27",
+     "Un frammento di ossidiana che risulta sempre caldo al tatto"
+    ],
+    [
+     "28",
+     "Un artiglio di drago che pende da una collana in cuoio"
+    ],
+    [
+     "29",
+     "Un paio di vecchi calzini"
+    ],
+    [
+     "30",
+     "Un libro vuoto le cui pagine non si lasciano sporcare da inchiostro, gesso, grafite o qualsiasi altra sostanza o segno"
+    ],
+    [
+     "31",
+     "Un distintivo d'argento a forma di una stella a cinque punte"
+    ],
+    [
+     "32",
+     "Un coltello appartenuto a un parente"
+    ],
+    [
+     "33",
+     "Una fiala di vetro piena di unghie tagliate"
+    ],
+    [
+     "34",
+     "Un congegno di metallo rettangolare con due minuscole coppe di metallo a un'estremità che emettono scintille quando bagnate"
+    ],
+    [
+     "35",
+     "Un guanto bianco ricoperto di lustrini della taglia di un umano"
+    ],
+    [
+     "36",
+     "Una veste con cento minuscole tasche"
+    ],
+    [
+     "37",
+     "Una pietra priva di peso"
+    ],
+    [
+     "38",
+     "Un ritratto appena abbozzato di un goblin"
+    ],
+    [
+     "39",
+     "Una fiala di vetro vuota che emana un buon profumo"
+    ],
+    [
+     "40",
+     "Una gemma che sembra un pezzo di carbone quando viene esaminata da chiunque al di fuori del personaggio"
+    ],
+    [
+     "41",
+     "Un pezzo di stoffa strappato di una vecchia bandiera"
+    ],
+    [
+     "42",
+     "Una mostrina dei gradi di un legionario scomparso"
+    ],
+    [
+     "43",
+     "Un campanello d'argento senza batacchio"
+    ],
+    [
+     "44",
+     "Una lampada con all'interno un canarino meccanico"
+    ],
+    [
+     "45",
+     "Uno scrigno in miniatura scolpito per apparire dotato di numerose zampe alla base"
+    ],
+    [
+     "46",
+     "Uno spiritello morto all'interno di una bottiglia di vetro trasparente"
+    ],
+    [
+     "47",
+     "Un cilindro di metallo privo di qualsiasi apertura ma che sembra pieno di un liquido, di sabbia, di ragni o di vetri rotti (a scelta del giocatore)"
+    ],
+    [
+     "48",
+     "Un globo di vetro pieno d'acqua al cui interno nuota un pesce rosso meccanico"
+    ],
+    [
+     "49",
+     "Un cucchiaio d'argento con una M incisa sul manico"
+    ],
+    [
+     "50",
+     "Un fischietto in legno dorato"
+    ],
+    [
+     "51",
+     "Uno scarabeo morto, grande quanto la mano di un uomo"
+    ],
+    [
+     "52",
+     "Due soldatini giocattolo, di cui uno privo della testa"
+    ],
+    [
+     "53",
+     "Uno scrigno pieno di bottoni di tutte le taglie"
+    ],
+    [
+     "54",
+     "Una candela impossibile da accendere"
+    ],
+    [
+     "55",
+     "Una minuscola gabbia priva di porticina"
+    ],
+    [
+     "56",
+     "Una vecchia chiave"
+    ],
+    [
+     "57",
+     "Una mappa del tesoro indecifrabile"
+    ],
+    [
+     "58",
+     "L'elsa di una spada infranta"
+    ],
+    [
+     "59",
+     "Una zampa di coniglio"
+    ],
+    [
+     "60",
+     "Un occhio di vetro"
+    ],
+    [
+     "61",
+     "Un medaglione contenente il ritratto di una persona orribile"
+    ],
+    [
+     "62",
+     "Un teschio d'argento grande come una moneta"
+    ],
+    [
+     "63",
+     "Una maschera di alabastro"
+    ],
+    [
+     "64",
+     "Un cono di incenso nero appiccicoso e dal pessimo odore"
+    ],
+    [
+     "65",
+     "Un berretto da notte che, quando indossato, fa fare al portatore sogni piacevoli"
+    ],
+    [
+     "66",
+     "Un singolo tribolo fatto d'osso"
+    ],
+    [
+     "67",
+     "La montatura di un monocolo dorato privo di lente"
+    ],
+    [
+     "68",
+     "Un cubo con spigolo di 2,5 cm, con ogni faccia dipinta di un colore diverso"
+    ],
+    [
+     "69",
+     "Una maniglia di cristallo di una porta"
+    ],
+    [
+     "70",
+     "Un pacchetto pieno di polvere rosa"
+    ],
+    [
+     "71",
+     "Una strofa di una magnifica canzone, scritta come una serie di note musicali su due frammenti di pergamena"
+    ],
+    [
+     "72",
+     "Un orecchino d'argento a forma di goccia contenente una vera lacrima"
+    ],
+    [
+     "73",
+     "Il guscio di un uovo su cui sono raffigurate scene di varie disgrazie dipinte con inquietante precisione"
+    ],
+    [
+     "74",
+     "Un ventaglio che, una volta aperto, mostra un gatto addormentato"
+    ],
+    [
+     "75",
+     "Una serie di flauti in osso"
+    ],
+    [
+     "76",
+     "Un quadrifoglio custodito tra le pagine di un manuale di galateo"
+    ],
+    [
+     "77",
+     "Una pergamena su cui è stato disegnato un marchingegno meccanico"
+    ],
+    [
+     "78",
+     "Un elegante fodero che non si adatta a nessuna lama che il personaggio abbia mai visto"
+    ],
+    [
+     "79",
+     "Un invito a una festa a cui è stato commesso un delitto"
+    ],
+    [
+     "80",
+     "Un pentacolo di bronzo con l'immagine di una testa di ratto incisa al centro"
+    ],
+    [
+     "81",
+     "Un fazzoletto viola su cui è stato ricamato il nome di un potente arcimago"
+    ],
+    [
+     "82",
+     "Metà della planimetria di un tempio, un castello o una struttura di altro tipo"
+    ],
+    [
+     "83",
+     "Un pezzo di stoffa ripiegato che, una volta spiegato, si trasforma in un elegante mantello"
+    ],
+    [
+     "84",
+     "La ricevuta di un deposito presso una banca di una città molto lontana"
+    ],
+    [
+     "85",
+     "Un diario con sette pagine mancanti"
+    ],
+    [
+     "86",
+     "Una tabacchiera d'argento vuota con la scritta \"sogni\" incisa sul coperchio"
+    ],
+    [
+     "87",
+     "Un simbolo sacro in ferro dedicato a un dio sconosciuto"
+    ],
+    [
+     "88",
+     "Un libro che racconta la storia dell'ascesa e della caduta di un eroe leggendario, privo dell'ultimo capitolo"
+    ],
+    [
+     "89",
+     "Una fiala di sangue di drago"
+    ],
+    [
+     "90",
+     "Un'antica freccia di fattura elfica"
+    ],
+    [
+     "91",
+     "Un ago impossibile da piegare"
+    ],
+    [
+     "92",
+     "Un'elegante spilla di fattura nanica"
+    ],
+    [
+     "93",
+     "Una bottiglia di vino vuota con un'elegante etichetta che recita \"Enoteca del Mago dei Vini, Torchietto del drago, 331422-W\""
+    ],
+    [
+     "94",
+     "La tessera di un mosaico dalla superficie lucida e multicolore"
+    ],
+    [
+     "95",
+     "Un topo pietrificato"
+    ],
+    [
+     "96",
+     "Una bandiera nera da pirata decorata con le tibie incrociate e il teschio di un drago"
+    ],
+    [
+     "97",
+     "Un minuscolo granchio o ragno meccanico che si anima e si sposta quando nessuno lo osserva"
+    ],
+    [
+     "98",
+     "Un vaso di vetro pieno di lardo con un'etichetta che recita: \"Grasso di Grifone\""
+    ],
+    [
+     "99",
+     "Uno scrigno di legno con il fondo di ceramica che contiene un verme vivo con una testa a ogni estremità del suo corpo"
+    ],
+    [
+     "00",
+     "Un'urna di metallo contenente le ceneri di un eroe"
+    ]
+   ]
+  }
+ ]
+}

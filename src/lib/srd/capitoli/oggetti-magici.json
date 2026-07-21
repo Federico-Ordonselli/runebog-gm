@@ -910,9 +910,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Mentre indossa questo mantello, il personaggio può effettuare un'azione di Magia per trasformarlo in un paio di ali sulla propria schiena. Le ali permangono per 1 ora o finché il personaggio non pone fine all'effetto con un'azione di Magia. Le ali forniscono una velocità di volo di 18 metri. Se il personaggio è in aria quando le ali spariscono, cade a terra. Dopo che le ali scompaiono, non è possibile utilizzarle di nuovo per 1d12 ore."
     }
@@ -949,9 +954,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Arma (qualsiasi arma semplice o da guerra), rara ",
+     "s": "Arma (qualsiasi arma semplice o da guerra), rara",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio ottiene un bonus di +1 ai tiri per colpire e ai tiri per i danni effettuati con quest'arma magica. Quando il personaggio colpisce un gigante con quest'arma, il gigante subisce 2d6 danni extra del tipo inflitto dall'arma e deve superare un tiro salvezza su Forza con CD 15, altrimenti cade a terra prono."
     }
@@ -1002,9 +1012,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, non comune (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio che indossa questo amuleto non può essere bersagliato da incantesimi di divinazione o percepito attraverso sensori di scrutamento magico, a meno che il personaggio non lo permetta."
     }
@@ -1019,9 +1034,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, molto raro (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, molto raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio che indossa questo amuleto può usare un'azione di Magia per nominare un luogo che conosce su un altro piano di esistenza. Dopodiché effettua una prova di Intelligenza (Arcano) con CD 15. Se la prova viene superata, il personaggio lancia l'incantesimo "
     },
@@ -1053,17 +1073,7 @@
     [
      "71–80",
      "Luogo casuale su un Piano Esterno determinato dal tiro di un 1d8: con 1, Arborea; con 2, Arcadia; con 3, le Terre Bestiali; con 4, Bytopia; con 5, Elysium; con 6, Mechanus; con 7, Monte Celestia; con 8, Ysgard"
-    ]
-   ]
-  },
-  {
-   "t": "tabella",
-   "titolo": "",
-   "colonne": [
-    "1d100",
-    "Destinazione"
-   ],
-   "righe": [
+    ],
     [
      "81–90",
      "Luogo casuale su un Piano Esterno determinato dal tiro di un 1d8: con 1, l'Abisso; con 2, Acheronte; con 3, Carceri; con 4, Gehenna; con 5, l'Ade; con 6, il Limbo; con 7, i Nove Inferi; con 8, Pandemonium"
@@ -1083,9 +1093,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il punteggio di Costituzione del possessore di questo amuleto è pari a 19 mentre lo indossa. Se il suo punteggio di Costituzione è già pari o superiore a 19, l'amuleto non ha alcun effetto."
     }
@@ -1100,9 +1115,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Anello, raro (richiede sintonia) ",
+     "s": "Anello, raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo anello accumula gli incantesimi lanciati su di esso, finché un possessore in sintonia con l'oggetto non decide di usarli. L'anello può contenere fino a 5 livelli di incantesimo per volta. Quando viene trovato, contiene 1d6 – 1 livelli di incantesimi accumulati scelti dal GM. Qualsiasi creatura può lanciare un incantesimo di livello compreso tra il 1º e il 5º nell'anello, toccandolo al momento del lancio. L'incantesimo non sortisce alcun effetto, a parte quello di essere immagazzinato nell'anello. Se l'anello non può contenere altri incantesimi, quello lanciato viene sprecato senza provocare alcun effetto. Il livello dello slot usato per lanciare l'incantesimo determina quanto spazio occupa. Finché il personaggio indossa l'anello, può lanciare qualsiasi incantesimo conservato al suo interno. L'incantesimo usa il livello di slot, la CD del tiro salvezza sull'incantesimo, il bonus all'attacco con incantesimo e la caratteristica da incantatore di chi l'ha lanciato in origine, ma sotto ogni altro aspetto si considera che sia stato il personaggio a lanciarlo. L'incantesimo lanciato dall'anello non è più conservato al suo interno, liberando il relativo spazio."
     }
@@ -1146,9 +1166,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Anello, non comune (richiede sintonia) ",
+     "s": "Anello, non comune (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Se il personaggio subisce danni da freddo mentre indossa l'anello, questo ridurrà il danno subito di 2d8. Inoltre, finché indossa l'anello, il personaggio e tutto ciò che indossa e trasporta non subiscono danni dalle temperature di -18 gradi Celsius o inferiori."
     }
@@ -1163,9 +1188,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Anello, non comune ",
+     "s": "Anello, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Finché indossa questo anello, il personaggio può usarlo per lanciare "
     },
@@ -1328,9 +1358,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Anello, raro (richiede sintonia) ",
+     "s": "Anello, raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando il personaggio cade indossando questo anello, scende di 18 metri per round e non subisce danni dalla caduta."
     }
@@ -1345,9 +1380,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Anello, raro (richiede sintonia) ",
+     "s": "Anello, raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Mentre il personaggio indossa questo anello, il terreno difficile non gli costa movimento extra. Inoltre, la magia non può né ridurre la sua velocità di movimento (di qualsiasi tipo) né paralizzarlo o trattenerlo."
     }
@@ -1362,9 +1402,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Anello, raro (richiede sintonia) ",
+     "s": "Anello, raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo anello ha 3 cariche e recupera 1d3 cariche consumate all'alba di ogni giorno. Finché il personaggio indossa l'anello, può effettuare un'azione di Magia per consumare da 1 a 3 cariche ed eseguire un attacco a distanza contro una creatura che è in grado di vedere entro 18 metri da sé. L'anello crea una testa d'ariete spettrale ed effettua il suo tiro per colpire con un bonus di +7. Se il colpo va a segno, per ogni carica consumata il bersaglio subisce 2d10 danni da forza e viene spinto lontano dal personaggio per 1,5 metri. In alternativa, il personaggio può consumare da 1 a 3 cariche dell'anello per effettuare un'azione di Magia e provare a distruggere un oggetto non magico che è in grado di vedere entro 18 metri da sé e non è indossato o trasportato. L'anello effettua una prova di Forza con un bonus di +5 per ogni carica consumata."
     }
@@ -1401,9 +1446,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Anello, non comune ",
+     "s": "Anello, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Finché il personaggio indossa questo anello, la sua velocità di nuoto è pari a 12 metri."
     }
@@ -1447,9 +1497,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Anello, raro (richiede sintonia) ",
+     "s": "Anello, raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo anello ha 3 cariche e recupera 1d3 cariche consumate all'alba di ogni giorno. Se il personaggio fallisce un tiro salvezza su Destrezza mentre indossa l'anello, può usare la sua reazione per consumare 1 carica e superare quel tiro salvezza."
     }
@@ -1512,9 +1567,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Anello, leggendario (richiede sintonia) ",
+     "s": "Anello, leggendario (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Fintanto che il personaggio indossa quest'anello, può effettuare un'azione di Magia per rendersi invisibile. Rimarrà tale finché l'anello non viene rimosso o il personaggio non usa un'azione bonus per tornare visibile."
     }
@@ -1551,9 +1611,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Anello, raro ",
+     "s": "Anello, raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Finché il personaggio indossa questo anello, ottiene resistenza a un tipo di danno rappresentato dalla gemma incastonata in esso. Questa è a scelta del GM o determinata casualmente tirando sulla tabella seguente."
     }
@@ -1629,9 +1694,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Anello, leggendario (richiede sintonia) ",
+     "s": "Anello, leggendario (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Finché il personaggio indossa questo anello, può effettuare un'azione di Magia per pronunciare la sua parola d'ordine e richiamare un "
     },
@@ -1682,9 +1752,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Anello, non comune (richiede sintonia) ",
+     "s": "Anello, non comune (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Mentre il personaggio indossa questo anello, è immune alla magia che permette alle altre creature di leggere i suoi pensieri, scoprire se sta mentendo, conoscere il suo allineamento o determinare il suo tipo di creatura. Le creature possono comunicare telepaticamente con il personaggio solamente se egli lo consente. Inoltre, può effettuare un'azione di Magia per rendere l'anello impercettibile finché non decide di renderlo nuovamente percettibile con un'altra azione di Magia, non se lo toglie o muore. Se il personaggio muore mentre indossa l'anello, la sua anima entra dentro quest'ultimo, a meno che esso non ospiti già un'altra anima. Il personaggio può rimanere nell'anello o raggiungere l'aldilà. Finché l'anima del personaggio si trova nell'anello, può comunicare telepaticamente con qualsiasi creatura che lo indossi. La creatura che indossa l'anello non può impedire questa comunicazione telepatica."
     }
@@ -1699,9 +1774,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Anello, molto raro (richiede sintonia) ",
+     "s": "Anello, molto raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio può utilizzare l'anello per lanciare "
     },
@@ -1834,9 +1914,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Anello, leggendario (richiede sintonia) ",
+     "s": "Anello, leggendario (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Finché il personaggio indossa questo anello, dispone di vantaggio ai tiri salvezza effettuati contro gli incantesimi. Se supera un tiro salvezza per un incantesimo di 7º livello o inferiore, l'incantesimo non sortisce alcun effetto sul personaggio. Se quell'incantesimo è diretto solo contro di lui e non ha creato un'area di effetto, il personaggio può usare una reazione per rispedirlo all'incantatore che l'ha lanciato; quest'ultimo deve effettuare un tiro salvezza contro l'incantesimo usando la sua stessa CD del tiro salvezza sull'incantesimo."
     }
@@ -1949,9 +2034,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Arma (arco corto o arco lungo), molto rara (richiede sintonia) ",
+     "s": "Arma (arco corto o arco lungo), molto rara (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando il personaggio incocca una freccia, quest'arco sussurra in Elfico: \"Rapida sconfitta ai miei nemici\". Quando il personaggio usa quest'arma per effettuare un attacco a distanza, può pronunciare (anche tramite dei segni) le seguenti parole d'ordine: \"Morte rapida a chi mi ha fatto un torto\". Il bersaglio dell'attacco diventa nemico giurato del personaggio fino alla sua morte o all'alba del settimo giorno dopo l'attacco. Il personaggio può avere un solo nemico giurato alla volta. Quando il suo nemico giurato muore, può sceglierne un altro a partire dall'alba successiva. Quando il personaggio effettua un tiro per colpire a distanza con quest'arma contro il suo nemico giurato, dispone di vantaggio al tiro. Inoltre, il bersaglio non ottiene alcun beneficio da una mezza copertura o da tre quarti di copertura e il personaggio non subisce svantaggio a causa della lunga gittata. Se l'attacco va a segno, il nemico giurato del personaggio subisce 3d6 danni perforanti extra. Finché il nemico giurato è in vita, il personaggio subisce svantaggio ai tiri per colpire effettuati con tutte le altre armi."
     }
@@ -1966,9 +2056,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Arma (arco corto o arco lungo), molto rara (richiede sintonia) ",
+     "s": "Arma (arco corto o arco lungo), molto rara (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio ottiene un bonus di +1 ai tiri per colpire e ai tiri per i danni effettuati con quest'arma magica senza corda. Ogni volta che il personaggio porta indietro il braccio in posizione di tiro, una freccia magica fatta di energia dorata appare incoccata e pronta a scoccare. Una freccia prodotta da quest'arma infligge danni da forza invece che perforanti se il colpo va a segno, e scompare dopo aver colpito o mancato il bersaglio. Finché non scompare, la freccia proietta luce intensa in un raggio di 6 metri e luce fioca per altri 6 metri. Quest'arma ha le seguenti proprietà aggiuntive:"
     }
@@ -2010,9 +2105,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Arma (qualsiasi semplice o da guerra), non comune (+1), rara (+2) o molto rara (+3) ",
+     "s": "Arma (qualsiasi semplice o da guerra), non comune (+1), rara (+2) o molto rara (+3)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio ottiene un bonus ai tiri per colpire e ai tiri per i danni effettuati con quest'arma magica. Il bonus è determinato dalla rarità dell'arma."
     }
@@ -2027,9 +2127,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Arma (qualsiasi arma semplice o da guerra), non comune (richiede sintonia) ",
+     "s": "Arma (qualsiasi arma semplice o da guerra), non comune (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Finché quest'arma è a portata del personaggio e questi vi è in sintonia, lui e i suoi alleati entro 9 metri ottengono i seguenti benefici."
     }
@@ -2106,9 +2211,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Armatura (media, pesante, ma non di pelle), non comune ",
+     "s": "Armatura (media, pesante, ma non di pelle), non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quest'armatura include dei rinforzi di adamantio, uno dei materiali più duri in assoluto. Tutti i colpi critici che un personaggio subisce mentre indossa questa armatura diventano colpi normali."
     }
@@ -2152,9 +2262,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Armatura (leggera, media o pesante), rara (richiede sintonia) ",
+     "s": "Armatura (leggera, media o pesante), rara (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio che indossa questa armatura ottiene resistenza a un tipo di danno a scelta del GM o determinato in modo casuale tirando sulla seguente tabella."
     }
@@ -2211,9 +2326,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Armatura (leggera, media o pesante), rara (richiede sintonia) ",
+     "s": "Armatura (leggera, media o pesante), rara (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio che indossa quest'armatura ottiene resistenza a uno dei seguenti tipi di danno: contundenti, perforanti o taglienti. Il GM sceglie il tipo o lo determina casualmente."
     }
@@ -2251,9 +2371,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Armatura (armatura a piastre), leggendaria (richiede sintonia) ",
+     "s": "Armatura (armatura a piastre), leggendaria (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Un personaggio che la indossa dispone di resistenza ai danni contundenti, perforanti e taglienti."
     }
@@ -2315,9 +2440,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Armatura (armatura di cuoio borchiato), rara ",
+     "s": "Armatura (armatura di cuoio borchiato), rara",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio che indossa quest'armatura ottiene un bonus di +1 alla Classe Armatura. Può anche usare un'azione bonus per far assumere all'armatura l'aspetto di un normale capo di vestiario o di un altro tipo di armatura. Il personaggio può deciderne l'aspetto, inclusi il colore, lo stile e gli accessori, ma l'armatura mantiene il suo ingombro e il suo peso normali. L'aspetto illusorio permane finché la proprietà dell'armatura non viene utilizzata di nuovo o finché il personaggio non si toglie l'armatura."
     }
@@ -2332,9 +2462,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Armatura (media, pesante, ma non di pelle), non comune ",
+     "s": "Armatura (media, pesante, ma non di pelle), non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il mithral è un metallo flessibile e leggero. Un'armatura realizzata con questo materiale può essere indossata sotto dei comuni vestiti. Se un'armatura normalmente impone svantaggio alle prove di Destrezza (Furtività) o prevede un requisito di Forza, la sua versione in mithral non fa né l'una né l'altra cosa."
     }
@@ -2349,9 +2484,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Armatura (mezza armatura o armatura a piastre), molto rara ",
+     "s": "Armatura (mezza armatura o armatura a piastre), molto rara",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio che indossa quest'armatura ottiene un bonus di +2 alla Classe Armatura. Inoltre, se un effetto lo fa muovere sul terreno contro la sua volontà, il personaggio può effettuare una reazione per ridurre la distanza di cui viene mosso di un massimo di 3 metri."
     }
@@ -2435,9 +2575,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Bacchetta, non comune ",
+     "s": "Bacchetta, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa bacchetta ha 3 cariche e recupera 1d3 cariche consumate all'alba di ogni giorno. Mentre il personaggio la impugna, può effettuare un'azione di Magia e consumare 1 carica: se entro 18 metri da lui si trovano porte segrete o trappole, la bacchetta inizia a pulsare e indica quella a lui più vicina."
     }
@@ -2487,9 +2632,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Bacchetta, rara (richiede sintonia con un incantatore) ",
+     "s": "Bacchetta, rara (richiede sintonia con un incantatore)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa bacchetta ha 7 cariche. Mentre il personaggio la impugna, può effettuare un'azione di Magia per consumare 1 carica e lanciare dalla punta della bacchetta un sottile raggio blu contro una creatura che è in grado di vedere situata entro 18 metri da sé. Il bersaglio deve superare un tiro salvezza su Costituzione con CD 15, altrimenti viene paralizzato per 1 minuto. Alla fine di ogni suo turno, la creatura ripete il tiro salvezza e, se lo supera, l'effetto svanisce."
     }
@@ -2513,9 +2663,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Bacchetta, rara (richiede sintonia) ",
+     "s": "Bacchetta, rara (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa bacchetta ha 7 cariche."
     }
@@ -2613,9 +2768,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Bacchetta, rara (richiede sintonia) ",
+     "s": "Bacchetta, rara (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa bacchetta ha 7 cariche."
     }
@@ -2675,9 +2835,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Bacchetta, rara (richiede sintonia) ",
+     "s": "Bacchetta, rara (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa bacchetta ha 7 cariche. Mentre il personaggio la impugna, può effettuare un'azione di Magia per consumare 1 carica e scegliere un punto entro 36 metri da sé. Quel luogo diventa il punto di origine di un incantesimo o un altro effetto magico determinato tirando sulla tabella Effetti della bacchetta delle meraviglie. Gli incantesimi lanciati dalla bacchetta hanno una CD del tiro salvezza pari a 15. Se la normale gittata massima dell'incantesimo è inferiore a 36 metri, diventa di 36 metri quando viene lanciato dalla bacchetta. Se un effetto può colpire diversi bersagli, sarà il GM a determinare casualmente quelli che ne vengono influenzati."
     }
@@ -2731,17 +2896,7 @@
     [
      "51–55",
      "La creatura più vicina al punto di origine prescelto diventa più grande, come se il personaggio avesse lanciato ingrandire/ridurre su di essa. Se il bersaglio non è il personaggio e non può subire gli effetti di tale incantesimo, sarà quest'ultimo a diventarne il bersaglio."
-    ]
-   ]
-  },
-  {
-   "t": "tabella",
-   "titolo": "",
-   "colonne": [
-    "1d100",
-    "Effetto"
-   ],
-   "righe": [
+    ],
     [
      "56–60",
      "Una creatura formata magicamente compare in uno spazio libero il più vicino possibile al punto di origine prescelto. Non è sotto il controllo del personaggio e si comporta come farebbe normalmente, scomparendo dopo 1 ora o quando scende a 0 punti ferita. Il personaggio tira 1d4 per determinare il tipo di creatura. Con un risultato di 1, compare un elefante; con 2 compare un rinoceronte; con 3–4 compare un topo."
@@ -2793,9 +2948,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Bacchetta, rara (richiede sintonia con un incantatore) ",
+     "s": "Bacchetta, rara (richiede sintonia con un incantatore)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa bacchetta ha 7 cariche. Mentre il personaggio la impugna, può consumare non più di 3 cariche e usarla per lanciare "
     },
@@ -2848,9 +3008,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Bacchetta, non comune ",
+     "s": "Bacchetta, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa bacchetta ha 7 cariche. Mentre il personaggio la impugna, può consumare non più di 3 cariche e usarla per lanciare "
     },
@@ -2881,9 +3046,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Bacchetta, rara (richiede sintonia) ",
+     "s": "Bacchetta, rara (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa bacchetta ha 7 cariche. Mentre il personaggio la impugna, può effettuare un'azione di Magia per consumare 1 carica. Per 1 minuto il personaggio conosce la direzione della creatura ostile a lui più vicina e situata entro 18 metri da sé, ma non la sua distanza precisa. La bacchetta può percepire la presenza di creature ostili invisibili, eteree, camuffate o nascoste, oltre a quelle in piena vista. L'effetto termina se il personaggio smette di impugnare la bacchetta."
     }
@@ -2907,9 +3077,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Bacchetta, non comune ",
+     "s": "Bacchetta, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa bacchetta ha 3 cariche. Mentre il personaggio la impugna, può consumare 1 carica e usarla per lanciare "
     },
@@ -2931,9 +3106,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro ",
+     "s": "Oggetto meraviglioso, raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quest'oggetto si presenta come una scatola di legno lunga 30 centimetri, larga e profonda 15 centimetri. Pesa 2 kg e galleggia. Può essere aperta per custodire degli oggetti all'interno. L'oggetto ha anche tre parole d'ordine, ognuna delle quali richiede un'azione di Magia per essere utilizzata:"
     }
@@ -2997,9 +3177,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Bastone, raro (richiede sintonia con un druido) ",
+     "s": "Bastone, raro (richiede sintonia con un druido)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo bastone ha 6 cariche e può essere impugnato come un bastone ferrato magico che conferisce un bonus di +2 ai tiri per colpire e ai tiri per i danni effettuati con esso. Mentre il personaggio lo impugna, ottiene un bonus di +2 ai tiri per colpire con incantesimo."
     }
@@ -3090,9 +3275,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Bastone, leggendario (richiede sintonia con un mago, uno stregone o un warlock) ",
+     "s": "Bastone, leggendario (richiede sintonia con un mago, uno stregone o un warlock)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo bastone ha 50 cariche e può essere impugnato come un bastone ferrato magico che conferisce un bonus di +2 ai tiri per colpire e ai tiri per i danni effettuati con esso. Mentre il personaggio lo impugna, ottiene un bonus di +2 ai tiri per colpire con incantesimo."
     }
@@ -3229,9 +3419,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Bastone, molto raro (richiede sintonia) ",
+     "s": "Bastone, molto raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo bastone può essere impugnato come un bastone ferrato magico che conferisce un bonus di +2 ai tiri per colpire e ai tiri per i danni effettuati con esso. Possiede anche le seguenti proprietà aggiuntive. Quando una di queste proprietà viene usata, non può essere riutilizzata fino all'alba successiva."
     }
@@ -3291,9 +3486,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Bastone, molto raro (richiede sintonia) ",
+     "s": "Bastone, molto raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo bastone può essere impugnato come un bastone ferrato magico che conferisce un bonus di +3 ai tiri per colpire e ai tiri per i danni effettuati con esso. Il bastone ha 10 cariche. Quando il personaggio colpisce con un attacco in mischia usando il bastone, può consumare fino a 3 delle sue cariche. Per ogni carica consumata, il bersaglio subisce 1d6 danni da forza extra."
     }
@@ -3317,9 +3517,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Bastone, raro (richiede sintonia) ",
+     "s": "Bastone, raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo bastone ha 3 cariche e recupera 1d3 cariche consumate all'alba di ogni giorno. Il bastone può anche essere brandito come un bastone ferrato magico. Se il colpo va a segno, infligge danni come un normale bastone ferrato e il personaggio può consumare 1 carica per infliggere al bersaglio 2d10 danni necrotici extra, costringendolo a effettuare un tiro salvezza su Costituzione con CD 15. In caso di fallimento, il bersaglio ha svantaggio per 1 ora alle prove di caratteristica o ai tiri salvezza su Forza o Costituzione."
     }
@@ -3334,9 +3539,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Bastone, molto raro (richiede sintonia con un druido, un mago, uno stregone o un warlock) ",
+     "s": "Bastone, molto raro (richiede sintonia con un druido, un mago, uno stregone o un warlock)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Mentre il personaggio impugna questo bastone, ottiene resistenza ai danni da fuoco."
     }
@@ -3483,9 +3693,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Bastone, raro (richiede sintonia con un bardo, un chierico o un druido) ",
+     "s": "Bastone, raro (richiede sintonia con un bardo, un chierico o un druido)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo bastone ha 10 cariche. Mentre il personaggio lo impugna, può lanciare uno degli incantesimi dalla seguente tabella utilizzando il suo modificatore di caratteristica da incantatore. La tabella indica quante cariche vanno consumate per lanciare l'incantesimo."
     }
@@ -3601,9 +3816,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Bastone, raro (richiede sintonia con un bardo, un chierico, un druido, un mago, uno stregone o un warlock) ",
+     "s": "Bastone, raro (richiede sintonia con un bardo, un chierico, un druido, un mago, uno stregone o un warlock)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo bastone ha 10 cariche."
     }
@@ -3670,9 +3890,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Bastone, non comune (richiede sintonia) ",
+     "s": "Bastone, non comune (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Effettuando un'azione di Magia, il personaggio può lanciare questo bastone affinché finisca in uno spazio libero entro 3 metri da sé e si trasformi in un "
     },
@@ -3694,9 +3919,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Bastone, molto raro (richiede sintonia con un mago, uno stregone o un warlock) ",
+     "s": "Bastone, molto raro (richiede sintonia con un mago, uno stregone o un warlock)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo bastone ha 20 cariche e può essere impugnato come un bastone ferrato magico che conferisce un bonus di +2 ai tiri per colpire e ai tiri per i danni effettuati con esso. Mentre il personaggio lo impugna, ottiene un bonus di +2 alla Classe Armatura, ai tiri salvezza e ai tiri per colpire con incantesimo."
     }
@@ -3833,9 +4063,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro ",
+     "s": "Oggetto meraviglioso, raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa piccola sfera nera ha un diametro di 1,8 centimetri e pesa 30 grammi. Generalmente le "
     },
@@ -3857,9 +4092,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro ",
+     "s": "Oggetto meraviglioso, raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando la boccia è piena di acqua e il personaggio si trova a 1,5 metri da essa, egli può effettuare un'azione di Magia per richiamare un "
     },
@@ -3881,9 +4121,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune ",
+     "s": "Oggetto meraviglioso, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Lo spazio interno di questa borsa è molto più grande delle sue dimensioni esterne, pari a un quadrato con il lato di circa 60 centimetri e 120 centimetri di profondità. La borsa può contenere fino a 250 chilogrammi di materiale, per un volume massimo di 64 cubi con spigolo di 30 centimetri. La borsa pesa 2,5 chilogrammi a prescindere dal suo contenuto. Recuperare un oggetto dalla borsa richiede un'azione di Utilizzo. Se la borsa viene caricata con un peso eccessivo, o viene bucata o strappata, viene distrutta e il suo contenuto viene sparpagliato sul Piano Astrale. Se la borsa viene rivoltata, il suo contenuto si riversa all'esterno, integro. Tuttavia, per essere riutilizzata, la borsa deve essere rivoltata di nuovo. La borsa contiene una quantità d'aria sufficiente per 10 minuti, da dividere per il numero di creature che respirano al suo interno. Collocare una "
     },
@@ -3919,9 +4164,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro ",
+     "s": "Oggetto meraviglioso, raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa pesante borsa di stoffa contiene 3d4 fagioli secchi quando viene trovata. La borsa pesa 250 grammi indipendentemente dal numero di fagioli che contiene e diventa un oggetto non magico quando non ne contiene. Se uno o più fagioli vengono gettati a terra, questi generano un'esplosione in un raggio di 3 metri centrato su di essi. Tutti i fagioli buttati vengono distrutti nell'esplosione e ogni creatura presente nell'area, compreso il personaggio, effettua un tiro salvezza su Destrezza con CD 15, subendo 5d4 danni da forza in caso di fallimento o la metà in caso di successo. Se un fagiolo viene prelevato dalla borsa, piantato nel terriccio o nella sabbia e innaffiato, dopo 1 minuto scompare e genera un effetto nel luogo in cui è stato piantato. Il GM può scegliere un effetto dalla seguente tabella o determinarlo casualmente."
     }
@@ -4153,9 +4403,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune ",
+     "s": "Oggetto meraviglioso, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio può aprire o chiudere la bottiglia compiendo un'azione di Magia. L'apertura della bottiglia provoca la fuoriuscita di un fumo denso, il quale forma una nube che riempie un'emanazione di 18 metri che si origina dalla bottiglia. L'area all'interno del fumo è pesantemente oscurata. Ogni minuto che la bottiglia rimane aperta, la dimensione dell'emanazione aumenta di 3 metri fino a raggiungere la dimensione massima di 36 metri. Una volta chiusa la bottiglia, la nuvola resta ferma nella stessa posizione fino a disperdersi dopo 10 minuti. Un vento forte (come quello generato dall'incantesimo "
     },
@@ -4250,9 +4505,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, non comune (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando il personaggio indossa questi bracciali, ha competenza nell'arco lungo e nell'arco corto e ottiene un bonus di +2 ai tiri per i danni effettuati con tali armi."
     }
@@ -4296,9 +4556,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro ",
+     "s": "Oggetto meraviglioso, raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando è piegato, questo panno di elegante tessuto nero morbido come la seta ha le dimensioni di un fazzoletto. Una volta spiegato, copre una superficie circolare di 1,8 metri di diametro. Il personaggio può effettuare un'azione di Magia per spiegare il "
     },
@@ -4369,9 +4634,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro ",
+     "s": "Oggetto meraviglioso, raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo tubo cavo di metallo è lungo circa 30 centimetri e pesa 0,5 chilogrammi. Il personaggio può effettuare un'azione di Magia per colpire la campana e lanciare l'incantesimo "
     },
@@ -4464,9 +4734,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro ",
+     "s": "Oggetto meraviglioso, raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa cappa emana un leggero odore di zolfo. Finché il personaggio la indossa, può usarla per lanciare "
     },
@@ -4550,17 +4825,7 @@
     [
      "71–75",
      "Il personaggio è pietrificato fino al termine del suo turno successivo."
-    ]
-   ]
-  },
-  {
-   "t": "tabella",
-   "titolo": "",
-   "colonne": [
-    "1d100",
-    "Effetto"
-   ],
-   "righe": [
+    ],
     [
      "76–80",
      "Il personaggio tira fuori dal cappello un oggetto non magico. L'oggetto viene determinato con il tiro di un 1d4: con 1, un pugnale; con 2, una corda con un rampino legato a un'estremità; con 3, un sacchetto di triboli; con 4, una gemma del valore di 50 mo."
@@ -4621,9 +4886,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune ",
+     "s": "Oggetto meraviglioso, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando si scuote quest'ampolla chiusa da un tappo di sughero, si sente uno sciabordio, come se contenesse dell'acqua. La caraffa pesa 1 chilogrammo. Come azione di Magia, il personaggio può rimuovere il tappo e pronunciare una delle tre possibili parole d'ordine, nel qual caso dalla caraffa esce una certa quantità di acqua potabile o salata (a scelta del personaggio). L'acqua smette di uscire all'inizio del turno successivo del personaggio. Il personaggio sceglie fra le seguenti parole d'ordine:"
     }
@@ -4665,9 +4935,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, rarità variabile (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, rarità variabile (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Finché il personaggio indossa questa cintura, la sua Forza cambia in un determinato punteggio conferito dalla cintura, come determinato dal tipo di gigante (vedi la tabella sottostante). Se il punteggio di Forza del personaggio senza cintura è pari o superiore a quello conferito dall'oggetto, non ha alcun effetto."
     }
@@ -4718,9 +4993,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio che indossa questa cintura riceve i seguenti benefici:"
     }
@@ -4788,9 +5068,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, leggendario ",
+     "s": "Oggetto meraviglioso, leggendario",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa sostanza viscosa e lattiginosa può creare un legame adesivo permanente tra due oggetti qualsiasi. Deve essere custodita in un barattolo o in un'ampolla al cui interno sia stato spalmato dell'"
     },
@@ -4840,9 +5125,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, non comune (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Mentre il personaggio indossa questa collana, può respirare normalmente in qualsiasi ambiente ed effettua con vantaggio i tiri salvezza necessari per evitare o porre fine alla condizione avvelenato."
     }
@@ -4893,9 +5183,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro (richiede sintonia con un chierico, druido o paladino) ",
+     "s": "Oggetto meraviglioso, raro (richiede sintonia con un chierico, druido o paladino)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa collana ha 1d4 + 2 perle magiche fatte di acquamarina, perla nera o topazio, oltre a molte perle non magiche fatte di ambra, diaspro, citrino, corallo, giada, perla o quarzo. Se una perla magica viene rimossa dalla collana, perde la sua magia. Esistono sei tipi di perline magiche. La loro tipologia è a discrezione del GM o determinata casualmente tirando sulla tabella sottostante. La collana può includere più perle dello stesso tipo. Per usarne una, il personaggio deve indossare la collana. Ogni perla contiene un incantesimo che il personaggio può lanciare come azione bonus (usando la sua CD del tiro salvezza sull'incantesimo, quando è richiesto un tiro salvezza). Una volta lanciato l'incantesimo di una perla magica, quella perla non può più essere usata fino all'alba successiva."
     }
@@ -4951,7 +5246,16 @@
    "t": "p",
    "testo": [
     {
-     "s": "Armatura (corazza a scaglie), molto rara (richiede sintonia) La corazza di scaglie di drago",
+     "s": "Armatura (corazza a scaglie), molto rara (richiede sintonia)",
+     "i": 1
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "La corazza di scaglie di drago",
      "i": 1
     },
     {
@@ -5039,9 +5343,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune ",
+     "s": "Oggetto meraviglioso, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa corda lunga 18 metri può sostenere fino a 1.500 chilogrammi di carico. Mentre impugna un'estremità della corda, il personaggio può effettuare un'azione di Magia per ordinare all'altro capo di animarsi e muoversi verso una destinazione a sua scelta entro la lunghezza della corda stessa. L'estremità si muove di 3 metri durante il turno in cui il personaggio impartisce l'ordine e di 3 metri all'inizio di ogni suo turno successivo, finché non raggiunge la destinazione o il personaggio non le ordina di fermarsi. Il personaggio può anche ordinare alla corda di legarsi saldamente a un oggetto o di sciogliersi, annodarsi o sciogliere i nodi, oppure di arrotolarsi per essere trasportata. Se il personaggio le ordina di annodarsi, lungo la corda compare una serie di grandi nodi a distanza di 30 centimetri l'uno dall'altro. Quando è annodata, la corda si accorcia fino a una lunghezza di 15 metri e conferisce vantaggio alle prove effettuate per utilizzarla. La corda ha CA 20, 20 punti ferita e immunità ai danni psichici e da veleno. Recupera 1 punto ferita ogni 5 minuti, purché le rimanga almeno 1 punto ferita. Se la corda scende a 0 punti ferita, viene distrutta."
     }
@@ -5056,9 +5365,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro ",
+     "s": "Oggetto meraviglioso, raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio può effettuare un'azione di Magia per soffiare dentro il corno, il quale emette un boato rombante in un cono di 9 metri udibile fino a 180 metri. Ogni creatura all'interno del cono deve effettuare un tiro salvezza su Costituzione con CD 15. Se lo fallisce, subisce 5d8 danni da tuono ed è assordata per un minuto. Se passa il tiro salvezza, la creatura subisce solo la metà dei danni. Gli oggetti di vetro o cristallo nel cono che non sono indossati o trasportati subiscono 10d8 danni da tuono. Ogni volta che viene usata la magia del corno esiste una probabilità del 20% che esploda. L'esplosione infligge 10d6 danni da forza a chi lo suona e distrugge il corno."
     }
@@ -5073,9 +5387,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro (argento o ottone), molto raro (bronzo) o leggendario (ferro) ",
+     "s": "Oggetto meraviglioso, raro (argento o ottone), molto raro (bronzo) o leggendario (ferro)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio può effettuare un'azione di Magia per suonare questo corno. Come risposta, spiriti guerrieri del piano di Ysgard compaiono in spazi liberi entro 18 metri dal personaggio. Ogni spirito utilizza la scheda delle statistiche di un "
     },
@@ -5194,9 +5513,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo cubo ha uno spigolo di circa 2,5 centimetri. Su ogni faccia è raffigurato un simbolo diverso. Il personaggio può premere una di queste facce, consumare il numero di cariche che richiede e quindi lanciare l'incantesimo ad essa associato (CD del tiro salvezza 17), come indicato nella tabella Facce del cubo di forza. Inizialmente il cubo ha 10 cariche e recupera 1d6 cariche consumate all'alba di ogni giorno."
     }
@@ -5245,9 +5569,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune ",
+     "s": "Oggetto meraviglioso, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Indossando questo diadema, il personaggio può lanciare un incantesimo "
     },
@@ -5291,9 +5620,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Pozione, rara ",
+     "s": "Pozione, rara",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio che beve questa pozione guarisce da tutti i contagi magici. In più, queste condizioni terminano su di esso: Accecato, assordato, paralizzato e avvelenato. Il liquido rosso chiaro presenta minuscole bollicine di luce."
     }
@@ -5337,9 +5671,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, molto raro (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, molto raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "In questo elmo sono stati incastonati 1d10 diamanti, 2d10 rubini, 3d10 opali di fuoco e 4d10 opali. Se staccate dall'elmo, le gemme si riducono in polvere. Quando tutte le gemme sono state rimosse o distrutte, l'elmo perde la sua magia. Il personaggio ottiene i seguenti benefici mentre indossa l'elmo:"
     }
@@ -5427,9 +5766,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, non comune (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando il personaggio indossa questo elmo, ha telepatia fino a 9 metri e può lanciare "
     },
@@ -5458,9 +5802,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo elmo ha 3 cariche. Il personaggio che lo indossa può consumare 1 carica per lanciare "
     },
@@ -5482,9 +5831,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune ",
+     "s": "Oggetto meraviglioso, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Ognuno dei tre scomparti di questa faretra è collegato a uno spazio extradimensionale che le consente di contenere numerosi oggetti senza mai pesare più di 1 chilogrammo. Lo scomparto più corto può contenere fino a 60 frecce, quadrelli o oggetti simili. Quello medio può contenere fino a 18 giavellotti o oggetti simili. Quello più lungo contiene fino a 6 oggetti lunghi come archi, bastoni ferrati o lance. Il personaggio può estrarre un qualsiasi oggetto qui contenuto come se fosse una normale faretra o fodero."
     }
@@ -5499,9 +5853,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro ",
+     "s": "Oggetto meraviglioso, raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa sfera di metallo arrugginito ha un diametro di 7,5 centimetri e pesa 0,5 chilogrammi. Il personaggio può effettuare un'azione di Magia per lanciarla contro una creatura di taglia Enorme o inferiore che è in grado di vedere entro 18 metri da sé. Mentre sfreccia in aria, la sfera si apre rivelando un groviglio di fasce metalliche. Il personaggio effettua un tiro per colpire a distanza con un bonus di attacco pari al suo modificatore di Destrezza più il suo bonus di competenza. Se va a segno, il bersaglio è trattenuto finché il personaggio non usa un'azione bonus per pronunciare la parola d'ordine in grado di liberarlo. Se lo fa, o se l'attacco manca il bersaglio, le fasce si ritraggono e tornano a formare la sfera originale. Una creatura, inclusa quella trattenuta, in grado di toccare le fasce può usare un'azione per effettuare una prova di Forza (Atletica) con CD 20 per spezzare le fasce metalliche. In caso di successo, l'oggetto viene distrutto e la creatura trattenuta si libera. Se la prova fallisce, ogni ulteriore tentativo effettuato dalla stessa creatura fallisce automaticamente finché non sono trascorse 24 ore. Una volta usate, le fasce non possono essere riutilizzate fino all'alba successiva."
     }
@@ -5516,9 +5875,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, non comune (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Finché il personaggio indossa questa fascia, il suo punteggio di Intelligenza è pari a 19. Se il suo punteggio di Intelligenza è già pari o superiore a 19, l'oggetto non ha alcun effetto."
     }
@@ -5533,9 +5897,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, non comune (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando indossa questo fermaglio, il personaggio ottiene resistenza ai danni da forza ed è immune ai danni inflitti dall'incantesimo "
     },
@@ -5557,9 +5926,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro ",
+     "s": "Oggetto meraviglioso, raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questi ferri da cavallo si presentano in gruppi di quattro. Il personaggio può effettuare un'azione di Magia per toccare lo zoccolo di un cavallo o di una creatura simile con uno dei ferri; a quel punto, il ferro si attacca allo zoccolo. Anche la rimozione di un ferro di cavallo richiede un'azione di Magia. Quando tutti e quattro i ferri sono attaccati alla stessa creatura, la sua velocità aumenta di 9 metri."
     }
@@ -5574,9 +5948,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, molto raro ",
+     "s": "Oggetto meraviglioso, molto raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questi ferri da cavallo si presentano in gruppi di quattro. Il personaggio può effettuare un'azione di Magia per toccare lo zoccolo di un cavallo o di una creatura simile con uno dei ferri; a quel punto, il ferro si attacca allo zoccolo. Anche la rimozione di un ferro di cavallo richiede un'azione di Magia. Quando vengono applicati tutti e quattro agli zoccoli di un cavallo o di una creatura simile, permettono a tale creatura di muoversi normalmente fluttuando a 10 centimetri dalla superficie su cui si trova. Grazie a questo effetto la creatura può stazionare o muoversi su superfici non solide o instabili, come l'acqua o la lava. La creatura non lascia tracce e ignora il terreno difficile. Inoltre, la creatura può viaggiare per un massimo di 12 ore al giorno senza ottenere livelli di indebolimento a causa del viaggio prolungato."
     }
@@ -5591,9 +5970,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Pozione, non comune ",
+     "s": "Pozione, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "La prossima volta che il personaggio vede una creatura entro 10 minuti dal momento in cui ha bevuto il filtro, diventa affascinato da essa per 1 ora. Questo liquido rosato ed effervescente contiene una bolla a forma di cuore alquanto difficile da individuare."
     }
@@ -5666,9 +6050,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio può effettuare un'azione di Magia per posare a terra questa statuetta adamantina grande 2,5 centimetri, usando la sua parola d'ordine per farla crescere rapidamente in una torre adamantina quadrata. Ripetendo la parola d'ordine, la torre torna alla forma di statuetta, ma solo se la torre è vuota. Ogni creatura nell'area in cui compare la torre viene spinta in uno spazio libero all'esterno ma vicino alla torre. Anche gli oggetti presenti nell'area che non vengono indossati o trasportati vengono spinti dalla torre. La torre è lunga 6 metri di lato, alta 9 metri e fornita di feritoie su tutti i lati e di un parapetto sulla sommità. All'interno è divisa in due piani, collegati da una scala a pioli, una scalinata o una rampa (a scelta del personaggio). Questa scala o rampa termina sotto una botola che conduce al tetto. Al momento della creazione, nella torre si trova una sola porta al livello del suolo sul lato rivolto verso il personaggio. La porta si apre solo su ordine del personaggio, che può pronunciare tale ordine come azione bonus. La torre è immune all'incantesimo "
     },
@@ -5704,9 +6093,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune ",
+     "s": "Oggetto meraviglioso, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo prisma ha 50 cariche. Quando il personaggio lo tiene in mano, può compiere un'azione di Magia e usare una delle sue tre parole d'ordine per generare uno degli effetti seguenti:"
     }
@@ -5756,9 +6150,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa gemma ha 3 cariche. Il personaggio può consumare 1 carica come azione di Magia. Per i 10 minuti successivi, guardando attraverso la gemma il personaggio ottiene vista pura entro un raggio di 36 metri. La gemma recupera 1d3 cariche consumate all'alba di ogni giorno."
     }
@@ -5773,9 +6172,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune ",
+     "s": "Oggetto meraviglioso, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa gemma contiene un frammento di energia elementale. Quando si effettua un'azione di Utilizzo per rompere la gemma, viene richiamato un elementale (vedere \"Mostri\" per la sua scheda delle statistiche) e la gemma cessa di essere magica. La creatura compare in uno spazio libero il più vicino possibile alla gemma rotta, capisce la lingua del personaggio, obbedisce ai suoi ordini e svolge il suo turno subito dopo quello del personaggio con il suo punteggio di iniziativa. L'elementale scompare dopo 1 ora, quando muore o quando viene congedato come azione bonus. Il tipo di gemma determina il tipo di elementale, come indicato nella tabella seguente."
     }
@@ -5838,9 +6242,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Arma (giavellotto), non comune ",
+     "s": "Arma (giavellotto), non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Ogni volta che il personaggio effettua un tiro per colpire con quest'arma magica e colpisce, può far sì che infligga danni da fulmine anziché danni perforanti."
     }
@@ -5886,9 +6295,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, non comune (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio che indossa questi guanti ha una velocità di nuoto e una velocità di scalata pari alla propria velocità e ottiene un bonus di +5 alle prove di Forza (Atletica) effettuate per arrampicarsi o nuotare."
     }
@@ -5947,9 +6361,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro ",
+     "s": "Oggetto meraviglioso, raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Facendo oscillare dolcemente questo incensiere, il personaggio può effettuare un'azione di Magia per richiamare un "
     },
@@ -6018,9 +6437,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Arma (spada lunga), rara (richiede sintonia) ",
+     "s": "Arma (spada lunga), rara (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quest'oggetto sembra l'elsa di una spada."
     }
@@ -6060,9 +6484,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune ",
+     "s": "Oggetto meraviglioso, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando è accesa, questa lanterna schermabile arde per 6 ore con 0,5 litri d'olio, proiettando luce intensa in un raggio di 9 metri e luce fioca per altri 9 metri. Quando si trovano nell'area di luce intensa della lanterna, le creature e gli oggetti invisibili diventano visibili. Il personaggio può effettuare un'azione di Utilizzo per schermare la lanterna, riducendo la luce proiettata a luce fioca in un raggio di 1,5 metri."
     }
@@ -6077,9 +6506,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune ",
+     "s": "Oggetto meraviglioso, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Queste lenti di cristallo si adattano agli occhi di chi le indossa. Quando il personaggio le indossa, dispone di vantaggio alle prove di Saggezza (Percezione) basate sulla vista. In condizioni di visibilità ottimale, può discernere i dettagli di creature e oggetti di almeno 60 centimetri di diametro anche da lunghissime distanze."
     }
@@ -6094,9 +6528,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune ",
+     "s": "Oggetto meraviglioso, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Queste lenti di cristallo si adattano agli occhi di chi le indossa. Mentre le indossa, il personaggio ha una vista assai migliore del normale in un raggio di 30 centimetri, ottenendo scurovisione in quel raggio e vantaggio alle prove di Intelligenza (Indagare) effettuate per esaminare qualcosa entro quella distanza."
     }
@@ -6111,9 +6550,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, non comune (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Queste lenti di cristallo si adattano agli occhi di chi le indossa. Possiedono 3 cariche. Mentre il personaggio le indossa, può consumare 1 o più cariche per lanciare un incantesimo "
     },
@@ -6157,9 +6601,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro ",
+     "s": "Oggetto meraviglioso, raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio può compiere un'azione di Utilizzo per mettere queste manette a una creatura incapacitata. Le manette si adattano alle creature di taglia Piccola, Media o Grande. Inoltre, impediscono alla creatura ammanettata di usare qualsiasi metodo di movimento extradimensionale, inclusi il teletrasporto e il viaggio su un diverso piano di esistenza. Non le impediscono però di attraversare un portale interdimensionale. Il personaggio e qualsiasi creatura da lui designata al momento della chiusura delle manette possono usare un'azione di Utilizzo per rimuoverle. Una volta ogni 30 giorni, la creatura ammanettata può effettuare una prova di Forza (Atletica) con CD 30. In caso di successo, la creatura si libera e distrugge le manette."
     }
@@ -6196,9 +6645,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, non comune (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Finché il personaggio indossa questo mantello riceve un bonus di +1 alla Classe Armatura e ai tiri salvezza."
     }
@@ -6278,9 +6732,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Finché il personaggio indossa questo mantello, dispone di vantaggio ai tiri salvezza contro gli incantesimi."
     }
@@ -6317,9 +6776,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio che indossa questo mantello dispone di vantaggio alle prove di Destrezza (Furtività). In un'area di luce fioca o di oscurità, può afferrare i lembi del mantello e usarlo per ottenere una velocità di volo di 12 metri. Se per qualunque motivo il personaggio lascia un lembo del mantello o esce dalla zona di luce fioca o di oscurità, perde questa velocità di volo. Finché il personaggio indossa il mantello in un'area di luce fioca o di oscurità, può lanciare l'incantesimo "
     },
@@ -6348,9 +6812,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando il personaggio indossa questo mantello, proietta magicamente un'illusione che lo fa apparire in un punto diverso da quello in cui si trova in realtà. Di conseguenza, tutte le creature subiscono svantaggio ai tiri per colpire contro di lui. Se il personaggio subisce danni, la proprietà smette di funzionare fino all'inizio del suo turno successivo. La proprietà non funziona quando la velocità del personaggio è pari a 0."
     }
@@ -6387,9 +6856,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, molto raro ",
+     "s": "Oggetto meraviglioso, molto raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo tomo contiene le informazioni e i rituali necessari alla creazione di un particolare tipo di golem. Il GM sceglie il tipo o lo determina in modo casuale tirando sulla tabella d'accompagnamento. Per decifrare e usare il manuale, il personaggio deve essere un incantatore e possedere almeno due slot incantesimo di 5º livello. Una creatura che non è in grado di usare il "
     },
@@ -6469,9 +6943,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, molto raro ",
+     "s": "Oggetto meraviglioso, molto raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo libro contiene la descrizione di una serie di esercizi per la coordinazione e l'equilibrio, e le sue parole sono cariche di magia. Se il personaggio trascorre 48 ore in un periodo massimo di 6 giorni a studiare il contenuto del libro e ad applicarne i precetti, il suo punteggio di Destrezza aumenta di 2, fino a un massimo di 30. Una volta letto, il libro perde il suo potere: lo riacquisterà dopo un secolo."
     }
@@ -6486,9 +6965,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, molto raro ",
+     "s": "Oggetto meraviglioso, molto raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo libro contiene la descrizione di una serie di esercizi ginnici e le sue parole sono cariche di magia. Se il personaggio trascorre 48 ore in un periodo massimo di 6 giorni a studiare il contenuto del libro e ad applicarne i precetti, il suo punteggio di Forza aumenta di 2, fino a un massimo di 30. Una volta letto, il libro perde il suo potere: lo riacquisterà dopo un secolo."
     }
@@ -6602,9 +7086,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Arma (mazza), rara (richiede sintonia) ",
+     "s": "Arma (mazza), rara (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando il personaggio colpisce un immondo o un non morto con quest'arma magica, quella creatura subisce 2d6 danni radiosi extra. Se il colpo porta il bersaglio a 25 punti ferita o meno, deve superare un tiro salvezza su Saggezza con CD 15, altrimenti viene distrutto. In caso di successo, la creatura è spaventata fino al termine del turno successivo del personaggio."
     }
@@ -6628,9 +7117,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Arma (mazza), rara ",
+     "s": "Arma (mazza), rara",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio ottiene un bonus di +1 ai tiri per colpire e a quelli per i danni effettuati con quest'arma magica. Quando la usa per attaccare un costrutto, questo bonus sale a +3. Se il personaggio ottiene un 20 a un tiro per colpire con quest'arma, il bersaglio subisce 7 danni contundenti extra o 14 danni contundenti se si tratta di un costrutto. Se dopo aver subito tali danni un costrutto scende a 25 punti ferita o meno, viene distrutto."
     }
@@ -6645,9 +7139,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Arma (mazza), rara (richiede sintonia) ",
+     "s": "Arma (mazza), rara (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quest'arma magica ha 3 cariche e recupera 1d3 cariche consumate all'alba di ogni giorno. Mentre il personaggio la impugna, può effettuare un'azione di Magia e consumare 1 carica affinché venga sprigionata un'ondata di terrore. Ogni creatura a scelta del personaggio situata entro 9 metri da sé deve superare un tiro salvezza su Saggezza con CD 15, altrimenti sarà spaventata per 1 minuto. Finché è spaventata in questo modo, una creatura deve usare i suoi turni per spostarsi il più lontano possibile dall'arma e non può effettuare attacchi di opportunità. Come azione, può usare solo l'azione di Scatto o tentare di fuggire da un effetto che le impedisce di muoversi. Se non può muoversi in alcuno spazio, può usare l'azione di Schivata. Alla fine di ogni suo turno, la creatura ripete il tiro salvezza e, se lo supera, l'effetto svanisce."
     }
@@ -6753,17 +7252,7 @@
     [
      "46–48",
      "Guerriero bugbear"
-    ]
-   ]
-  },
-  {
-   "t": "tabella",
-   "titolo": "",
-   "colonne": [
-    "1d100",
-    "Illusione*"
-   ],
-   "righe": [
+    ],
     [
      "49–51",
      "Guerriero coboldo"
@@ -6833,8 +7322,8 @@
      "Il personaggio"
     ],
     [
-     "*Le naggio)",
-     "schede delle statistiche per queste creature (eccetto il persosono disponibili nel capitolo \"Mostri\"."
+     "*Le schede naggio)",
+     "delle statistiche per queste creature (eccetto il persosono disponibili nel capitolo \"Mostri\"."
     ]
    ]
   },
@@ -6847,9 +7336,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, leggendario ",
+     "s": "Oggetto meraviglioso, leggendario",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo mazzo in genere si trova in una scatola o in un sacchetto ed è composto da una serie di carte di avorio o di pergamena. La maggior parte (75%) di questi mazzi è composta da 13 carte, ma alcuni ne hanno 22. Fai riferimento alla colonna appropriata della tabella del Mazzo delle meraviglie per determinare le carte estratte dal mazzo in modo casuale. Prima di pescare una carta, il personaggio deve dichiarare quante carte ha intenzione di pescare complessivamente e poi pescarle in maniera casuale. Le eventuali carte pescate in eccesso oltre il numero dichiarato non hanno alcun effetto. Altrimenti, non appena il personaggio pesca una carta dal mazzo, la sua magia ha effetto. Il personaggio deve pescare ogni carta entro 1 ora dall'ultima carta pescata. Se non riesce a pescare il numero di carte dichiarato, le carte restanti volano via dal mazzo da sole e hanno effetto simultaneamente. Una volta pescate dal mazzo, le carte svaniscono. A eccezione della Matta e del Giullare, le altre carte ricompaiono nel mazzo, quindi è possibile pescare la stessa carta due volte (una volta che queste due figure sono uscite dal mazzo, se la carta in questione esce di nuovo, il giocatore può ripetere il tiro sulla tabella)."
     }
@@ -7341,9 +7835,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, non comune (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo medaglione ha 5 cariche. Il personaggio che lo indossa può consumare 1 carica per lanciare "
     },
@@ -7365,9 +7864,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Arma (qualsiasi munizione), non comune (+1), rara (+2) o molto rara (+3) ",
+     "s": "Arma (qualsiasi munizione), non comune (+1), rara (+2) o molto rara (+3)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio ottiene un bonus ai tiri per colpire e ai tiri per i danni effettuati con questa munizione magica. Il bonus è determinato dalla rarità della munizione. Una volta colpito il bersaglio, la munizione non è più magica. Questa munizione è solitamente reperibile o venduta in quantità di dieci o venti pezzi. Dieci pezzi di queste munizioni hanno un valore equivalente a una pozione della stessa rarità."
     }
@@ -7442,9 +7946,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune ",
+     "s": "Oggetto meraviglioso, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Finché il personaggio indossa queste lenti scure, ottiene scurovisione fino a 18 metri. Se ha già scurovisione, gli occhiali ne aumentano il raggio di 18 metri."
     }
@@ -7459,9 +7968,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Pozione, molto rara ",
+     "s": "Pozione, molto rara",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Una fiala di quest'olio può ricoprire un'arma da mischia o 20 munizioni, ma solo se si tratta di armi da mischia e munizioni non magiche che infliggono danni taglienti o perforanti. L'applicazione dell'olio richiede 1 minuto, dopo il quale penetra magicamente in qualsiasi oggetto su cui sia stato cosparso trasformando l'arma rivestita in un'"
     },
@@ -7490,9 +8004,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Pozione, rara ",
+     "s": "Pozione, rara",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Una fiala di quest'olio può coprire una creatura di taglia Media o inferiore, insieme all'equipaggiamento che indossa e trasporta (per ogni categoria di taglia superiore, è necessario usare una fiala aggiuntiva). L'applicazione dell'olio richiede 10 minuti. La creatura cosparsa d'olio ottiene gli effetti dell'incantesimo "
     },
@@ -7550,9 +8069,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, non comune (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Mentre indossa queste scarpe leggere, il personaggio può muoversi in alto, in basso e lateralmente sulle superfici verticali e sui soffitti mantenendo le mani libere. Inoltre, ottiene velocità di scalata pari alla propria velocità. Tuttavia, le pantofole non gli permettono di muoversi in questo modo su una superficie scivolosa, come per esempio una superficie ricoperta di ghiaccio o d'olio."
     }
@@ -7698,9 +8222,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, comune ",
+     "s": "Oggetto meraviglioso, comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa perla gelatinosa e insapore si scioglie sulla lingua e fornisce una quantità di nutrimento pari a quella di 1 giorno di razioni."
     }
@@ -7766,9 +8295,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, rarità variabile (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, rarità variabile (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Le "
     },
@@ -7951,7 +8485,16 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune Le pietre parlanti",
+     "s": "Oggetto meraviglioso, non comune",
+     "i": 1
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Le pietre parlanti",
      "i": 1
     },
     {
@@ -7982,9 +8525,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, molto raro ",
+     "s": "Oggetto meraviglioso, molto raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa pregiata scatola di legno contiene 1d4 vasetti di pigmenti e un pennello (dal peso di 0,5 chilogrammi in totale). Usando il pennello e consumando un vasetto di pigmento, il personaggio può creare un numero qualsiasi di oggetti tridimensionali ed elementi del terreno (come muri, porte, alberi, fiori, armi, reti e fosse), ammesso che siano contenuti all'interno di un cubo con spigolo di 6 metri. Quest'operazione richiede Concentrazione e 10 minuti di tempo (a prescindere dal numero di elementi creati), durante i quali il personaggio deve rimanere all'interno del cubo. Se la concentrazione si interrompe o il personaggio esce dal cubo prima del completamento dell'operazione, tutti gli elementi dipinti svaniscono e il vasetto di pigmento si consuma. Una volta terminato il lavoro, tutti gli oggetti e gli elementi del terreno dipinti diventano reali. Di conseguenza, se il personaggio dipinge una porta su un muro, crea una vera porta che dà accesso a ciò che si trova dall'altra parte e, se dipinge una fossa sul pavimento, crea una fossa vera e propria, la cui profondità totale deve rientrare nel cubo con spigolo di 6 metri. Nessun oggetto creato da un vasetto di pigmento deve avere un valore superiore a 25 mo, mentre il valore di tutti gli oggetti creati non può superare le 500 mo. Se il personaggio dipinge oggetti di valore maggiore (come una grossa montagna d'oro), sembreranno autentici, ma un esame accurato rivelerà che sono fatti di poltiglia, biscotti o altri materiali analoghi. Se viene dipinta una forma di energia come il fuoco o il fulmine, l'energia compare, ma si dissipa non appena il personaggio finisce di dipingerla, senza infliggere alcun danno."
     }
@@ -7999,9 +8547,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, rarità variabile ",
+     "s": "Oggetto meraviglioso, rarità variabile",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quest'oggetto ha l'aspetto di una piuma. Esistono vari tipi di piume, ognuna con un effetto monouso diverso. Il GM può scegliere il tipo di piuma o determinarlo casualmente tirando sulla tabella Piume di Quaal. Il tipo di piuma ne determina il grado di rarità."
     }
@@ -8133,9 +8686,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune ",
+     "s": "Oggetto meraviglioso, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa polvere conservata in un piccolo contenitore assomiglia alla "
     },
@@ -8171,9 +8729,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune ",
+     "s": "Oggetto meraviglioso, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo pacchetto contiene 1d6 + 4 pizzichi di polvere. Il personaggio può compiere un'azione di Utilizzo per spargere un pizzico di polvere sull'acqua, trasformando un cubo d'acqua con spigolo di 4,5 metri in una sfera grande quanto una biglia, che galleggia o resta vicino al punto in cui è stata sparsa la polvere. Il peso della biglia è trascurabile. Una creatura può effettuare un'azione di Utilizzo per schiantare la biglia contro una superficie rigida, rompendola e liberando l'acqua che era stata assorbita. In questo modo la sfera viene distrutta e la sua magia termina. Il personaggio può compiere un'azione di Utilizzo per spargere un pizzico di polvere su un elementale entro un raggio di 1,5 metri da sé che sia composto principalmente da acqua (come ad esempio un "
     },
@@ -8195,9 +8758,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Pozione, rara ",
+     "s": "Pozione, rara",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando il personaggio beve questa pozione, ottiene l'effetto dell'incantesimo "
     },
@@ -8219,9 +8787,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Pozione, rarità variabile ",
+     "s": "Pozione, rarità variabile",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando il personaggio beve questa pozione, il suo punteggio di Forza cambia per 1 ora, come determinato dal tipo di gigante (vedi la tabella sottostante). Se il punteggio di Forza del personaggio è pari o superiore a quello conferito dalla pozione, non ha alcun effetto. Nel liquido trasparente di questa pozione galleggia un frammento argenteo che ricorda l'unghia di un gigante."
     }
@@ -8294,9 +8867,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Pozione, non comune ",
+     "s": "Pozione, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando il personaggio beve questa pozione, può lanciare la versione di 3º livello dell'incantesimo "
     },
@@ -8347,9 +8925,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Pozione, non comune ",
+     "s": "Pozione, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando il personaggio beve questa pozione, ottiene l'effetto \"ingrandire\" dell'incantesimo "
     },
@@ -8400,9 +8983,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Pozione, rara ",
+     "s": "Pozione, rara",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando il personaggio beve questa pozione, ottiene 10 punti ferita temporanei per 1 ora. Per la stessa durata, il personaggio è sotto l'effetto dell'incantesimo "
     },
@@ -8446,9 +9034,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Pozione, rara ",
+     "s": "Pozione, rara",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Dopo aver bevuto questa pozione, il personaggio ottiene resistenza a tutti i danni per 1 minuto. Il liquido pastoso della pozione sembra ferro fuso."
     }
@@ -8492,9 +9085,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Pozione, molto rara ",
+     "s": "Pozione, molto rara",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando il personaggio beve questa pozione, la sua età fisica viene ridotta di 1d6 + 6 anni, fino a un minimo di 13 anni. Ogni volta che il personaggio beve un'ulteriore "
     },
@@ -8602,9 +9200,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Pozione, molto rara ",
+     "s": "Pozione, molto rara",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando il personaggio beve questa pozione, ottiene l'effetto dell'incantesimo "
     },
@@ -8648,9 +9251,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Pozione, molto rara ",
+     "s": "Pozione, molto rara",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando il personaggio beve questa pozione, ottiene una velocità di volo pari alla sua velocità base per 1 ora e può fluttuare. Se il personaggio si trova in aria quando l'effetto della pozione termina, cade a meno che non possieda altri mezzi per mantenersi in aria. Il liquido trasparente di questa pozione rimane sospeso nella parte superiore del contenitore e al suo interno sono visibili alcune impurità biancastre simili a nuvole."
     }
@@ -8665,9 +9273,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Pozione, non comune ",
+     "s": "Pozione, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa mistura ha l'aspetto, l'odore e il sapore di una "
     },
@@ -8807,9 +9420,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Arma (randello pesante), molto rara (richiede sintonia) ",
+     "s": "Arma (randello pesante), molto rara (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Finché il personaggio è in sintonia con quest'arma magica, la sua Forza ammonta a 20, a meno che non sia già pari o superiore a tale punteggio. L'arma infligge 1d8 danni da tuono extra a qualsiasi creatura colpisca e 3d8 danni da tuono extra agli oggetti colpiti che non siano indossati o trasportati. L'arma ha le seguenti proprietà aggiuntive."
     }
@@ -8873,9 +9491,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Arma (qualsiasi arma semplice o da guerra), leggendaria (richiede sintonia con un paladino) ",
+     "s": "Arma (qualsiasi arma semplice o da guerra), leggendaria (richiede sintonia con un paladino)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio ottiene un bonus di +3 ai tiri per colpire e ai tiri per i danni effettuati con quest'arma magica. Quando colpisce con quest'arma un immondo o un non morto, quella creatura subisce 2d10 danni radiosi extra. Mentre il personaggio impugna l'arma sguainata, crea un'emanazione di 3 metri che si origina da lui. Il personaggio e tutte le creature amichevoli nei suoi confronti situate all'interno dell'emanazione dispongono di vantaggio ai tiri salvezza contro gli incantesimi e gli altri effetti magici. Se il personaggio ha 17 o più livelli nella classe del paladino, il raggio dell'emanazione aumenta a 9 metri."
     }
@@ -8959,9 +9582,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, non comune (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa scopa di legno funziona come una normale scopa fino a quando il personaggio non ci monta a cavallo ed effettua un'azione di Magia per farla sollevare in aria; a quel punto può essere cavalcata in volo. Ha una velocità di volo pari a 15 metri e può trasportare fino a 200 kg di peso, ma con un carico superiore a 100 kg la sua velocità di volo scende a 9 metri. La scopa smette di fluttuare quando il personaggio atterra o quando non è più in sella. Il personaggio può effettuare un'azione di Magia per inviare la scopa in volo da sola fino a una destinazione entro 1,5 chilometri da sé nominando il luogo in questione, purché abbia familiarità con esso. La scopa torna dal personaggio quando questi effettua un'azione di Magia e usa una parola d'ordine se la scopa si trova ancora entro 1,5 chilometri da lui."
     }
@@ -8998,9 +9626,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Armatura (scudo), molto raro (richiede sintonia) ",
+     "s": "Armatura (scudo), molto raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio che impugna questo scudo può usare un'azione bonus per animarlo. Lo scudo si solleva in aria e fluttua nello spazio del personaggio per proteggerlo come quando viene impugnato normalmente, ma lasciando le mani libere. Lo scudo resta animato per 1 minuto, finché il personaggio non usa un'azione bonus per terminare l'effetto o finché il personaggio non diventa incapacitato o muore. A questo punto, lo scudo cade a terra o torna in mano al personaggio, se quest'ultimo ha almeno una mano libera."
     }
@@ -9037,9 +9670,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Armatura (scudo), rara (richiede sintonia) ",
+     "s": "Armatura (scudo), rara (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Mentre il personaggio impugna questo scudo, ottiene resistenza ai danni inflitti dagli attacchi con armi a distanza."
     }
@@ -9070,9 +9708,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Armatura (scudo), rara (richiede sintonia) ",
+     "s": "Armatura (scudo), rara (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio che impugna questo scudo riceve un bonus di +2 alla Classe Armatura contro gli attacchi a distanza. Questo bonus è cumulativo al normale bonus alla CA dello scudo. Ogni volta che un avversario effettua un tiro per colpire a distanza contro un bersaglio entro 1,5 metri dal possessore dello scudo, quest'ultimo può effettuare una reazione per diventare il bersaglio dell'attacco al posto di quello inteso."
     }
@@ -9087,9 +9730,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Armatura (scudo), molto raro (richiede sintonia) ",
+     "s": "Armatura (scudo), molto raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Finché il personaggio impugna questo scudo, ottiene un bonus di +2 alla Classe Armatura. Questo bonus è cumulativo al normale bonus alla CA dello scudo. Lo scudo è dotato delle seguenti proprietà utilizzabili finché il personaggio lo impugna."
     }
@@ -9122,9 +9770,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Armatura (scudo), non comune ",
+     "s": "Armatura (scudo), non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Finché il personaggio impugna questo scudo, dispone di vantaggio ai tiri per l'iniziativa e alle prova di Saggezza (Percezione). Sullo scudo è inciso il simbolo di un occhio."
     }
@@ -9229,9 +9882,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, manufatto (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, manufatto (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Una sfera è un globo di cristallo intagliato del diametro di circa 25 centimetri. Quando viene usata, cresce fino a raggiungere 50 centimetri di diametro e al suo interno è visibile una nebbia turbinante. Se il personaggio è in sintonia con la sfera, può effettuare un'azione di Magia per scrutare nelle sue profondità. In tal caso, deve effettuare un tiro salvezza su Carisma con CD 15. Se lo supera, il personaggio ottiene il controllo della sfera finché rimane in sintonia con essa. Se fallisce, la sfera impone la condizione affascinato su di lui finché rimane in sintonia con essa. Mentre è affascinato, il personaggio non può interrompere volontariamente la sintonia con la sfera, che lancia "
     },
@@ -9331,9 +9989,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, molto raro (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, molto raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Toccando questa sfera di cristallo, il personaggio può lanciare "
     },
@@ -9405,9 +10068,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, leggendario (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, leggendario (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Toccando questa sfera di cristallo, il personaggio può lanciare "
     },
@@ -9486,9 +10154,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, leggendario ",
+     "s": "Oggetto meraviglioso, leggendario",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa fiala contiene un liquido lattiginoso che emana un forte odore di alcool. Quando viene trovata, una fiala ne contiene (1d6 + 1) x 30 grammi. Il personaggio può effettuare un'azione di Utilizzo per versare 30 grammi o più di solvente su una superficie a portata. Il liquido dissolve istantaneamente qualsiasi materiale o sostanza adesiva toccata, inclusa la "
     },
@@ -9510,9 +10183,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Arma (falcione, scimitarra, spada lunga o spadone), molto rara (richiede sintonia) ",
+     "s": "Arma (falcione, scimitarra, spada lunga o spadone), molto rara (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando il personaggio attacca un oggetto con quest'arma magica e l'attacco va a segno, massimizza i dadi dei danni della sua arma contro il bersaglio. Quando il personaggio attacca una creatura con quest'arma e ottiene 20 sul d20 al tiro per colpire, il bersaglio subisce 14 danni taglienti extra e ottiene 1 livello di indebolimento."
     }
@@ -9549,9 +10227,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Arma (falcione, scimitarra, spada corta, spada lunga, spadone o stocco), rara (richiede sintonia) ",
+     "s": "Arma (falcione, scimitarra, spada corta, spada lunga, spadone o stocco), rara (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando il personaggio colpisce una creatura con un attacco utilizzando quest'arma magica, il bersaglio subisce 2d6 danni necrotici extra e deve superare un tiro salvezza su Costituzione con CD 15, altrimenti non potrà recuperare punti ferita per 1 ora. Il bersaglio può ripetere il tiro salvezza alla fine di ogni suo turno. Se lo supera, l'effetto svanisce."
     }
@@ -9566,9 +10249,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Arma (falcione, scimitarra, spada corta, spada lunga, spadone o stocco), rara (richiede sintonia) ",
+     "s": "Arma (falcione, scimitarra, spada corta, spada lunga, spadone o stocco), rara (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando il personaggio attacca una creatura con quest'arma magica e ottiene 20 sul d20 al tiro per colpire, il bersaglio subisce 15 danni necrotici extra se non è un costrutto o un non morto. Inoltre, il personaggio ottiene un numero di punti ferita temporanei pari alla quantità di danni necrotici inferti."
     }
@@ -9583,9 +10271,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Arma (falcione, scimitarra, spada lunga o spadone), leggendaria (richiede sintonia) ",
+     "s": "Arma (falcione, scimitarra, spada lunga o spadone), leggendaria (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio ottiene un bonus di +3 ai tiri per colpire e a quelli per i danni effettuati con quest'arma magica. Inoltre, l'arma ignora la resistenza ai danni taglienti. Quando il personaggio usa quest'arma per attaccare una creatura che abbia almeno una testa e ottiene 20 sul d20 al tiro per colpire, taglia una delle sue teste. La creatura muore se non riesce a sopravvivere senza testa. L'effetto non si applica a una creatura che è immune ai danni taglienti, non possiede o non ha bisogno di una testa, oppure se il GM decide che la creatura è troppo grande perché la sua testa possa essere tagliata con quest'arma. In tal caso, la creatura subisce 30 danni taglienti extra dal colpo. Se la creatura ha Resistenza leggendaria, può consumare un utilizzo giornaliero di quel tratto per evitare di perdere la testa e subire invece i danni extra."
     }
@@ -9600,9 +10293,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Arma (falcione, scimitarra, spada corta, spada lunga, spadone o stocco), molto rara (richiede sintonia) ",
+     "s": "Arma (falcione, scimitarra, spada corta, spada lunga, spadone o stocco), molto rara (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando il personaggio colpisce con un tiro per colpire effettuando un attacco con quest'arma magica, il bersaglio subisce 1d6 danni da freddo extra. Inoltre, finché impugna l'arma, il personaggio ha resistenza ai danni da fuoco. A temperature gelide, l'arma proietta luce intensa in un raggio di 3 metri e luce fioca per altri 3 metri. Quando il personaggio sfodera quest'arma, può estinguere tutte le fiamme non magiche entro un raggio di 9 metri da sé. Una volta usata, questa proprietà non può essere riutilizzata per 1 ora."
     }
@@ -9617,9 +10315,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, molto raro ",
+     "s": "Oggetto meraviglioso, molto raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Se si osserva indirettamente la superficie di questo specchio alto 1,2 metri e largo 0,5, esso mostra flebili immagini di alcune creature. Lo specchio pesa 25 kg, ha CA 11, 10 PF, immunità ai danni psichici e da veleno, e vulnerabilità ai danni contundenti. Quando scende a 0 punti ferita, va in frantumi ed è distrutto. Se è appeso a una superficie verticale e il personaggio si trova entro 1,5 metri da esso, questi può effettuare un'azione di Magia e attivarlo usando la sua parola d'ordine. Dopodiché, rimarrà attivo finché il personaggio non effettua l'azione di Magia e ripete la parola d'ordine per disattivarlo. Ogni creatura, a eccezione del personaggio, che vede la propria immagine riflessa nello specchio attivato e si trova entro 9 metri da esso deve superare un tiro salvezza su Carisma con CD 15, altrimenti resta intrappolata in una delle sue dodici celle extradimensionali. Chiunque conosca la natura dello specchio effettua la prova con vantaggio, mentre i costrutti la superano automaticamente. Una cella extradimensionale è una distesa infinita di spazio pervasa da una fitta nebbia che riduce la visibilità a 3 metri. Le creature intrappolate nelle celle dello specchio non invecchiano e non hanno bisogno di mangiare, bere o dormire. Una creatura intrappolata in una cella può fuggire usando qualsiasi magia che consenta i viaggi planari; altrimenti, rimane confinata al suo interno finché non viene liberata. Se lo specchio intrappola una creatura, ma tutte le sue dodici celle sono occupate, una delle creature intrappolate (scelta casualmente) viene liberata per fare spazio al nuovo prigioniero. Una creatura liberata appare in uno spazio libero a portata di vista dello specchio, ma rivolta nella direzione opposta. Se lo specchio va in frantumi, tutte le creature che contiene vengono liberate e compaiono in spazi liberi vicino a esso. Mentre si trova entro 1,5 metri dallo specchio, il personaggio può effettuare un'azione di Magia per pronunciare il nome di una creatura intrappolata all'interno o il numero di una cella. La creatura nominata o custodita nella cella di quel numero compare come immagine sulla superficie dello specchio. A questo punto, il personaggio e la creatura possono comunicare. In modo analogo, il personaggio può effettuare un'azione di Magia e utilizzare una seconda parola d'ordine per liberare una creatura intrappolata che compare, insieme a tutto ciò che possiede, nello spazio libero più vicino allo specchio, con le spalle rivolte verso di esso. Collocare lo specchio all'interno di uno spazio extradimensionale, come quello creato da una "
     },
@@ -9648,9 +10351,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, rarità variabile ",
+     "s": "Oggetto meraviglioso, rarità variabile",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Una "
     },
@@ -9879,9 +10587,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, non comune (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questi stivali hanno 4 cariche e recuperano 1d4 cariche consumate all'alba di ogni giorno. Mentre indossa gli stivali, il personaggio può effettuare un'azione di Magia per consumare 1 carica, ottenendo una velocità di volo di 9 metri per 1 ora. Se il personaggio è in volo quando la durata si esaurisce, scende a una velocità di 9 metri per round finché non atterra."
     }
@@ -9925,9 +10638,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio che indossa questi stivali può effettuare un'azione bonus per battere i tacchi tra di loro. Fatto questo, gli stivali raddoppiano la sua velocità e le creature che effettuano un attacco di opportunità contro di lui subiscono svantaggio ai tiri per colpire. Se il personaggio batte di nuovo i tacchi, pone fine all'effetto. Dopo avere usato la proprietà degli stivali per un totale di 10 minuti, la magia smette di funzionare finché il personaggio non completa un riposo lungo."
     }
@@ -9942,9 +10660,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, non comune (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questi stivali foderati di pelliccia sono comodi e caldi. Il personaggio ottiene i seguenti benefici."
     }
@@ -9999,9 +10722,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, non comune (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quando il personaggio indossa questi stivali, la sua velocità è pari a 9 metri, a meno che la velocità normale non sia superiore. Inoltre, la velocità non viene ridotta se il personaggio trasporta un peso superiore alla propria capacità di carico o indossa un'armatura pesante. Una volta per ogni turno, può saltare fino a 9 metri usando solo 3 metri di movimento."
     }
@@ -10038,9 +10766,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, leggendario (richiede sintonia con un chierico o un paladino) ",
+     "s": "Oggetto meraviglioso, leggendario (richiede sintonia con un chierico o un paladino)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo talismano è un potente simbolo del bene. Qualsiasi immondo o non morto che tocchi il talismano subisce 8d6 danni radiosi, per poi subirli nuovamente ogni volta che termina il suo turno impugnando o trasportando il talismano."
     }
@@ -10073,9 +10806,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, non comune (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio che indossa questo pendente riceve i seguenti benefici:"
     }
@@ -10130,9 +10868,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, leggendario (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, leggendario (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Finché il personaggio impugna o indossa questo talismano, dispone di vantaggio alle prove di Intelligenza (Arcano) effettuate per controllare la "
     },
@@ -10201,9 +10944,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, molto raro ",
+     "s": "Oggetto meraviglioso, molto raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Il personaggio può far fluttuare e volare il tappeto volante effettuando un'azione di Magia e usando la parola d'ordine dell'oggetto. Il tappeto si muove in base ai comandi impartiti dal personaggio, che deve trovarsi entro 9 metri da esso. Esistono "
     },
@@ -10312,9 +11060,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, molto raro ",
+     "s": "Oggetto meraviglioso, molto raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo libro contiene la descrizione di una serie di esercizi di intuizione e percezione, e le sue parole sono cariche di magia. Se il personaggio trascorre 48 ore in un periodo massimo di 6 giorni a studiare il contenuto del libro e ad applicarne i precetti, il suo punteggio di Saggezza aumenta di 2, fino a un massimo di 30. Una volta letto, il libro perde il suo potere: lo riacquisterà dopo un secolo."
     }
@@ -10329,9 +11082,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, molto raro ",
+     "s": "Oggetto meraviglioso, molto raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo libro contiene la descrizione di una serie di esercizi di logica e memoria, e le sue parole sono cariche di magia. Se il personaggio trascorre 48 ore in un periodo massimo di 6 giorni a studiare il contenuto del libro e ad applicarne i precetti, il suo punteggio di Intelligenza aumenta di 2, fino a un massimo di 30. Una volta letto, il libro perde il suo potere: lo riacquisterà dopo un secolo."
     }
@@ -10346,9 +11104,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Arma (tridente), non comune (richiede sintonia) ",
+     "s": "Arma (tridente), non comune (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Quest'arma magica possiede 3 cariche e recupera 1d3 cariche consumate all'alba di ogni giorno. Finché il personaggio la trasporta, può consumare 1 carica e usarla per lanciare "
     },
@@ -10370,9 +11133,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa tunica è decorata con un motivo raffigurante vari occhi. Mentre il personaggio la indossa ottiene i benefici seguenti:"
     }
@@ -10542,9 +11310,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, molto raro (richiede sintonia) ",
+     "s": "Oggetto meraviglioso, molto raro (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa tunica ha 3 cariche e recupera 1d3 cariche consumate all'alba di ogni giorno. Finché il personaggio la indossa, può effettuare un'azione di Magia e consumare 1 carica per far comparire sull'indumento un motivo cangiante dai colori sgargianti, che permane fino alla fine del suo turno successivo. In questo frangente, la tunica emana luce intensa in un raggio di 9 metri e luce fioca per ulteriori 9 metri; le creature che vedono il personaggio hanno svantaggio ai tiri per colpire effettuati contro di lui. Inoltre, ogni creatura che si trova entro la luce intensa e che può vedere il personaggio quando la proprietà della tunica è attivata deve superare un tiro salvezza su Saggezza con CD 15, altrimenti diventa stordita finché l'effetto non termina."
     }
@@ -10559,9 +11332,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, leggendario (richiede sintonia con un mago, uno stregone o un warlock) ",
+     "s": "Oggetto meraviglioso, leggendario (richiede sintonia con un mago, uno stregone o un warlock)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa elegante tunica è realizzata con un tessuto pregiato ricoperto di rune. Finché il personaggio indossa la tunica, ottiene i benefici seguenti:"
     }
@@ -10632,9 +11410,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, non comune ",
+     "s": "Oggetto meraviglioso, non comune",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Finché il personaggio impugna questo ventaglio, può usarlo per lanciare "
     },
@@ -10738,9 +11521,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Verga, leggendaria (richiede sintonia) ",
+     "s": "Verga, leggendaria (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa verga ha una testa flangiata e funziona come una mazza magica che conferisce un bonus di +3 ai tiri per colpire e ai tiri per i danni effettuati con essa. Possiede una serie di proprietà associate a sei pulsanti diversi disposti in fila lungo l'asta. Possiede anche le tre proprietà descritte di seguito."
     }
@@ -10827,9 +11615,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Verga, leggendaria (richiede sintonia) ",
+     "s": "Verga, leggendaria (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questa verga ha 5 cariche. Mentre il personaggio la impugna, può usarla per lanciare uno dei seguenti incantesimi: "
     },
@@ -10858,9 +11651,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Verga, molto rara ",
+     "s": "Verga, molto rara",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Mentre il personaggio impugna questa verga, può effettuare un'azione di Magia per attivarla. Così facendo, la verga trasporta istantaneamente il personaggio e un massimo di altre 199 creature consenzienti che è in grado di vedere in un semipiano. È il personaggio a scegliere la forma di quest'ultimo. Potrebbe trattarsi di un placido giardino, un'allegra taverna, un palazzo immenso, un'isola tropicale, una festa fantastica o qualsiasi altra cosa gli venga in mente. A prescindere dalla sua natura, il semipiano contiene abbastanza acqua e cibo per soddisfare i bisogni dei visitatori e non è in grado di nuocere loro in alcun modo. Ogni altra cosa con cui è possibile interagire in questo spazio può esistere solamente al suo interno. Per esempio, un fiore colto in un giardino scompare se portato fuori dal semipiano. Per ogni ora passata nel semipiano, un visitatore recupera punti ferita come se avesse speso 1 Dado Vita. Inoltre, nonostante sia un luogo in cui il tempo scorre normalmente, le creature al suo interno non invecchiano. I visitatori possono rimanere fino a un massimo di 200 giorni suddivisi per il numero delle creature presenti (arrotondato per difetto). Quando il tempo si esaurisce o il personaggio effettua un'azione di Magia per terminare l'effetto, tutti i visitatori ricompaiono nello spazio che occupavano quando il personaggio ha attivato la verga o nello spazio libero più vicino. Una volta utilizzata, questa proprietà non può essere riutilizzata prima che siano trascorsi 10 giorni."
     }
@@ -10897,9 +11695,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Verga, molto rara (richiede sintonia) ",
+     "s": "Verga, molto rara (richiede sintonia)",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Mentre impugna questa verga, il personaggio può usare la sua reazione per assorbire un incantesimo che sta bersagliando solo lui e non ha un'area di effetto. L'effetto dell'incantesimo assorbito è annullato e l'energia dell'incantesimo (ma non l'incantesimo vero e proprio) viene accumulata nella verga. L'energia ha lo stesso livello dell'incantesimo nel momento in cui è stato lanciato. Un incantesimo annullato si dissipa senza produrre alcun effetto e le risorse utilizzate per lanciarlo vengono sprecate. La verga può assorbire e accumulare fino a 50 livelli di energia nel corso della sua esistenza. Dopo aver assorbito 50 livelli di energia, non può assorbirne altri. Se il personaggio è bersagliato da un incantesimo che non può essere accumulato, la verga non ha alcun effetto su quell'incantesimo. Quando il personaggio entra in sintonia con la verga, scopre quanti livelli di energia quest'ultima ha assorbito nel corso della propria esistenza e quanti livelli di energia degli incantesimi contiene attualmente. Se il personaggio è un incantatore e impugna la verga, può trasformare l'energia accumulata al suo interno in slot incantesimo e usarli per lanciare gli incantesimi che ha preparato o che conosce. Il personaggio può creare soltanto slot incantesimo di livello pari o inferiore a quello dei propri slot, fino al 5º livello al massimo. Inoltre, usa i livelli accumulati al posto dei propri slot, ma sotto ogni altro aspetto lancia l'incantesimo normalmente. Per esempio, può usare 3 livelli accumulati nella verga come uno slot incantesimo di 3º livello. Una verga appena trovata solitamente ha già 1d10 livelli di energia di incantesimi accumulati. Una verga che non può assorbire altra energia degli incantesimi e a cui non rimane più energia smette di essere un oggetto magico."
     }
@@ -10936,9 +11739,14 @@
    "t": "p",
    "testo": [
     {
-     "s": "Oggetto meraviglioso, raro ",
+     "s": "Oggetto meraviglioso, raro",
      "i": 1
-    },
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
     {
      "s": "Questo zaino è dotato di una tasca centrale e due laterali che si aprono su altrettanti spazi extradimensionali. Ognuna delle tasche laterali può custodire fino a 100 chilogrammi di materiale, per un volume che non superi 25 cubi con spigolo di 30 centimetri. La tasca centrale può contenere fino a 250 chilogrammi di materiale, per un volume massimo di 64 cubi con spigolo di 30 centimetri. Lo zaino pesa sempre 2,5 chilogrammi, a prescindere dal contenuto. Recuperare un oggetto dallo zainetto richiede un'azione di Utilizzo o un'azione bonus (a scelta del personaggio). Quando fruga nello zainetto alla ricerca di un oggetto specifico, questo si trova sempre magicamente in cima. Se una delle sue tasche viene caricata eccessivamente, perforata o strappata, lo zainetto si rompe e viene distrutto. In tal caso, gli oggetti contenuti al suo interno sono perduti per sempre, anche se un manufatto prima o poi rispunterà fuori da qualche altra parte. Se lo zainetto viene rivoltato, tutto ciò che conteneva cade a terra senza danneggiarsi, ma lo zainetto deve essere rivoltato di nuovo per poter essere riutilizzato. Ogni tasca dello zainetto contiene una quantità d'aria sufficiente per 10 minuti, da dividere per il numero di creature che respirano al suo interno. Collocare uno zainetto all'interno di uno spazio extradimensionale, come quello creato da una "
     },

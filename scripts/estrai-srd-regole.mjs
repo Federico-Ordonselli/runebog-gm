@@ -43,7 +43,12 @@ const CAPITOLI = [
 ];
 
 const COLONNA_DESTRA = 440;   // ascissa di separazione delle due colonne
-const PASSO_RIGA = 23;        // px: oltre questo salto verticale è un altro paragrafo
+/* px: oltre questo salto verticale è un altro paragrafo. Dentro un paragrafo il
+   passo è 18–19; a 23 il PDF stacca la riga in corsivo che dichiara categoria e
+   rarità ("Verga, molto rara") dalla descrizione che segue, e a 23 esatti stava
+   dalla parte sbagliata della soglia — su 212 casi nel PDF nessuno prosegue una
+   frase, né per sillabazione né aprendo in minuscola. */
+const PASSO_RIGA = 22;
 
 /* --- estrazione dei frammenti --------------------------------------------- */
 
@@ -189,11 +194,16 @@ const proseguiIlRuolo = (ult, f) =>
    sia per riconoscere il grassetto che sta DENTRO una cella (vedi tabella). */
 const ATTACCATI = 6;
 
+/* La colonna di testo in cui vive un frammento: pagina, fascia (le bande a
+   piena pagina non hanno colonne) e colonna. È l'unità che si esaurisce e manda
+   una tabella a capo. */
+const stessaColonna = (a, b) => !!a && !!b && a.pag === b.pag
+  && a.fascia === b.fascia && a.col === b.col;
+
 /* Due frammenti della stessa riga visiva: il numero di riga è già calcolato
    dentro la fascia e la colonna di pagina, quindi confrontarli è un'uguaglianza
    e non una tolleranza. */
-const stessaRigaVisiva = (a, b) => !!a && !!b && a.pag === b.pag
-  && a.fascia === b.fascia && a.col === b.col && a.riga === b.riga;
+const stessaRigaVisiva = (a, b) => stessaColonna(a, b) && a.riga === b.riga;
 
 const TOLLERANZA_RIGA = 3;  // px: entro questo salto due frammenti sono la stessa riga visiva
 const SALTO_BANDA = 40;   // px: oltre questo due righe non sono la stessa tabella
@@ -604,21 +614,38 @@ const unisciNellaCella = (avanti, testo) =>
    una cella lunga va a capo restando nella sua colonna. */
 function grigliaDaFrammenti(frammenti, colonne) {
   const perRiga = [];
-  /* La PAGINA viene prima del top: una tabella che prosegue nella pagina dopo
-     ha celle il cui top ricomincia da capo, e ordinando per solo top la coda
-     risalirebbe in mezzo alle prime righe. È l'unica chiave aggiunta di
-     proposito: ordinare anche per fascia e colonna sarebbe più "giusto" in
-     astratto, ma riordina griglie che oggi escono bene e ne ha rotta una
-     (il budget di PE dei livelli 11-20, che finiva in prosa). */
-  const ordinati = [...frammenti].sort((a, b) => a.pag - b.pag || a.top - b.top || a.left - b.left);
+  /* Si ordina per COLONNA DI PAGINA e poi per top, che è l'ordine in cui si
+     legge: una tabella a cui è finito lo spazio riprende in cima alla colonna
+     successiva, quindi le sue ultime righe hanno un top piccolo e con la sola
+     coppia pagina+top risalivano in mezzo alle prime — in "Azioni" le voci si
+     interlacciavano e le celle si fondevano a due a due.
+     Per la stessa ragione due frammenti sono la stessa riga solo se stanno
+     nella stessa colonna: alla stessa altezza, nelle due colonne di una pagina,
+     ci sono due righe diverse. */
+  const ordinati = [...frammenti].sort((a, b) =>
+    a.pag - b.pag || a.fascia - b.fascia || a.col - b.col || a.top - b.top || a.left - b.left);
   for (const f of ordinati) {
     const ult = perRiga[perRiga.length - 1];
-    if (ult && ult.pag === f.pag && Math.abs(ult.top - f.top) <= TOLLERANZA_Y) ult.celle.push(f);
-    else perRiga.push({ top: f.top, pag: f.pag, celle: [f] });
+    if (ult && stessaColonna(ult, f) && Math.abs(ult.top - f.top) <= TOLLERANZA_Y) ult.celle.push(f);
+    else perRiga.push({ ...f, celle: [f] });
   }
 
+  /* Il rientro dice "questa riga è il seguito di quella sopra" solo se in questa
+     tabella distingue qualcosa. Quando ogni colonna è centrata o allineata a
+     destra — "Avanzamento dei personaggi", dove sotto "Livello" c'è "1" e sotto
+     "Punti esperienza" c'è "0" — TUTTE le celle cominciano dopo l'inizio della
+     loro colonna, e il criterio si mangiava la tabella intera: quindici righe
+     impilate in una, coi PE di tutti i livelli in una cella sola.
+     Lo si riconosce dalla PRIMA riga di dati, che non può essere il seguito di
+     niente: se è rientrata anche lei, il rientro qui è l'impaginazione della
+     tabella e non un capoverso. */
+  const rientro = ({ celle }) =>
+    celle.every(c => c.left - colonne[indiceColonna(colonne, c.left)] > TOLLERANZA_X);
+  const rientroParla = perRiga.length > 0 && !rientro(perRiga[0]);
+
   const righe = [];
-  for (const { celle } of perRiga) {
+  for (const gruppo of perRiga) {
+    const { celle } = gruppo;
     const riga = colonne.map(() => "");
     for (const c of celle) {
       const i = indiceColonna(colonne, c.left, c.larg);
@@ -649,8 +676,9 @@ function grigliaDaFrammenti(frammenti, colonne) {
     }
     /* Continuazione a capo: o la prima cella manca, o tutte le celle sono
        rientrate rispetto alla loro colonna (nel PDF il seguito di una cella
-       lunga è indentato, quindi la riga non è vuota ma non inizia una voce). */
-    const rientrata = celle.every(c => c.left - colonne[indiceColonna(colonne, c.left)] > TOLLERANZA_X);
+       lunga è indentato, quindi la riga non è vuota ma non inizia una voce) —
+       e solo dove il rientro dice qualcosa, vedi rientroParla. */
+    const rientrata = rientroParla && rientro(gruppo);
     const prec = righe[righe.length - 1];
 
     /* Terzo caso di continuazione: la cella lunga della prima colonna prosegue
@@ -886,6 +914,23 @@ function tabella(righe, k) {
      rimescolava le celle, perdendo e duplicando testo. */
   const senzaDidascalia = cap.ruolo === "intestazione-cella";
   if (cap.ruolo !== "didascalia" && !senzaDidascalia) return null;
+
+  /* La didascalia può andare a capo ("Incantatore multiclasse:" / "slot
+     incantesimo per livello di incantesimo"). La seconda riga è nel font delle
+     didascalie e non in quello delle intestazioni, quindi finiva fra i titoli di
+     colonna — un frammento largo quanto tutta la tabella, che li fondeva tutti
+     in uno solo: la tabella degli slot multiclasse usciva a due colonne invece
+     di dieci.
+     Va a capo, non di fianco: due didascalie sulla stessa riga visiva sono due
+     tabelle affiancate (Temperatura e Vento in "controllare il clima"), e sono
+     gli unici due casi del PDF. */
+  let ultimaCap = k;
+  while (!senzaDidascalia && righe[ultimaCap + 1]?.ruolo === "didascalia"
+    && righe[ultimaCap + 1].pag === righe[ultimaCap].pag
+    && !stessaRigaVisiva(righe[ultimaCap], righe[ultimaCap + 1])
+    && righe[ultimaCap + 1].top - righe[ultimaCap].top <= SALTO_BANDA) ultimaCap++;
+  const didascalia = righe.slice(k, ultimaCap + 1)
+    .map(r => testoDi(r.span).trim()).join(" ");
   /* Le righe di intestazione si raccolgono guardando FIN DOVE arrivano, invece
      di fermarsi al primo font inatteso: in "Terreno di viaggio" solo "Terreno" e
      "Passo massimo" sono nel font delle intestazioni, mentre "Distanza degli
@@ -909,7 +954,7 @@ function tabella(righe, k) {
      avere ("L'incantatore conosce il bersaglio in maniera..." in Scrutare). */
   const attaccoDiCella = r => /[^.][.,]$/.test(testoDi(r.span).trim());
   let ultima = -1;
-  for (let j = senzaDidascalia ? k : k + 1; j < righe.length && righe[j].pag === cap.pag
+  for (let j = senzaDidascalia ? k : ultimaCap + 1; j < righe.length && righe[j].pag === cap.pag
        && righe[j].top - cap.top <= 80; j++)
     if (righe[j].ruolo === "intestazione-cella" && !attaccoDiCella(righe[j])) ultima = j;
   if (ultima < 0) return null;
@@ -922,7 +967,7 @@ function tabella(righe, k) {
   while (ultima + 1 < righe.length && righe[ultima + 1].pag === righe[ultima].pag
     && Math.abs(righe[ultima + 1].top - righe[ultima].top) <= TOLLERANZA_Y) ultima++;
 
-  let i = senzaDidascalia ? k : k + 1;
+  let i = senzaDidascalia ? k : ultimaCap + 1;
   const intest = [];
   while (i <= ultima) { intest.push(righe[i]); i++; }
 
@@ -991,15 +1036,19 @@ function tabella(righe, k) {
       && !attaccoDiCella(righe[j])) ripetute.push(righe[j++]);
     if (!ripetute.length || firma(ripetute) !== miaFirma) break;
     if (j >= righe.length || !eCella(j)) break;   // intestazioni senza celle: non è una coda
-    /* Solo a PAGINA NUOVA. Le stesse intestazioni si ripetono anche quando una
-       tabella corta è impaginata a metà per colonna ("Esempi di tiri salvezza":
-       Forza/Destrezza/Costituzione a sinistra, Intelligenza/Saggezza/Carisma a
-       destra), e quella non è una coda: è la stessa griglia affiancata, con le
-       sue ascisse tutte spostate a destra. Unirla come continuazione allargava
-       la tabella a quattro colonne e impilava tre righe in una. Restano come
-       oggi (tabella + griglia sotto), che è già leggibile — unirle davvero è un
-       lavoro a sé, annotato nel TODO. */
-    if (ripetute[0].pag === celle[celle.length - 1].pag) break;
+    /* Una coda è una tabella a cui è finito lo SPAZIO: le celle di prima
+       arrivano in fondo alla loro colonna e le intestazioni ripetute aprono la
+       successiva. Il confine non è la pagina — "Monili" è un d100 che riprende
+       tre volte, due delle quali nella colonna accanto della stessa pagina, e
+       usciva in quattro tabelle di cui tre senza titolo. Non è nemmeno una
+       misura in pixel: lo dicono le righe stesse, che sotto l'ultima cella e
+       sopra le intestazioni ripetute non ne hanno altre nella loro colonna.
+       Serve tutt'e due: in "Azioni" le intestazioni si ripetono a metà della
+       colonna destra, con della prosa sopra, e lì la tabella nuova comincia
+       davvero. */
+    const apreLaColonna = r => !righe.some(a => stessaColonna(a, r) && a.top < r.top - TOLLERANZA_Y);
+    const chiudeLaColonna = r => !righe.some(a => stessaColonna(a, r) && a.top > r.top + TOLLERANZA_Y);
+    if (!apreLaColonna(ripetute[0]) || !chiudeLaColonna(celle[celle.length - 1])) break;
 
     /* La coda può ricominciare in un'ALTRA colonna di pagina: "Budget di PE"
        sta nella colonna destra di p. 229 e riprende nella sinistra di p. 230,
@@ -1158,7 +1207,7 @@ function tabella(righe, k) {
     blocchi: [
       /* Senza didascalia il titolo è vuoto: `cap` è la riga di intestazione,
          e prenderlo per titolo ripeteva la prima colonna sopra la tabella. */
-      { t: "tabella", titolo: senzaDidascalia ? "" : testoDi(cap.span).trim(), colonne: titoli, righe: griglia },
+      { t: "tabella", titolo: senzaDidascalia ? "" : didascalia, colonne: titoli, righe: griglia },
       ...note.map(n => ({ t: "p", testo: [{ s: n }] })),
     ],
     fine: i,

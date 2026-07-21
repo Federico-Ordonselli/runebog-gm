@@ -1,0 +1,718 @@
+{
+ "id": "talenti",
+ "titolo": "Talenti",
+ "pagine": [
+  98,
+  100
+ ],
+ "blocchi": [
+  {
+   "t": "h2",
+   "testo": "Descrizioni dei talenti",
+   "id": "descrizioni-dei-talenti"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "I talenti che seguono sono organizzati prima per categoria (Origini, Generale, Stile di combattimento o Dono epico) e poi in ordine alfabetico."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Elementi di un talento",
+   "id": "elementi-di-un-talento"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "La descrizione di un talento contiene le seguenti componenti elencate dopo il suo nome."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Categoria",
+   "testo": [
+    {
+     "s": "Ciascun talento appartiene a una determinata categoria contrassegnata nella sua descrizione. Se devi scegliere un talento da una specifica categoria, come Origini, questa deve comparire sotto al nome del talento. Se invece devi selezionare un talento senza che ne sia specificata la categoria, puoi optare per quello che preferisci."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Prerequisito",
+   "testo": [
+    {
+     "s": "Per ottenere un talento, il personaggio deve soddisfare i prerequisiti indicati nella sua descrizione, a meno che un privilegio non ti permetta di ottenerlo senza i prerequisiti. Se fra i prerequisiti è inclusa una classe, il personaggio deve avere almeno il livello 1 in tale classe per poter ottenere il talento."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Beneficio",
+   "testo": [
+    {
+     "s": "I benefici di un talento sono indicati dopo eventuali prerequisiti. Se il personaggio dispone di un talento, ottiene anche i suoi benefici."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Ripetibile",
+   "testo": [
+    {
+     "s": "I talenti possono essere ottenuti solo una volta, salvo diversamente indicato nella sua descrizione tramite la sottosezione \"Ripetibile\"."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Talenti Origini",
+   "id": "talenti-origini"
+  },
+  {
+   "t": "h4",
+   "testo": "Abile",
+   "id": "abile"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Talento Origini",
+     "i": 1
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il personaggio ottiene competenza in una combinazione di tre abilità o strumenti a scelta."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Ripetibile",
+   "testo": [
+    {
+     "s": "Questo talento è ottenibile più di una volta."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Aggressore selvaggio",
+   "id": "aggressore-selvaggio"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Talento Origini",
+     "i": 1
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il personaggio si è allenato per sferrare colpi particolarmente letali. Una volta per turno, quando colpisce un bersaglio con un'arma, puoi tirare due volte per i danni dell'arma e scegliere il risultato che preferisci."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Allerta",
+   "id": "allerta"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Talento Origini",
+     "i": 1
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il personaggio ottiene i seguenti benefici."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Competenza in iniziativa",
+   "testo": [
+    {
+     "s": "Quando tiri per l'iniziativa, puoi aggiungere il bonus di competenza del personaggio al risultato del tiro."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Scambio di iniziativa",
+   "testo": [
+    {
+     "s": "Subito dopo aver tirato per l'iniziativa, puoi scambiare il risultato ottenuto con quello di un alleato consenziente durante il medesimo combattimento. Se il tuo personaggio o il suo alleato è incapacitato, non è possibile eseguire lo scambio."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Iniziato alla magia",
+   "id": "iniziato-alla-magia"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Talento Origini",
+     "i": 1
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il personaggio ottiene i seguenti benefici."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Due trucchetti",
+   "testo": [
+    {
+     "s": "Il personaggio apprende due trucchetti a scelta tratti dalla lista degli incantesimi da chierico, druido o mago. La caratteristica da incantatore per gli incantesimi di questo talento può essere Intelligenza, Saggezza o Carisma (scegli la caratteristica quando ottieni questo talento)."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Incantesimo di 1º livello",
+   "testo": [
+    {
+     "s": "Scegli un incantesimo di 1º livello dalla stessa lista da cui hai selezionato i trucchetti forniti da questo talento. Tale incantesimo è sempre considerato come preparato. Il personaggio può lanciarlo una volta senza consumare uno slot incantesimo e ne recupera l'utilizzo in questo modo dopo aver completato un riposo lungo. Può anche lanciare l'incantesimo usando uno qualsiasi degli slot incantesimo a sua disposizione."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Cambio incantesimo",
+   "testo": [
+    {
+     "s": "Quando il personaggio ottiene un nuovo livello, puoi sostituire uno degli incantesimi scelti per questo talento con un altro dello stesso livello dalla lista prescelta."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Ripetibile",
+   "testo": [
+    {
+     "s": "Questo talento è ottenibile più di una volta, ma devi scegliere una lista degli incantesimi diversa a ogni selezione."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Talenti Generali",
+   "id": "talenti-generali"
+  },
+  {
+   "t": "h4",
+   "testo": "Aumento dei punteggi di caratteristica",
+   "id": "aumento-dei-punteggi-di-caratteristica"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Talento Generale (prerequisito: 4º livello o superiore)",
+     "i": 1
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Aumenta un punteggio di caratteristica a sua scelta di 2, oppure aumenta due punteggi di caratteristica di 1. Questo talento non può incrementare un punteggio di caratteristica oltre il 20."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Ripetibile",
+   "testo": [
+    {
+     "s": "Questo talento è ottenibile più di una volta."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Lottatore",
+   "id": "lottatore"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Talento Generale (prerequisito: 4º livello o superiore, Forza o Destrezza 13 o superiore)",
+     "i": 1
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il personaggio ottiene i seguenti benefici."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Incremento dei punteggi di caratteristica",
+   "testo": [
+    {
+     "s": "Il suo punteggio di Forza o Destrezza aumenta di 1, fino a un massimo di 20."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Colpisci e afferra",
+   "testo": [
+    {
+     "s": "Quando il personaggio colpisce una creatura con un colpo senz'armi come parte di un'azione di Attacco nel proprio turno, può usare sia l'opzione Danni che Presa. Questo beneficio è utilizzabile una sola volta per turno."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Attacco con vantaggio",
+   "testo": [
+    {
+     "s": "Dispone di vantaggio ai tiri per colpire contro le creature che ha afferrato."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Lottatore rapido",
+   "testo": [
+    {
+     "s": "Il personaggio non deve spendere alcun movimento extra se sposta una creatura che ha afferrato che sia della sua stessa categoria di taglia o inferiore."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Talenti Stile di combattimento",
+   "id": "talenti-stile-di-combattimento"
+  },
+  {
+   "t": "h4",
+   "testo": "Combattere con armi possenti",
+   "id": "combattere-con-armi-possenti"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Talento Stile di combattimento (prerequisito: privilegio Stile di combattimento)",
+     "i": 1
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Quando tiri per i danni per un attacco effettuato con un'arma da mischia che il personaggio impugna a due mani, se il risultato ottenuto è 1 o 2, puoi invece considerarlo come un 3. L'arma deve possedere la proprietà a due mani o versatile affinché ottenga questo beneficio."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Combattere con due armi",
+   "id": "combattere-con-due-armi"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Talento Stile di combattimento (prerequisito: privilegio Stile di combattimento)",
+     "i": 1
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Quando il personaggio effettua un attacco extra come risultato dell'uso di un'arma leggera, puoi aggiungere il suo modificatore di caratteristica al danno di quell'attacco a patto che non sia già stato aggiunto in altro modo."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Difesa",
+   "id": "difesa"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Talento Stile di combattimento (prerequisito: privilegio Stile di combattimento)",
+     "i": 1
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Finché il personaggio indossa un'armatura leggera, media o pesante, ottiene un +1 alla Classe Armatura."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Tiro",
+   "id": "tiro"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Talento Stile di combattimento (prerequisito: privilegio Stile di combattimento)",
+     "i": 1
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il personaggio ottiene un bonus di +2 ai tiri per colpire che effettua con le armi a distanza."
+    }
+   ]
+  },
+  {
+   "t": "h3",
+   "testo": "Talenti Dono epico",
+   "id": "talenti-dono-epico"
+  },
+  {
+   "t": "h4",
+   "testo": "Dono del fato",
+   "id": "dono-del-fato"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Talento Dono epico (prerequisito: 19º livello o superiore)",
+     "i": 1
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il personaggio ottiene i seguenti benefici."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Incremento dei punteggi di caratteristica",
+   "testo": [
+    {
+     "s": "Il punteggio di una sua caratteristica a scelta aumenta di 1, fino a un massimo di 30."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Fato migliorato",
+   "testo": [
+    {
+     "s": "Quando il personaggio o un'altra creatura entro 18 metri da sé supera o fallisce una prova con d20, può tirare 2d4 e applicare il risultato ottenuto come bonus o penalità a tale prova con d20. Una volta utilizzato questo beneficio, non può più utilizzarlo finché non tira per l'iniziativa o non completa un riposo breve o lungo."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Dono della vista pura",
+   "id": "dono-della-vista-pura"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Talento Dono epico (prerequisito: 19º livello o superiore)",
+     "i": 1
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il personaggio ottiene i seguenti benefici."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Incremento dei punteggi di caratteristica",
+   "testo": [
+    {
+     "s": "Il punteggio di una sua caratteristica a scelta aumenta di 1, fino a un massimo di 30."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Vista pura",
+   "testo": [
+    {
+     "s": "Il personaggio ottiene vista pura con un raggio di 18 metri."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Dono delle abilità di combattimento",
+   "id": "dono-delle-abilita-di-combattimento"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Talento Dono epico (prerequisito: 19º livello o superiore)",
+     "i": 1
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il personaggio ottiene i seguenti benefici."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Incremento dei punteggi di caratteristica",
+   "testo": [
+    {
+     "s": "Il punteggio di una sua caratteristica a scelta aumenta di 1, fino a un massimo di 30."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Mira impareggiabile",
+   "testo": [
+    {
+     "s": "Quando il tiro per colpire del personaggio non va a segno, è possibile colpire comunque il bersaglio. Una volta sfruttato questo beneficio, non può essere riutilizzato fino all'inizio del turno successivo del personaggio."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Dono dell'offensiva irresistibile",
+   "id": "dono-dell-offensiva-irresistibile"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Talento Dono epico (prerequisito: 19º livello o superiore)",
+     "i": 1
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il personaggio ottiene i seguenti benefici."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Incremento dei punteggi di caratteristica",
+   "testo": [
+    {
+     "s": "Il suo punteggio di Forza o Destrezza aumenta di 1, fino a un massimo di 30."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Ignora difese",
+   "testo": [
+    {
+     "s": "I danni contundenti, perforanti e taglienti inflitti dal personaggio ignorano sempre la resistenza."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Colpo soverchiante",
+   "testo": [
+    {
+     "s": "Quando tira per colpire con il d20 e ottiene un 20, il personaggio può infliggere una quantità di danni extra al bersaglio pari al punteggio di caratteristica incrementato da questo talento. Il danno aggiuntivo è dello stesso tipo di quello dell'attacco."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Dono dello spirito notturno",
+   "id": "dono-dello-spirito-notturno"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Talento Dono epico (prerequisito: 19º livello o superiore)",
+     "i": 1
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il personaggio ottiene i seguenti benefici."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Incremento dei punteggi di caratteristica",
+   "testo": [
+    {
+     "s": "Il punteggio di una sua caratteristica a scelta aumenta di 1, fino a un massimo di 30."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Fusione con le ombre",
+   "testo": [
+    {
+     "s": "Finché si trova in un'area di oscurità o luce fioca, può diventare invisibile come azione bonus. Tale condizione termina subito dopo che il personaggio effettua un'azione, un'azione bonus o una reazione."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Forma d'ombra",
+   "testo": [
+    {
+     "s": "Finché si trova in un'area di oscurità o luce fioca, ha resistenza a tutti i tipi di danno, tranne quelli psichici e radiosi."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Dono del richiamo degli incantesimi",
+   "id": "dono-del-richiamo-degli-incantesimi"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Talento Dono epico (prerequisito: 19º livello o superiore, privilegio Incantesimi)",
+     "i": 1
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il personaggio ottiene i seguenti benefici."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Incremento dei punteggi di caratteristica",
+   "testo": [
+    {
+     "s": "Il suo punteggio di Intelligenza, Saggezza o Carisma aumenta di 1, fino a un massimo di 30."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Lancio libero",
+   "testo": [
+    {
+     "s": "Quando lancia un incantesimo con uno slot di livello da 1 a 4, tira 1d4. Se il risultato corrisponde al livello dello slot, questo non verrà consumato."
+    }
+   ]
+  },
+  {
+   "t": "h4",
+   "testo": "Dono del viaggio dimensionale",
+   "id": "dono-del-viaggio-dimensionale"
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Talento Dono epico (prerequisito: 19º livello o superiore)",
+     "i": 1
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "testo": [
+    {
+     "s": "Il personaggio ottiene i seguenti benefici."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Incremento dei punteggi di caratteristica",
+   "testo": [
+    {
+     "s": "Il punteggio di una sua caratteristica a scelta aumenta di 1, fino a un massimo di 30."
+    }
+   ]
+  },
+  {
+   "t": "def",
+   "nome": "Passi fulminei",
+   "testo": [
+    {
+     "s": "Subito dopo che il personaggio effettua un'azione di Attacco o Magia, può teletrasportarsi di massimo 9 metri in uno spazio libero che è in grado di vedere."
+    }
+   ]
+  }
+ ]
+}

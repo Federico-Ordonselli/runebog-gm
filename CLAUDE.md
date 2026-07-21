@@ -161,7 +161,11 @@ ed elenchi. Trappole già pagate:
 - Gli id dei fontspec sono **cumulativi nel documento** (mai azzerarli a ogni pagina).
 - Il **rientro non separa i paragrafi**: il documento alterna rientro sospeso e
   rientro di prima riga, a volte nella stessa pagina, quindi si rompe sul
-  grassetto di apertura e sul salto verticale.
+  grassetto di apertura e sul salto verticale. Il salto è stretto
+  (`PASSO_RIGA`, 22px contro i 18–19 di una riga): il PDF stacca la riga in
+  corsivo che dichiara livello, categoria o rarità con appena 23px, e con la
+  soglia a 23 si incollava alla descrizione. Su 212 casi nel PDF nessun salto da
+  23 prosegue una frase — è la misura ad aver fissato il numero, non l'occhio.
 - **I colori non si confrontano per uguaglianza.** Lo stesso rosso è uscito
   `#88191f` e poi `#8b2321` da un PDF riscaricato: il codice esatto dipende da
   come poppler quantizza, non dal documento. Si riconoscono per *relazione tra i
@@ -254,13 +258,40 @@ ed elenchi. Trappole già pagate:
   centro è già oltre" sposta ogni etichetta più larga di mezza colonna, e
   pretendere che il frammento non sfondi la colonna dopo blocca proprio le
   celle fuse che devono spostarsi ("32,5 kg 1.500 mo").
-- **Una tabella che cambia pagina è ancora la stessa tabella**: il PDF ne ripete
-  l'intestazione senza la didascalia, e quel blocco fermava la raccolta delle
-  celle. Si riconosce dalle stesse intestazioni, ma vale **solo a pagina nuova**
-  (le stesse intestazioni si ripetono anche in una tabella corta impaginata a
-  metà per colonna, che non è una coda) e la coda va **traslata**: può
-  ricominciare in un'altra colonna di pagina, e lo scarto lo dà la posizione
-  delle intestazioni ripetute.
+- **Una coda è una tabella a cui è finito lo SPAZIO**, non una tabella che cambia
+  pagina: il PDF ne ripete l'intestazione senza la didascalia, e quel blocco
+  fermava la raccolta delle celle. Si riconosce dalle stesse intestazioni più due
+  condizioni che servono entrambe: le celle di prima chiudono la loro colonna di
+  pagina e le intestazioni ripetute ne aprono un'altra — e non lo dice un numero
+  di pixel ma le righe stesse, che sopra e sotto non ne hanno altre in quella
+  colonna. In "Azioni" le intestazioni si ripetono a metà della colonna destra,
+  con della prosa sopra, e lì comincia una tabella nuova. La coda va poi
+  **traslata**: può ricominciare in un'altra colonna, e lo scarto lo dà la
+  posizione delle intestazioni ripetute.
+  Il vincolo "solo a pagina nuova" è stato provato e ritirato: spezzava "Monili"
+  (un d100 che riprende due volte nella colonna accanto) in quattro tabelle, e
+  con lui restavano rotti "Strati prismatici", "Esempi di tiri salvezza" e
+  "Azioni", dove il testo delle due metà usciva interlacciato cella per cella.
+- **L'ordine di lettura di una griglia è per colonna di pagina, poi per top**
+  (`grigliaDaFrammenti`): una coda ricomincia in cima alla colonna successiva,
+  quindi le sue righe hanno un top piccolo e con la sola coppia pagina+top
+  risalivano in mezzo alle prime. Per la stessa ragione due frammenti sono la
+  stessa riga solo se stanno nella stessa colonna (`stessaColonna`): alla stessa
+  altezza, nelle due colonne di una pagina, ci sono due righe diverse.
+- **Il rientro segnala una continuazione solo se in quella tabella distingue
+  qualcosa.** Dove ogni colonna è centrata o allineata a destra ("Avanzamento dei
+  personaggi": sotto "Livello" c'è "1", sotto "Punti esperienza" c'è "0") tutte
+  le celle cominciano dopo l'inizio della loro colonna, e il criterio mangiava la
+  tabella intera — quindici righe impilate in una. Lo dice la **prima riga di
+  dati**, che non può essere il seguito di niente: se è rientrata anche lei, lì
+  il rientro è impaginazione.
+- **La didascalia può andare a capo** ("Incantatore multiclasse:" / "slot
+  incantesimo per livello di incantesimo"): la seconda riga è nel font delle
+  didascalie, non in quello delle intestazioni, e finiva fra i titoli di colonna
+  — un frammento largo quanto la tabella, che li fondeva tutti in uno. Va a capo
+  e non di fianco: due didascalie sulla stessa riga visiva sono due tabelle
+  affiancate (Temperatura e Vento in *controllare il clima*), e nel PDF i due
+  casi sono uno per tipo.
 - **Le righe di sezione dentro una tabella** ("Armatura leggera (1 minuto per
   indossare o togliere)") si riconoscono dal **corsivo**, non dalla geometria:
   "sola sulla riga" le confonde con le celle davvero fuse, che invece vanno

@@ -2171,18 +2171,7 @@
      "Forziere",
      "12,5 kg",
      "5 mo"
-    ]
-   ]
-  },
-  {
-   "t": "tabella",
-   "titolo": "",
-   "colonne": [
-    "Oggetto",
-    "Peso",
-    "Costo"
-   ],
-   "righe": [
+    ],
     [
      "Fuoco dell'alchimista",
      "0,5 kg",
