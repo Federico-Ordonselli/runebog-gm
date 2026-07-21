@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import {
   ATTRIBUZIONE_SRD, SEZIONI_OGGETTI, caricaCapitolo, dividiOggetti, nellaSezione,
 } from "@/lib/srd";
+import { rimandiDi } from "@/lib/srd/ancore";
 import { Blocchi } from "../blocchi";
 import "../srd.css";
 
@@ -21,6 +22,7 @@ export default async function OggettiMagiciPage() {
   const doc = await caricaCapitolo("oggetti-magici");
   if (!doc) notFound();
   const { intro, catalogo, oggetti } = dividiOggetti(doc);
+  const rimandi = await rimandiDi("oggetti-magici");
 
   return (
     <main className="page page--wide srd-page">
@@ -36,7 +38,7 @@ export default async function OggettiMagiciPage() {
           pagina ha in mano il nome di un oggetto e vuole la sua scheda, non le
           regole sulla sintonia. Il titolo se lo porta dal capitolo. */}
       <article className="srd-testo">
-        <Blocchi blocchi={catalogo} />
+        <Blocchi blocchi={catalogo} rimandi={rimandi} />
       </article>
 
       {SEZIONI_OGGETTI.map((s) => {
@@ -63,7 +65,7 @@ export default async function OggettiMagiciPage() {
 
       <h2 className="srd-h2">Usare gli oggetti magici</h2>
       <article className="srd-testo">
-        <Blocchi blocchi={intro} />
+        <Blocchi blocchi={intro} rimandi={rimandi} />
       </article>
 
       <hr className="rule" />

@@ -1,14 +1,57 @@
 import type { Blocco, Span } from "@/lib/srd";
+import type { Intervallo, Rimandi } from "@/lib/srd/ancore";
 
 /* Il testo arriva come span, non come HTML: qui diventano elementi React veri.
    È il motivo per cui il generatore non emette markup — non esiste una stringa
    di cui fidarsi, quindi non serve fidarsene. */
-function Testo({ span }: { span: Span[] }) {
+function Frammento({ s }: { s: Span }) {
+  return s.b ? <strong>{s.s}</strong> : s.i ? <em>{s.s}</em> : <>{s.s}</>;
+}
+
+/* I rimandi «Vedi anche "Afferrato"» sono link, e le loro posizioni arrivano
+   sul TESTO PIATTO del blocco: nel PDF «Vedi anche» è in corsivo e i termini
+   che seguono no, quindi il rimando attraversa sempre almeno due span (90 su
+   90 nel glossario) e non esiste lo span che lo contenga.
+   Qui il taglio si riproietta sugli span: ogni pezzo si tiene il suo corsivo o
+   grassetto, e i pezzi consecutivi che stanno nello stesso rimando finiscono in
+   UN solo <a> — sennò un termine a cavallo di due span sarebbe due link
+   affiancati, indistinguibili a vedersi e due voci separate per chi naviga a
+   voce. */
+function segmenta(span: Span[], intervalli: Intervallo[]) {
+  const gruppi: { iv: Intervallo | null; pezzi: Span[] }[] = [];
+  let pos = 0;
+  for (const sp of span) {
+    let off = 0;
+    while (off < sp.s.length) {
+      const assoluto = pos + off;
+      const iv = intervalli.find((x) => x.da <= assoluto && assoluto < x.a) ?? null;
+      /* Il pezzo finisce dove finisce lo span, o dove il rimando comincia o
+         finisce: il primo dei tre confini che si incontra. */
+      const prossimo = intervalli.find((x) => x.da > assoluto)?.da ?? Infinity;
+      const fine = Math.min(pos + sp.s.length, iv ? iv.a : prossimo);
+      const ultimo = gruppi[gruppi.length - 1];
+      const pezzo = { ...sp, s: sp.s.slice(off, fine - pos) };
+      if (ultimo && ultimo.iv === iv) ultimo.pezzi.push(pezzo);
+      else gruppi.push({ iv, pezzi: [pezzo] });
+      off = fine - pos;
+    }
+    pos += sp.s.length;
+  }
+  return gruppi;
+}
+
+function Testo({ span, rimandi }: { span: Span[]; rimandi?: Rimandi }) {
+  const intervalli = rimandi ? rimandi(span.map((s) => s.s).join("")) : [];
+  if (!intervalli.length) {
+    return <>{span.map((s, k) => <Frammento key={k} s={s} />)}</>;
+  }
   return (
     <>
-      {span.map((s, k) => {
-        const el = s.b ? <strong>{s.s}</strong> : s.i ? <em>{s.s}</em> : s.s;
-        return <span key={k}>{el}</span>;
+      {segmenta(span, intervalli).map((g, k) => {
+        const dentro = g.pezzi.map((s, n) => <Frammento key={n} s={s} />);
+        return g.iv
+          ? <a key={k} href={g.iv.href} className="link srd-rimando">{dentro}</a>
+          : <span key={k}>{dentro}</span>;
       })}
     </>
   );
@@ -44,7 +87,11 @@ function Tabella({ titolo, colonne, righe }: { titolo?: string; colonne?: string
   );
 }
 
-export function Blocchi({ blocchi }: { blocchi: Blocco[] }) {
+/** `rimandi` è opzionale perché non tutte le pagine hanno un capitolo di
+ *  contesto da dichiarare: senza, il testo si rende come prima. Oggi i 90
+ *  rimandi stanno tutti nel glossario, ma la risoluzione non lo dà per scontato
+ *  — è il capitolo che si sta leggendo a disambiguare i titoli omonimi. */
+export function Blocchi({ blocchi, rimandi }: { blocchi: Blocco[]; rimandi?: Rimandi }) {
   return (
     <>
       {blocchi.map((b, k) => {
@@ -56,11 +103,11 @@ export function Blocchi({ blocchi }: { blocchi: Blocco[] }) {
           case "h4":
             return <h3 key={k} id={b.id} className="srd-voce">{b.testo}</h3>;
           case "p":
-            return <p key={k} className="srd-p"><Testo span={b.testo} /></p>;
+            return <p key={k} className="srd-p"><Testo span={b.testo} rimandi={rimandi} /></p>;
           case "def":
             return (
               <p key={k} className="srd-def">
-                <strong className="srd-def__nome">{b.nome}.</strong> <Testo span={b.testo} />
+                <strong className="srd-def__nome">{b.nome}.</strong> <Testo span={b.testo} rimandi={rimandi} />
               </p>
             );
           case "tabella":
@@ -76,7 +123,7 @@ export function Blocchi({ blocchi }: { blocchi: Blocco[] }) {
                 {b.voci.map((v, n) => (
                   <div key={n} className="srd-scheda__voce">
                     <dt>{v.nome}</dt>
-                    <dd><Testo span={v.testo} /></dd>
+                    <dd><Testo span={v.testo} rimandi={rimandi} /></dd>
                   </div>
                 ))}
               </dl>
@@ -90,7 +137,7 @@ export function Blocchi({ blocchi }: { blocchi: Blocco[] }) {
           case "punti":
             return (
               <ul key={k} className="srd-punti">
-                {b.voci.map((v, n) => <li key={n}><Testo span={v} /></li>)}
+                {b.voci.map((v, n) => <li key={n}><Testo span={v} rimandi={rimandi} /></li>)}
               </ul>
             );
         }

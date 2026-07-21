@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { ATTRIBUZIONE_SRD, CAPITOLI, CAPITOLI_A_PIU_PAGINE, caricaCapitolo } from "@/lib/srd";
+import { rimandiDi } from "@/lib/srd/ancore";
 import { Blocchi } from "../blocchi";
 import { IndiceCapitolo, type Voce } from "../indice";
 import "../srd.css";
@@ -47,7 +48,7 @@ export default async function CapitoloPage({ params }: { params: Promise<{ capit
       <div className="srd-corpo">
         <IndiceCapitolo voci={voci} />
         <article className="srd-testo">
-          <Blocchi blocchi={doc.blocchi} />
+          <Blocchi blocchi={doc.blocchi} rimandi={await rimandiDi(capitolo)} />
           <hr className="rule" />
           <p className="muted small srd-attribuzione">{ATTRIBUZIONE_SRD}</p>
         </article>

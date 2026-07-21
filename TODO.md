@@ -591,14 +591,69 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
       colonne e a 1280px scorre dentro il suo riquadro: è il comportamento
       previsto per le tabelle larghe, ma queste sono le più larghe della sezione
       e forse meritano una resa loro (gli slot per livello come una riga a sé?).
-    - Nessuna ricerca trasversale ai capitoli: oggi il filtro è per capitolo e
-      cerca solo nei titoli, non nel corpo. Con più capitoli pubblicati serve
-      un indice di ricerca unico.
-    - I rimandi «Vedi anche "Attacco"» sono testo, non link. Diventano
-      collegamenti quando esistono le ancore di tutti i capitoli (le ancore ci
-      sono già: `id` slug su ogni titolo, univoci).
     - La pagina "Informazioni legali" (p. 1 del PDF) non è ancora resa: oggi
       c'è solo la dichiarazione di attribuzione in fondo alle pagine.
+    - Nella ricerca trasversale il rango è sui **titoli**, non sul corpo: chi
+      cerca una frase che sta dentro una descrizione non la trova. Il corpo sono
+      1,7 MB di JSON e non può viaggiare al browser come l'indice dei titoli
+      (82 KB): vorrebbe una route handler che cerca lato server, cioè la prima
+      cosa dinamica di tutta la sezione. Da fare solo se qualcuno la chiede
+      davvero — al tavolo si cerca un nome, non una frase.
+  - [x] **Registro delle ancore, ricerca trasversale e rimandi come link** —
+    fatto (21 lug 2026). Due rifiniture aperte chiedevano la stessa cosa che non
+    esisteva: sapere, dato un titolo, **su quale pagina** è finito. Non è
+    derivabile dall'id — tre capitoli stanno su più pagine e a decidere sono i
+    divisori — quindi `src/lib/srd/ancore.ts` costruisce il registro facendo
+    girare `dividiClassi`/`dividiIncantesimi`/`dividiOggetti`, gli stessi che
+    usano le pagine. Una tabella a parte sarebbe stata una seconda verità.
+    - **Ricerca trasversale** su `/srd`: i 1530 titoli dei dieci capitoli.
+      L'indice è `/srd/ancore.json` (route handler `force-static`, quindi un
+      asset) e si scarica **alla prima interazione col campo** — chi apre /srd
+      per scegliere un capitolo non paga niente, e /srd resta 1,28 kB. Sono
+      82 KB grezzi, 21,7 gzip, 18,3 brotli, in cache dopo la prima ricerca.
+      L'etichetta di un esito è la **pagina** e non il capitolo: cercando
+      "attacco extra" escono cinque "Livello 5: Attacco extra" che senza
+      "Classi › Barbaro / Guerriero / Monaco / Paladino / Ranger" sarebbero
+      cinque righe identiche, cioè nessun risultato. Rango a tre gradini
+      (prefisso, inizio di parola, dentro la parola), sennò cercando "arma"
+      vinceva l'ordine dei capitoli invece della voce "Arma". Invio salta al
+      primo esito, e il filtro di un capitolo che non trova niente porta qui
+      con la parola già scritta (`/srd?q=…`), che è il momento in cui si scopre
+      di stare cercando nel capitolo sbagliato.
+    - **I 90 rimandi del glossario diventano 129 link.** Le posizioni si
+      calcolano sul testo piatto del blocco e `blocchi.tsx` le riproietta sugli
+      span, perché il rimando li attraversa **sempre** (misurato: 90 su 90 —
+      «Vedi anche» è in corsivo, i termini no). Tre regole trovate guardando i
+      dati, non ipotizzate:
+      - il capitolo citato è un **vincolo, non un suggerimento**: in «Vedi anche
+        "Equipaggiamento" ("Armi")» il ripiego "univoco altrove" mandava agli
+        oggetti magici, dove "Armi" pure esiste. Sei link su 135 puntavano al
+        capitolo sbagliato con l'aria di funzionare;
+      - il suffisso fra quadre non fa parte del nome ("Afferrato [condizione]"
+        citato come "Afferrato"): senza, 17 rimandi restavano testo;
+      - fuori da un contesto dichiarato si collega solo ciò che è univoco in
+        tutta la sezione.
+      **41 termini su 170 restano testo**, ed è la risposta giusta: 32 sono
+      titoli di sezione stampati sulle **tavole illustrate** del PDF (pp. 5, 6,
+      12, 16, 118 — `pdffonts` dice zero font, come già annotato per la prima
+      frase di Incantesimi), quindi non esistono come testo da nessuna parte.
+      Il capitolo accanto resta un link, quindi il rimando porta comunque da
+      qualche parte.
+    Verificato: 1530 ancore su 1530 controllate **contro l'HTML generato** —
+    ogni href atterra su una pagina che esiste e che contiene quell'id, zero
+    eccezioni; i 129 link del glossario idem. Le 42 pagine della sezione
+    ricostruite da `HEAD` in un worktree e confrontate a testo visibile: **tutte
+    e 42 identiche**, i link sono comparsi senza spostare un carattere di prosa
+    (controllo necessario perché `Testo` rende la prosa di tutta la sezione).
+    29/29 in Chromium (l'indice non si scarica finché non si cerca, sei ricerche
+    coi loro esiti, l'esito che atterra sull'ancora giusta, Invio, i rimandi
+    interni e di capitolo, la via d'uscita dal filtro di capitolo, 390px in
+    verticale e coricato, console pulita, nessuna richiesta fallita); `tsc` e
+    `build` ok, 52 pagine statiche.
+    Difetto trovato dalla misura e corretto: il tetto dell'elenco dei risultati
+    era `26rem`, ma il rem di questo sito scala con la **larghezza**
+    (`clamp(17px, 15.3px + 0.45vw, 21px)`), quindi su un telefono coricato
+    (780×390) l'elenco era più alto della finestra — ora `min(26rem, 60vh)`.
 - [ ] **SRD 5.1 (2014) in italiano** — in futuro, come edizione alternativa
   affiancata alla 5.2.1 (selettore di edizione, non una sostituzione).
 - [ ] **Traduzione inglese** — in futuro, dopo il completamento dell'italiano:

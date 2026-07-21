@@ -1,4 +1,5 @@
 import { ATTRIBUZIONE_SRD, CAPITOLI } from "@/lib/srd";
+import { CercaNelleRegole } from "./cerca";
 import "./srd.css";
 
 export const metadata = {
@@ -25,6 +26,11 @@ export default function SrdPage() {
         Il regolamento ufficiale della quinta edizione, nella traduzione italiana del
         System Reference Document 5.2.1. Consultabile, ricercabile, gratis.
       </p>
+
+      {/* La ricerca prima dell'elenco: chi arriva qui ha in mano un termine —
+          "afferrato", "palla di fuoco" — molto più spesso del nome del capitolo
+          che lo contiene. L'elenco resta sotto, per chi vuole leggere. */}
+      <CercaNelleRegole />
 
       <ul className="srd-capitoli">
         {pronti.map((c) => (

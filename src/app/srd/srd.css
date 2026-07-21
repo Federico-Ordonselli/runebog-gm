@@ -256,3 +256,52 @@ a.srd-capitoli__link:hover .srd-capitoli__titolo { color: var(--wisp-lit); }
   border-top: 1px solid var(--edge);
 }
 .srd-livelli-nav__qui { color: var(--lantern); }
+
+/* --- Ricerca trasversale ai capitoli -------------------------------------- */
+
+/* Sta in cima a /srd, sopra l'elenco dei capitoli: chi arriva ha in mano un
+   termine più spesso del nome del capitolo che lo contiene. */
+.srd-cerca { display: block; margin: 1.5rem 0 0; }
+.srd-cerca__campo { width: 100%; }
+.srd-cerca__stato { margin-top: 0.5rem; }
+
+.srd-cerca__esiti {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  /* I risultati non spingono in fondo alla pagina l'elenco dei capitoli:
+     scorrono per conto loro, come l'indice laterale di un capitolo.
+     Il tetto è anche in vh perché il rem di questo sito scala con la LARGHEZZA
+     (`clamp(17px, 15.3px + 0.45vw, 21px)` in globals.css): su un telefono
+     coricato 26rem sono 442px contro 390 di schermo, cioè un elenco più alto
+     della finestra, senza bordo inferiore visibile né pagina intorno. */
+  max-height: min(26rem, 60vh);
+  overflow-y: auto;
+  border: 1px solid var(--edge);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+.srd-cerca__esito {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.2rem 1rem;
+  padding: 0.45rem 0.75rem;
+  color: inherit;
+  text-decoration: none;
+}
+.srd-cerca__esiti li + li .srd-cerca__esito { border-top: 1px solid var(--edge); }
+.srd-cerca__testo { color: var(--lantern); }
+a.srd-cerca__esito:hover { background: var(--surface-hov); }
+a.srd-cerca__esito:hover .srd-cerca__testo { color: var(--wisp-lit); }
+/* La pagina di provenienza non va a capo da sola: è l'etichetta che distingue
+   i dodici "Livello 4: Aumento dei punteggi di caratteristica" fra loro. */
+.srd-cerca__dove { white-space: nowrap; }
+
+/* --- Rimandi «Vedi anche "…"» --------------------------------------------- */
+
+/* Il rimando è dentro la prosa e non deve gridare: eredita il corsivo o il
+   grassetto del pezzo che collega (il taglio conserva gli span), e si distingue
+   con la sottolineatura tenue dei link quieti del sito. */
+.srd-rimando { text-decoration-thickness: 1px; text-underline-offset: 0.15em; }

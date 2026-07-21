@@ -33,7 +33,16 @@ export function IndiceCapitolo({ voci }: { voci: Voce[] }) {
         aria-label="Filtra le voci del capitolo"
       />
       {visibili.length === 0 ? (
-        <p className="muted small srd-indice__vuoto">Nessuna voce per «{filtro}».</p>
+        /* Il filtro cerca dentro QUESTO capitolo, e chi non trova niente il più
+           delle volte sta cercando nel capitolo sbagliato: da qui si passa alla
+           ricerca trasversale con la parola già scritta, invece di tornare
+           all'indice e ricominciare. */
+        <p className="muted small srd-indice__vuoto">
+          Nessuna voce per «{filtro}» in questo capitolo.{" "}
+          <a href={`/srd?q=${encodeURIComponent(filtro.trim())}`} className="link">
+            Cerca in tutte le regole →
+          </a>
+        </p>
       ) : (
         <ol className="srd-indice__lista">
           {visibili.map((v) => (

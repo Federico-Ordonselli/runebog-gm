@@ -3,6 +3,7 @@ import {
   ATTRIBUZIONE_SRD, LIVELLI, caricaCapitolo, dividiIncantesimi,
   slugLivello, titoloLivello,
 } from "@/lib/srd";
+import { rimandiDi } from "@/lib/srd/ancore";
 import { Blocchi } from "../blocchi";
 import "../srd.css";
 
@@ -61,7 +62,7 @@ export default async function IncantesimiPage() {
 
       <h2 className="srd-h2">Lanciare gli incantesimi</h2>
       <article className="srd-testo">
-        <Blocchi blocchi={intro} />
+        <Blocchi blocchi={intro} rimandi={await rimandiDi("incantesimi")} />
       </article>
 
       <hr className="rule" />

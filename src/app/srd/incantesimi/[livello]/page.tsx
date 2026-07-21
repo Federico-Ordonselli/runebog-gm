@@ -3,6 +3,7 @@ import {
   ATTRIBUZIONE_SRD, LIVELLI, caricaCapitolo, dividiIncantesimi,
   livelloDaSlug, slugLivello, titoloLivello,
 } from "@/lib/srd";
+import { rimandiDi } from "@/lib/srd/ancore";
 import { Blocchi } from "../../blocchi";
 import { IndiceCapitolo, type Voce } from "../../indice";
 import "../../srd.css";
@@ -53,7 +54,7 @@ export default async function LivelloPage({ params }: { params: Promise<{ livell
       <div className="srd-corpo">
         <IndiceCapitolo voci={voci} />
         <article className="srd-testo">
-          <Blocchi blocchi={dellivello.flatMap((s) => s.blocchi)} />
+          <Blocchi blocchi={dellivello.flatMap((s) => s.blocchi)} rimandi={await rimandiDi("incantesimi")} />
 
           <nav className="srd-livelli-nav">
             {LIVELLI.map((m) => (

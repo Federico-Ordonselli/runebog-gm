@@ -3,6 +3,7 @@ import {
   ATTRIBUZIONE_SRD, SEZIONI_OGGETTI, caricaCapitolo, dividiOggetti, nellaSezione,
   sezioneDaSlug,
 } from "@/lib/srd";
+import { rimandiDi } from "@/lib/srd/ancore";
 import { Blocchi } from "../../blocchi";
 import { IndiceCapitolo, type Voce } from "../../indice";
 import "../../srd.css";
@@ -51,7 +52,7 @@ export default async function CategoriaPage({ params }: { params: Promise<{ cate
       <div className="srd-corpo">
         <IndiceCapitolo voci={voci} />
         <article className="srd-testo">
-          <Blocchi blocchi={suoi.flatMap((o) => o.blocchi)} />
+          <Blocchi blocchi={suoi.flatMap((o) => o.blocchi)} rimandi={await rimandiDi("oggetti-magici")} />
 
           <nav className="srd-livelli-nav">
             {SEZIONI_OGGETTI.map((s) => (

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { ATTRIBUZIONE_SRD, caricaCapitolo, dividiClassi } from "@/lib/srd";
+import { rimandiDi } from "@/lib/srd/ancore";
 import { Blocchi } from "../../blocchi";
 import { IndiceCapitolo, type Voce } from "../../indice";
 import "../../srd.css";
@@ -55,7 +56,7 @@ export default async function ClassePage({ params }: { params: Promise<{ classe:
         <IndiceCapitolo voci={voci} />
         <article className="srd-testo">
           {/* Senza l'h2: è il titolo della pagina, che sta già in cima. */}
-          <Blocchi blocchi={c.blocchi.slice(1)} />
+          <Blocchi blocchi={c.blocchi.slice(1)} rimandi={await rimandiDi("classi")} />
 
           <nav className="srd-livelli-nav">
             {tutte.map((x) => (

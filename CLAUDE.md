@@ -170,6 +170,45 @@ corsivo insieme al pallino.
 L'attribuzione CC-BY (`ATTRIBUZIONE_SRD`) va resa in fondo a ogni pagina — è una
 condizione della licenza, non una cortesia.
 
+**Il registro delle ancore** (`src/lib/srd/ancore.ts`) dice, per ognuno dei 1530
+titoli, l'indirizzo della pagina che lo serve: **un id di titolo non basta a
+costruire un link**, perché tre capitoli stanno su più pagine e a decidere quale
+porti quale titolo sono i divisori, non l'id del capitolo. Per questo il registro
+si costruisce facendo girare `dividiClassi`/`dividiIncantesimi`/`dividiOggetti`,
+gli stessi che usano le pagine: una tabella scritta a mano sarebbe una seconda
+verità, e il giorno che si spezza un altro capitolo il link atterrerebbe sulla
+pagina giusta ma in cima, senza agganciare niente — che è il modo peggiore di
+rompersi, perché sembra funzionare. Le classi sono il caso da tenere a mente:
+l'h2 di una classe **è** la pagina (`[classe]/page.tsx` non lo rende), quindi il
+suo href non ha frammento. Ne vivono due cose:
+
+- **La ricerca trasversale** (`/srd`, `cerca.tsx`) sui titoli di tutti i
+  capitoli. L'indice è servito da `/srd/ancore.json` — una route handler
+  `force-static`, quindi un asset e non una funzione — e si scarica **alla prima
+  interazione col campo**, non al caricamento: chi apre /srd per scegliere un
+  capitolo non paga niente, chi cerca paga 82 KB (21 gzip) una volta sola e poi
+  li ha in cache. Stessa ragione per cui il bestiario è un file a sé.
+  L'etichetta di un risultato è la **pagina**, non il capitolo: senza, i dodici
+  "Livello 4: Aumento dei punteggi di caratteristica" sarebbero dodici righe
+  identiche. Il tetto dell'elenco è `min(26rem, 60vh)` e il `vh` non è
+  decorativo — il rem di questo sito scala con la *larghezza*, quindi su un
+  telefono coricato 26rem sono più alti dello schermo.
+- **I rimandi «Vedi anche "…"»** resi come link (89 blocchi del glossario, 129
+  link). Le posizioni arrivano sul **testo piatto** del blocco e `blocchi.tsx` le
+  riproietta sugli span, perché il rimando li attraversa sempre: «Vedi anche» è
+  in corsivo e i termini no, in 90 casi su 90. Due regole a decidere dove punta:
+  il rimando cita prima il capitolo e poi la sezione (`Vedi anche
+  "Equipaggiamento" ("Armi")`), e quel capitolo è un **vincolo, non un
+  suggerimento** — senza, "Armi" finiva negli oggetti magici, dove pure esiste;
+  e il suffisso fra quadre non fa parte del nome, che il glossario intitola
+  "Afferrato [condizione]" e il rimando cita "Afferrato". Fuori da un contesto
+  dichiarato si collega solo ciò che è univoco in tutta la sezione: un link alla
+  voce sbagliata è peggio di un rimando che resta testo. **41 termini su 170
+  restano testo** ed è corretto così: 32 sono titoli di sezione stampati sulle
+  tavole illustrate del PDF (pp. 5, 6, 12, 16, 118: `pdffonts` dice zero font),
+  quindi non esistono come testo in nessun capitolo — ma il nome del capitolo
+  accanto è comunque un link, e il rimando porta comunque da qualche parte.
+
 Nel PDF la semantica sta nei font, non nel testo (come per il bestiario): il rosso
 a taglia 39/27/21/18 sono i livelli di titolo, Cambria = prosa, GillSans = celle
 ed elenchi. Trappole già pagate:
