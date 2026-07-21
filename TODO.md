@@ -338,7 +338,70 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
        riprende nella colonna accanto, non a pagina nuova — è il caso già
        annotato fra le rifiniture) e la tabella Temperatura/Vento di *controllare
        il clima* fonde le intestazioni delle due metà affiancate («Vento Grado»).
-    4. **Oggetti magici** (pp. 232–288): come sopra (sintonia, rarità, tipo).
+    4. [x] **Oggetti magici** (pp. 232–288) — pubblicato (21 lug 2026), 10/10 al
+       verificatore, 258 oggetti su dieci pagine. Il capitolo ha portato un
+       difetto nuovo e uno di forma.
+       Il difetto nuovo: **il PDF compone in GillSans-SemiBold anche cose che
+       stanno dentro una cella** — le chiavi degli elenchi annidati («…tirando
+       un 1d10: con **1**, *allucinazione*; con **2**, *folata di vento*») e i
+       nomi delle creature («45–51 | **Un cavallo da galoppo** dotato di
+       sella»). È lo stesso font dei titoli di colonna, quindi la raccolta delle
+       celle si fermava lì: il Cappello dei molti incantesimi usciva con un
+       «4 ,» in colonna 1 e la mezza frase accanto, la Tunica degli oggetti
+       utili si troncava a metà e il seguito ripartiva come tabella nuova
+       intitolata col nome del cavallo. Due regole, e a decidere è sempre la
+       **distanza**, non il font:
+       - a metà riga il grassetto si ricuce col resto (`proseguiIlRuolo`): il
+         ruolo di una riga lo dichiara il frammento che la apre. Vale in una
+         direzione sola, e l'ha detto la misura — nel PDF i frammenti attaccati
+         con ruoli diversi sono 1671, di cui **1602 nell'altro verso** (gli
+         attacchi di cella «*Rosso.* Tiro salvezza…» e le etichette delle
+         schede), che devono restare righe a sé.
+       - a inizio riga il grassetto è una cella se è **attaccato** a del testo
+         normale (`dentroUnaCella`): sono due frammenti che si sarebbero
+         ricuciti se non fosse per il font. Guardare solo «c'è del testo normale
+         sulla stessa riga» è stato provato e scartato — prende anche le griglie
+         a chiave grassa dei tratti di classe («Caratteristiche primarie |
+         Forza»), dove il valore sta in un'altra colonna e la chiave è una
+         chiave. Con la distanza il risultato su Oggetti magici è identico e
+         `classi` non si muove.
+       Il difetto di forma: **un titolo di colonna impilato su due righe**.
+       «1d100» sopra «(Mazzo da 13 carte)» sono due frammenti, quindi la guardia
+       sulle maiuscole di `raffinaConCelle` non scattava, e sotto ci sono sia i
+       trattini centrati sia gli intervalli allineati a sinistra — la stessa
+       geometria di «Peso» con «0,5» e «kg». La prima colonna si spaccava fra
+       «(Mazzo da» e «13 carte)» e il Mazzo delle meraviglie **collassava in una
+       riga sola**. Ora un taglio che lascia una parentesi spaiata si rifiuta
+       sempre: in un titolo le parentesi sono bilanciate. La tabella è tornata
+       22 righe × 3 colonne.
+       Altre due, minori: lo spazio non si mette davanti a un segno di chiusura
+       quando due frammenti finiscono nella stessa cella («elefante ;»), e una
+       riga che apre con una parentesi è la continuazione di quella sopra, mai
+       una voce nuova («Cintura della forza dei giganti» / «(delle colline)»,
+       «Pozione di guarigione» / «(maggiore)»).
+       **Dieci pagine, non una**: resa intera la pagina fa 942 KB di HTML, il
+       triplo del glossario. Il taglio è la **categoria**, che la riga in corsivo
+       dichiara esattamente come il livello di un incantesimo — `dividiOggetti`
+       è il gemello di `dividiIncantesimi`, e il registro sta in
+       `SEZIONI_OGGETTI`. Gli oggetti meravigliosi sono 127 su 258 e da soli
+       sfondavano il tetto: spezzati a metà alfabeto (A–L / M–Z), l'unico taglio
+       che il capitolo stesso suggerisce. La più pesante ora è 273 KB, sotto il
+       glossario (331 KB). Il JSON resta uno.
+       Verificato: 34/34 in Chromium (258 oggetti elencati una volta sola, i
+       conteggi delle dieci sezioni combaciano con gli elenchi, ancore univoche
+       su ogni pagina, nessun residuo del PDF a schermo, le tre tabelle che
+       erano rotte lette cella per cella, niente scorrimento orizzontale a
+       1280px e 390px, nessuna richiesta fallita, console pulita); i cinque
+       capitoli già pubblicati rigenerati e **quattro byte-identici** — il
+       quinto, Equipaggiamento, cambia di una riga in una griglia già
+       degenere (la tabella dei veicoli), dove due frammenti d'intestazione si
+       ricompongono meglio; `tsc` e `build` ok.
+       **Debito noto**, accettato al momento di pubblicare: restano 4 celle
+       vuote su 804 (0,5%), tutte dove il PDF emette un frammento unico per due
+       colonne e la divisione resta stimata — «Golem di pietra 90 giorni» fuso
+       in una cella, e i due riquadri Rarità/Valore e Tempi/Costi che affiancano
+       la stessa tabella due volte (lo stesso caso di «Vitto e alloggio» in
+       Equipaggiamento).
        Da sapere: `estrai-srd-mostri.mjs` **scarta** il font Cambria, perché lì
        è la prosa di questo capitolo che sporca le schede mostro; in
        `estrai-srd-regole.mjs` Cambria è invece il corpo del testo. I due

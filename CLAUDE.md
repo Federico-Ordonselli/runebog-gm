@@ -127,15 +127,24 @@ colonne fuse ("11 Stoffa, carta, corda" in una cella sola) passa 10/10, perché
 il testo c'è tutto e le righe restano rettangolari. Quindi ogni volta che si
 tocca l'estrattore vanno **rigenerati anche i capitoli già pubblicati** e
 letto il diff: è l'unico controllo che coglie questa classe di guasti.
-**Incantesimi** è il solo capitolo servito su più pagine: `/srd/incantesimi` è
-l'elenco per livello più le regole di lancio, `/srd/incantesimi/[livello]` (dieci
-rotte, `trucchetti` e `livello-1`…`livello-9`) le descrizioni. Il JSON resta
-**uno**: è importato lato server e al browser non arriva mai, quindi a pesare è
-l'HTML reso — spezzare le pagine basta, spezzare il file no. `dividiIncantesimi`
-in `src/lib/srd/index.ts` fa il taglio, e il livello lo dichiara la riga in
-corsivo sotto il nome: è anche il solo segnale che distingue un incantesimo da
-un sottotitolo qualsiasi (355 `h4`, 339 incantesimi). Per questo il capitolo è
-escluso dai `generateStaticParams` di `[capitolo]`.
+**Due capitoli sono serviti su più pagine** — quelli elencati in
+`CAPITOLI_A_PIU_PAGINE`, che per questo sono esclusi dai `generateStaticParams`
+di `[capitolo]`. Il JSON però resta **uno** in entrambi i casi: è importato lato
+server e al browser non arriva mai, quindi a pesare è l'HTML reso — spezzare le
+pagine basta, spezzare il file no. In tutti e due il taglio lo dichiara **la riga
+in corsivo sotto il nome**, che è anche il solo segnale che distingue una voce
+vera da un sottotitolo qualsiasi:
+
+- **Incantesimi**: `/srd/incantesimi` è l'elenco per livello più le regole di
+  lancio, `/srd/incantesimi/[livello]` (dieci rotte, `trucchetti` e
+  `livello-1`…`livello-9`) le descrizioni. Il corsivo dice il livello
+  (355 `h4`, 339 incantesimi); il taglio è `dividiIncantesimi`.
+- **Oggetti magici**: `/srd/oggetti-magici` è l'elenco per categoria più le
+  regole, `/srd/oggetti-magici/[categoria]` le descrizioni. Il corsivo dice la
+  categoria (268 `h4`, 258 oggetti); il taglio è `dividiOggetti` e il registro
+  delle pagine è `SEZIONI_OGGETTI`. Gli oggetti meravigliosi sono metà del
+  capitolo e stanno su due pagine (A–L, M–Z): è l'unica sezione spezzata, e per
+  peso — 942 KB tutto insieme contro i 331 KB del glossario, che è il tetto.
 
 `src/lib/srd/index.ts` tiene il tipo del documento e il registro `CAPITOLI`, dove
 il flag `pronto` dice se il JSON esiste: la sezione cresce un capitolo alla volta,
@@ -200,6 +209,21 @@ ed elenchi. Trappole già pagate:
   nel font dei titoli») è stata provata e scartata: distrugge «Terreno di
   viaggio», dove metà dei titoli è in GillSans normale — e il verificatore dava
   10/10 lo stesso.
+- **Lo stesso font sta anche DENTRO le celle**, e non solo in testa: negli
+  oggetti magici il PDF ci compone le chiavi degli elenchi annidati («…tirando
+  un 1d10: con **1**, *allucinazione*; con **2**, *folata di vento*») e i nomi
+  delle creature («45–51 | **Un cavallo da galoppo** dotato di sella»). A
+  decidere è la **distanza**, non il font, e in due punti diversi: a metà riga
+  il grassetto si ricuce col resto (`proseguiIlRuolo` — il ruolo di una riga lo
+  dichiara il frammento che la apre), a inizio riga è una cella se è
+  **attaccato** a del testo normale (`dentroUnaCella` in `tabella`, soglia
+  `ATTACCATI`). La ricucitura vale in **una direzione sola**, e l'ha detto la
+  misura: dei 1671 frammenti attaccati con ruoli diversi, 1602 sono nell'altro
+  verso — gli attacchi di cella e le etichette delle schede, che devono restare
+  righe a sé perché è il punto finale a qualificarli. E «c'è del testo normale
+  sulla stessa riga», senza il vincolo di distanza, è stato provato e scartato:
+  prende le griglie a chiave grassa dei tratti di classe («Caratteristiche
+  primarie | Forza»), dove il valore sta in un'altra colonna.
 - **Non tutto ciò che sembra una tabella lo è.** I riquadri a coppie
   etichetta/valore (gli strumenti di Equipaggiamento, e domani le schede
   incantesimo) affiancano due coppie sulla prima riga per risparmiare carta:
@@ -261,6 +285,14 @@ ed elenchi. Trappole già pagate:
   trasporto"). Solo col frammento unico: quando i titoli sono più d'uno le
   sottocolonne sono dichiarate, e sopra ci passa un raggruppamento che le
   scavalca ("Distanza percorsa ogni…" sopra Minuto e Ora).
+  Le **parentesi** invece valgono sempre, quanti che siano i frammenti: in un
+  titolo sono bilanciate, quindi un taglio che ne lascia una spaiata è sbagliato
+  per costruzione. Serve perché un titolo può essere impilato su due righe —
+  "1d100" sopra "(Mazzo da 13 carte)" sono due frammenti, quindi la guardia
+  sulle maiuscole non scatta — e sotto ci sono sia i trattini centrati sia gli
+  intervalli allineati a sinistra, cioè la geometria di "Peso" con "0,5" e "kg":
+  la colonna si spaccava fra "(Mazzo da" e "13 carte)" e il Mazzo delle
+  meraviglie collassava in una riga sola.
   Il titolo si assegna col proprio centro, che i titoli sono centrati e i dati no. Le righe d'intestazione si raccolgono fino
   all'ultima che contiene *almeno un* frammento nel font delle intestazioni, e
   poi fino in fondo alla sua riga visiva: in "Terreno di viaggio" metà dei titoli
@@ -282,6 +314,16 @@ ed elenchi. Trappole già pagate:
   parola. Vale per le celle e **non** per le intestazioni: là lo stesso test
   serve a *rifiutare* un confine sbagliato (`raffinaConCelle`, "Capacità di
   trasporto"), e agganciare il taglio glielo farebbe passare sempre.
+- **Una riga che apre con una parentesi non è una voce nuova**: la parentesi
+  qualifica sempre ciò che precede, quindi è la continuazione della cella sopra
+  ("Cintura della forza dei giganti" / "(delle colline)", "Pozione di
+  guarigione" / "(maggiore)"). Sta in `prosegue`, accanto alla minuscola.
+- **Lo spazio non si mette davanti a un segno di chiusura**, e non solo
+  ricucendo i frammenti: anche quando due righe finiscono nella stessa cella
+  (`unisciNellaCella`). Il PDF stacca il frammento al cambio di font, quindi un
+  nome di creatura in grassetto e il suo punto e virgola arrivano separati e
+  uscivano "elefante ;". Parentesi aperte e virgolette basse restano fuori: lo
+  spazio davanti lo vogliono.
 - **La pagina non è a due colonne: è a fasce.** Una tabella a piena pagina
   attraversa la separazione fra le colonne di testo (`COLONNA_DESTRA`, x=440) e
   spezzarla a metà la distruggeva. Si riconosce da un frammento che *attraversa*

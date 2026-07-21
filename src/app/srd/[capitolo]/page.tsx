@@ -1,14 +1,15 @@
 import { notFound } from "next/navigation";
-import { ATTRIBUZIONE_SRD, CAPITOLI, caricaCapitolo } from "@/lib/srd";
+import { ATTRIBUZIONE_SRD, CAPITOLI, CAPITOLI_A_PIU_PAGINE, caricaCapitolo } from "@/lib/srd";
 import { Blocchi } from "../blocchi";
 import { IndiceCapitolo, type Voce } from "../indice";
 import "../srd.css";
 
 /* Solo i capitoli già generati: gli altri sono elencati su /srd ma non hanno
-   ancora una pagina, e devono dare 404, non una pagina vuota. Incantesimi ha le
-   sue rotte statiche (una pagina per livello) e non passa di qui. */
+   ancora una pagina, e devono dare 404, non una pagina vuota. I due capitoli
+   lunghi (Incantesimi per livello, Oggetti magici per categoria) hanno rotte
+   statiche proprie e non passano di qui. */
 export function generateStaticParams() {
-  return CAPITOLI.filter((c) => c.pronto && c.id !== "incantesimi")
+  return CAPITOLI.filter((c) => c.pronto && !CAPITOLI_A_PIU_PAGINE.includes(c.id))
     .map((c) => ({ capitolo: c.id }));
 }
 

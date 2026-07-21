@@ -164,6 +164,37 @@ function serveSpazio(ult, f) {
   return gap >= soglia;
 }
 
+/* Due frammenti attaccati si ricuciscono solo se dicono la stessa cosa sul ruolo
+   della riga — sennò le celle di una tabella si fonderebbero con la colonna
+   accanto. Ma il ruolo di una riga lo dichiara il frammento che la APRE, e un
+   grassetto che arriva a metà riga è enfasi, non un'intestazione: negli oggetti
+   magici gli elenchi annidati dentro una cella ("…tirando un 1d10: con 1,
+   allucinazione; con 2, folata di vento") e i nomi delle creature evocate
+   ("Spuntano 3 boleti stridenti") sono in GillSans-SemiBold come i titoli di
+   colonna. Presi per intestazioni spezzavano la riga in tre pezzi e fermavano
+   la raccolta delle celle a metà tabella: nel "Cappello dei molti incantesimi"
+   restavano un "4 ," in colonna 1 e la mezza frase accanto.
+ *
+ * Vale in una direzione sola, ed è la misura a dirlo: nel PDF i frammenti
+ * attaccati con ruoli diversi sono 1671, di cui 1602 nell'altro verso — il
+ * grassetto che APRE una cella ("Rosso. Tiro salvezza fallito…") e le etichette
+ * delle schede ("Peso:"). Quelli devono restare righe a sé: è il punto finale,
+ * non la posizione, a distinguerli dalle intestazioni vere. */
+const proseguiIlRuolo = (ult, f) =>
+  ult.ruolo === f.ruolo || (ult.ruolo === "gill" && f.ruolo === "intestazione-cella");
+
+/* px: sotto questo scarto orizzontale due frammenti della stessa riga visiva si
+   toccano, e quindi sono la stessa frase. Stretto apposta — a 12px si fondevano
+   le celle di una tabella con la colonna accanto. Vale sia per ricucire (sopra)
+   sia per riconoscere il grassetto che sta DENTRO una cella (vedi tabella). */
+const ATTACCATI = 6;
+
+/* Due frammenti della stessa riga visiva: il numero di riga è già calcolato
+   dentro la fascia e la colonna di pagina, quindi confrontarli è un'uguaglianza
+   e non una tolleranza. */
+const stessaRigaVisiva = (a, b) => !!a && !!b && a.pag === b.pag
+  && a.fascia === b.fascia && a.col === b.col && a.riga === b.riga;
+
 const TOLLERANZA_RIGA = 3;  // px: entro questo salto due frammenti sono la stessa riga visiva
 const SALTO_BANDA = 40;   // px: oltre questo due righe non sono la stessa tabella
 
@@ -270,16 +301,13 @@ function righeDelPdf(pdf, da, a) {
     }
     frag.sort((x, y) => x.fascia - y.fascia || x.col - y.col || x.riga - y.riga || x.left - y.left);
 
-    /* Frammenti sulla stessa riga si fondono solo se *attaccati* (<6px): il PDF
-       spezza una riga a ogni cambio di stile, e quei pezzi vanno ricuciti. La
-       soglia è stretta apposta — a 12px si fondevano anche le celle di una
-       tabella con la colonna accanto, cancellando la geometria su cui le
-       colonne si ricostruiscono. */
+    /* Frammenti sulla stessa riga si fondono solo se *attaccati*: il PDF spezza
+       una riga a ogni cambio di stile, e quei pezzi vanno ricuciti. */
     for (const f of frag) {
       const ult = righe[righe.length - 1];
       const stessaRiga = ult && ult.pag === f.pag && ult.riga === f.riga
         && ult.fascia === f.fascia && ult.col === f.col
-        && ult.ruolo === f.ruolo && f.left - (ult.left + ult.larg) < 6;
+        && proseguiIlRuolo(ult, f) && f.left - (ult.left + ult.larg) < ATTACCATI;
       if (stessaRiga) {
         /* Lo spazio di separazione va nello span *senza stile*: quello che separa
            la prosa da un corsivo come "Vedi anche" non è esso stesso in corsivo.
@@ -475,6 +503,17 @@ function raffinaConCelle(gruppi, titolari, celle) {
     const soli = titolari.filter(t =>
       t.left < x2 - TOLLERANZA_X && t.left + t.larg > x1 + TOLLERANZA_X).length === 1;
     if (tagliato && soli && !pezzi.every(p => /^[A-ZÀ-Ý0-9]/.test(p.trim()))) tagliato = false;
+
+    /* Le parentesi invece valgono sempre, quanti che siano i frammenti: in un
+       titolo sono bilanciate, quindi un taglio che ne spezza una è sbagliato per
+       costruzione. Il Mazzo delle meraviglie ha "1d100" impilato sopra "(Mazzo
+       da 13 carte)" — due frammenti, quindi la guardia delle maiuscole non
+       scatta — e sotto ha sia i trattini centrati sia gli intervalli allineati a
+       sinistra, cioè la stessa geometria di "Peso" con "0,5" e "kg": la prima
+       colonna usciva spaccata fra "(Mazzo da" e "13 carte)", e la tabella intera
+       collassava in una riga sola. */
+    if (tagliato && pezzi.some(p => (p.match(/\(/g) || []).length !== (p.match(/\)/g) || []).length))
+      tagliato = false;
     if (tagliato) colonne.push(...dentro);
   }
   return colonne.sort((a, b) => a - b);
@@ -549,6 +588,17 @@ function dividiCella(testo, left, larg, x) {
   return [div[0].slice(0, indietro), div[0].slice(indietro + 1) + " " + div[1]];
 }
 
+/* Più frammenti nella stessa cella si accodano con uno spazio, ma non davanti a
+   un segno di chiusura: nelle tabelle degli oggetti magici il nome di una
+   creatura è in grassetto e il PDF stacca lì il frammento, quindi "elefante" e
+   ";  con 2 compare un rinoceronte" arrivano separati e uscivano "elefante ;".
+   È lo stesso criterio tipografico di serveSpazio, applicato un piano più su:
+   quei due pezzi non si sono ricuciti perché hanno font diversi, non perché
+   siano due frasi. Parentesi aperte e virgolette basse restano fuori: quelle lo
+   spazio davanti lo vogliono. */
+const unisciNellaCella = (avanti, testo) =>
+  !avanti ? testo : /^[,;:.!?»)]/.test(testo) ? avanti + testo : avanti + " " + testo;
+
 /* Dispone i frammenti nella griglia delle colonne date. Una riga la cui prima
    cella è vuota non è una riga: è il seguito a capo di quella sopra — nel PDF
    una cella lunga va a capo restando nella sua colonna. */
@@ -591,11 +641,11 @@ function grigliaDaFrammenti(frammenti, colonne) {
         ? dividiCella(testo, c.left, c.larg, seguente)
         : null;
       if (diviso) {
-        riga[i] = (riga[i] ? riga[i] + " " : "") + diviso[0];
-        riga[i + 1] = (riga[i + 1] ? riga[i + 1] + " " : "") + diviso[1];
+        riga[i] = unisciNellaCella(riga[i], diviso[0]);
+        riga[i + 1] = unisciNellaCella(riga[i + 1], diviso[1]);
         continue;
       }
-      riga[i] = (riga[i] ? riga[i] + " " : "") + testo;
+      riga[i] = unisciNellaCella(riga[i], testo);
     }
     /* Continuazione a capo: o la prima cella manca, o tutte le celle sono
        rientrate rispetto alla loro colonna (nel PDF il seguito di una cella
@@ -615,9 +665,13 @@ function grigliaDaFrammenti(frammenti, colonne) {
        del turno.") — ma su come comincia la voce: una riga nuova di queste
        tabelle inizia con maiuscola o con una cifra, quindi una minuscola in
        prima colonna è testo che prosegue. La sillabazione sospesa nella riga
-       sopra è il segnale più forte e vale da sola. */
+       sopra è il segnale più forte e vale da sola.
+       Nemmeno con una parentesi aperta, che qualifica sempre ciò che precede:
+       negli oggetti magici le varianti stanno a capo fra parentesi ("Cintura
+       della forza dei giganti" / "(delle colline)", "Pozione di guarigione" /
+       "(maggiore)") e uscivano come righe a sé, con le altre colonne vuote. */
     const prosegue = prec && riga.length > 1 && riga[0]
-      && (/^[a-zàèéìòù]/.test(riga[0]) || /[a-zàèéìòù]-$/.test(prec[0]));
+      && (/^[(a-zàèéìòù]/.test(riga[0]) || /[a-zàèéìòù]-$/.test(prec[0]));
 
     if (prec && (!riga[0] || rientrata || prosegue)) {
       for (let i = 0; i < riga.length; i++) {
@@ -843,12 +897,17 @@ function tabella(righe, k) {
      con un attacco in grassetto nello STESSO font dei titoli ("1 | Rosso.
      Tiro salvezza fallito…"), e prendendolo per intestazione la tabella
      usciva a brandelli — tre colonne inventate, il testo rimescolato.
-     Il discriminante è il PUNTO FINALE, la stessa convenzione con cui il
-     documento apre le definizioni in mezzo alla prosa (vedi forseDefinizione):
-     un titolo di colonna non finisce col punto, un attacco di cella sì.
+     Il discriminante è la PUNTEGGIATURA FINALE, la stessa convenzione con cui
+     il documento apre le definizioni in mezzo alla prosa (vedi
+     forseDefinizione): un titolo di colonna non finisce con un segno, il
+     grassetto dentro una cella sì. Col punto sono gli attacchi di cella; con
+     la virgola sono le chiavi degli elenchi annidati negli oggetti magici
+     ("con 4, il Piano dell'Acqua; con 5, la Selva Fatata"), che quando cadono a
+     inizio di riga visiva aprono una riga per conto loro e, prese per
+     intestazioni, troncavano la tabella a metà cella.
      Il confronto esclude i puntini di sospensione, che invece un titolo può
      avere ("L'incantatore conosce il bersaglio in maniera..." in Scrutare). */
-  const attaccoDiCella = r => /[^.]\.$/.test(testoDi(r.span).trim());
+  const attaccoDiCella = r => /[^.][.,]$/.test(testoDi(r.span).trim());
   let ultima = -1;
   for (let j = senzaDidascalia ? k : k + 1; j < righe.length && righe[j].pag === cap.pag
        && righe[j].top - cap.top <= 80; j++)
@@ -891,13 +950,38 @@ function tabella(righe, k) {
 
   /* Un attacco di cella in grassetto ("Rosso.") è una CELLA, non la fine della
      tabella: fermandosi lì "Strati prismatici" si chiudeva dopo una riga e i
-     sei strati restanti finivano in una griglia a parte, rimescolati. */
-  const eCella = r => r.ruolo === "gill" || (r.ruolo === "intestazione-cella" && attaccoDiCella(r));
+     sei strati restanti finivano in una griglia a parte, rimescolati.
+   *
+   * L'altra cella in grassetto senza punteggiatura che la denunci è il nome di
+   * una creatura: negli oggetti magici il PDF li compone in GillSans-SemiBold
+   * anche dentro le tabelle ("45–51 | Un cavallo da galoppo dotato di sella",
+   * "compare un elefante; con 2 compare un rinoceronte"). Il segnale è che il
+   * grassetto è ATTACCATO a del testo normale sulla stessa riga visiva: sono
+   * due frammenti che si sarebbero ricuciti se non fosse per il font, cioè una
+   * frase sola. La tabella della tunica delle toppe si troncava lì a metà e il
+   * seguito ripartiva come tabella nuova, intitolata col nome del cavallo.
+   *
+   * A discriminare è la DISTANZA, non la direzione: in una griglia a chiave
+   * grassa ("Caratteristiche primarie | Forza", i tratti di ogni classe) il
+   * valore sta in un'altra colonna, a decine di pixel, e la chiave resta una
+   * chiave. Chiedere solo "c'è del testo normale sulla stessa riga" faceva
+   * diventare tabelle quelle griglie, con le chiavi impilate nell'intestazione.
+   *
+   * In nessun caso questo test può decidere dove FINISCONO le intestazioni: in
+   * "Terreno di viaggio" metà dei titoli è in GillSans normale sulla stessa
+   * riga visiva. Dopo le intestazioni però la domanda è un'altra — non "dove
+   * finisce il cappello" ma "questa riga è una cella" — e lì vale. */
+  const attaccate = (a, b) => stessaRigaVisiva(a, b) && b.left - (a.left + a.larg) < ATTACCATI;
+  const dentroUnaCella = k =>
+    (righe[k - 1]?.ruolo === "gill" && attaccate(righe[k - 1], righe[k]))
+    || (righe[k + 1]?.ruolo === "gill" && attaccate(righe[k], righe[k + 1]));
+  const eCella = k => righe[k].ruolo === "gill"
+    || (righe[k].ruolo === "intestazione-cella" && (attaccoDiCella(righe[k]) || dentroUnaCella(k)));
 
   const celle = [];
   let scarto = 0;      // traslazione della coda rispetto alle colonne dichiarate
   for (;;) {
-    while (i < righe.length && eCella(righe[i])) {
+    while (i < righe.length && eCella(i)) {
       const r = righe[i++];
       celle.push(scarto ? { ...r, left: r.left - scarto } : r);
     }
@@ -906,7 +990,7 @@ function tabella(righe, k) {
     while (j < righe.length && righe[j].ruolo === "intestazione-cella"
       && !attaccoDiCella(righe[j])) ripetute.push(righe[j++]);
     if (!ripetute.length || firma(ripetute) !== miaFirma) break;
-    if (j >= righe.length || !eCella(righe[j])) break;   // intestazioni senza celle: non è una coda
+    if (j >= righe.length || !eCella(j)) break;   // intestazioni senza celle: non è una coda
     /* Solo a PAGINA NUOVA. Le stesse intestazioni si ripetono anche quando una
        tabella corta è impaginata a metà per colonna ("Esempi di tiri salvezza":
        Forza/Destrezza/Costituzione a sinistra, Intelligenza/Saggezza/Carisma a

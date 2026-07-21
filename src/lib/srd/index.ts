@@ -48,7 +48,7 @@ export const CAPITOLI: { id: string; titolo: string; sommario: string; pronto: b
   { id: "incantesimi", titolo: "Incantesimi", sommario: "Lanciare gli incantesimi e le descrizioni complete, dai trucchetti al 9º livello.", pronto: true },
   { id: "glossario-delle-regole", titolo: "Glossario delle regole", sommario: "Ogni termine di regola in ordine alfabetico: condizioni, azioni, aree di effetto, pericoli.", pronto: true },
   { id: "strumenti-di-gioco", titolo: "Strumenti di gioco", sommario: "Trappole, malattie, veleni, follia e gli altri arnesi del GM.", pronto: true },
-  { id: "oggetti-magici", titolo: "Oggetti magici", sommario: "Attivazione, sintonia, oggetti maledetti e il catalogo completo.", pronto: false },
+  { id: "oggetti-magici", titolo: "Oggetti magici", sommario: "Attivazione, sintonia, oggetti maledetti e il catalogo completo.", pronto: true },
 ];
 
 /** La dichiarazione di attribuzione richiesta dalla CC-BY-4.0, nei termini
@@ -61,6 +61,12 @@ export const ATTRIBUZIONE_SRD =
   'disponibile all’indirizzo https://creativecommons.org/licenses/by/4.0/legalcode.';
 
 export const capitoloPronto = (id: string) => CAPITOLI.some((c) => c.id === id && c.pronto);
+
+/** I capitoli troppo lunghi per stare in una pagina sola hanno rotte proprie
+ *  (`/srd/incantesimi/[livello]`, `/srd/oggetti-magici/[categoria]`) e vanno
+ *  tolti dai generateStaticParams di `[capitolo]`, che altrimenti prerenderebbe
+ *  la pagina intera che si è deciso di non servire. */
+export const CAPITOLI_A_PIU_PAGINE = ["incantesimi", "oggetti-magici"];
 
 /* --- Incantesimi: un capitolo, dieci pagine ------------------------------- */
 
@@ -108,6 +114,89 @@ export function dividiIncantesimi(doc: Capitolo) {
     else intro.push(b);
   }
   return { intro, incantesimi };
+}
+
+/* --- Oggetti magici: un capitolo, dieci pagine ---------------------------- */
+
+/* Stessa ragione degli incantesimi e stessa ricetta: 258 oggetti in una pagina
+   sola fanno 942 KB di HTML, il triplo del glossario, e un indice laterale da
+   294 voci. Il JSON resta uno.
+ *
+ * Qui però il taglio non è un numero ma la CATEGORIA, dichiarata dalla stessa
+ * riga in corsivo che sotto agli incantesimi dice il livello ("Anello, raro
+ * (richiede sintonia)"). È anche il solo segnale che distingue un oggetto da un
+ * sottotitolo qualsiasi: nel capitolo ci sono 268 h4 e 258 oggetti, e i dieci di
+ * troppo sono i tratti degli oggetti senzienti e le schede delle creature.
+ *
+ * Gli oggetti meravigliosi sono metà del capitolo (127 su 258) e da soli
+ * sfonderebbero il tetto: si spezzano a metà alfabeto, che è l'unico taglio che
+ * il capitolo stesso suggerisce — la sezione si chiama "Oggetti magici A–Z". */
+
+export type Oggetto = { nome: string; id: string; categoria: string; blocchi: Blocco[] };
+
+export const SEZIONI_OGGETTI: {
+  slug: string; titolo: string; categoria: string; da?: string; fino?: string;
+}[] = [
+  { slug: "anelli", titolo: "Anelli", categoria: "Anello" },
+  { slug: "armature", titolo: "Armature", categoria: "Armatura" },
+  { slug: "armi", titolo: "Armi", categoria: "Arma" },
+  { slug: "bacchette", titolo: "Bacchette", categoria: "Bacchetta" },
+  { slug: "bastoni", titolo: "Bastoni", categoria: "Bastone" },
+  { slug: "oggetti-meravigliosi-a-l", titolo: "Oggetti meravigliosi A–L", categoria: "Oggetto meraviglioso", fino: "L" },
+  { slug: "oggetti-meravigliosi-m-z", titolo: "Oggetti meravigliosi M–Z", categoria: "Oggetto meraviglioso", da: "M" },
+  { slug: "pergamene", titolo: "Pergamene", categoria: "Pergamena" },
+  { slug: "pozioni", titolo: "Pozioni", categoria: "Pozione" },
+  { slug: "verghe", titolo: "Verghe", categoria: "Verga" },
+];
+
+export const sezioneDaSlug = (s: string) => SEZIONI_OGGETTI.find((x) => x.slug === s) ?? null;
+
+/* L'iniziale che decide da che parte dell'alfabeto sta un oggetto: normalizzata,
+   perché un domani "Élmo" non deve finire fuori da entrambe le metà. */
+const iniziale = (nome: string) =>
+  nome.normalize("NFD").replace(/[\u0300-\u036f]/g, "").charAt(0).toUpperCase();
+
+export const nellaSezione = (o: Oggetto, s: (typeof SEZIONI_OGGETTI)[number]) =>
+  o.categoria === s.categoria
+  && (!s.da || iniziale(o.nome) >= s.da)
+  && (!s.fino || iniziale(o.nome) <= s.fino);
+
+/* La categoria è la prima cosa che la riga in corsivo dichiara, prima della
+   rarità o della specificazione fra parentesi ("Arma (mazza), rara"). Si accetta
+   solo se è una di quelle del registro: un corsivo qualsiasi non deve poter
+   inventare una categoria — e quindi un oggetto — che nessuna pagina serve. */
+const CATEGORIE_NOTE = new Set(SEZIONI_OGGETTI.map((s) => s.categoria));
+
+function categoriaDichiarata(b: Blocco | undefined): string | null {
+  if (!b || b.t !== "p" || !b.testo[0]?.i) return null;
+  const cat = b.testo.map((s) => s.s).join("").split(/[,(]/)[0].trim();
+  return CATEGORIE_NOTE.has(cat) ? cat : null;
+}
+
+/** Divide il capitolo nelle regole introduttive (che restano sull'indice) e nei
+ *  singoli oggetti. Come per gli incantesimi, i titoli interni a una descrizione
+ *  — le schede di creatura dell'Avatar della morte e della Mosca gigante —
+ *  restano dentro l'oggetto, dove il PDF li mette. */
+export function dividiOggetti(doc: Capitolo) {
+  const intro: Blocco[] = [];
+  const oggetti: Oggetto[] = [];
+  for (let i = 0; i < doc.blocchi.length; i++) {
+    const b = doc.blocchi[i];
+    const categoria = b.t === "h4" ? categoriaDichiarata(doc.blocchi[i + 1]) : null;
+    if (categoria !== null && b.t === "h4") {
+      oggetti.push({ nome: b.testo, id: b.id, categoria, blocchi: [b] });
+    } else if (oggetti.length) oggetti[oggetti.length - 1].blocchi.push(b);
+    else intro.push(b);
+  }
+  /* Le ultime righe dell'introduzione non introducono le regole: aprono il
+     catalogo ("Oggetti magici A–Z" e la frase che lo annuncia). Vanno con
+     l'elenco, che nella pagina sta in cima — chi arriva qui cerca un oggetto —
+     e non lasciate in fondo alle regole, dove sarebbero un titolo senza seguito.
+     Si riconoscono senza nominarle: sono tutto ciò che viene dopo l'ULTIMO
+     titolo dell'introduzione, quel titolo compreso. */
+  const ultimo = intro.map((b) => b.t).lastIndexOf("h2");
+  const catalogo = ultimo < 0 ? [] : intro.splice(ultimo);
+  return { intro, catalogo, oggetti };
 }
 
 /** Carica un capitolo generato. L'import dinamico tiene fuori dal bundle di una
