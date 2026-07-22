@@ -304,6 +304,43 @@ sono guardie:
   browser non sa dove mandare a capo, quindi il link porta anche `srd-indirizzo`
   (`overflow-wrap: anywhere`): senza, a 390 px la pagina scorreva in orizzontale.
 
+**Mostri** (`/srd/mostri`, `src/lib/srd/mostri.ts`): il bestiario, e **non è un
+capitolo**. Le 331 schede vivono in `public/app/srd-mostri.js` — lo stesso file
+che carica l'app del DM, `window.SRD_MONSTERS` — e il sito lo LEGGE di lì con un
+`readFileSync` a build time, invece di generare un `mostri.json` suo dal PDF.
+Due file dallo stesso PDF sarebbero due copie, e questo repo l'ha già pagato una
+volta (l'attribuzione CC-BY ricopiata a mano, divergente in cinque punti): due
+copie si allontanano da sole, e chi rigenera il bestiario per l'app non ha modo
+di sapere che il sito ne tiene un'altra. Per questo i mostri **non stanno in
+`CAPITOLI`** (quel registro elenca i capitoli in `capitoli/*.json`, e
+`[capitolo]` proverebbe a caricarne uno che non esiste) e hanno pagine loro.
+- Il taglio è **per tipo di creatura** (`TIPI_CREATURA`), che è la
+  classificazione dichiarata dalla riga sotto il nome ("Aberrazione Grande, …")
+  e il modo in cui un GM cerca. Come per gli oggetti magici, due tipi si spezzano
+  **solo per peso** (`SEZIONI_MOSTRI`, sedici sezioni su quattordici tipi): a
+  pesare è il numero di schede (~4,6 KB di HTML l'una), e servite intere Bestie
+  faceva 578 KB e Draghi 458, contro i 347 del glossario che è il tetto noto.
+  Bestie si spezza A–L / M–Z (i nomi coprono l'alfabeto); Draghi no — 40 su 45
+  cominciano per "D" — e lì il taglio è il **grado di sfida**, che per un drago è
+  l'età. Un criterio unico per forza avrebbe rotto uno dei due.
+- **`sezioneDi`/`hrefMostro`** sono l'unico posto che sa dov'è finito un mostro:
+  l'indirizzo di una scheda non si costruisce a mano, per la stessa ragione delle
+  ancore qui sotto. L'indice `/srd/mostri` **fa fallire la build** se una scheda
+  non ha un tipo noto (`mostriSenzaTipo`): 331 pubblicate devono restare 331, e
+  una creatura che sparisce da un bestiario non rompe niente — sembra funzionare.
+- Le schede sono **di lettura**, non di modifica (l'app ha già la versione a
+  campi, `statblockHTML` in `public/app/mostri.js`): stesse etichette, così chi
+  passa dall'una all'altra si ritrova. I nomi in grassetto di tratti e azioni,
+  persi nell'estratto piatto, si ricostruiscono dal punto fermo (`vociDi`): il
+  tetto a 60 caratteri separa 1348 casi da 1 (misurato), e il caso perso resta
+  prosa intera invece di uscire con mezza frase in grassetto.
+- **Nella ricerca sì, nei rimandi no** (`ancoreMostri`, separata da
+  `tutteLeAncore`): chi cerca "goblin" al tavolo lo cerca nella ricerca
+  trasversale, ma un «Vedi anche "…"» dell'SRD cita regole, non creature. A
+  imporlo sono tre nomi — Druido, Mago, Mosca gigante — oggi univoci come titolo
+  e quindi resi come link: buttare le schede nella stessa mappa li renderebbe
+  ambigui e quei tre link sparirebbero, un guasto che non fallisce nessuna build.
+
 **Il registro delle ancore** (`src/lib/srd/ancore.ts`) dice, per ognuno dei 1530
 titoli, l'indirizzo della pagina che lo serve: **un id di titolo non basta a
 costruire un link**, perché tre capitoli stanno su più pagine e a decidere quale

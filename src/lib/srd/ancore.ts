@@ -23,6 +23,7 @@ import {
   dividiClassi, dividiIncantesimi, dividiOggetti, nellaSezione, slugLivello,
   titoloLivello,
 } from ".";
+import { hrefMostro, sezioneDi, slugMostro, tuttiIMostri } from "./mostri";
 
 export type Ancora = {
   id: string;
@@ -151,6 +152,47 @@ export function tutteLeAncore(): Promise<Ancora[]> {
     return tutte;
   })();
   return cache;
+}
+
+/* --- I mostri: nella ricerca, non nei rimandi ------------------------------ */
+
+/** Le 331 schede del bestiario come ancore di ricerca.
+ *
+ *  Sta a parte da `tutteLeAncore` — e non è pigrizia, è la sola differenza fra i
+ *  due mestieri di questo file. **Nella ricerca i mostri servono** (chi cerca
+ *  "goblin" al tavolo lo cerca lì, e oggi non lo troverebbe); **nella
+ *  risoluzione dei rimandi no**, perché un «Vedi anche "…"» dell'SRD cita
+ *  sezioni di regole e non creature.
+ *
+ *  A dirlo sono tre nomi: Druido, Mago e Mosca gigante esistono come titolo in
+ *  Classi e in Oggetti magici, e oggi sono UNIVOCI — cioè un rimando che li cita
+ *  diventa un link. Buttare le schede nella stessa mappa li renderebbe ambigui,
+ *  e per la regola «fuori da un contesto dichiarato si collega solo ciò che è
+ *  univoco» quei tre link sparirebbero: una regressione che non rompe niente,
+ *  non fallisce nessuna build e si nota solo rileggendo il glossario riga per
+ *  riga. Sono esattamente i guasti che questa sezione produce quando si mettono
+ *  insieme due cose che si somigliano. */
+export function ancoreMostri(): Ancora[] {
+  return tuttiIMostri().flatMap((m) => {
+    const sez = sezioneDi(m);
+    const href = hrefMostro(m);
+    /* Una scheda senza una sezione non ha una pagina che la serva: meglio
+       nessuna ancora che un'ancora verso un 404. Stessa regola degli oggetti
+       magici senza sezione — e /srd/mostri fallisce la build se ne compare
+       una, quindi qui il ramo non dovrebbe mai scattare. */
+    if (!sez || !href) return [];
+    return [{
+      id: slugMostro(m.name),
+      testo: m.name,
+      livello: 3 as const,
+      capitolo: "mostri",
+      href,
+      /* L'etichetta è la sezione, non il tipo: distingue "Bestie A–L" da
+         "Bestie M–Z" nella riga del risultato, come "Incantesimi › Trucchetti"
+         fra gli incantesimi. */
+      pagina: `Mostri › ${sez.titolo}`,
+    }];
+  });
 }
 
 /* --- Rimandi: «Vedi anche "…"» diventa un link ---------------------------- */

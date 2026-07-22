@@ -324,3 +324,36 @@ a.srd-cerca__esito:hover .srd-cerca__testo { color: var(--wisp-lit); }
    grassetto del pezzo che collega (il taglio conserva gli span), e si distingue
    con la sottolineatura tenue dei link quieti del sito. */
 .srd-rimando { text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+
+/* --- Mostri ---------------------------------------------------------------- */
+
+/* Le schede sono lunghe e si leggono una alla volta: una riga sopra ognuna le
+   separa senza chiuderle in un riquadro, che a quindici schede di fila sarebbe
+   un elenco di scatole. La prima non ha riga: sotto c'è già il titolo della
+   pagina. */
+.srd-mostro + .srd-mostro {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--edge);
+}
+/* La riga sotto il nome dice tipo, taglia e allineamento: nel PDF è in corsivo
+   e qui pure, perché è la didascalia del nome e non un dato della scheda. */
+.srd-mostro__meta { margin: 0.15rem 0 0.75rem; color: var(--parchment-dim); }
+/* "Tratti", "Azioni", "REAZIONI": dividono la scheda, non il capitolo, quindi
+   sono più piccole di un srd-h3 e non prendono il colore dei titoli veri. */
+.srd-mostro__sezione {
+  margin: 1.25rem 0 0.4rem;
+  font-size: 0.85rem;
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.08em;
+  color: var(--lantern);
+}
+/* Le sei caratteristiche: colonne uguali e valori centrati, perché qui si
+   confronta e non si legge. Il modificatore è ciò che si tira, quindi è lui a
+   prendere il colore; il punteggio resta il dato che lo genera. */
+.srd-mostro__car { text-align: center; }
+.srd-mostro__car th, .srd-mostro__car td { text-align: center; padding: 0.35rem 0.4rem; }
+.srd-mostro__mod { color: var(--lantern); white-space: nowrap; }
+/* Nell'elenco completo il grado di sfida segue il nome: non va a capo da solo,
+   sennò una colonna stretta lo stacca dalla creatura a cui appartiene. */
+.srd-mostri__gs { white-space: nowrap; }

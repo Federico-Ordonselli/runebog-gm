@@ -1,4 +1,5 @@
 import { CAPITOLI } from "@/lib/srd";
+import { tuttiIMostri } from "@/lib/srd/mostri";
 import { Attribuzione } from "./attribuzione";
 import { CercaNelleRegole } from "./cerca";
 import "./srd.css";
@@ -12,6 +13,7 @@ export const metadata = {
 export default function SrdPage() {
   const pronti = CAPITOLI.filter((c) => c.pronto);
   const inArrivo = CAPITOLI.filter((c) => !c.pronto);
+  const mostri = tuttiIMostri().length;
 
   return (
     <main className="page page--wide srd-page">
@@ -42,6 +44,21 @@ export default function SrdPage() {
             </a>
           </li>
         ))}
+        {/* I mostri chiudono l'elenco perché è il loro posto nel PDF, ma la voce
+            è scritta qui e non in CAPITOLI: quel registro elenca i capitoli che
+            passano dall'estrattore delle regole e vivono in `capitoli/*.json`, e
+            metterci i mostri vorrebbe dire che `[capitolo]` prova a caricare un
+            JSON che non esiste. Il bestiario ha una sorgente sua
+            (`public/app/srd-mostri.js`, lo stesso file che usa l'app) e pagine
+            sue: è un'altra cosa che si consulta allo stesso modo. */}
+        <li className="srd-capitoli__voce">
+          <a href="/srd/mostri" className="srd-capitoli__link">
+            <span className="srd-capitoli__titolo">Mostri</span>
+            <span className="muted small">
+              Le {mostri} schede del bestiario, per tipo di creatura e per grado di sfida.
+            </span>
+          </a>
+        </li>
       </ul>
 
       {inArrivo.length > 0 && (

@@ -6,16 +6,8 @@ Scritti per essere ripresi **a freddo**: ognuno dice dove si tocca e quale
 ostacolo è già stato misurato, così non si rifà l'indagine. L'ordine è di
 consiglio, non di vincolo. Le voci per esteso stanno nelle sezioni sotto.
 
-1. **Panoramica delle schede mostro in `/srd`** — l'ultima voce aperta della
-   sezione regole. Il bestiario esiste (`public/app/srd-mostri.js`, ~350 KB,
-   `window.SRD_MONSTERS`, generato da `scripts/estrai-srd-mostri.mjs`) ma vive
-   **solo dentro l'app**: dal sito non si consulta. Due decisioni da prendere
-   prima di scrivere codice, e sono le uniche cose difficili: (a) se i mostri
-   entrano nella ricerca trasversale, cioè nell'indice di `/srd/ancore.json`
-   che oggi sono 82 KB per 1530 titoli — 331 schede lo gonfiano, e l'indice si
-   scarica alla prima ricerca; (b) da dove legge la pagina, visto che i mostri
-   non passano da `src/lib/srd/capitoli/` come i capitoli. L'attribuzione
-   CC-BY-4.0 delle schede è obbligatoria (vedi `<Attribuzione/>`).
+Nessun lavoro grosso in coda: la sezione regole è completa (dieci capitoli più
+il bestiario). Le prossime cose sono minori o da decidere insieme.
 
 Minori, già annotati al loro posto:
 `nodeBox` dà 30×30 a ogni segnalino ma il disco della pedina ne misura 32, un
@@ -66,14 +58,13 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
   (export nuovo e legacy, PF pedine = scheda, tratti/azioni identici alla
   scheda, Orc in fallback, console pulita), `tsc` ok, motore rigenerato in node
   con tutti i mostri estratti dotati di scheda.
-- [ ] **Sezione regole sul sito** — capitoli dell'SRD consultabili in italiano
-  (`/srd`): Come si gioca, Creazione del personaggio, Classi, Origini dei
-  personaggi, Talenti, Equipaggiamento, Incantesimi, Glossario delle regole,
-  Strumenti di gioco, Oggetti magici, panoramica delle schede mostro. Con le
-  Informazioni legali e la dichiarazione di attribuzione richiesta dalla licenza.
-  **Tutti e dieci i capitoli sono pubblicati dal 21 lug 2026** e le Informazioni
-  legali dal 22: la voce resta aperta per la sola panoramica delle schede mostro
-  (il bestiario oggi vive nell'app, non in `/srd`) e per le rifiniture in fondo.
+- [x] **Sezione regole sul sito** — fatta (22 lug 2026), capitoli dell'SRD
+  consultabili in italiano (`/srd`): Come si gioca, Creazione del personaggio,
+  Classi, Origini dei personaggi, Talenti, Equipaggiamento, Incantesimi,
+  Glossario delle regole, Strumenti di gioco, Oggetti magici, il bestiario e le
+  Informazioni legali. Con la dichiarazione di attribuzione richiesta dalla
+  licenza in fondo a ogni pagina. **Tutti e dieci i capitoli pubblicati dal 21
+  lug 2026**, le Informazioni legali dal 22, i **mostri** dal 22 (voce sotto).
   - [x] **Impianto + Glossario delle regole** — fatto (19 lug 2026). Estrattore
     generico `scripts/estrai-srd-regole.mjs` (fratello di quello del bestiario:
     la semantica sta nei font), registro dei capitoli in `src/lib/srd/index.ts`
@@ -605,6 +596,44 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
     c'è più spazio, non meno**. Il bottone "Tavolo" in più costa meno di quanto
     faccia risparmiare il selettore di campagna, che lì è nascosto perché le
     campagne le gestisce il sito.
+  - [x] **Mostri: il bestiario sul sito** (`/srd/mostri`) — fatto (22 lug 2026).
+    Le 331 schede vivevano solo nell'app; ora si consultano anche dal sito, per
+    tipo di creatura e per grado di sfida, e la ricerca trasversale le trova.
+    Le due decisioni difficili erano annotate, e le ho prese misurando:
+    - **Da dove legge la pagina.** Non un `mostri.json` generato a parte, ma
+      `public/app/srd-mostri.js` **letto direttamente** (`readFileSync` a build
+      time in `src/lib/srd/mostri.ts`): lo stesso file dell'app. Due file dallo
+      stesso PDF sarebbero due copie, e questo repo l'ha già pagata una volta
+      (l'attribuzione ricopiata a mano, divergente). I mostri **non stanno in
+      `CAPITOLI`**: quel registro è dei capitoli in `capitoli/*.json`, e
+      `[capitolo]` proverebbe a caricare un JSON che non c'è.
+    - **Se entrano nella ricerca.** Sì — ma solo lì, non nei rimandi (funzione
+      `ancoreMostri` separata da `tutteLeAncore`). La misura ha deciso: tre nomi
+      (Druido, Mago, Mosca gigante) esistono come titolo in Classi/Oggetti e
+      oggi sono univoci, quindi resi come link «Vedi anche»; mescolare le schede
+      nella stessa mappa li renderebbe ambigui e quei tre link sparirebbero —
+      una regressione che non fallisce nessuna build. L'indice `/srd/ancore.json`
+      passa da 1530 a 1861 voci (94 KB, +12 KB), e si scarica solo a chi cerca.
+    - **Il taglio delle pagine** è per tipo di creatura (la classificazione che
+      il PDF dichiara sotto il nome), con Bestie e Draghi spezzati **solo per
+      peso** — servite intere facevano 578 e 458 KB di HTML contro i 347 del
+      glossario. Bestie A–L / M–Z; Draghi per GS, che per un drago è l'età,
+      perché l'alfabeto li lascerebbe tutti sotto la "D". A pesare è il numero
+      di schede (~4,6 KB l'una), non la loro lunghezza: le sedici pagine stanno
+      ora tutte sotto il tetto del glossario, la più pesante 313 KB.
+    - **Le schede sono di lettura**, non di modifica (l'app ha già la versione a
+      campi): stesse etichette. I nomi in grassetto di tratti e azioni, persi
+      nell'estratto piatto, si ricostruiscono dal punto fermo — tetto a 60
+      caratteri, che separa 1348 righe da 1 (misurato, non tarato a occhio).
+    Guardia contro il guasto muto tipico di questa sezione: `/srd/mostri` **fa
+    fallire la build** se una scheda non ha un tipo noto (`mostriSenzaTipo`) —
+    331 pubblicate devono restare 331, e un mostro che sparisce non rompe niente.
+    Verificato in Chromium (18/18): indice con 16 sezioni, Bestie/Draghi
+    spezzati, le ancore dal nome che portano alla scheda, Tratti/Azioni/Azioni
+    leggendarie coi nomi in grassetto, le sei caratteristiche in tabella col
+    modificatore, ricerca che trova un goblin nei mostri **e** «Afferrato» nelle
+    regole, i rimandi del glossario ancora tutti link, nessuno scorrimento
+    orizzontale a 390px, console pulita; `tsc` e `build` (70 pagine) ok.
   - [ ] **Rifiniture note della sezione regole**, da fare quando danno fastidio:
     - Sette celle restano vuote in tutta la sezione (tre in Equipaggiamento,
       quattro in Oggetti magici) dove è il PDF a emettere un frammento unico per
