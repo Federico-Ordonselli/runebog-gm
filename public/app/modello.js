@@ -23,6 +23,11 @@ export const STATUSES = ["", "da fare", "in corso", "fatto"];
    mappa.js e DG_SCALE in dungeon.js la importano: è la stessa maglia vista da
    tre punti, e se divergessero pedine e stanze non combacerebbero più. */
 export const CELL = 40;
+/* Il lato di un quadretto in metri, NUMERO e non stringa: il righello lo
+   moltiplica per contare i metri di una distanza, il tabellone d'iniziativa lo
+   mostra. La formattazione con unità ("1,5 m") sta dove serve mostrarla, non
+   qui — un numero non porta la sua etichetta, sennò non lo si può sommare. */
+export const METRI_PER_CELLA = 1.5;
 export const snapGrid = v => Math.round(v / CELL) * CELL;
 
 /* Le forme con grid:true sono piante, non simboli: posizione e dimensioni

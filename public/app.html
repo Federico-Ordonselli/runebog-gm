@@ -115,11 +115,31 @@
         <button class="btn" onclick="planZoom(0.8)">－</button>
         <button class="btn dm-only" onclick="arrangeGrid()" title="Dispone le bolle in griglia allineata">Ordina</button>
         <button class="btn" onclick="planFit(true)">Adatta</button>
+        <!-- Ancora unica degli strumenti temporanei della mappa (righello e simili):
+             i pulsanti li crea il gestore in strumenti/gestore.js. NON dm-only —
+             è il registro del singolo tool a decidere se vale per DM, tavolo o
+             entrambi (scope). Un nuovo tool non tocca questo file. -->
+        <span id="map-tools" aria-label="Strumenti della mappa"></span>
         <button class="btn dm-only" id="battle-btn" onclick="toggleBattle()"
           title="Griglia rigida (1 quadretto = 1,5 m), pedine e ordine d'iniziativa su questo livello">⚔ Combattimento</button>
       </div>
       <div id="plan-wrap">
         <svg id="plan-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+        <!-- La tela degli strumenti temporanei (righello, ecc.): un SECONDO SVG
+             sopra il primo, mai riscritto da renderCanvas() — che invece rifà
+             plan-svg.innerHTML a ogni disegno, compreso il polling del tavolo.
+             pointer-events:none (nel CSS): gli eventi restano a plan-svg, questo
+             non li intercetta. Condivide il viewBox del primo (planApplyVB lo
+             sincronizza). Sta subito dopo plan-svg e PRIMA di empty-node/hint/
+             battle-bar: così l'ordine del DOM lo tiene sopra la mappa e sotto
+             quei controlli, senza bisogno di uno z-index. aria-hidden/focusable
+             /tabindex: è grafica, non riceve né lettura assistiva né focus. -->
+        <svg id="plan-tools-svg" xmlns="http://www.w3.org/2000/svg"
+             aria-hidden="true" focusable="false" tabindex="-1"></svg>
+        <!-- Stato del tool attivo per gli screen reader (es. "Righello attivo:
+             trascina; Esc per uscire"). Separato da #savestate: lo stato del
+             tool non deve coprire i messaggi del salvataggio cloud. -->
+        <div id="map-tool-status" class="sr-only" role="status" aria-live="polite"></div>
         <!-- contenuto generato da emptyNodeMarkup() in mappa.js: cambia in base
              a dove sei (radice, livello interno, tavolo dei giocatori) -->
         <div id="empty-node"></div>

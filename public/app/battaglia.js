@@ -20,7 +20,7 @@
       = 1,5 metri. La modalità combattimento non introduce una scala nuova, rende
       rigido l'aggancio a quella esistente (vedi CELL). */
 
-import { node, uid, NODE_COLORS, escapeHtml, CELL, snapToCell } from "./modello.js";
+import { node, uid, NODE_COLORS, escapeHtml, CELL, METRI_PER_CELLA, snapToCell } from "./modello.js";
 import { st, save, findNode, findParent, currentNode, RO, selectNode } from "./stato.js";
 import { openConfirm } from "./viste.js";
 
@@ -28,9 +28,9 @@ import { openConfirm } from "./viste.js";
    definizione della maglia), e con lei ci vive ora anche l'aggancio al centro
    della cella: non è più una regola della battaglia, è la regola di ogni
    simbolo sulla mappa (vedi snapNode). Qui restano riesportate per gli import
-   esistenti. */
-export { CELL, snapToCell };
-export const METRI_PER_CELLA = "1,5 m";
+   esistenti. METRI_PER_CELLA è il NUMERO: il tabellone lo formatta con l'unità
+   solo quando lo mostra (sotto), sennò sarebbe una fonte parallela di "1,5". */
+export { CELL, METRI_PER_CELLA, snapToCell };
 
 /* --- lo stato della battaglia sul livello corrente --- */
 export function battleOf(n = currentNode()){ return n && n.battle ? n.battle : null; }
@@ -287,7 +287,7 @@ export function renderBattleBar(){
   bar.innerHTML = `
     <div class="ini-head">
       <span class="ini-round">Round ${intero(b.round, 1)}</span>
-      <span class="ini-scala" title="Un quadretto della griglia">▦ ${METRI_PER_CELLA}</span>
+      <span class="ini-scala" title="Un quadretto della griglia">▦ ${METRI_PER_CELLA.toLocaleString("it-IT")} m</span>
       ${RO ? "" : `
         <button class="btn tiny" onclick="prevTurn()" title="Turno precedente">‹</button>
         <button class="btn tiny primary" onclick="nextTurn()" title="Turno successivo">Avanti ›</button>`}

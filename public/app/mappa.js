@@ -86,7 +86,13 @@ export function planPointXY(cx, cy){
 }
 function planPoint(evt){ return planPointXY(evt.clientX, evt.clientY); }
 function planApplyVB(){
-  planSvg().setAttribute("viewBox", `${planVB.x} ${planVB.y} ${planVB.w} ${planVB.h}`);
+  const vb = `${planVB.x} ${planVB.y} ${planVB.w} ${planVB.h}`;
+  planSvg().setAttribute("viewBox", vb);
+  // La tela degli strumenti condivide ESATTAMENTE il viewBox della mappa: è
+  // l'unico legame che il renderer ha con l'overlay (strumenti/gestore.js).
+  // Optional chaining: standalone l'overlay c'è sempre (è in app.html), ma non
+  // dipendere da quell'ordine costa una riga e non si rompe se manca.
+  document.getElementById("plan-tools-svg")?.setAttribute("viewBox", vb);
   planVBs[currentNode().id] = planVB;
 }
 export function planFit(rerender){
