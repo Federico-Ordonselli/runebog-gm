@@ -1,4 +1,5 @@
-import { ATTRIBUZIONE_SRD, CAPITOLI } from "@/lib/srd";
+import { CAPITOLI } from "@/lib/srd";
+import { Attribuzione } from "./attribuzione";
 import { CercaNelleRegole } from "./cerca";
 import "./srd.css";
 
@@ -63,8 +64,7 @@ export default function SrdPage() {
         </>
       )}
 
-      <hr className="rule" />
-      <p className="muted small srd-attribuzione">{ATTRIBUZIONE_SRD}</p>
+      <Attribuzione />
     </main>
   );
 }

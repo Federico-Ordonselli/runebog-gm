@@ -40,7 +40,7 @@ function segmenta(span: Span[], intervalli: Intervallo[]) {
   return gruppi;
 }
 
-function Testo({ span, rimandi }: { span: Span[]; rimandi?: Rimandi }) {
+export function Testo({ span, rimandi }: { span: Span[]; rimandi?: Rimandi }) {
   const intervalli = rimandi ? rimandi(span.map((s) => s.s).join("")) : [];
   if (!intervalli.length) {
     return <>{span.map((s, k) => <Frammento key={k} s={s} />)}</>;
@@ -49,13 +49,46 @@ function Testo({ span, rimandi }: { span: Span[]; rimandi?: Rimandi }) {
     <>
       {segmenta(span, intervalli).map((g, k) => {
         const dentro = g.pezzi.map((s, n) => <Frammento key={n} s={s} />);
-        return g.iv
-          ? <a key={k} href={g.iv.href} className="link srd-rimando">{dentro}</a>
-          : <span key={k}>{dentro}</span>;
+        if (!g.iv) return <span key={k}>{dentro}</span>;
+        /* I rimandi interni sono percorsi del sito, gli indirizzi citati nelle
+           informazioni legali portano fuori: là il referrer non lo deve sapere
+           nessuno, e distinguerli non richiede un campo in più — lo dice l'href.
+           `srd-indirizzo` serve a spezzarli: un URL è un token che il browser
+           non sa dove mandare a capo. */
+        const fuori = g.iv.href.startsWith("http");
+        return (
+          <a
+            key={k}
+            href={g.iv.href}
+            className={`link srd-rimando${fuori ? " srd-indirizzo" : ""}`}
+            rel={fuori ? "noreferrer" : undefined}
+          >
+            {dentro}
+          </a>
+        );
       })}
     </>
   );
 }
+
+/* Gli indirizzi web citati nel testo, resi come link.
+ *
+ * Ha la firma dei rimandi — (testo piatto) => intervalli — perché è lo stesso
+ * problema: un pezzo di testo che diventa un <a>, con la proiezione sugli span
+ * già scritta. Non è però una proprietà di Blocchi, ed è una misura a dirlo:
+ * nei dieci capitoli di regole non compare un solo "http". Gli unici due posti
+ * dove serve sono l'attribuzione e la pagina delle informazioni legali, che si
+ * passano questa funzione apposta.
+ *
+ * La punteggiatura finale resta fuori dal link: nell'SRD gli indirizzi chiudono
+ * la frase ("…/srd." e "…/legalcode.") e un href col punto in fondo è un href
+ * sbagliato — che è anche il modo peggiore di sbagliare, perché il link c'è e
+ * si apre su un 404. */
+export const collegaIndirizzi: Rimandi = (testo) =>
+  [...testo.matchAll(/https?:\/\/\S+/g)].map((m) => {
+    const url = m[0].replace(/[.,;:!?)\]]+$/, "");
+    return { da: m.index, a: m.index + url.length, href: url };
+  });
 
 /* Una cella senza spazi è un pezzo solo e non va spezzata. Il browser lo fa
    comunque, perché il trattino d'intervallo delle chiavi ("2–6", "9–10") è un

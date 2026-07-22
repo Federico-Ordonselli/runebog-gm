@@ -591,8 +591,6 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
       colonne e a 1280px scorre dentro il suo riquadro: è il comportamento
       previsto per le tabelle larghe, ma queste sono le più larghe della sezione
       e forse meritano una resa loro (gli slot per livello come una riga a sé?).
-    - La pagina "Informazioni legali" (p. 1 del PDF) non è ancora resa: oggi
-      c'è solo la dichiarazione di attribuzione in fondo alle pagine.
     - Nella ricerca trasversale il rango è sui **titoli**, non sul corpo: chi
       cerca una frase che sta dentro una descrizione non la trova. Il corpo sono
       1,7 MB di JSON e non può viaggiare al browser come l'indice dei titoli
@@ -654,6 +652,57 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
     era `26rem`, ma il rem di questo sito scala con la **larghezza**
     (`clamp(17px, 15.3px + 0.45vw, 21px)`), quindi su un telefono coricato
     (780×390) l'elenco era più alto della finestra — ora `min(26rem, 60vh)`.
+  - [x] **Pagina «Informazioni legali» e attribuzione derivata** — fatto
+    (22 lug 2026). La p. 1 del PDF sono i termini con cui l'SRD è concesso in
+    licenza, e passa dallo stesso estrattore per la stessa ragione per cui ci
+    passano i capitoli: il testo di una licenza si estrae, non si ricopia a mano
+    — una parola diversa dall'originale, lì, è un problema legale e non un
+    refuso. Nuova pagina `/srd/informazioni-legali`
+    (`src/app/srd/informazioni-legali/page.tsx`), JSON generato
+    `src/lib/srd/capitoli/informazioni-legali.json` (4 paragrafi, 2 KB).
+    - **Non è un capitolo** e non sta in `CAPITOLI`: dentro il registro sarebbe
+      una voce di regole nell'indice e, peggio, `[capitolo]` ne servirebbe una
+      seconda copia a un altro indirizzo. Ha un caricatore suo
+      (`caricaInformazioniLegali`) e ci si arriva dall'attribuzione in fondo a
+      ogni pagina — il punto in cui viene da chiedersi con che licenza, di
+      preciso. Niente indice laterale, perché non ha titoli: un indice di
+      quattro paragrafi sarebbe più lungo dei paragrafi.
+    - **Trovata una seconda verità e tolta.** `ATTRIBUZIONE_SRD` era battuta a
+      tastiera e divergeva dall'originale in **cinque posizioni** su 367
+      caratteri (apostrofi e virgolette dritti al posto dei tipografici): stessa
+      lunghezza, invisibile a occhio. Ora si legge dal JSON estratto, e se quel
+      paragrafo sparisce il build **si ferma** con un errore che dice cosa
+      ricontrollare, invece di pubblicare 43 pagine senza attribuzione.
+    - La riga stava ricopiata in fondo a **otto** template: ora è il componente
+      `src/app/srd/attribuzione.tsx`. Una riga che la licenza impone su tutte le
+      pagine non deve dipendere dal fatto che chi aggiunge la nona se ne ricordi.
+    - `senzaTitoli` (estrattore) e `SENZA_TITOLI` (verificatore) **dichiarano**
+      l'unico documento in cui zero titoli è il risultato giusto. La guardia
+      "zero titoli = rosso non riconosciuto" resta accesa per tutti gli altri
+      invece di essere allentata per comodità, e chi un domani ne aggiunge un
+      secondo se ne accorge da una verifica che fallisce.
+    - Gli indirizzi web diventano link (`collegaIndirizzi` in `blocchi.tsx`):
+      riusa la firma dei rimandi, quindi la proiezione sugli span era già
+      scritta. Non è però una proprietà di `Blocchi`, e lo dice la misura — nei
+      dieci capitoli non compare **un solo** "http". La punteggiatura resta
+      fuori dall'href: nell'SRD gli indirizzi chiudono la frase, e un link che
+      c'è e si apre su un 404 è il modo peggiore di sbagliare.
+    Verificato: `verifica-srd-regole.mjs` 10/10 (copertura 95,9%, e le 7 parole
+    "mancanti" sono esattamente titolo, piè di pagina e numero — sul corpo è
+    100%); i dieci capitoli già pubblicati **rigenerati a diff vuoto**; 43 pagine
+    SRD con esattamente un'attribuzione ciascuna (42 col rimando, 1 senza);
+    1530/1530 ancore risolte e 129 rimandi interni invariati; indice di ricerca
+    invariato (1530 ancore, 41 pagine — la pagina legale non ci entra); `tsc` e
+    `build` ok, 53 pagine statiche. 21/21 in Chromium.
+    Difetto trovato dalla misura e corretto: a 390px la pagina scorreva in
+    orizzontale. L'URL della licenza è un token che il browser non sa dove
+    spezzare — ora i link esterni portano `srd-indirizzo`
+    (`overflow-wrap: anywhere`).
+    Resta aperto: il sito non ha una pagina di condizioni d'uso proprie, e la
+    nota in cima a questa distingue i due materiali a parole (contenuti SRD in
+    CC-BY, software in MIT) rimandando al repo. Basta finché il sito non
+    raccoglie niente oltre l'account; il giorno che serve, quella nota è il
+    posto da cui linkarla.
 - [ ] **SRD 5.1 (2014) in italiano** — in futuro, come edizione alternativa
   affiancata alla 5.2.1 (selettore di edizione, non una sostituzione).
 - [ ] **Traduzione inglese** — in futuro, dopo il completamento dell'italiano:

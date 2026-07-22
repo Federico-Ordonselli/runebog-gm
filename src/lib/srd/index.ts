@@ -11,6 +11,12 @@
  *  I contenuti sono CC-BY-4.0, non MIT: l'attribuzione (ATTRIBUZIONE_SRD, resa
  *  in fondo a ogni pagina del capitolo) è una condizione della licenza. */
 
+/* L'unico capitolo importato staticamente: due chilobyte, e ne esce
+   l'attribuzione che ogni pagina della sezione deve rendere. Gli altri passano
+   da caricaCapitolo, che è dinamico per non trascinare 75 KB di glossario in
+   ogni bundle. Resta comunque testo lato server: al browser non arriva. */
+import legali from "./capitoli/informazioni-legali.json";
+
 export type Span = { s: string; i?: 1; b?: 1 };
 
 export type Blocco =
@@ -57,14 +63,32 @@ export const CAPITOLI: { id: string; titolo: string; sommario: string; pronto: b
   { id: "oggetti-magici", titolo: "Oggetti magici", sommario: "Attivazione, sintonia, oggetti maledetti e il catalogo completo.", pronto: true },
 ];
 
-/** La dichiarazione di attribuzione richiesta dalla CC-BY-4.0, nei termini
- *  esatti imposti dall'SRD: il testo non va parafrasato. */
-export const ATTRIBUZIONE_SRD =
-  'Quest’opera include materiale tratto dal System Reference Document 5.2.1 ' +
-  '(“SRD 5.2.1”) di Wizards of the Coast LLC, disponibile all’indirizzo ' +
-  'https://www.dndbeyond.com/srd. Il SRD 5.2.1 è concesso in licenza ai sensi ' +
-  'della licenza di attribuzione 4.0 Internazionale di Creative Commons, ' +
-  'disponibile all’indirizzo https://creativecommons.org/licenses/by/4.0/legalcode.';
+/** La dichiarazione di attribuzione richiesta dalla CC-BY-4.0, nei termini esatti
+ *  imposti dall'SRD: il testo non va parafrasato.
+ *
+ *  Non è ricopiata a mano ma LETTA dalla pagina 1 estratta, di cui è il secondo
+ *  paragrafo — la stessa che serve /srd/informazioni-legali. Ricopiarla è ciò
+ *  che si faceva prima, e le due copie erano già divergute: cinque virgolette
+ *  tipografiche dove il documento ha quelle dritte. Innocuo e invisibile, ma è
+ *  la dimostrazione che due copie della stessa frase si allontanano da sole —
+ *  e questa è la frase che la licenza impone di riportare alla lettera.
+ *
+ *  Si riconosce dall'attacco e non dalla posizione, e se non si trova la build
+ *  si ferma: pubblicare il paragrafo sbagliato al posto dell'attribuzione
+ *  violerebbe la licenza in silenzio, su tutte le pagine insieme. */
+const paragrafiLegali = legali.blocchi as { t: string; testo?: { s: string }[] }[];
+const dichiarazione = paragrafiLegali.find(
+  (b) => b.t === "p" && b.testo?.[0]?.s.startsWith("Quest'opera include materiale"),
+);
+if (!dichiarazione?.testo) {
+  throw new Error(
+    "informazioni-legali.json non contiene più la dichiarazione di attribuzione. " +
+    "La CC-BY-4.0 la impone in fondo a ogni pagina della sezione regole: " +
+    "ricontrolla l'estrazione di pagina 1 prima di proseguire.",
+  );
+}
+
+export const ATTRIBUZIONE_SRD = dichiarazione.testo.map((s) => s.s).join("");
 
 export const capitoloPronto = (id: string) => CAPITOLI.some((c) => c.id === id && c.pronto);
 
@@ -253,5 +277,28 @@ export function dividiOggetti(doc: Capitolo) {
 export async function caricaCapitolo(id: string): Promise<Capitolo | null> {
   if (!capitoloPronto(id)) return null;
   const mod = await import(`./capitoli/${id}.json`);
+  return mod.default as Capitolo;
+}
+
+/* --- Informazioni legali -------------------------------------------------- */
+
+/** La pagina 1 del PDF: i termini con cui Wizards concede l'SRD. Ha la forma di
+ *  un capitolo — stesso tipo, stesso estrattore, stesso JSON verificato, perché
+ *  il testo di una licenza si estrae e non si ricopia a mano — ma NON sta in
+ *  CAPITOLI, e le due cose sono coerenti: non è un capitolo di regole. Fuori di
+ *  lì si tiene da sé l'undicesima voce nell'indice, che nessuno apre per
+ *  giocare, e le sue righe fuori dalla ricerca, dove al tavolo sarebbero rumore.
+ *
+ *  Ci si arriva dall'attribuzione in fondo a ogni pagina, che è il punto esatto
+ *  in cui la domanda «con che licenza, di preciso?» viene in mente.
+ *
+ *  Ha un caricatore suo e non passa da `caricaCapitolo`: così la rotta dinamica
+ *  `[capitolo]` non può servirlo in una seconda copia. La pagina statica
+ *  vincerebbe comunque per precedenza di rotta, ma qui la regola è dichiarata
+ *  invece che dedotta da come Next risolve i segmenti. */
+export const INFORMAZIONI_LEGALI = "informazioni-legali";
+
+export async function caricaInformazioniLegali(): Promise<Capitolo> {
+  const mod = await import("./capitoli/informazioni-legali.json");
   return mod.default as Capitolo;
 }

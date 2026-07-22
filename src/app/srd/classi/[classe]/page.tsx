@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
-import { ATTRIBUZIONE_SRD, caricaCapitolo, dividiClassi } from "@/lib/srd";
+import { caricaCapitolo, dividiClassi } from "@/lib/srd";
 import { rimandiDi } from "@/lib/srd/ancore";
+import { Attribuzione } from "../../attribuzione";
 import { Blocchi } from "../../blocchi";
 import { IndiceCapitolo, type Voce } from "../../indice";
 import "../../srd.css";
@@ -66,8 +67,7 @@ export default async function ClassePage({ params }: { params: Promise<{ classe:
             ))}
           </nav>
 
-          <hr className="rule" />
-          <p className="muted small srd-attribuzione">{ATTRIBUZIONE_SRD}</p>
+          <Attribuzione />
         </article>
       </div>
     </main>

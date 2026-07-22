@@ -168,7 +168,40 @@ elenco puntato (`punti`), che sono `Span[][]` e non stringhe — negli oggetti
 magici le voci sono nomi di incantesimo in corsivo, e ridurle a testo perdeva il
 corsivo insieme al pallino.
 L'attribuzione CC-BY (`ATTRIBUZIONE_SRD`) va resa in fondo a ogni pagina — è una
-condizione della licenza, non una cortesia.
+condizione della licenza, non una cortesia — e la rende il componente condiviso
+`src/app/srd/attribuzione.tsx`: stava ricopiata in fondo a otto template, e una
+riga che la licenza impone su tutte le pagine non deve dipendere dal fatto che
+chi aggiunge la nona se ne ricordi. Il testo **non è scritto a mano**: si legge
+dal JSON delle informazioni legali, perché la copia battuta a tastiera divergeva
+dall'originale in cinque punti (apostrofi e virgolette dritti al posto dei
+tipografici) — in una dichiarazione di licenza la parola giusta è quella del
+documento, non una plausibile. Se quel paragrafo sparisce dal JSON il build si
+ferma con un errore esplicito, invece di pubblicare 43 pagine senza attribuzione.
+
+**Le informazioni legali** (`/srd/informazioni-legali`, pagina 1 del PDF) sono i
+termini con cui l'SRD è concesso in licenza, e passano dallo stesso estrattore
+per la stessa ragione per cui ci passano i capitoli: il testo di una licenza si
+estrae, non si ricopia — una parola diversa dall'originale, lì, è un problema
+legale e non un refuso. **Non stanno in `CAPITOLI`** e hanno un caricatore
+proprio (`caricaInformazioniLegali`): dentro il registro sarebbero un capitolo di
+regole nell'indice e, peggio, `[capitolo]` ne servirebbe una seconda copia a un
+altro indirizzo. Ci si arriva dall'attribuzione in fondo a ogni pagina, che è il
+punto in cui viene da chiedersi con che licenza, di preciso. Due dettagli che
+sono guardie:
+
+- `senzaTitoli` nell'estrattore e `SENZA_TITOLI` nel verificatore **dichiarano**
+  l'unico documento in cui zero titoli è il risultato giusto (l'unico rosso è il
+  titolo di pagina, che diventa il titolo del documento). La guardia "zero titoli
+  = rosso non riconosciuto" resta così accesa per tutti gli altri, invece di
+  essere allentata per comodità; e chi un domani ne aggiunge un secondo se ne
+  accorge da una verifica che fallisce, che è il verso giusto in cui sbagliare.
+- Gli indirizzi web diventano link con `collegaIndirizzi` (`blocchi.tsx`), che è
+  un `Rimandi` come gli altri ma **non** è una proprietà di `Blocchi`: nei dieci
+  capitoli di regole non compare un solo "http". La punteggiatura finale resta
+  fuori dall'href — nell'SRD gli indirizzi chiudono la frase, e un link che c'è e
+  si apre su un 404 è il modo peggiore di sbagliare. Un URL è poi un token che il
+  browser non sa dove mandare a capo, quindi il link porta anche `srd-indirizzo`
+  (`overflow-wrap: anywhere`): senza, a 390 px la pagina scorreva in orizzontale.
 
 **Il registro delle ancore** (`src/lib/srd/ancore.ts`) dice, per ognuno dei 1530
 titoli, l'indirizzo della pagina che lo serve: **un id di titolo non basta a

@@ -61,7 +61,15 @@ const avvisa = (ok, etichetta, dettaglio = "") =>
 controlla(mie.length >= sue * 0.95, "copertura del testo",
   `${mie.length} parole estratte su ${sue} di pdftotext (${(mie.length / sue * 100).toFixed(1)}%)`);
 
-controlla(titoli.length > 0, "titoli riconosciuti", `${titoli.length} titoli`);
+/* Zero titoli è il sintomo tipico del rosso non riconosciuto (vedi l'intestazione
+   di estrai-srd-regole.mjs), e per un capitolo di regole è sempre un guasto. Non
+   per le informazioni legali: lì l'unico titolo rosso è quello della pagina, che
+   diventa il titolo del documento, e sotto non c'è che prosa. L'elenco è
+   dichiarato qui — se un domani ne nasce un altro e ci si dimentica di
+   aggiungerlo, la verifica fallisce, che è il verso giusto in cui sbagliare. */
+const SENZA_TITOLI = ["informazioni-legali"];
+controlla(titoli.length > 0 || SENZA_TITOLI.includes(id), "titoli riconosciuti",
+  `${titoli.length} titoli`);
 controlla(doppie.length === 0, "ancore univoche",
   doppie.length ? `duplicate: ${[...new Set(doppie)].join(", ")}` : `${ancore.length} ancore`);
 controlla(ancore.every((a) => /^[a-z0-9-]+$/.test(a)), "ancore ben formate",

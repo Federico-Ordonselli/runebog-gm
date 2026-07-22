@@ -206,6 +206,25 @@ a.srd-capitoli__link:hover .srd-capitoli__titolo { color: var(--wisp-lit); }
 
 .srd-attribuzione { margin-top: 1rem; }
 
+/* La nota redazionale delle informazioni legali: dice che il testo sotto è di
+   terzi. Deve quindi distinguersi da quel testo a colpo d'occhio, prima che
+   dalla lettura — il filetto è quello della scheda, che nella sezione vuol già
+   dire "inciso", ma in accento, che qui vuol dire "lo diciamo noi". */
+/* Un indirizzo web è un token che il browser non sa dove spezzare: a 390px
+   "https://creativecommons.org/licenses/by/4.0/legalcode" sfondava la colonna e
+   faceva scorrere in orizzontale la pagina intera — che è la cosa che tutta
+   questa CSS lavora per evitare. Si spezza dove capita, perché in un URL non
+   esiste un punto di a capo giusto. Sta sui link e non sul testo perché sono
+   gli unici token del genere nella sezione: nei dieci capitoli di regole non
+   compare un solo indirizzo. */
+.srd-indirizzo { overflow-wrap: anywhere; }
+
+.srd-nota {
+  margin: 0 0 1.5rem;
+  padding: 0.15rem 0 0.15rem 0.9rem;
+  border-left: 2px solid var(--moss);
+}
+
 /* --- Classi: la scelta della classe --------------------------------------- */
 
 /* Il capitolo non ha introduzione, quindi /srd/classi è solo questa griglia:

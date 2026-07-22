@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
 import {
-  ATTRIBUZIONE_SRD, LIVELLI, caricaCapitolo, dividiIncantesimi,
+  LIVELLI, caricaCapitolo, dividiIncantesimi,
   slugLivello, titoloLivello,
 } from "@/lib/srd";
 import { rimandiDi } from "@/lib/srd/ancore";
+import { Attribuzione } from "../attribuzione";
 import { Blocchi } from "../blocchi";
 import "../srd.css";
 
@@ -65,8 +66,7 @@ export default async function IncantesimiPage() {
         <Blocchi blocchi={intro} rimandi={await rimandiDi("incantesimi")} />
       </article>
 
-      <hr className="rule" />
-      <p className="muted small srd-attribuzione">{ATTRIBUZIONE_SRD}</p>
+      <Attribuzione />
     </main>
   );
 }

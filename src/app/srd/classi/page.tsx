@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { ATTRIBUZIONE_SRD, cartaClasse, caricaCapitolo, dividiClassi } from "@/lib/srd";
+import { cartaClasse, caricaCapitolo, dividiClassi } from "@/lib/srd";
+import { Attribuzione } from "../attribuzione";
 import "../srd.css";
 
 /* Questa rotta statica ha la precedenza sul segmento dinamico [capitolo], che
@@ -52,8 +53,7 @@ export default async function ClassiPage() {
         })}
       </ul>
 
-      <hr className="rule" />
-      <p className="muted small srd-attribuzione">{ATTRIBUZIONE_SRD}</p>
+      <Attribuzione />
     </main>
   );
 }

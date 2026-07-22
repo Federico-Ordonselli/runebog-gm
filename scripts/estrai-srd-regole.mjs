@@ -30,6 +30,11 @@ const USCITA = join(RADICE, "src", "lib", "srd", "capitoli");
 /* I capitoli del PDF. `pagine` è l'intervallo stampato sulla pagina, che qui
    coincide con quello del PDF (il documento non ha pagine romane in testa). */
 const CAPITOLI = [
+  /* Le informazioni legali non sono un capitolo di regole, ma passano di qui
+     per la stessa ragione per cui ci passano gli altri: il testo di una licenza
+     si estrae, non si ricopia a mano — una parola diversa dall'originale, in
+     questa pagina, è un problema legale e non un refuso. */
+  { id: "informazioni-legali", titolo: "Informazioni legali", pagine: [1, 1], senzaTitoli: true },
   { id: "come-si-gioca", titolo: "Come si gioca", pagine: [5, 20] },
   { id: "creazione-del-personaggio", titolo: "Creazione del personaggio", pagine: [21, 31] },
   { id: "classi", titolo: "Classi", pagine: [32, 92] },
@@ -1478,9 +1483,14 @@ for (const cap of daFare) {
   /* Un capitolo senza titoli non è un capitolo povero di titoli: è il segno che
      il riconoscimento dei font non ha agganciato niente (è successo col rosso
      reso diversamente da poppler). Senza titoli non ci sono ancore né indice, e
-     il JSON esce plausibile — quindi il guasto va gridato, non dedotto. */
+     il JSON esce plausibile — quindi il guasto va gridato, non dedotto.
+     Vale per i capitoli, non per i documenti che dichiarano di non averne:
+     nelle informazioni legali l'unico titolo rosso è quello della pagina, che
+     diventa il titolo del documento, e zero titoli interni è il risultato
+     giusto. La guardia resta accesa dove serve invece di essere allentata per
+     tutti. */
   const titoli = (conta.h2 || 0) + (conta.h3 || 0) + (conta.h4 || 0);
-  if (!titoli) {
+  if (!titoli && !cap.senzaTitoli) {
     console.error(`✗ ${cap.id}: nessun titolo riconosciuto — non lo scrivo. ` +
       `Controlla il rosso dei titoli nell'XML (pdftohtml -xml -f ${cap.pagine[0]} -l ${cap.pagine[1]}).`);
     guasti++;

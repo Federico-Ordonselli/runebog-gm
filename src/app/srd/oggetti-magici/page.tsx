@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import {
-  ATTRIBUZIONE_SRD, SEZIONI_OGGETTI, caricaCapitolo, dividiOggetti, nellaSezione,
+  SEZIONI_OGGETTI, caricaCapitolo, dividiOggetti, nellaSezione,
 } from "@/lib/srd";
 import { rimandiDi } from "@/lib/srd/ancore";
+import { Attribuzione } from "../attribuzione";
 import { Blocchi } from "../blocchi";
 import "../srd.css";
 
@@ -68,8 +69,7 @@ export default async function OggettiMagiciPage() {
         <Blocchi blocchi={intro} rimandi={rimandi} />
       </article>
 
-      <hr className="rule" />
-      <p className="muted small srd-attribuzione">{ATTRIBUZIONE_SRD}</p>
+      <Attribuzione />
     </main>
   );
 }
