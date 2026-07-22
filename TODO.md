@@ -761,6 +761,38 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
   i18n del sito e dei contenuti SRD (l'SRD inglese 5.2.1 è già disponibile
   come fonte ufficiale).
 
+## Strumenti della mappa
+
+- [x] **Architettura estendibile per gli strumenti + righello** — fatto
+  (23 lug 2026). Nuovo `public/app/strumenti/` (`gestore.js`, `svg.js`,
+  `righello.js`, `index.js`) e un secondo SVG `#plan-tools-svg` sopra la tela,
+  mai riscritto da `renderCanvas()` (che rifà `plan-svg.innerHTML` a ogni
+  disegno, polling del tavolo compreso): `pointer-events:none`, viewBox
+  sincronizzato nell'unico punto che già lo scrive (`planApplyVB` in `mappa.js`),
+  niente `z-index` — lo tiene l'ordine del DOM. Il gestore è l'unico proprietario
+  di registro, tool attivo, pulsanti (`#map-tools` in `app.html`), scorciatoie e
+  listener Pointer Events **in cattura** su `plan-svg`: precede i gesti della
+  mappa (bubble) e li blocca con `stopImmediatePropagation()` **solo** quando un
+  tool prende il gesto; senza tool attivo la mappa è identica a prima. Dipendenze
+  DOM iniettate via `opts` (così gira sotto Node coi fake). Il righello (scope
+  `tutti`, scorciatoia R, geometria pura `distanzaCelle`) è il tool di
+  riferimento: misura in quadretti e metri, non tocca lo stato né `save()`.
+  `METRI_PER_CELLA` è diventata un numero in `modello.js` (prima `battaglia.js`
+  inventava la stringa `"1,5 m"`), formattata con l'unità solo nella UI.
+  Documentato in `CLAUDE.md` (sezione "Strumenti temporanei della mappa" +
+  contratto). Test: `test/strumenti/*.test.mjs` (`node:test`, ora `npm test` in
+  CI) — 16 casi sul gestore e sulla geometria; verifica in Chromium (DM: viewBox
+  sincronizzato, righello disegna, misura sparisce a rilascio, tool resta attivo,
+  Esc spegne, pan della mappa intatto senza tool, console pulita; tavolo RO:
+  righello presente e misura), `tsc` e `npm test` ok.
+  - Prossimi tool, un file per volta (nessuno ancora fatto): aree d'effetto
+    (cerchio/cono/linea/quadrato), percorso a waypoint, coordinate (tool passivo,
+    servirebbe un callback `hoverMove` da aggiungere al contratto), mirino/raggio.
+    Tutti temporanei, stesso contratto. I tool **persistenti** (aure salvate, fog
+    of war, condizioni sulle pedine, ping condiviso) non passano dal registro
+    finché non hanno schema dati, migrazione, salvataggio cloud, proiezione
+    server-side del tavolo e autorizzazioni.
+
 ## Mappe in scala
 
 La maglia esiste già ed è una sola — `CELL` 40px = 1 quadretto = 1,5 m (5 piedi),

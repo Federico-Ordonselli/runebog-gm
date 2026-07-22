@@ -20,11 +20,15 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
 ```bash
 npm run dev          # sviluppo su http://localhost:3000 (serve .env, vedi .env.example)
 npx tsc --noEmit     # typecheck — è il controllo principale, non c'è ESLint
+npm test             # test puri con node:test (test/strumenti/*.test.mjs)
 npm run build        # build di produzione (fa anche typecheck)
 ```
 
-Non ci sono ancora test. La CI (`.github/workflows/ci.yml`) esegue typecheck + build su
-ogni push e PR, con `DATABASE_URL` fittizio: il client Neon viene creato all'import di
+I test sono pochi e **puri** (`node --test`, nessuna dipendenza, nessun DOM): oggi
+coprono il gestore degli strumenti mappa e la geometria del righello (vedi
+`test/strumenti/`, il resto dell'app si verifica a mano nel browser). La CI
+(`.github/workflows/ci.yml`) esegue typecheck + `npm test` + build su ogni push e
+PR, con `DATABASE_URL` fittizio: il client Neon viene creato all'import di
 `src/db/index.ts`, quindi il build richiede la variabile anche se nessuna pagina statica
 interroga il database.
 
@@ -192,6 +196,45 @@ implicita di ogni `luogo` senza `shape` — accenderli lì avrebbe messo pareti 
 ogni bolla già disegnata). Il campo `n.walls` è la scelta esplicita del DM e batte
 il default. Il muro corre **dentro** la forma (`WALL_INSET`), sennò coprirebbe il
 contorno di `.blk-shape`, che porta la selezione e l'alone di "condiviso".
+
+**Strumenti temporanei della mappa** (`public/app/strumenti/`): righello e simili
+(aree d'effetto, percorso, coordinate, mirino — solo il righello è implementato).
+Sono **temporanei**: disegnano su una tela a parte e non toccano mai la campagna.
+- **Due SVG, non uno.** `#plan-tools-svg` sta sopra `#plan-svg` in `app.html` e
+  non viene **mai** riscritto: `renderCanvas()` rifà `plan-svg.innerHTML` a ogni
+  disegno, compreso il polling del tavolo, quindi un overlay dentro la tela
+  sparirebbe da sé. `pointer-events:none`: gli eventi restano a `plan-svg`. Niente
+  `z-index` di proposito — l'ordine del DOM lo tiene sopra la mappa e sotto hint/
+  battle-bar/fab (sta subito dopo `plan-svg` e **prima** di quelli). Il legame col
+  renderer è una riga sola: `planApplyVB()` scrive lo stesso `viewBox` su entrambi.
+- **Un solo gestore** (`gestore.js`) possiede registro, tool attivo, pulsanti,
+  scorciatoie, listener Pointer Events **in cattura** su `plan-svg` e pointer
+  capture del gesto. I gesti della mappa (pan, pinch, drag, muri) sono in fase
+  **bubble**: il gestore in cattura li precede e con `stopImmediatePropagation()`
+  li blocca **solo** quando un tool prende il gesto (`pointerDown` → `true`). Senza
+  tool attivo ogni handler ritorna subito: la mappa è identica a prima. Centrale =
+  pan, destro = menu, rotella = zoom restano alla mappa; un secondo dito annulla
+  il gesto del tool; `Escape` esce dal tool **prima** che `scorciatoie.js` lo
+  legga come deseleziona/risali. Un errore dentro un tool si logga, lo spegne e
+  libera puntatore/cursore/pulsante — pan e drag non restano mai bloccati.
+- **Dipendenze iniettate.** Il gestore non tocca `document`/`window` direttamente:
+  tutto arriva da `opts` (elementi, `doc`, `keyTarget`), così gira sotto Node coi
+  fake dei test. `main.js` lo inizializza **dopo** `initMappa` (i cui listener
+  bubble deve poter precedere) e **prima** del primo `renderMap`, con `readOnly`
+  da `RO`.
+- **Il contratto di un tool** (JSDoc in `gestore.js`): `id`, `label`, `shortcut`
+  (un tasto), `scope` (`tutti`|`dm`|`tavolo`), e i callback `pointerDown` (torna
+  `true` per prendere il gesto), `pointerMove`/`pointerUp`/`activate`/`deactivate`/
+  `cancel`. Riceve un `ToolContext` piccolo (`toMapPoint`, `snapToGrid`, `cell`,
+  `metersPerCell`, `layer`, `announce`, `clear`) — **mai** `st`, `save` o
+  `share.ts`. La geometria del righello è una funzione pura (`distanzaCelle`),
+  testata senza DOM.
+- **Aggiungere un tool** = un file sotto `strumenti/`, un import e una riga in
+  `TOOLS` dentro `strumenti/index.js`. Nient'altro: non `app.html`, non `mappa.js`,
+  non `tavolo.js`, non le API. Un tool **persistente** (aure salvate, fog of war,
+  condizioni sulle pedine, ping condiviso) non passa da qui: prima vogliono schema
+  dati, migrazione, salvataggio cloud, proiezione server-side del tavolo e
+  autorizzazioni. Il registro dei tool non è la scorciatoia per saltare quei confini.
 
 **Preferenze dell'interfaccia vs stato della campagna**: tema (`runebog-theme`) e
 larghezza del pannello dettagli (`runebog-detail-w`) stanno in `localStorage`, non nel
