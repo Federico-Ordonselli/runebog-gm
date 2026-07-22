@@ -1,5 +1,49 @@
 # To-do
 
+## Prossimi passi, in ordine
+
+Scritti per essere ripresi **a freddo**: ognuno dice dove si tocca e quale
+ostacolo è già stato misurato, così non si rifà l'indagine. L'ordine è di
+consiglio, non di vincolo. Le voci per esteso stanno nelle sezioni sotto.
+
+1. **Le porte sui muri liberi** (`public/app/modello.js`, `mappa.js`,
+   `src/lib/share.ts`). Oggi una porta è l'*assenza* di muro: al tavolo non si
+   distingue una porta da un varco, e non c'è modo di dire "chiusa a chiave".
+   La strada corta: una porta è un **segmento intero** marcato come tale
+   (`w.porta`, di norma `len:1`) — così si costruisce il perimetro e poi si
+   dichiara quale pezzo è la porta, senza inventare una posizione dentro il
+   segmento. Le tinte esistono già dal perimetro derivato: `.walls .door` è la
+   soglia, `.walls .wall-secret` il segno viola tratteggiato.
+   **Vincolo di sicurezza, non estetico**: una porta *segreta* al tavolo deve
+   uscire come muro pieno, mai come porta — è la stessa regola per cui un
+   collegamento `segreto` non apre il muro e non viene proprio spedito
+   (`DM_ONLY_EDGES`). Va imposta in `projectNode`, dove i muri liberi si
+   proiettano già campo per campo; il client non deve poterla "nascondere".
+2. **Muri nella selezione multipla e nel duplica** (`mappa.js`,
+   `scorciatoie.js`). Un perimetro lungo oggi si posa un pezzo per volta.
+   L'ostacolo è misurato: `st.multiSel` è un `Set` di id di **nodi** e il
+   trascinamento di gruppo risolve i membri con `childOf(id)`, che sui muri
+   restituisce `undefined`; `duplicateSelected` legge `cur.children.find`.
+   Quindi non è un ramo in più: o la selezione diventa tipata (`{tipo, id}`), o
+   i muri hanno un insieme loro e il gruppo di trascinamento sa gestirne due.
+   Le frecce su un muro singolo funzionano già e non vanno toccate.
+3. **Panoramica delle schede mostro in `/srd`** — l'ultima voce aperta della
+   sezione regole. Il bestiario esiste (`public/app/srd-mostri.js`, ~350 KB,
+   `window.SRD_MONSTERS`, generato da `scripts/estrai-srd-mostri.mjs`) ma vive
+   **solo dentro l'app**: dal sito non si consulta. Due decisioni da prendere
+   prima di scrivere codice, e sono le uniche cose difficili: (a) se i mostri
+   entrano nella ricerca trasversale, cioè nell'indice di `/srd/ancore.json`
+   che oggi sono 82 KB per 1530 titoli — 331 schede lo gonfiano, e l'indice si
+   scarica alla prima ricerca; (b) da dove legge la pagina, visto che i mostri
+   non passano da `src/lib/srd/capitoli/` come i capitoli. L'attribuzione
+   CC-BY-4.0 delle schede è obbligatoria (vedi `<Attribuzione/>`).
+
+Minori, già annotati al loro posto: i muri non si duplicano (dentro il n. 2);
+`nodeBox` dà 30×30 a ogni segnalino ma il disco della pedina ne misura 32, un
+pixel fra centro geometrico e centro disegnato (per questo `markerR` è una
+funzione); il sito non ha condizioni d'uso proprie; le rifiniture della sezione
+regole in fondo alla sua sezione.
+
 ## SRD 5.2.1 in italiano (regole 2024)
 
 Fonte: il PDF ufficiale in italiano `IT_SRD_CC_v5.2.1.pdf` (dndbeyond.com/srd,
