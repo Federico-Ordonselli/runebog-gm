@@ -48,9 +48,9 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
   personaggi, Talenti, Equipaggiamento, Incantesimi, Glossario delle regole,
   Strumenti di gioco, Oggetti magici, panoramica delle schede mostro. Con le
   Informazioni legali e la dichiarazione di attribuzione richiesta dalla licenza.
-  **Tutti e dieci i capitoli sono pubblicati dal 21 lug 2026**: la voce resta
-  aperta per la panoramica delle schede mostro, le Informazioni legali e le
-  rifiniture in fondo.
+  **Tutti e dieci i capitoli sono pubblicati dal 21 lug 2026** e le Informazioni
+  legali dal 22: la voce resta aperta per la sola panoramica delle schede mostro
+  (il bestiario oggi vive nell'app, non in `/srd`) e per le rifiniture in fondo.
   - [x] **Impianto + Glossario delle regole** — fatto (19 lug 2026). Estrattore
     generico `scripts/estrai-srd-regole.mjs` (fratello di quello del bestiario:
     la semantica sta nei font), registro dei capitoli in `src/lib/srd/index.ts`
@@ -126,11 +126,11 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
     rigenerati e **byte-identici** (è il controllo che il verificatore non sa
     fare), 390px e 1200px in Chromium senza scorrimento orizzontale né PUA né
     legature, console pulita, `tsc` ok.
-  - [ ] **I restanti sette capitoli**, uno alla volta. L'ordine non è quello del
-    PDF ma quello del valore al tavolo incrociato con la difficoltà di
-    estrazione — ogni capitolo si pubblica mettendo `pronto: true` nel registro
-    di `src/lib/srd/index.ts` dopo che `node scripts/verifica-srd-regole.mjs
-    <PDF> <id>` passa:
+  - [x] **I restanti sette capitoli** — tutti pubblicati (20–21 lug 2026), uno
+    alla volta. L'ordine non è stato quello del PDF ma quello del valore al
+    tavolo incrociato con la difficoltà di estrazione — un capitolo si pubblica
+    mettendo `pronto: true` nel registro di `src/lib/srd/index.ts` dopo che
+    `node scripts/verifica-srd-regole.mjs <PDF> <id>` passa:
     1. [x] **Strumenti di gioco** (pp. 220–231) e **Come si gioca** (pp. 5–20) —
        pubblicati (20 lug 2026), 10/10 al verificatore entrambi, insieme al
        glossario. Esito del banco di prova: il glossario *era* in parte un caso
