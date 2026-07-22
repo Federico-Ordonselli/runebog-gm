@@ -64,6 +64,25 @@ function projectCombat(m: Node | undefined) {
 const DM_ONLY_EDGES = new Set(["segreto"]);
 
 /**
+ * Tipi di porta (`wallSegs[].porta`, vedi DOOR_TYPES in public/app/modello.js) che
+ * al tavolo NON escono per quello che sono: il segmento parte lo stesso, ma senza
+ * il campo `porta`, cioè come muro pieno.
+ *
+ * È la stessa regola di DM_ONLY_EDGES vista dall'altro lato. Lì il dato sparisce
+ * perché è il collegamento a essere segreto; qui il muro deve restare — toglierlo
+ * aprirebbe un buco nel perimetro, e un buco è esattamente l'informazione che il
+ * DM sta nascondendo. Non si può delegare al client: il tavolo riceve questo JSON
+ * e chi lo legge dal devtools legge quello che gli abbiamo mandato.
+ *
+ * I tipi riconosciuti si dichiarano qui e non si deducono: un valore ignoto cade
+ * comunque (l'elenco degli ammessi è più sotto), quindi un domani chi aggiunge un
+ * tipo di porta al client lo vede sparire al tavolo — che è il verso giusto in cui
+ * sbagliare.
+ */
+const DM_ONLY_DOORS = new Set(["segreta"]);
+const DOOR_KINDS = new Set(["aperta", "chiusa", "chiave", "segreta"]);
+
+/**
  * I campi che il client interpola DENTRO attributi HTML (onclick="jumpTo('${id}')",
  * src="${img}", style="fill:${color}", translate(${x},${y})): l'escape del
  * client copre solo il testo, quindi qui si stringono a forme che da un attributo
@@ -226,11 +245,17 @@ function projectNode(n: Node, data: Node): Node {
         v === null || v === undefined || v === "" ? null : num(v);
       const x = dichiarato(s.x), y = dichiarato(s.y), len = dichiarato(s.len);
       if (x === null || y === null || len === null) return null;
-      return {
+      const seg: Node = {
         id: safeId(s.id), x, y,
         dir: s.dir === "v" ? "v" : "h",
         len: Math.max(1, Math.min(200, Math.round(len))),
       };
+      // La porta esce solo se è di un tipo riconosciuto E non è riservata al DM:
+      // una segreta parte come muro pieno, cioè senza questo campo. Il segmento
+      // resta, il segreto no.
+      const porta = String(s.porta ?? "");
+      if (DOOR_KINDS.has(porta) && !DM_ONLY_DOORS.has(porta)) seg.porta = porta;
+      return seg;
     })
     .filter((s): s is NonNullable<typeof s> => s !== null);
   if (muri.length) out.wallSegs = muri;

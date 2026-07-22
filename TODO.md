@@ -6,20 +6,7 @@ Scritti per essere ripresi **a freddo**: ognuno dice dove si tocca e quale
 ostacolo è già stato misurato, così non si rifà l'indagine. L'ordine è di
 consiglio, non di vincolo. Le voci per esteso stanno nelle sezioni sotto.
 
-1. **Le porte sui muri liberi** (`public/app/modello.js`, `mappa.js`,
-   `src/lib/share.ts`). Oggi una porta è l'*assenza* di muro: al tavolo non si
-   distingue una porta da un varco, e non c'è modo di dire "chiusa a chiave".
-   La strada corta: una porta è un **segmento intero** marcato come tale
-   (`w.porta`, di norma `len:1`) — così si costruisce il perimetro e poi si
-   dichiara quale pezzo è la porta, senza inventare una posizione dentro il
-   segmento. Le tinte esistono già dal perimetro derivato: `.walls .door` è la
-   soglia, `.walls .wall-secret` il segno viola tratteggiato.
-   **Vincolo di sicurezza, non estetico**: una porta *segreta* al tavolo deve
-   uscire come muro pieno, mai come porta — è la stessa regola per cui un
-   collegamento `segreto` non apre il muro e non viene proprio spedito
-   (`DM_ONLY_EDGES`). Va imposta in `projectNode`, dove i muri liberi si
-   proiettano già campo per campo; il client non deve poterla "nascondere".
-2. **Muri nella selezione multipla e nel duplica** (`mappa.js`,
+1. **Muri nella selezione multipla e nel duplica** (`mappa.js`,
    `scorciatoie.js`). Un perimetro lungo oggi si posa un pezzo per volta.
    L'ostacolo è misurato: `st.multiSel` è un `Set` di id di **nodi** e il
    trascinamento di gruppo risolve i membri con `childOf(id)`, che sui muri
@@ -27,7 +14,7 @@ consiglio, non di vincolo. Le voci per esteso stanno nelle sezioni sotto.
    Quindi non è un ramo in più: o la selezione diventa tipata (`{tipo, id}`), o
    i muri hanno un insieme loro e il gruppo di trascinamento sa gestirne due.
    Le frecce su un muro singolo funzionano già e non vanno toccate.
-3. **Panoramica delle schede mostro in `/srd`** — l'ultima voce aperta della
+2. **Panoramica delle schede mostro in `/srd`** — l'ultima voce aperta della
    sezione regole. Il bestiario esiste (`public/app/srd-mostri.js`, ~350 KB,
    `window.SRD_MONSTERS`, generato da `scripts/estrai-srd-mostri.mjs`) ma vive
    **solo dentro l'app**: dal sito non si consulta. Due decisioni da prendere
@@ -38,7 +25,7 @@ consiglio, non di vincolo. Le voci per esteso stanno nelle sezioni sotto.
    non passano da `src/lib/srd/capitoli/` come i capitoli. L'attribuzione
    CC-BY-4.0 delle schede è obbligatoria (vedi `<Attribuzione/>`).
 
-Minori, già annotati al loro posto: i muri non si duplicano (dentro il n. 2);
+Minori, già annotati al loro posto: i muri non si duplicano (dentro il n. 1);
 `nodeBox` dà 30×30 a ogni segnalino ma il disco della pedina ne misura 32, un
 pixel fra centro geometrico e centro disegnato (per questo `markerR` è una
 funzione); il sito non ha condizioni d'uso proprie; le rifiniture della sezione
@@ -839,6 +826,43 @@ ma oggi le bolle non la rispettano: sono simboli, non piante.
   misura 32 — un pixel di scarto fra il centro geometrico (che muove archi e
   `nodeCenter`) e il centro disegnato. Non si vede e non l'ho toccato, ma è il
   motivo per cui `markerR` esiste come funzione invece che come costante.
+
+- [x] **Le porte sui muri liberi** — fatto (22 lug 2026). Finché una porta era
+  solo il buco fra due muri, al tavolo non si distingueva da un varco e non
+  c'era modo di dire "chiusa a chiave". Ora una porta è **un muro dichiarato
+  porta**: `w.porta` fra `aperta`, `chiusa`, `chiave`, `segreta` (`DOOR_TYPES`
+  in `modello.js`), si sceglie dal pannello o col tasto destro, e dalla palette
+  («Pianta: Porta») nasce già lunga un quadretto — che è quanto è larga una
+  porta. Il buco resta e va benissimo per un'arcata: le due cose ora si
+  distinguono, che era il punto.
+  - Porta = **segmento intero**, non una posizione dentro il segmento. Il
+    perimetro si costruisce a quadretti, quindi la porta è il quadretto in cui
+    sta; darle un'ascissa propria sarebbe un secondo sistema di coordinate per
+    una cosa che la maglia dice già, e due sistemi divergono.
+  - Il disegno l'ha deciso la convenzione delle piante, non il colore: anta
+    **parallela** al muro = chiusa, **perpendicolare** = spalancata. Il primo
+    tentativo lasciava il vano della porta aperta vuoto, e a guardarlo era di
+    nuovo un buco — cioè il difetto che si stava riparando. Il catenaccio della
+    chiusa a chiave è un tratto perpendicolare per la stessa ragione: forma,
+    non tinta (stessa regola di `statusDot`).
+  - **Sicurezza**: `DM_ONLY_DOORS` in `share.ts`. Una segreta al tavolo esce
+    come **muro pieno** — il segmento parte, il campo `porta` no. È
+    `DM_ONLY_EDGES` visto dall'altro lato: lì il dato sparisce, qui deve
+    restare, perché toglierlo aprirebbe nel perimetro il buco che si sta
+    nascondendo. I tipi ammessi sono dichiarati (`DOOR_KINDS`), quindi un tipo
+    nuovo lato client sparisce al tavolo finché non si aggiorna il server.
+  Due cose trovate guardando lo schermo e non nel codice: il segno della segreta
+  a 4px su un muro da 6 lasciava un filo viola che il DM doveva **cercarsi**
+  sulla propria mappa (ora copre il muro), e `planFit` ignorava i muri — un
+  livello fatto **solo** di muri, cioè il battlemap per cui i muri liberi
+  esistono, riceveva da "Adatta" la vista di default come un livello vuoto.
+  Verificato in Chromium sui temi Bog, Pergamena e Brace (i quattro tipi
+  leggibili a 1:1 in tutti e tre), pannello e menu contestuale, `projectForPlayers`
+  chiamata davvero (chiusa esce, segreta esce come muro pieno, tipo inventato
+  cade), `tsc` ok.
+  Resta aperto: il verso di apertura dell'anta non è un dato — sta sempre dallo
+  stesso lato. Aggiungerlo vuol dire un campo in più e un comando per girarlo,
+  e al tavolo non cambia niente di ciò che si decide.
 
 - [x] **Muri liberi: un perimetro per giocarci** — fatto (22 lug 2026). I muri
   c'erano già ma erano **derivati**: il contorno rettangolare di una bolla, con

@@ -1,12 +1,13 @@
 /* Il menu contestuale della mappa: tasto destro col mouse, long-press su touch
    (il long-press lo rileva mappa.js, che chiama showCtxFor). */
 
-import { TYPES, SHAPES, EDGE_TYPES, STATUS_COLORS, isMarker, defShape } from "./modello.js";
+import { TYPES, SHAPES, EDGE_TYPES, STATUS_COLORS, isMarker, defShape,
+         DOOR_TYPES, doorKind } from "./modello.js";
 import { st, currentNode, newCampaign, askDeleteCampaign, doUndo, RO } from "./stato.js";
 import { openKeys } from "./viste.js";
 import { exportJSON } from "./esporta.js";
 import { childOf, enterNode, duplicateSelected, addSpatialChild, arrangeGrid,
-         planPointXY, renderCanvas } from "./mappa.js";
+         planPointXY, renderCanvas, wallOf, setWallDoor, deleteWallSeg } from "./mappa.js";
 import { renderDetail, editNode, askDeleteNode, editEdge, deleteEdge } from "./pannello.js";
 
 const ctxEl = () => document.getElementById("ctx-menu");
@@ -38,6 +39,7 @@ function focusDetailTitle(){
 export function showCtxFor(target, cx, cy){
   const blkEl  = target.closest(".blk");
   const edgeEl = target.closest(".edge");
+  const wallEl = target.closest(".wall-seg");
 
   if(blkEl){
     const n = childOf(blkEl.dataset.block); if(!n) return;
@@ -81,6 +83,30 @@ export function showCtxFor(target, cx, cy){
       "---",
       {id:"lab", label:"Etichetta…", run:()=>{ st.selectedEdgeId=e.id; renderDetail(); focusDetailTitle(); }},
       {id:"del", label:"Elimina", danger:true, run:()=>deleteEdge(e.id)}
+    ];
+    openCtx(items, cx, cy);
+    return;
+  }
+
+  /* Un muro: qui si decide se è pieno o è una porta. È lo stesso posto in cui
+     si cambia tipo a un collegamento, ed è il gesto più corto — il pannello ha
+     lo stesso comando, ma sta dall'altra parte dello schermo. */
+  if(wallEl){
+    const w = wallOf(wallEl.dataset.wall); if(!w) return;
+    st.selectedWallId = w.id; st.selectedId = null; st.selectedEdgeId = null;
+    st.multiSel.clear(); renderCanvas(); renderDetail();
+    const kind = doorKind(w);
+    const items = [
+      {head:"Tipo di muro"},
+      {id:"t-pieno", label:"Muro pieno" + (kind?"":"  ✓"), bar:"var(--ink-dim)",
+       run:()=>setWallDoor(w.id, "")},
+      ...Object.entries(DOOR_TYPES).map(([k,d])=>({
+        id:"t-"+k, label: d.label + (kind===k?"  ✓":""),
+        bar: k==="segreta" ? "var(--viola)" : "var(--track)", dash: k==="segreta",
+        run:()=>setWallDoor(w.id, k)
+      })),
+      "---",
+      {id:"del", label:"Elimina", danger:true, run:()=>deleteWallSeg(w.id)}
     ];
     openCtx(items, cx, cy);
     return;

@@ -4,7 +4,7 @@
 
 import { TYPES, STATUSES, SHAPES, EDGE_TYPES, NODE_COLORS, nodeColor,
          isMarker, defShape, nodeBox, node, escapeHtml, escapeAttr,
-         gridShape, wallShape, CELL } from "./modello.js";
+         gridShape, wallShape, CELL, DOOR_TYPES, doorKind, wallLabel } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, RO } from "./stato.js";
 import { openConfirm } from "./viste.js";
 import { renderMap, renderCrumbs, renderCanvas, bgEdit, isEmptyNode, doDeleteNodes,
@@ -84,23 +84,33 @@ function renderDetailCore(){
   const cur = currentNode();
 
   /* Pannello di un muro. Non ha campi da riempire — un muro non ha nome, note
-     né stato: è geometria. Quello che serve saperne è quanto è lungo, e quello
-     che serve poterci fare è toglierlo. Il resto si fa col dito sulla mappa. */
+     né stato: è geometria. Quello che serve saperne è quanto è lungo, quello
+     che serve deciderne è se è pieno o è una porta, e quello che serve poterci
+     fare è toglierlo. Il resto si fa col dito sulla mappa. */
   if(st.selectedWallId){
     const w = wallOf(st.selectedWallId);
     if(!w){ st.selectedWallId = null; }
     else{
+      const kind = doorKind(w);
+      const tipoOpts = `<option value="" ${kind?"":"selected"}>Muro pieno</option>` +
+        Object.entries(DOOR_TYPES)
+          .map(([k,d])=>`<option value="${k}" ${k===kind?"selected":""}>${d.label}</option>`).join("");
       aside.innerHTML = `<div class="inner">
         <div>
           <span style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim)">
             <span class="type-badge" style="background:var(--ink-dim)"></span>Muro
           </span>
-          <h2>${w.dir==="v" ? "Verticale" : "Orizzontale"}</h2>
+          <h2>${escapeHtml(wallLabel(w))}</h2>
         </div>
-        <p class="hint-sm">${escapeHtml(misuraMuro(w))}</p>
+        <p class="hint-sm">${w.dir==="v" ? "Verticale" : "Orizzontale"} · ${escapeHtml(misuraMuro(w))}</p>
+        <div class="field"><label>Tipo</label>
+          <select onchange="setWallDoor('${w.id}',this.value)">${tipoOpts}</select>
+          ${kind==="segreta"?`<p class="hint-sm">Resta tua: al tavolo questo pezzo esce come
+            muro pieno, non come porta da cercare. Quando i giocatori la trovano, cambia
+            il tipo in aperta o chiusa.</p>`:""}</div>
         <p class="hint-sm">Trascina il muro per spostarlo, i due capi per allungarlo
-          o girarlo. Le frecce lo spostano di un quadretto. Le porte sono i buchi
-          che lasci fra un muro e l'altro.</p>
+          o girarlo. Le frecce lo spostano di un quadretto. Un varco senza battente
+          si fa ancora così: lasciando un buco fra un muro e l'altro.</p>
         <div class="detail-actions">
           <button class="btn danger" onclick="deleteWallSeg('${w.id}')">Elimina muro</button>
         </div>

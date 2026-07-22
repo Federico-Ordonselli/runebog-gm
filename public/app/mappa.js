@@ -6,7 +6,8 @@ import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeCo
          isMarker, defShape, nodeBox, nodeCenter, node, uid, escapeHtml, escapeAttr,
          gridShape, onGrid, snapGrid, snapNode,
          wallShape, wallBox, wallOpening, wallPlan, WALL,
-         wallSegsOf, wallSegEnds, newWallSeg, stretchWallSeg } from "./modello.js";
+         wallSegsOf, wallSegEnds, newWallSeg, stretchWallSeg,
+         DOOR_TYPES, doorKind, wallLabel } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, pathNodes, RO } from "./stato.js";
 import { showView, openConfirm } from "./viste.js";
 import { renderDetail, compressImage } from "./pannello.js";
@@ -90,12 +91,21 @@ function planApplyVB(){
   planVBs[currentNode().id] = planVB;
 }
 export function planFit(rerender){
-  const kids = currentNode().children.filter(c=>typeof c.x==="number");
-  if(!kids.length){ planVB = {x:-600,y:-400,w:1200,h:800}; planApplyVB(); return; }
+  const cur = currentNode();
+  const kids = cur.children.filter(c=>typeof c.x==="number");
+  // I muri contano quanto le bolle: un livello fatto solo di muri è un
+  // battlemap, cioè il caso per cui i muri liberi esistono — e senza questo
+  // "Adatta" gli dava la vista di default, come a un livello vuoto. Stessa
+  // ragione per cui `vuoto` in renderCanvas li conta.
+  const muri = wallSegsOf(cur);
+  if(!kids.length && !muri.length){ planVB = {x:-600,y:-400,w:1200,h:800}; planApplyVB(); return; }
   let x1=Infinity,y1=Infinity,x2=-Infinity,y2=-Infinity;
   kids.forEach(c=>{ const b=nodeBox(c);
     x1=Math.min(x1,c.x); y1=Math.min(y1,c.y);
     x2=Math.max(x2,c.x+b.w); y2=Math.max(y2,c.y+b.h+20); });
+  muri.forEach(w=>{ const e=wallSegEnds(w);
+    x1=Math.min(x1,e.x1); y1=Math.min(y1,e.y1);
+    x2=Math.max(x2,e.x2); y2=Math.max(y2,e.y2); });
   const pad=120, w=Math.max(700,x2-x1+pad*2), h=Math.max(480,y2-y1+pad*2);
   planVB = {x:x1-pad-(w-(x2-x1)-pad*2)/2, y:y1-pad-(h-(y2-y1)-pad*2)/2, w, h};
   planApplyVB();
@@ -118,22 +128,76 @@ const canEditEdges = () => true;   // i collegamenti si creano a ogni livello, c
 export const misuraMuro = w =>
   `${w.len} quadrett${w.len===1?"o":"i"} · ${String(w.len*1.5).replace(".", ",")} m`;
 const ariaMuro = w =>
-  `Muro ${w.dir==="v" ? "verticale" : "orizzontale"}, ${misuraMuro(w)}`;
+  `${wallLabel(w)} ${w.dir==="v" ? "verticale" : "orizzontale"}, ${misuraMuro(w)}`;
 
-/* Sposta le linee di un muro senza ricostruire la tela: renderCanvas() riscrive
+/* Lo stipite: il pezzo di muro che resta ai due capi del vano. Senza, una porta
+   in mezzo a un perimetro sembrerebbe un buco e una porta isolata non si
+   distinguerebbe da un tratto sottile. Mai più di un terzo del vano, sennò su
+   una porta da un quadretto gli stipiti si toccherebbero. */
+const JAMB = 7;
+/* Il disegno di un muro: pieno, oppure vano con quel che ci sta dentro.
+   La porta segreta è l'eccezione che conferma la regola del perimetro derivato
+   (`.wall-secret`): non apre niente, ci mette un segno sopra — così al tavolo,
+   dove il segno non arriva, resta un muro pieno e non un buco da spiegare. */
+function doorMarkup(w, e, kind){
+  const v = w.dir === "v";
+  const ux = v ? 0 : 1, uy = v ? 1 : 0;              // versore lungo il muro
+  const nx = v ? 1 : 0, ny = v ? 0 : 1;              // e la sua perpendicolare
+  if(kind === "segreta")
+    return `<line class="wall-seg__secret" x1="${e.x1+ux*4}" y1="${e.y1+uy*4}"
+                  x2="${e.x2-ux*4}" y2="${e.y2-uy*4}"/>`;
+  const g = Math.min(JAMB, w.len*CELL/3);
+  const ax = e.x1+ux*g, ay = e.y1+uy*g, bx = e.x2-ux*g, by = e.y2-uy*g;
+  const luce = w.len*CELL - 2*g;                     // il vano fra i due stipiti
+  let out = `<line class="wall-seg__line" x1="${e.x1}" y1="${e.y1}" x2="${ax}" y2="${ay}"/>
+             <line class="wall-seg__line" x1="${bx}" y1="${by}" x2="${e.x2}" y2="${e.y2}"/>`;
+  /* L'anta, come nelle piante: PARALLELA al muro se la porta è chiusa,
+     PERPENDICOLARE se è spalancata. Il contrasto è di orientamento e non di
+     colore, quindi si legge anche in scala di grigi — e soprattutto una porta
+     aperta smette di essere un buco: il vano vuoto è già il modo di dire
+     "varco", e le due cose devono restare distinguibili. Il verso in cui si
+     apre non è un dato: l'anta sta sempre dallo stesso lato. */
+  out += kind === "aperta"
+    ? `<line class="wall-seg__door" x1="${ax}" y1="${ay}" x2="${ax+nx*luce}" y2="${ay+ny*luce}"/>`
+    : `<line class="wall-seg__door" x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}"/>`;
+  if(kind === "aperta") return out;
+  /* Il catenaccio è un TRATTO PERPENDICOLARE, non un colore diverso del
+     battente: chiusa e chiusa a chiave devono distinguersi anche per chi non
+     separa l'ambra dalla sabbia (stessa regola di statusDot). */
+  if(kind === "chiave"){
+    const mx = (e.x1+e.x2)/2, my = (e.y1+e.y2)/2, r = 7;
+    out += `<line class="wall-seg__lock" x1="${mx-nx*r}" y1="${my-ny*r}" x2="${mx+nx*r}" y2="${my+ny*r}"/>`;
+  }
+  return out;
+}
+/* Il contenuto del <g> di un muro. Sta a parte perché lo scrivono in due:
+   renderCanvas quando ricostruisce la tela, e aggiornaMuro durante il
+   trascinamento. */
+function wallSegInner(w, sel){
+  const e = wallSegEnds(w), kind = doorKind(w);
+  let out = `<line class="wall-seg__hit" x1="${e.x1}" y1="${e.y1}" x2="${e.x2}" y2="${e.y2}"/>`;
+  if(!kind || kind === "segreta")
+    out += `<line class="wall-seg__line" x1="${e.x1}" y1="${e.y1}" x2="${e.x2}" y2="${e.y2}"/>`;
+  if(kind) out += doorMarkup(w, e, kind);
+  // Le maniglie compaiono solo sul muro selezionato: due pallini per ogni muro
+  // del livello sarebbero una pianta illeggibile.
+  if(sel && !RO)
+    out += `<circle class="wall-seg__handle" data-end="a" cx="${e.x1}" cy="${e.y1}" r="7"/>
+            <circle class="wall-seg__handle" data-end="b" cx="${e.x2}" cy="${e.y2}" r="7"/>`;
+  return out;
+}
+
+/* Sposta un muro senza ricostruire la tela: renderCanvas() riscrive
    svg.innerHTML e distruggerebbe il nodo su cui è iniziato il pointerdown,
-   cioè la stessa trappola già commentata per il doppio clic. */
+   cioè la stessa trappola già commentata per il doppio clic. Si riscrive tutto
+   il gruppo e non le singole linee: da quando esistono le porte le linee di un
+   muro non hanno più tutte la stessa geometria, e spostarle in blocco
+   ammucchierebbe stipiti e battente sui due capi. Il pointer capture sta
+   sull'<svg>, non su questo <g>: il gesto sopravvive al ridisegno. */
 function aggiornaMuro(w){
   const g = planSvg().querySelector(`.wall-seg[data-wall="${w.id}"]`); if(!g) return;
-  const e = wallSegEnds(w);
-  g.querySelectorAll("line").forEach(l=>{
-    l.setAttribute("x1",e.x1); l.setAttribute("y1",e.y1);
-    l.setAttribute("x2",e.x2); l.setAttribute("y2",e.y2);
-  });
-  g.querySelectorAll(".wall-seg__handle").forEach(c=>{
-    const a = c.dataset.end==="a";
-    c.setAttribute("cx", a?e.x1:e.x2); c.setAttribute("cy", a?e.y1:e.y2);
-  });
+  g.innerHTML = wallSegInner(w, g.classList.contains("sel"));
+  g.setAttribute("aria-label", ariaMuro(w));
 }
 
 function ensureLayout(parent){
@@ -360,17 +424,9 @@ export function renderCanvas(){
      l'ordine del pavimento — un muro è architettura, ci si cammina in mezzo,
      quindi non deve mai coprire una pedina né rubarle il tocco. */
   for(const w of wallSegsOf(cur)){
-    const e = wallSegEnds(w), sel = st.selectedWallId===w.id;
+    const sel = st.selectedWallId===w.id;
     out += `<g class="wall-seg${sel?" sel":""}" data-wall="${w.id}" tabindex="0" role="button" aria-pressed="${sel}"
-      aria-label="${escapeAttr(ariaMuro(w))}">
-      <line class="wall-seg__hit" x1="${e.x1}" y1="${e.y1}" x2="${e.x2}" y2="${e.y2}"/>
-      <line class="wall-seg__line" x1="${e.x1}" y1="${e.y1}" x2="${e.x2}" y2="${e.y2}"/>`;
-    // Le maniglie compaiono solo sul muro selezionato: due pallini per ogni
-    // muro del livello sarebbero una pianta illeggibile.
-    if(sel && !RO)
-      out += `<circle class="wall-seg__handle" data-end="a" cx="${e.x1}" cy="${e.y1}" r="7"/>
-              <circle class="wall-seg__handle" data-end="b" cx="${e.x2}" cy="${e.y2}" r="7"/>`;
-    out += `</g>`;
+      aria-label="${escapeAttr(ariaMuro(w))}">${wallSegInner(w, sel)}</g>`;
   }
 
   // blocchi e segnalini
@@ -522,7 +578,7 @@ export function addSpatialChild(opts, x, y){
   // Un muro non è una bolla e non entra in `children`: passa di qui perché è di
   // qui che passano i tre modi di posare una cosa (trascina, arma-e-tocca,
   // Invio dalla palette), e sdoppiarli avrebbe voluto dire tenerli allineati.
-  if(opts.wall) return addWallSeg(x, y);
+  if(opts.wall) return addWallSeg(x, y, opts.porta);
   let c;
   if(opts.marker) c = node("", opts.marker);
   else { c = node("", opts.shape==="quartiere" ? "zona" : "luogo"); c.shape = opts.shape; }
@@ -552,15 +608,29 @@ export function addSpatialChild(opts, x, y){
 }
 /* Nasce lungo due quadretti e centrato sul punto toccato: uno solo è un
    trattino che non si capisce cos'è, e nascere con un capo sotto il dito
-   costringerebbe a spostarlo prima ancora di guardarlo. */
-export function addWallSeg(x, y){
+   costringerebbe a spostarlo prima ancora di guardarlo.
+   Una porta invece nasce lunga UN quadretto, che è quanto è larga una porta:
+   così la si posa e basta, invece di posare un muro, accorciarlo e poi
+   dichiararlo. Nessun comando in più per riparare qualcosa che nasce storto. */
+export function addWallSeg(x, y, porta){
   if(RO) return;
   const cur = currentNode();
   if(!Array.isArray(cur.wallSegs)) cur.wallSegs = [];
-  const w = newWallSeg(x - CELL, y);
+  const k = DOOR_TYPES[porta] ? porta : null;
+  const w = newWallSeg(k ? x - CELL/2 : x - CELL, y, "h", k ? 1 : 2);
+  if(k) w.porta = k;
   cur.wallSegs.push(w);
   st.selectedWallId = w.id; st.selectedId = null; st.selectedEdgeId = null; st.multiSel.clear();
   save(); renderMap();
+}
+/* Muro pieno ⇄ porta: è un cambio di tipo, non un altro oggetto. Il segmento
+   resta dov'è con la sua lunghezza — chi ha costruito il perimetro non deve
+   rifarne un pezzo per metterci una porta. */
+export function setWallDoor(id, kind){
+  if(RO) return;
+  const w = wallOf(id); if(!w) return;
+  if(DOOR_TYPES[kind]) w.porta = kind; else delete w.porta;
+  save(); renderCanvas(); renderDetail();
 }
 export function deleteWallSeg(id){
   if(RO) return;
@@ -1189,4 +1259,5 @@ export function duplicateSelected(){
 
 // per gli onclick inline nei template e nell'HTML statico
 Object.assign(window, { enterNode, jumpTo, planFit, planZoom, arrangeGrid, quickAddCenter, addAtCenter,
-  pickBg, removeBg, toggleBgEdit, setBgOpacity, requestDeleteSelection, goToNode, deleteWallSeg });
+  pickBg, removeBg, toggleBgEdit, setBgOpacity, requestDeleteSelection, goToNode,
+  deleteWallSeg, setWallDoor });

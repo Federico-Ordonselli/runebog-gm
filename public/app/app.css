@@ -392,7 +392,17 @@
   .wall-seg{cursor:move}
   .wall-seg__hit{stroke:transparent;stroke-width:18;fill:none}
   .wall-seg__line{stroke:var(--ink-dim);stroke-width:6;stroke-linecap:butt}
-  .wall-seg.sel .wall-seg__line,.wall-seg:focus-visible .wall-seg__line{
+  /* Le porte riusano le tinte del perimetro derivato: il battente è la soglia
+     (--track), il segno della segreta è quello del passaggio segreto (--viola).
+     Due sistemi diversi disegnano la stessa cosa, e devono somigliarsi. */
+  .wall-seg__door{stroke:var(--track);stroke-width:3;stroke-linecap:butt}
+  .wall-seg__lock{stroke:var(--ember);stroke-width:3;stroke-linecap:round}
+  /* Il segno della segreta copre il muro per intero (stesso spessore): a 4px
+     su 6 restava un filo viola in mezzo alla pietra, cioè un segreto che il DM
+     doveva cercarsi sulla sua stessa mappa. */
+  .wall-seg__secret{stroke:var(--viola);stroke-width:6;stroke-linecap:butt;stroke-dasharray:3 3}
+  .wall-seg.sel .wall-seg__line,.wall-seg:focus-visible .wall-seg__line,
+  .wall-seg.sel .wall-seg__door,.wall-seg:focus-visible .wall-seg__door{
     stroke:var(--gold);filter:drop-shadow(0 0 3px var(--gold))}
   /* Le maniglie stanno SUGLI incroci della maglia, quindi devono leggersi anche
      sopra la griglia: piene, non a contorno. */

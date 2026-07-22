@@ -124,6 +124,25 @@ buchi che si lasciano fra un muro e l'altro, e non c'è niente da dichiarare.
 - Un gesto solo allunga **e** ruota (`stretchWallSeg`): l'altro capo sta fermo e
   l'asse lo decide lo spostamento più lungo. Niente comando "ruota" — sarebbe un
   bottone per una cosa che il dito sta già dicendo.
+- **Una porta è un muro dichiarato porta** (`w.porta`, valori in `DOOR_TYPES`:
+  aperta, chiusa, chiave, segreta), non un buco fra due muri. Il buco resta il
+  modo di fare un varco, ma non sa dire "c'è un battente" né "è chiusa a
+  chiave", e al tavolo un varco e una porta si leggono uguali. È il **segmento
+  intero** a dichiararsi porta — darle un'ascissa dentro il muro sarebbe un
+  secondo sistema di coordinate per una cosa che la maglia dice già. Dalla
+  palette nasce lunga **un quadretto**, che è quanto è larga una porta: posarla
+  e basta, invece di posare un muro e poi accorciarlo.
+  Nel disegno l'anta è **parallela** al muro se è chiusa e **perpendicolare** se
+  è spalancata (`doorMarkup` in `mappa.js`): il contrasto è di orientamento, non
+  di colore, quindi regge in tutti e cinque i temi e per un daltonico — e
+  soprattutto una porta aperta smette di essere un buco. Il catenaccio della
+  chiusa a chiave è un tratto perpendicolare, per la stessa ragione. La segreta
+  non apre niente: muro pieno più il segno viola tratteggiato, come
+  `.wall-secret` del perimetro derivato.
+  `aggiornaMuro` riscrive **tutto il gruppo** durante il trascinamento: da
+  quando esistono le porte le linee di un muro non hanno più tutte la stessa
+  geometria, e spostarle in blocco ammucchierebbe stipiti e battente sui capi.
+  Si può perché il pointer capture sta sull'`<svg>`, non su quel `<g>`.
 - La classe CSS è `.wall-seg`, **non** `.wall`: quella è già dei tratti del
   perimetro, e un `closest(".wall")` intercettava i clic sul bordo delle bolle.
 - `st.selectedWallId` è il terzo selezionato, mutuamente esclusivo con
@@ -571,10 +590,18 @@ Non negoziabili; se tocchi queste aree, mantienili:
   rivelate e collegate da un passaggio segreto ne mostrerebbero l'esistenza e
   l'etichetta. Il flag `dmOnly` in `EDGE_TYPES` (`public/app/modello.js`) serve solo
   a dirlo nel pannello: a decidere è il server, e i due elenchi vanno tenuti allineati.
-  Le porte dei muri seguono da sé: il client le ricava dagli archi che ha in mano,
-  quindi un arco che il server non manda non apre nessun muro. Un `segreto` non apre
-  il muro nemmeno per il DM (lascia un segno sopra la parete): così non c'è un buco
-  la cui assenza al tavolo vada spiegata, e la regola resta una sola.
+  Le porte del perimetro derivato seguono da sé: il client le ricava dagli archi che
+  ha in mano, quindi un arco che il server non manda non apre nessun muro. Un
+  `segreto` non apre il muro nemmeno per il DM (lascia un segno sopra la parete):
+  così non c'è un buco la cui assenza al tavolo vada spiegata, e la regola resta
+  una sola.
+- **Una porta segreta esce come muro pieno** (`DM_ONLY_DOORS` in `src/lib/share.ts`,
+  allineato a `DOOR_TYPES` in `public/app/modello.js`): il segmento parte lo stesso,
+  ma senza il campo `porta`. È DM_ONLY_EDGES visto dall'altro lato — lì il dato
+  sparisce, qui deve restare, perché toglierlo aprirebbe nel perimetro un buco che è
+  esattamente l'informazione da nascondere. I tipi ammessi si dichiarano (`DOOR_KINDS`)
+  e non si deducono: chi aggiunge un tipo al client lo vede sparire al tavolo finché
+  non aggiorna anche il server, che è il verso giusto in cui sbagliare.
 - **I riferimenti si risolvono sul server**: l'ordine d'iniziativa e le pedine puntano
   a nodi (`nodeId`, `foeId`, `playerId`); `projectBattle`/`nomePedina` in `share.ts` ne
   fanno uscire solo il **nome**. Spedire il riferimento consegnerebbe ai giocatori gli

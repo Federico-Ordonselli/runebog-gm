@@ -214,6 +214,31 @@ export const wallSegEnds = w => w.dir === "v"
 export const newWallSeg = (x, y, dir = "h", len = 2) =>
   ({id:uid(), x:snapGrid(x), y:snapGrid(y), dir, len});
 
+/* Una porta è un muro DICHIARATO porta, non un buco fra due muri. Il buco resta
+   il modo di fare un varco, e va benissimo per un'arcata o uno sfondamento —
+   ma non sa dire "qui c'è un battente" né "è chiusa a chiave", e al tavolo un
+   varco e una porta si leggono uguali.
+
+   Porta = SEGMENTO INTERO, non una posizione dentro il segmento: il perimetro
+   si costruisce a quadretti, quindi la porta è il quadretto in cui sta. Darle
+   un'ascissa propria dentro il muro sarebbe un secondo sistema di coordinate
+   per una cosa che la maglia dice già, e due sistemi divergono.
+
+   dmOnly: come per i collegamenti (EDGE_TYPES.segreto) il flag serve solo a
+   dirlo nel pannello — a decidere è il server (DM_ONLY_DOORS in
+   src/lib/share.ts), e i due elenchi vanno tenuti allineati. */
+export const DOOR_TYPES = {
+  aperta:  {label:"Porta aperta"},
+  chiusa:  {label:"Porta chiusa"},
+  chiave:  {label:"Chiusa a chiave"},
+  segreta: {label:"Porta segreta", dmOnly:true}
+};
+export const doorKind = w => DOOR_TYPES[w.porta] ? w.porta : null;
+/* Nome di un muro in una riga: è il titolo del pannello, l'etichetta del menu
+   contestuale e la voce che un lettore di schermo annuncia. Uno solo, sennò
+   diventano tre e divergono. */
+export const wallLabel = w => DOOR_TYPES[doorKind(w)]?.label || "Muro pieno";
+
 /* Stira un muro dal capo che si sta trascinando: l'altro sta fermo, e l'asse lo
    decide lo spostamento più lungo. Così un gesto solo allunga E ruota — non
    serve un comando "ruota", che sarebbe un bottone per una cosa che il dito sta
@@ -339,12 +364,17 @@ function safeWallSeg(w){
   };
   const x = num(w.x), y = num(w.y), len = num(w.len);
   if(x === null || y === null || len === null) return null;
-  return {
+  const seg = {
     id: safeId(w.id ?? uid()),
     x: snapGrid(x), y: snapGrid(y),
     dir: w.dir === "v" ? "v" : "h",
     len: Math.max(WALL_MIN, Math.min(WALL_MAX, Math.round(len)))
   };
+  // Il tipo di porta si accetta solo se è uno dei nostri: finisce in un nome di
+  // classe CSS, e un valore inventato lascerebbe un muro senza disegno invece
+  // di un muro pieno — cioè un pezzo di perimetro che sparisce.
+  if(DOOR_TYPES[w.porta]) seg.porta = w.porta;
+  return seg;
 }
 
 /* Pulisce in-place l'intero albero dello stato. Un solo punto: la chiama migrateState,
