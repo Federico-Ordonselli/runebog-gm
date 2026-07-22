@@ -3,12 +3,12 @@
    mappa.js, non le API. Elenco esplicito, niente discovery dinamica (il frontend
    non ha build step, e una lista che si legge è più verificabile di un glob).
 
-   In questo commit il registro è ancora vuoto: serve a provare che, senza tool,
-   la mappa non cambia comportamento. Il righello arriva nel commit seguente. */
+   Quando i tool passano di due, tenere l'array e registrare in ciclo (già così). */
 
 import { initGestoreTool, registraTool } from "./gestore.js";
+import { righelloTool } from "./righello.js";
 
-const TOOLS = [];
+const TOOLS = [righelloTool];
 
 export function initStrumentiMappa(options){
   for(const tool of TOOLS) registraTool(tool);
