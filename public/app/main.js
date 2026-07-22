@@ -3,9 +3,11 @@
    script classico coi dati del bestiario). L'ordine conta: prima lo stato,
    poi i listener, poi il primo render. */
 
-import { initStato, renderCampaignSelect, save } from "./stato.js";
+import { initStato, renderCampaignSelect, save, RO } from "./stato.js";
 import { initViste } from "./viste.js";
-import { initMappa, renderMap } from "./mappa.js";
+import { initMappa, renderMap, planSvg, planPointXY } from "./mappa.js";
+import { CELL, METRI_PER_CELLA } from "./modello.js";
+import { initStrumentiMappa } from "./strumenti/index.js";
 import { initMenu } from "./menu.js";
 import { initRicerca } from "./ricerca.js";
 import { initScorciatoie } from "./scorciatoie.js";
@@ -113,6 +115,21 @@ setTheme(salvato);
 
 initViste();
 initMappa();
+// Dopo initMappa (i cui gesti in fase bubble il gestore deve poter precedere in
+// cattura) e prima del primo renderMap. readOnly da RO: al tavolo un tool vive
+// solo se il suo scope lo prevede.
+initStrumentiMappa({
+  mapSvg: planSvg(),
+  overlaySvg: document.getElementById("plan-tools-svg"),
+  toolbar: document.getElementById("map-tools"),
+  status: document.getElementById("map-tool-status"),
+  doc: document,
+  keyTarget: window,
+  cell: CELL,
+  metersPerCell: METRI_PER_CELLA,
+  toMapPoint: planPointXY,
+  readOnly: RO,
+});
 initMenu();
 initRicerca();
 initScorciatoie();
