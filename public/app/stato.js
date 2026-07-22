@@ -38,9 +38,34 @@ export const st = {
   // Muro libero selezionato. I tre "selected*" sono mutuamente esclusivi: si
   // azzerano insieme, e il pannello li legge in quest'ordine.
   selectedWallId: null,
-  multiSel: new Set(),  // selezione multipla (Ctrl+clic)
+  multiSel: new Set(),  // selezione multipla di BOLLE (Ctrl+clic)
+  /* I muri hanno un insieme loro invece di entrare in `multiSel`. Sono cose
+     diverse — un muro non sta in `children`, non ha titolo, non si entra
+     dentro — e sei moduli leggono `multiSel` dando per scontato che ci siano
+     id di nodi (`childOf`, `findNode`). Mescolarli avrebbe voluto dire
+     riscrivere quel codice per far entrare il caso secondario, con le bolle a
+     pagarne il rischio. Il prezzo di questa scelta è uno solo: i due insiemi
+     si azzerano SEMPRE insieme — e per questo l'azzeramento sta in clearSel()
+     e non ricopiato in otto punti. */
+  multiSelWalls: new Set(),
   detailOpen: false     // bottom sheet aperto manualmente (mobile)
 };
+
+/* L'unico modo di dire "niente di selezionato". Cinque campi che devono restare
+   d'accordo: prima erano cinque assegnazioni ricopiate ovunque, e ogni posto
+   che ne dimenticava uno lasciava acceso in oro qualcosa che il modello aveva
+   già deselezionato. */
+export function clearSel(){
+  st.selectedId = null;
+  st.selectedEdgeId = null;
+  st.selectedWallId = null;
+  st.multiSel.clear();
+  st.multiSelWalls.clear();
+}
+/* Selezione singola: la stessa cosa detta per bolle e muri, così chi la usa non
+   deve ricordarsi quale insieme tocca. */
+export function selectNode(id){ clearSel(); st.selectedId = id; st.multiSel.add(id); }
+export function selectWall(id){ clearSel(); st.selectedWallId = id; st.multiSelWalls.add(id); }
 
 /* La campagna del primo avvio è un esempio-tutorial, non dati veri: una zona
    compilata che mostra la gerarchia (bolle dentro bolle, con mini-preview),
@@ -138,7 +163,7 @@ export function switchCampaign(id){
   catch(_){ st.state = emptyState(); }
   migrateState(st.state);
   resetUndo();                       // l'undo non attraversa le campagne
-  st.path = [st.state.root.id]; st.selectedId = null; st.selectedEdgeId = st.selectedWallId = null; st.multiSel.clear();
+  st.path = [st.state.root.id]; clearSel();
   renderCampaignSelect(); showView("map");
 }
 export function newCampaign(){
@@ -150,7 +175,7 @@ export function newCampaign(){
   st.state = emptyState();
   resetUndo();
   persistCurrent(); renderCampaignSelect();
-  st.path = [st.state.root.id]; st.selectedId = null; st.selectedEdgeId = st.selectedWallId = null; st.multiSel.clear();
+  st.path = [st.state.root.id]; clearSel();
   showView("map");
   setTimeout(()=>{ const i=document.querySelector("#detail input"); if(i){ i.focus(); i.select(); } }, 80);
 }
@@ -271,7 +296,10 @@ export function undo(){
   st.path = valid.length ? valid : [st.state.root.id];
   if(st.selectedId && !findNode(st.selectedId)) st.selectedId = null;
   st.multiSel = new Set([...st.multiSel].filter(id => findNode(id)));
-  st.selectedEdgeId = st.selectedWallId = null;   // un arco o un muro possono non esserci più
+  // un arco o un muro possono non esserci più — e un muro non si sa cercare
+  // come findNode fa coi nodi, quindi si azzera invece di filtrare
+  st.selectedEdgeId = st.selectedWallId = null;
+  st.multiSelWalls.clear();
   doSave();                          // persiste subito, senza passare da noteChange
   return true;
 }

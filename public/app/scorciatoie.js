@@ -2,7 +2,7 @@
    e, per quelle della mappa, solo con la vista Mappa aperta. */
 
 import { onGrid, CELL } from "./modello.js";
-import { st, save, doUndo, findNode } from "./stato.js";
+import { st, save, doUndo, findNode, clearSel } from "./stato.js";
 import { showView, openKeys } from "./viste.js";
 import { goUp, enterNode, planZoom, planFit, renderCanvas, wallOf,
          requestDeleteSelection, duplicateSelected } from "./mappa.js";
@@ -33,11 +33,11 @@ export function initScorciatoie(){
     if(!document.getElementById("view-map").classList.contains("active")) return;
     const k = e.key;
     if(k==="Escape"){
-      if(st.selectedId||st.selectedEdgeId||st.multiSel.size){
+      if(st.selectedId||st.selectedEdgeId||st.selectedWallId||st.multiSel.size||st.multiSelWalls.size){
         // se il focus è su una bolla, va tolto: il ripristino del focus dopo il
         // render la ri-selezionerebbe subito
         if(t && t.closest && t.closest("#plan-svg")) t.blur();
-        st.selectedId=null; st.selectedEdgeId=null; st.multiSel.clear(); renderCanvas(); renderDetail();
+        clearSel(); renderCanvas(); renderDetail();
       }
       else goUp();
     }else if(k===" " && t && t.closest && t.closest(".blk")){
@@ -49,6 +49,18 @@ export function initScorciatoie(){
         if(st.selectedId===id) st.selectedId = [...st.multiSel].at(-1) || null;
       }else{
         st.multiSel.add(id); st.selectedId = id;
+      }
+      renderCanvas(); renderDetail();
+    }else if(k===" " && t && t.closest && t.closest(".wall-seg")){
+      // Stessa cosa sui muri: la via da tastiera alla selezione multipla non
+      // può esistere per le bolle e non per i muri.
+      e.preventDefault();
+      const id = t.closest(".wall-seg").dataset.wall;
+      if(st.multiSelWalls.has(id)){
+        st.multiSelWalls.delete(id);
+        if(st.selectedWallId===id) st.selectedWallId = [...st.multiSelWalls].at(-1) || null;
+      }else{
+        st.multiSelWalls.add(id); st.selectedWallId = id;
       }
       renderCanvas(); renderDetail();
     }else if(k==="Delete"||k==="Backspace"){
@@ -65,36 +77,26 @@ export function initScorciatoie(){
       planZoom(1/1.2);
     }else if(k.toLowerCase()==="f"){
       planFit(true);
-    }else if(k.startsWith("Arrow") && st.selectedWallId){
-      // Un muro si sposta di quadretti interi come tutto ciò che sta sulla
-      // maglia, e senza il ritocco fine dello Shift: sta sui bordi delle celle,
-      // e un bordo di mezza cella non esiste.
-      const w = wallOf(st.selectedWallId);
-      if(w){
-        if(k==="ArrowLeft")  w.x-=CELL;
-        if(k==="ArrowRight") w.x+=CELL;
-        if(k==="ArrowUp")    w.y-=CELL;
-        if(k==="ArrowDown")  w.y+=CELL;
-        e.preventDefault(); save(); renderCanvas();
-      }
-    }else if(k.startsWith("Arrow") && (st.multiSel.size || st.selectedId)){
-      const ids = st.multiSel.size ? [...st.multiSel] : [st.selectedId];
-      const step = e.shiftKey ? 1 : 10;
-      let any = false;
-      for(const id of ids){
-        const n = findNode(id);
-        if(!n || typeof n.x!=="number") continue;
-        // Chi sta sulla maglia si sposta di quadretti interi, anche con Shift:
-        // un ritocco da 1px porterebbe una pianta fuori dalla maglia che la
-        // definisce, e un simbolo fuori dal quadretto in cui sta.
-        const s = onGrid(n) ? CELL : step;
-        if(k==="ArrowLeft")  n.x-=s;
-        if(k==="ArrowRight") n.x+=s;
-        if(k==="ArrowUp")    n.y-=s;
-        if(k==="ArrowDown")  n.y+=s;
-        any = true;
-      }
-      if(any){ e.preventDefault(); save(); renderCanvas(); }
+    }else if(k.startsWith("Arrow") &&
+             (st.multiSel.size || st.selectedId || st.multiSelWalls.size || st.selectedWallId)){
+      const ids = st.multiSel.size ? [...st.multiSel] : (st.selectedId ? [st.selectedId] : []);
+      const muri = (st.multiSelWalls.size ? [...st.multiSelWalls]
+                  : (st.selectedWallId ? [st.selectedWallId] : []))
+        .map(id=>wallOf(id)).filter(Boolean);
+      const nodi = ids.map(id=>findNode(id)).filter(n=>n && typeof n.x==="number");
+      if(!nodi.length && !muri.length) return;
+      /* UN passo per tutta la selezione, deciso dal membro più vincolato. Chi
+         sta sulla maglia si muove di quadretti interi anche con Shift — un
+         ritocco da 1px porta una pianta fuori dalla maglia che la definisce, e
+         un muro sui bordi delle celle non ha dove appoggiarsi a mezza cella —
+         e un passo diverso per ciascuno deformerebbe il gruppo a ogni freccia. */
+      const passo = (muri.length || nodi.some(onGrid)) ? CELL : (e.shiftKey ? 1 : 10);
+      const dx = k==="ArrowLeft" ? -passo : k==="ArrowRight" ? passo : 0;
+      const dy = k==="ArrowUp"   ? -passo : k==="ArrowDown"  ? passo : 0;
+      if(!dx && !dy) return;
+      for(const n of nodi){ n.x += dx; n.y += dy; }
+      for(const w of muri){ w.x += dx; w.y += dy; }
+      e.preventDefault(); save(); renderCanvas();
     }
   });
 }

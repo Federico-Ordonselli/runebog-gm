@@ -6,15 +6,7 @@ Scritti per essere ripresi **a freddo**: ognuno dice dove si tocca e quale
 ostacolo è già stato misurato, così non si rifà l'indagine. L'ordine è di
 consiglio, non di vincolo. Le voci per esteso stanno nelle sezioni sotto.
 
-1. **Muri nella selezione multipla e nel duplica** (`mappa.js`,
-   `scorciatoie.js`). Un perimetro lungo oggi si posa un pezzo per volta.
-   L'ostacolo è misurato: `st.multiSel` è un `Set` di id di **nodi** e il
-   trascinamento di gruppo risolve i membri con `childOf(id)`, che sui muri
-   restituisce `undefined`; `duplicateSelected` legge `cur.children.find`.
-   Quindi non è un ramo in più: o la selezione diventa tipata (`{tipo, id}`), o
-   i muri hanno un insieme loro e il gruppo di trascinamento sa gestirne due.
-   Le frecce su un muro singolo funzionano già e non vanno toccate.
-2. **Panoramica delle schede mostro in `/srd`** — l'ultima voce aperta della
+1. **Panoramica delle schede mostro in `/srd`** — l'ultima voce aperta della
    sezione regole. Il bestiario esiste (`public/app/srd-mostri.js`, ~350 KB,
    `window.SRD_MONSTERS`, generato da `scripts/estrai-srd-mostri.mjs`) ma vive
    **solo dentro l'app**: dal sito non si consulta. Due decisioni da prendere
@@ -25,7 +17,7 @@ consiglio, non di vincolo. Le voci per esteso stanno nelle sezioni sotto.
    non passano da `src/lib/srd/capitoli/` come i capitoli. L'attribuzione
    CC-BY-4.0 delle schede è obbligatoria (vedi `<Attribuzione/>`).
 
-Minori, già annotati al loro posto: i muri non si duplicano (dentro il n. 1);
+Minori, già annotati al loro posto:
 `nodeBox` dà 30×30 a ogni segnalino ma il disco della pedina ne misura 32, un
 pixel fra centro geometrico e centro disegnato (per questo `markerR` è una
 funzione); il sito non ha condizioni d'uso proprie; le rifiniture della sezione
@@ -826,6 +818,34 @@ ma oggi le bolle non la rispettano: sono simboli, non piante.
   misura 32 — un pixel di scarto fra il centro geometrico (che muove archi e
   `nodeCenter`) e il centro disegnato. Non si vede e non l'ho toccato, ma è il
   motivo per cui `markerR` esiste come funzione invece che come costante.
+
+- [x] **Muri nella selezione multipla e nel duplica** — fatto (22 lug 2026). Un
+  perimetro si posava un pezzo per volta: Ctrl+D valeva solo per le bolle e i
+  muri non entravano nella selezione multipla. Ora Ctrl+clic (e Spazio da
+  tastiera) li aggiunge, la selezione può essere **mista**, e afferrandone uno
+  qualsiasi si muove tutto insieme.
+  - La scelta era fra selezione **tipata** (`{tipo, id}`) e **insieme separato**.
+    Vinto il secondo (`st.multiSelWalls`): sei moduli leggono `st.multiSel`
+    dando per scontato che contenga id di nodi, e riscriverli avrebbe messo le
+    bolle — la funzione principale — a rischio per far entrare il caso
+    secondario. Il prezzo è "i due insiemi si azzerano insieme", e si paga una
+    volta sola: l'azzeramento vive in `clearSel()` invece che ricopiato in otto
+    punti, che era già il modo in cui questo codice si rompeva.
+  - Il trascinamento è **uno** per entrambe le àncore (`dragGroup` /
+    `moveGroupBy` / `riagganciaGruppo`), non due strade parallele: due strade
+    divergono, e quella dei muri si sarebbe scordata le bolle.
+  - Due difetti di gruppo trovati ragionando sulla forma, non su un caso rotto:
+    le frecce usavano un passo **per elemento** (quadretto per gli agganciati,
+    10px per i liberi), quindi un gruppo misto si deformava a ogni battuta —
+    ora il passo è uno solo per tutta la selezione; e `duplicateSelected`
+    copiava un elemento solo anche con dieci selezionati, senza i collegamenti
+    fra le bolle copiate: due stanze collegate uscivano come due copie sciolte.
+  Verificato in Chromium: 11/11 sui muri (Ctrl+clic, pannello "N elementi",
+  frecce, trascinamento di gruppo, Ctrl+D, Canc senza conferma, selezione mista
+  trascinata dalla bolla, Esc) e 10/10 di regressione sulle bolle (gruppo,
+  duplica con l'arco, passo 10/1 di una bolla libera, clic secco che collassa la
+  selezione, "(copia)" solo sul singolo, conferma su bolla piena); `tsc` e
+  `build` ok.
 
 - [x] **Le porte sui muri liberi** — fatto (22 lug 2026). Finché una porta era
   solo il buco fra due muri, al tavolo non si distingueva da un varco e non

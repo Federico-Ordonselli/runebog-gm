@@ -146,11 +146,31 @@ buchi che si lasciano fra un muro e l'altro, e non c'è niente da dichiarare.
 - La classe CSS è `.wall-seg`, **non** `.wall`: quella è già dei tratti del
   perimetro, e un `closest(".wall")` intercettava i clic sul bordo delle bolle.
 - `st.selectedWallId` è il terzo selezionato, mutuamente esclusivo con
-  `selectedId` e `selectedEdgeId`: si azzerano insieme ovunque. Dove la tela
-  **non** si ridisegna (il pointerdown su una bolla, che deve tenere vivo il nodo
-  sotto il puntatore) la classe `.sel` si toglie a mano, e l'elenco deve
-  comprendere `.wall-seg.sel` — sennò resta acceso in oro un muro che il modello
-  ha già deselezionato.
+  `selectedId` e `selectedEdgeId`. **L'azzeramento sta in un posto solo**
+  (`clearSel()` in `stato.js`, più `selectNode`/`selectWall` per la selezione
+  singola): erano cinque assegnazioni ricopiate in otto punti, e ogni punto che
+  ne dimenticava una lasciava acceso in oro qualcosa di deselezionato. Dove la
+  tela **non** si ridisegna (il pointerdown, che deve tenere vivo il nodo sotto
+  il puntatore) la classe `.sel` si riaccende a mano con `ridipingiSel()`, il
+  cui elenco da spegnere comprende `.wall-seg.sel`.
+- **La selezione multipla dei muri è un insieme suo** (`st.multiSelWalls`) e non
+  entra in `st.multiSel`: sei moduli leggono quello dando per scontato che
+  contenga id di **nodi** (`childOf`, `findNode`), e mescolarli avrebbe voluto
+  dire riscrivere quel codice per il caso secondario, con le bolle a pagarne il
+  rischio. I due insiemi convivono — una selezione può essere mista — e si
+  azzerano sempre insieme, che è tutto il prezzo della scelta.
+  Il trascinamento è **uno solo** per entrambe le àncore (`dragGroup`,
+  `moveGroupBy`, `riagganciaGruppo`): afferrando una bolla o un muro si muove lo
+  stesso gruppo. Il gruppo si sposta rigido e ognuno **si riaggancia alla
+  propria maglia al rilascio** — la regola che le bolle seguivano già, perché
+  l'àncora può essere una bolla libera che si muove di 10px. Per la stessa
+  ragione le frecce usano **un passo solo** per tutta la selezione (`CELL` se un
+  membro sta sulla maglia): un passo per elemento deformerebbe il gruppo a ogni
+  battuta. Le maniglie compaiono solo quando il muro è l'unica cosa selezionata:
+  allungare un perimetro intero non vuol dire niente.
+  `duplicateSelected` copia **tutta** la selezione — bolle, muri e i
+  collegamenti fra le bolle duplicate — con **uno** scarto per tutto il gruppo,
+  sennò un gruppo misto esce deformato rispetto all'originale.
 - **Le coordinate di un muro sono untrusted e non hanno rete**: quelle di una
   bolla le ricalcola `ensureLayout` se non sono numeri, un muro no, e finiscono
   in attributi SVG. `safeWallSeg` (client) e la proiezione in `share.ts`

@@ -21,7 +21,7 @@
       rigido l'aggancio a quella esistente (vedi CELL). */
 
 import { node, uid, NODE_COLORS, escapeHtml, CELL, snapToCell } from "./modello.js";
-import { st, save, findNode, findParent, currentNode, RO } from "./stato.js";
+import { st, save, findNode, findParent, currentNode, RO, selectNode } from "./stato.js";
 import { openConfirm } from "./viste.js";
 
 /* 1 quadretto = 5 piedi = 1,5 m. La costante vive in modello.js (unica
@@ -205,7 +205,7 @@ export function placePlayer(playerId){
   const p = st.state.players.find(x => x.id === playerId); if(!p) return;
   const gia = cur.children.find(c => c.playerId === playerId);
   if(gia){                                       // già qui: selezionala invece di raddoppiarla
-    st.selectedId = gia.id; st.multiSel = new Set([gia.id]);
+    selectNode(gia.id);
     ridisegna();
     return;
   }
@@ -217,7 +217,7 @@ export function placePlayer(playerId){
   t.x = snapToCell(inCampo * CELL);
   t.y = snapToCell(0);
   cur.children.push(t);
-  st.selectedId = t.id; st.multiSel = new Set([t.id]);
+  selectNode(t.id);
   save(); ridisegna();
 }
 

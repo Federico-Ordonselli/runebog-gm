@@ -83,6 +83,34 @@ function renderDetailCore(){
   if(RO) return renderTableDetail(aside);
   const cur = currentNode();
 
+  /* Selezione multipla: si contano insieme bolle e muri, perché il pannello
+     deve descrivere quello che il prossimo gesto sposta o elimina — e quello è
+     l'insieme, non una delle due metà. Sta prima del pannello del muro singolo:
+     un muro fra dieci selezionati non è "il muro selezionato". */
+  if(st.multiSel.size + st.multiSelWalls.size > 1){
+    const nodes = [...st.multiSel].map(id=>findNode(id)).filter(Boolean);
+    const muri = [...st.multiSelWalls].map(id=>wallOf(id)).filter(Boolean);
+    const tot = nodes.length + muri.length;
+    aside.innerHTML = `<div class="inner">
+      <div><h2>${tot} element${tot===1?"o":"i"} selezionat${tot===1?"o":"i"}</h2></div>
+      <div class="field"><div class="child-list">${
+        nodes.map(x=>`<div class="child">
+          <span class="type-badge" style="background:${nodeColor(x)}"></span>${escapeHtml(x.title||"(senza nome)")}
+        </div>`).join("") +
+        muri.map(w=>`<div class="child">
+          <span class="type-badge" style="background:var(--ink-dim)"></span>${escapeHtml(wallLabel(w))} · ${escapeHtml(misuraMuro(w))}
+        </div>`).join("")}</div></div>
+      <p style="color:var(--ink-dim);font-size:12px;line-height:1.5">
+        Trascina uno qualsiasi per spostarli insieme · Frecce per spostarli di un quadretto ·
+        Ctrl+D per duplicarli · Canc per eliminarli · Esc per deselezionare
+      </p>
+      <div class="detail-actions">
+        <button class="btn danger" onclick="requestDeleteSelection()">Elimina selezionati</button>
+      </div>
+    </div>`;
+    return;
+  }
+
   /* Pannello di un muro. Non ha campi da riempire — un muro non ha nome, note
      né stato: è geometria. Quello che serve saperne è quanto è lungo, quello
      che serve deciderne è se è pieno o è una porta, e quello che serve poterci
@@ -150,23 +178,6 @@ function renderDetailCore(){
       </div>`;
       return;
     }
-  }
-
-  if(st.multiSel.size>1){
-    const nodes = [...st.multiSel].map(id=>findNode(id)).filter(Boolean);
-    aside.innerHTML = `<div class="inner">
-      <div><h2>${nodes.length} bolle selezionate</h2></div>
-      <div class="field"><div class="child-list">${nodes.map(x=>`<div class="child">
-        <span class="type-badge" style="background:${nodeColor(x)}"></span>${escapeHtml(x.title||"(senza nome)")}
-      </div>`).join("")}</div></div>
-      <p style="color:var(--ink-dim);font-size:12px;line-height:1.5">
-        Trascina una qualsiasi delle bolle per spostarle insieme · Frecce per ritocchi fini · Canc per eliminarle · Esc per deselezionare
-      </p>
-      <div class="detail-actions">
-        <button class="btn danger" onclick="requestDeleteSelection()">Elimina selezionati</button>
-      </div>
-    </div>`;
-    return;
   }
 
   const sel = st.selectedId ? findNode(st.selectedId) : null;
@@ -334,7 +345,8 @@ function mobileDetailSync(){
     aside.prepend(b);
   }
   aside.classList.toggle("open",
-    st.detailOpen || !!st.selectedId || !!st.selectedEdgeId || !!st.selectedWallId || st.multiSel.size>0);
+    st.detailOpen || !!st.selectedId || !!st.selectedEdgeId || !!st.selectedWallId ||
+    st.multiSel.size>0 || st.multiSelWalls.size>0);
 }
 export function renderDetail(){
   renderDetailCore();

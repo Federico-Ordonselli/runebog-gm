@@ -3,7 +3,8 @@
 
 import { TYPES, SHAPES, EDGE_TYPES, STATUS_COLORS, isMarker, defShape,
          DOOR_TYPES, doorKind } from "./modello.js";
-import { st, currentNode, newCampaign, askDeleteCampaign, doUndo, RO } from "./stato.js";
+import { st, currentNode, newCampaign, askDeleteCampaign, doUndo, RO,
+         selectNode, selectWall } from "./stato.js";
 import { openKeys } from "./viste.js";
 import { exportJSON } from "./esporta.js";
 import { childOf, enterNode, duplicateSelected, addSpatialChild, arrangeGrid,
@@ -43,7 +44,7 @@ export function showCtxFor(target, cx, cy){
 
   if(blkEl){
     const n = childOf(blkEl.dataset.block); if(!n) return;
-    if(!st.multiSel.has(n.id)) st.multiSel = new Set([n.id]);
+    if(!st.multiSel.has(n.id)) selectNode(n.id);
     st.selectedId = n.id; st.selectedEdgeId = st.selectedWallId = null; renderCanvas(); renderDetail();
     const items = [
       {id:"enter", label:"Entra →", run:()=>enterNode(n.id)},
@@ -93,8 +94,7 @@ export function showCtxFor(target, cx, cy){
      lo stesso comando, ma sta dall'altra parte dello schermo. */
   if(wallEl){
     const w = wallOf(wallEl.dataset.wall); if(!w) return;
-    st.selectedWallId = w.id; st.selectedId = null; st.selectedEdgeId = null;
-    st.multiSel.clear(); renderCanvas(); renderDetail();
+    selectWall(w.id); renderCanvas(); renderDetail();
     const kind = doorKind(w);
     const items = [
       {head:"Tipo di muro"},

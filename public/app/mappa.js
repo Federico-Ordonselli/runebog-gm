@@ -8,7 +8,8 @@ import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeCo
          wallShape, wallBox, wallOpening, wallPlan, WALL,
          wallSegsOf, wallSegEnds, newWallSeg, stretchWallSeg,
          DOOR_TYPES, doorKind, wallLabel } from "./modello.js";
-import { st, save, findNode, findParent, removeNode, currentNode, pathNodes, RO } from "./stato.js";
+import { st, save, findNode, findParent, removeNode, currentNode, pathNodes, RO,
+         clearSel, selectNode, selectWall } from "./stato.js";
 import { showView, openConfirm } from "./viste.js";
 import { renderDetail, compressImage } from "./pannello.js";
 import { showCtxFor } from "./menu.js";
@@ -53,24 +54,22 @@ export function renderCrumbs(){
 
 export function goUp(){
   if(st.path.length>1){
-    st.selectedId = st.path[st.path.length-1]; st.selectedEdgeId = st.selectedWallId = null;
-    st.multiSel = new Set([st.selectedId]);
+    selectNode(st.path[st.path.length-1]);
     st.path.pop(); renderMap();
   }
 }
 
 export function enterNode(id){
-  st.path.push(id); st.selectedId = null; st.selectedEdgeId = st.selectedWallId = null; st.multiSel.clear(); renderMap();
+  st.path.push(id); clearSel(); renderMap();
 }
 
 export function jumpTo(parentId, childId){
   if(st.path[st.path.length-1] !== parentId) st.path.push(parentId);
-  st.selectedId = childId;
   // Come per il clic: la selezione È il bersaglio del salto. Lasciare la
   // multi-selezione vecchia faceva muovere alle frecce le bolle sbagliate
   // dopo un salto da ricerca o diario quest.
-  st.multiSel = new Set(childId ? [childId] : []);
-  st.selectedEdgeId = st.selectedWallId = null;
+  clearSel();
+  if(childId) selectNode(childId);
   renderMap();
 }
 
@@ -120,6 +119,91 @@ export function planZoom(f, cx, cy){
 
 export const childOf = id => currentNode().children.find(c=>c.id===id);
 export const wallOf = id => wallSegsOf(currentNode()).find(w=>w.id===id);
+
+/* ---------- il gruppo che si trascina ----------
+   Bolle e muri insieme, con le posizioni di partenza di ciascuno. Uno solo per
+   tutti e due i gesti (trascinare una bolla, trascinare un muro): erano due
+   strade separate, e due strade divergono — quella dei muri si scordava le
+   bolle e viceversa. Due mappe di partenza e non una, perché un id di muro e
+   un id di bolla vengono dalla stessa `uid()` e in teoria possono coincidere. */
+function dragGroup(){
+  const nodi = [...st.multiSel], muri = [...st.multiSelWalls];
+  const startN = {}, startW = {};
+  nodi.forEach(id=>{ const m=childOf(id); if(m) startN[id]={x:m.x, y:m.y}; });
+  muri.forEach(id=>{ const w=wallOf(id); if(w) startW[id]={x:w.x, y:w.y}; });
+  return {nodi, muri, startN, startW, size: nodi.length + muri.length};
+}
+/* Trasla tutto il gruppo tranne l'àncora, che l'ha già fatto per conto suo con
+   la regola di aggancio che le compete. Rigido: chi finisce fuori dalla propria
+   maglia ci rientra al rilascio (riagganciaGruppo) — è la regola che le bolle
+   seguivano già, e i muri non ne introducono una seconda. */
+function moveGroupBy(g, ddx, ddy, ancora){
+  const svg = planSvg();
+  for(const id of g.nodi){
+    if(id===ancora || !g.startN[id]) continue;
+    const m = childOf(id); if(!m) continue;
+    m.x = g.startN[id].x + ddx; m.y = g.startN[id].y + ddy;
+    const el = svg.querySelector(`.blk[data-block="${id}"]`);
+    if(el) el.setAttribute("transform",`translate(${m.x},${m.y})`);
+  }
+  for(const id of g.muri){
+    if(id===ancora || !g.startW[id]) continue;
+    const w = wallOf(id); if(!w) continue;
+    w.x = g.startW[id].x + ddx; w.y = g.startW[id].y + ddy;
+    aggiornaMuro(w);
+  }
+}
+/* Al rilascio ognuno torna sulla propria maglia: le bolle con snapNode (angolo
+   o centro-cella, lo decide la forma), i muri sugli incroci. Serve perché il
+   gruppo si muove rigido con l'àncora, e l'àncora può essere una bolla libera
+   che si muove di 10px per volta. */
+function riagganciaGruppo(g){
+  for(const id of g.nodi){
+    const m = childOf(id); if(!m) continue;
+    const q = snapNode(m); m.x = q.x; m.y = q.y;
+  }
+  for(const id of g.muri){
+    const w = wallOf(id); if(!w) continue;
+    w.x = snapGrid(w.x); w.y = snapGrid(w.y);
+  }
+}
+/* Le linee dei collegamenti che toccano una bolla mossa: durante il gesto la
+   tela non si ridisegna, quindi si spostano a mano. */
+function aggiornaArchiDi(ids){
+  const svg = planSvg(), cur = currentNode();
+  (cur.edges||[]).forEach(e=>{
+    if(!ids.includes(e.a) && !ids.includes(e.b)) return;
+    const a=childOf(e.a), b=childOf(e.b); if(!a||!b) return;
+    const A=nodeCenter(a), B=nodeCenter(b);
+    const g = svg.querySelector(`.edge[data-edge="${e.id}"]`); if(!g) return;
+    g.querySelectorAll(":scope > line").forEach(l=>{
+      l.setAttribute("x1",A.x); l.setAttribute("y1",A.y);
+      l.setAttribute("x2",B.x); l.setAttribute("y2",B.y);
+    });
+    const mx=(A.x+B.x)/2, my=(A.y+B.y)/2;
+    const txt = g.querySelector("text");
+    if(txt){ txt.setAttribute("x",mx); txt.setAttribute("y",my-12); }
+    const cross = g.querySelector("g");
+    if(cross) cross.querySelectorAll("line").forEach((l,i)=>{
+      l.setAttribute("x1",mx-9); l.setAttribute("y1", i? my+9 : my-9);
+      l.setAttribute("x2",mx+9); l.setAttribute("y2", i? my-9 : my+9);
+    });
+  });
+}
+/* La classe .sel di tutta la selezione, riaccesa a mano. Serve dove la tela NON
+   si ridisegna (il pointerdown, che deve tenere vivo il nodo sotto il
+   puntatore): l'elenco da spegnere comprende i muri, sennò resta acceso in oro
+   un muro che il modello ha già deselezionato. */
+function ridipingiSel(){
+  const svg = planSvg();
+  svg.querySelectorAll(".blk.sel,.edge.sel,.wall-seg.sel").forEach(x=>x.classList.remove("sel"));
+  st.multiSel.forEach(id=>{
+    const el = svg.querySelector(`.blk[data-block="${id}"]`); if(el) el.classList.add("sel");
+  });
+  st.multiSelWalls.forEach(id=>{
+    const el = svg.querySelector(`.wall-seg[data-wall="${id}"]`); if(el) el.classList.add("sel");
+  });
+}
 const canEditEdges = () => true;   // i collegamenti si creano a ogni livello, città inclusa
 
 /* La misura di un muro si dice in quadretti E in metri: il quadretto è l'unità
@@ -424,9 +508,13 @@ export function renderCanvas(){
      l'ordine del pavimento — un muro è architettura, ci si cammina in mezzo,
      quindi non deve mai coprire una pedina né rubarle il tocco. */
   for(const w of wallSegsOf(cur)){
-    const sel = st.selectedWallId===w.id;
+    const sel = st.multiSelWalls.has(w.id) || st.selectedWallId===w.id;
+    /* Le maniglie solo quando il muro è l'UNICA cosa selezionata: su una
+       selezione multipla sarebbero due pallini per ogni muro, cioè una pianta
+       illeggibile — e allungare un perimetro intero non vuol dire niente. */
+    const solo = sel && st.multiSelWalls.size<=1 && st.multiSel.size===0;
     out += `<g class="wall-seg${sel?" sel":""}" data-wall="${w.id}" tabindex="0" role="button" aria-pressed="${sel}"
-      aria-label="${escapeAttr(ariaMuro(w))}">${wallSegInner(w, sel)}</g>`;
+      aria-label="${escapeAttr(ariaMuro(w))}">${wallSegInner(w, solo)}</g>`;
   }
 
   // blocchi e segnalini
@@ -602,7 +690,7 @@ export function addSpatialChild(opts, x, y){
     c.y = Math.round((y-b.h/2)/10)*10;
   }
   cur.children.push(c);
-  st.selectedId = c.id; st.selectedEdgeId = st.selectedWallId = null; st.multiSel = new Set([c.id]);
+  selectNode(c.id);
   save(); renderMap();
   setTimeout(()=>{ const i=document.querySelector("#detail input"); if(i) i.focus(); }, 50);
 }
@@ -620,7 +708,7 @@ export function addWallSeg(x, y, porta){
   const w = newWallSeg(k ? x - CELL/2 : x - CELL, y, "h", k ? 1 : 2);
   if(k) w.porta = k;
   cur.wallSegs.push(w);
-  st.selectedWallId = w.id; st.selectedId = null; st.selectedEdgeId = null; st.multiSel.clear();
+  selectWall(w.id);
   save(); renderMap();
 }
 /* Muro pieno ⇄ porta: è un cambio di tipo, non un altro oggetto. Il segmento
@@ -634,9 +722,9 @@ export function setWallDoor(id, kind){
 }
 export function deleteWallSeg(id){
   if(RO) return;
-  const cur = currentNode();
-  cur.wallSegs = wallSegsOf(cur).filter(w=>w.id!==id);
-  if(st.selectedWallId===id) st.selectedWallId = null;
+  togliMuri([id]);
+  st.multiSelWalls.delete(id);
+  if(st.selectedWallId===id) st.selectedWallId = [...st.multiSelWalls].at(-1) || null;
   save(); renderCanvas(); renderDetail();
 }
 export function quickAddCenter(){
@@ -728,17 +816,18 @@ export function initMappa(){
       // già parte della selezione: al massimo diventa l'àncora, senza sciogliere
       // una selezione multipla costruita col Ctrl+clic
       if(st.multiSel.has(id)){ if(st.selectedId!==id){ st.selectedId = id; renderDetail(); } return; }
-      st.selectedId = id; st.selectedEdgeId = st.selectedWallId = null; st.multiSel = new Set([id]);
+      selectNode(id);
       renderCanvas(); renderDetail();
     }else if(edgeEl){
       const id = edgeEl.dataset.edge;
       if(st.selectedEdgeId===id) return;
-      st.selectedEdgeId = id; st.selectedId = null; st.selectedWallId = null; st.multiSel.clear();
+      clearSel(); st.selectedEdgeId = id;
       renderCanvas(); renderDetail();
     }else if(ev.target.closest(".wall-seg")){
       const id = ev.target.closest(".wall-seg").dataset.wall;
-      if(st.selectedWallId===id) return;
-      st.selectedWallId = id; st.selectedId = null; st.selectedEdgeId = null; st.multiSel.clear();
+      // già parte della selezione: al massimo diventa l'àncora, come per le bolle
+      if(st.multiSelWalls.has(id)){ if(st.selectedWallId!==id){ st.selectedWallId = id; renderDetail(); } return; }
+      selectWall(id);
       renderCanvas(); renderDetail();
     }
   });
@@ -860,12 +949,29 @@ export function initMappa(){
     if(wallEl && !RO){
       const w = wallOf(wallEl.dataset.wall);
       if(!w){ planDrag = null; return; }
-      st.selectedWallId = w.id; st.selectedId = null; st.selectedEdgeId = null; st.multiSel.clear();
-      svg.querySelectorAll(".blk.sel,.edge.sel,.wall-seg.sel").forEach(x=>x.classList.remove("sel"));
-      wallEl.classList.add("sel");
+      if(ev.ctrlKey || ev.metaKey){            // Ctrl+clic: aggiungi/rimuovi dalla selezione
+        if(st.multiSelWalls.has(w.id)){
+          st.multiSelWalls.delete(w.id);
+          if(st.selectedWallId===w.id) st.selectedWallId = [...st.multiSelWalls].at(-1) || null;
+        }else{
+          st.multiSelWalls.add(w.id); st.selectedWallId = w.id;
+        }
+        st.selectedEdgeId = null;
+        renderCanvas(); renderDetail();
+        return;                                // niente drag col Ctrl, come per le bolle
+      }
+      // Un muro già nella selezione la tiene: sennò trascinare un perimetro
+      // costruito col Ctrl+clic lo scioglierebbe al primo tocco.
+      if(!st.multiSelWalls.has(w.id)) selectWall(w.id);
+      st.selectedWallId = w.id; st.selectedEdgeId = null;
+      ridipingiSel();
+      const g = dragGroup();
       planDrag = wHandle
+        // Allungare è un gesto sul singolo muro: il gruppo non c'entra — un
+        // perimetro che si allunga tutto insieme non vuol dire niente.
         ? {mode:"wallend", id:w.id, end:wHandle.dataset.end, moved:false}
-        : {mode:"wallmove", id:w.id, dx:p.x-w.x, dy:p.y-w.y, moved:false};
+        : {mode:"wallmove", id:w.id, dx:p.x-w.x, dy:p.y-w.y, moved:false,
+           g, collapse: g.size>1};
       renderDetail();
       svg.setPointerCapture(ev.pointerId);
       return;
@@ -879,6 +985,9 @@ export function initMappa(){
       t.setAttribute("visibility","visible");
     }else if(blkEl){
       const n = childOf(blkEl.dataset.block);
+      // L'àncora passa alla bolla, ma i muri già selezionati RESTANO: è così
+      // che si costruisce una selezione mista col Ctrl+clic, e che la si
+      // trascina tutta insieme afferrandone una bolla.
       st.selectedEdgeId = st.selectedWallId = null;
       if(ev.ctrlKey || ev.metaKey){            // Ctrl+clic: aggiungi/rimuovi dalla selezione
         if(st.multiSel.has(n.id)){
@@ -891,24 +1000,19 @@ export function initMappa(){
         renderCanvas(); renderDetail();
         return;                                // niente drag col Ctrl
       }
-      if(!st.multiSel.has(n.id)) st.multiSel = new Set([n.id]);
+      // Una bolla fuori dalla selezione la ridefinisce (muri compresi); una già
+      // dentro la tiene, e il gruppo si muove tutto insieme.
+      if(!st.multiSel.has(n.id)) selectNode(n.id);
       st.selectedId = n.id;
       if(RO){ renderCanvas(); renderDetail(); return; }   // al tavolo si guarda, non si sposta
-      const group = [...st.multiSel];
-      const start = {};
-      group.forEach(id=>{ const m=childOf(id); if(m) start[id]={x:m.x, y:m.y}; });
+      const g = dragGroup();
       planDrag = {mode:"move", id:n.id, dx:p.x-n.x, dy:p.y-n.y, el:blkEl, moved:false,
-                  group, start, collapse: group.length>1};
+                  g, collapse: g.size>1};
       blkEl.classList.add("dragging");
-      // Anche i muri: qui la tela NON si ridisegna (il nodo sotto il puntatore
-      // deve sopravvivere al gesto), quindi la classe di chi era selezionato
-      // prima va tolta a mano — sennò resta acceso in oro un muro che il
-      // modello ha già deselezionato.
-      svg.querySelectorAll(".blk.sel,.edge.sel,.wall-seg.sel").forEach(x=>x.classList.remove("sel"));
-      group.forEach(id=>{ const el=svg.querySelector(`.blk[data-block="${id}"]`); if(el) el.classList.add("sel"); });
+      ridipingiSel();
       renderDetail();
     }else if(edgeEl){
-      st.selectedEdgeId = edgeEl.dataset.edge; st.selectedId = null; st.multiSel.clear();
+      clearSel(); st.selectedEdgeId = edgeEl.dataset.edge;
       renderCanvas(); renderDetail();
       return;                                  // niente capture: la tela è stata ricostruita
     }else{
@@ -939,41 +1043,13 @@ export function initMappa(){
       }else{
         n.x = Math.round((p.x-planDrag.dx)/10)*10;
         n.y = Math.round((p.y-planDrag.dy)/10)*10;
-        const g = applySnap(n, planDrag.group);  // allineamento magnetico (escluso il gruppo trascinato)
+        const g = applySnap(n, planDrag.g.nodi); // allineamento magnetico (escluso il gruppo trascinato)
         drawGuides(n, g);
       }
       planDrag.moved = true;
-      const ddx = n.x - planDrag.start[n.id].x;
-      const ddy = n.y - planDrag.start[n.id].y;
-      for(const id of planDrag.group){         // il gruppo si muove rigido con l'ancora
-        const m = childOf(id); if(!m || m===n) continue;
-        m.x = planDrag.start[id].x + ddx;
-        m.y = planDrag.start[id].y + ddy;
-      }
-      for(const id of planDrag.group){
-        const el = svg.querySelector(`.blk[data-block="${id}"]`);
-        const m = childOf(id);
-        if(el && m) el.setAttribute("transform",`translate(${m.x},${m.y})`);
-      }
-      const cur = currentNode();
-      (cur.edges||[]).forEach(e=>{
-        if(!planDrag.group.includes(e.a) && !planDrag.group.includes(e.b)) return;
-        const a=childOf(e.a), b=childOf(e.b); if(!a||!b) return;
-        const A=nodeCenter(a), B=nodeCenter(b);
-        const g = svg.querySelector(`.edge[data-edge="${e.id}"]`); if(!g) return;
-        g.querySelectorAll(":scope > line").forEach(l=>{
-          l.setAttribute("x1",A.x); l.setAttribute("y1",A.y);
-          l.setAttribute("x2",B.x); l.setAttribute("y2",B.y);
-        });
-        const mx=(A.x+B.x)/2, my=(A.y+B.y)/2;
-        const txt = g.querySelector("text");
-        if(txt){ txt.setAttribute("x",mx); txt.setAttribute("y",my-12); }
-        const cross = g.querySelector("g");
-        if(cross) cross.querySelectorAll("line").forEach((l,i)=>{
-          l.setAttribute("x1",mx-9); l.setAttribute("y1", i? my+9 : my-9);
-          l.setAttribute("x2",mx+9); l.setAttribute("y2", i? my-9 : my+9);
-        });
-      });
+      const s = planDrag.g.startN[n.id];
+      moveGroupBy(planDrag.g, n.x - s.x, n.y - s.y, n.id);
+      aggiornaArchiDi(planDrag.g.nodi);
     }else if(planDrag.mode==="wallmove" || planDrag.mode==="wallend"){
       const w = wallOf(planDrag.id); if(!w) return;
       if(planDrag.mode==="wallmove"){
@@ -981,6 +1057,11 @@ export function initMappa(){
         // della maglia (snapGrid) e non al centro come i segnalini.
         w.x = snapGrid(p.x-planDrag.dx);
         w.y = snapGrid(p.y-planDrag.dy);
+        // Il resto della selezione segue: qui l'àncora è un muro, ma il gruppo
+        // è lo stesso di quando si trascina una bolla.
+        const s = planDrag.g.startW[w.id];
+        moveGroupBy(planDrag.g, w.x - s.x, w.y - s.y, w.id);
+        aggiornaArchiDi(planDrag.g.nodi);
       }else{
         stretchWallSeg(w, planDrag.end, p.x, p.y);
       }
@@ -1055,7 +1136,7 @@ export function initMappa(){
         if(!dup){
           const e = {id:uid(), a, b, type:"strada", label:"", notes:""};
           cur.edges.push(e);
-          st.selectedEdgeId = e.id; st.selectedId = null; st.multiSel.clear();
+          clearSel(); st.selectedEdgeId = e.id;
           save();
         }
       }
@@ -1064,22 +1145,22 @@ export function initMappa(){
       planDrag.el.classList.remove("dragging");
       drawGuides(null, null);
       if(!planDrag.moved && planDrag.collapse){    // clic secco su un membro: selezione singola
-        st.multiSel = new Set([planDrag.id]); st.selectedId = planDrag.id;
+        selectNode(planDrag.id);
         renderCanvas(); renderDetail();
       }
       if(planDrag.moved){
         // Il gruppo si muove rigido con l'ancora: se l'ancora era una bolla
         // libera, i membri agganciati sarebbero atterrati fuori quadretto.
-        for(const id of planDrag.group){
-          const m = childOf(id); if(!m) continue;
-          const q = snapNode(m);
-          m.x = q.x; m.y = q.y;
-        }
+        riagganciaGruppo(planDrag.g);
         save(); renderCanvas();
       }
     }else if(planDrag.mode==="wallmove" || planDrag.mode==="wallend"){
-      // Il render qui serve: fa comparire le maniglie sul muro appena scelto.
+      if(!planDrag.moved && planDrag.collapse){    // clic secco: come per le bolle
+        selectWall(planDrag.id);
+      }
+      if(planDrag.moved && planDrag.g) riagganciaGruppo(planDrag.g);
       if(planDrag.moved) save();
+      // Il render qui serve: fa comparire le maniglie sul muro appena scelto.
       renderCanvas(); renderDetail();
     }else if(planDrag.mode==="resize"){
       save(); renderCanvas(); renderDetail();
@@ -1103,7 +1184,7 @@ export function initMappa(){
           lastBgTap = {t:now, x:ev.clientX, y:ev.clientY};
         }
         st.detailOpen = false;
-        st.selectedId=null; st.selectedEdgeId=null; st.multiSel.clear(); renderCanvas(); renderDetail();
+        clearSel(); renderCanvas(); renderDetail();
       }
     }
     planDrag = null;
@@ -1191,14 +1272,12 @@ function nodePathChain(id){          // catena di antenati (id) dalla radice, es
   return found;
 }
 export function goToNode(id){
-  if(id===st.state.root.id){ st.path=[st.state.root.id]; st.selectedId=null; }
+  if(id===st.state.root.id){ st.path=[st.state.root.id]; clearSel(); }
   else{
     const chain = nodePathChain(id);
     if(!chain) return;
-    st.path = chain; st.selectedId = id;
+    st.path = chain; selectNode(id);
   }
-  st.selectedEdgeId = st.selectedWallId = null;
-  st.multiSel = new Set(st.selectedId ? [st.selectedId] : []);
   showView("map"); renderMap();
   const n = findNode(id);
   if(n && typeof n.x==="number" && planVB){    // centra la vista sul nodo
@@ -1210,50 +1289,105 @@ export function goToNode(id){
 
 /* ==================== eliminazione e duplicazione della selezione ==================== */
 export const isEmptyNode = n => n.children.length===0 && !(n.notes||"").trim() && !n.img;
-export function doDeleteNodes(ids){
+export function doDeleteNodes(ids, muri = []){
   for(const id of ids){
     if(id===st.state.root.id) continue;
     const par = findParent(id);
     if(par && Array.isArray(par.edges)) par.edges = par.edges.filter(e=>e.a!==id && e.b!==id);
     removeNode(id, st.state.root);
   }
-  st.multiSel.clear(); st.selectedId = null; st.selectedEdgeId = st.selectedWallId = null;
+  if(muri.length) togliMuri(muri);
+  clearSel();
   save(); renderMap();
 }
+// Togliere i muri dall'array è l'unico passo condiviso fra chi cancella una
+// selezione e chi cancella il muro singolo dal pannello: il resto (conferme,
+// che cosa ridisegnare) è diverso e resta ai chiamanti.
+function togliMuri(ids){
+  const cur = currentNode(), set = new Set(ids);
+  cur.wallSegs = wallSegsOf(cur).filter(w=>!set.has(w.id));
+}
 export function requestDeleteSelection(){
-  // Un muro se ne va senza chiedere: non contiene niente, e rifarlo è un
-  // trascinamento. La conferma serve dove si perde del lavoro dentro una bolla.
-  if(st.selectedWallId){ deleteWallSeg(st.selectedWallId); return; }
+  const muri = st.multiSelWalls.size ? [...st.multiSelWalls]
+             : (st.selectedWallId ? [st.selectedWallId] : []);
   const ids = st.multiSel.size ? [...st.multiSel] : (st.selectedId ? [st.selectedId] : []);
   const nodes = ids.map(id=>findNode(id)).filter(n=>n && n.id!==st.state.root.id);
-  if(!nodes.length) return;
-  if(nodes.every(isEmptyNode)){ doDeleteNodes(nodes.map(n=>n.id)); return; }
+  /* I muri se ne vanno senza chiedere: non contengono niente, e rifarli è un
+     trascinamento. La conferma serve dove si perde del lavoro dentro una bolla
+     — quindi la fa scattare la selezione di bolle, non quella di muri. */
+  if(!nodes.length){
+    if(muri.length){ togliMuri(muri); clearSel(); save(); renderMap(); }
+    return;
+  }
+  if(nodes.every(isEmptyNode)){ doDeleteNodes(nodes.map(n=>n.id), muri); return; }
+  // I muri della selezione vanno nominati: sparirebbero comunque, e una conferma
+  // che non dice tutto quello che elimina è peggio di nessuna conferma.
+  const eMuri = muri.length ? ` e ${muri.length} mur${muri.length===1?"o":"i"}` : "";
   openConfirm(nodes.length===1
-    ? `Eliminare "${nodes[0].title||"bolla"}" e tutto il suo contenuto?`
-    : `Eliminare ${nodes.length} bolle selezionate (e il loro contenuto)?`,
-    ok=>{ if(ok) doDeleteNodes(nodes.map(n=>n.id)); });
+    ? `Eliminare "${nodes[0].title||"bolla"}"${eMuri} e tutto il contenuto?`
+    : `Eliminare ${nodes.length} bolle selezionate${eMuri} (e il loro contenuto)?`,
+    ok=>{ if(ok) doDeleteNodes(nodes.map(n=>n.id), muri); });
 }
 
+/* Duplica TUTTA la selezione: le bolle, i muri, e i collegamenti fra le bolle
+   duplicate. Prima copiava solo l'àncora anche con dieci bolle selezionate, e i
+   muri non li copiava affatto — un perimetro si rifaceva un pezzo per volta. */
 export function duplicateSelected(){
-  if(!st.selectedId) return;
+  if(RO) return;
   const cur = currentNode();
-  const srcN = cur.children.find(c=>c.id===st.selectedId);
-  if(!srcN) return;
-  const copy = JSON.parse(JSON.stringify(srcN));
-  (function reid(n){
-    n.id = uid();
-    const map = {};
-    n.children.forEach(ch=>{ const old = ch.id; reid(ch); map[old] = ch.id; });
-    n.edges = (n.edges||[]).map(e=>({...e, id:uid(), a:map[e.a]||e.a, b:map[e.b]||e.b}));
-  })(copy);
-  // Una copia agganciata trasla di un quadretto pieno: +30 la porterebbe fuori
-  // maglia, e per un simbolo vorrebbe dire uscire dal suo quadretto per finire
-  // a cavallo del successivo.
-  const off = onGrid(copy) ? CELL : 30;
-  copy.x = (copy.x||0)+off; copy.y = (copy.y||0)+off;
-  copy.title = (copy.title||"") + " (copia)";
-  cur.children.push(copy);
-  st.selectedId = copy.id; st.selectedEdgeId = st.selectedWallId = null; st.multiSel = new Set([copy.id]);
+  const nodi = (st.multiSel.size ? [...st.multiSel] : (st.selectedId ? [st.selectedId] : []))
+    .map(id=>childOf(id)).filter(Boolean);
+  const muri = (st.multiSelWalls.size ? [...st.multiSelWalls]
+              : (st.selectedWallId ? [st.selectedWallId] : []))
+    .map(id=>wallOf(id)).filter(Boolean);
+  if(!nodi.length && !muri.length) return;
+
+  /* UNO scarto per tutto il gruppo, non uno per elemento: con scarti diversi
+     (un quadretto per chi sta sulla maglia, 30px per gli altri) la copia di un
+     gruppo misto usciva deformata rispetto all'originale. Basta che uno stia
+     sulla maglia perché la maglia sia il denominatore comune — e i muri ci
+     stanno sempre. */
+  const off = muri.length || nodi.some(onGrid) ? CELL : 30;
+
+  const nuovoId = {};                       // vecchio id → nuovo, per rimappare gli archi
+  const copieN = nodi.map(src=>{
+    const copy = JSON.parse(JSON.stringify(src));
+    (function reid(n){
+      n.id = uid();
+      const map = {};
+      n.children.forEach(ch=>{ const old = ch.id; reid(ch); map[old] = ch.id; });
+      n.edges = (n.edges||[]).map(e=>({...e, id:uid(), a:map[e.a]||e.a, b:map[e.b]||e.b}));
+    })(copy);
+    nuovoId[src.id] = copy.id;
+    copy.x = (copy.x||0)+off; copy.y = (copy.y||0)+off;
+    // Il "(copia)" solo quando se ne duplica una: su dieci bolle sarebbero dieci
+    // titoli con la stessa coda, e a distinguerle basta che siano sfalsate.
+    if(nodi.length===1) copy.title = (copy.title||"") + " (copia)";
+    cur.children.push(copy);
+    return copy;
+  });
+  /* I collegamenti fra le bolle duplicate: due stanze collegate, copiate
+     insieme, devono restare collegate — sennò non è una copia del gruppo, sono
+     due copie sciolte. Si itera su un'istantanea perché il ciclo scrive
+     nell'array che sta leggendo. */
+  for(const e of [...(cur.edges||[])]){
+    if(!nuovoId[e.a] || !nuovoId[e.b]) continue;
+    cur.edges.push({...e, id:uid(), a:nuovoId[e.a], b:nuovoId[e.b]});
+  }
+  if(!Array.isArray(cur.wallSegs)) cur.wallSegs = [];
+  const copieW = muri.map(w=>{
+    const c = {...w, id:uid(), x:w.x+off, y:w.y+off};
+    cur.wallSegs.push(c);
+    return c;
+  });
+
+  // La selezione passa alle copie: il gesto successivo (trascinare, rifare
+  // Ctrl+D) riguarda quello che si è appena creato, non l'originale.
+  clearSel();
+  copieN.forEach(c=>st.multiSel.add(c.id));
+  copieW.forEach(c=>st.multiSelWalls.add(c.id));
+  if(copieN.length) st.selectedId = copieN[copieN.length-1].id;
+  else st.selectedWallId = copieW[copieW.length-1].id;
   save(); renderMap();
 }
 

@@ -1,7 +1,7 @@
 /* Esporta/Importa: lo stesso JSON {root, checklist, players} del salvataggio,
    come file. È il formato di scambio con il sito (colonna campaign.data). */
 
-import { st, save, migrateState, resetUndo } from "./stato.js";
+import { st, save, migrateState, resetUndo, clearSel } from "./stato.js";
 import { openAlert, showView } from "./viste.js";
 
 export function exportJSON(){
@@ -21,7 +21,7 @@ function applyImportedJSON(text){
   migrateState(data);
   st.state = data;
   resetUndo();                       // l'import sostituisce tutto: niente undo all'indietro
-  st.path = [st.state.root.id]; st.selectedId = null; st.selectedEdgeId = st.selectedWallId = null;
+  st.path = [st.state.root.id]; clearSel();
   save();
   showView("map");
 }
