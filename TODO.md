@@ -755,6 +755,46 @@ ma oggi le bolle non la rispettano: sono simboli, non piante.
   vecchia — ora il salto seleziona come il clic. Verificato: 12/12 in Chromium
   (creazione delle 4 forme, hint, input, nudge, drag, demo intatta dopo
   reload, console pulita) + regressione aggancio schede 15/15, `tsc` ok.
+- [x] **Anche i segnalini stanno nel quadretto** — fatto (22 lug 2026). Quest,
+  encounter, PNG, note e pedine cadevano dove capitava: erano l'ultima cosa
+  libera su una mappa che nel frattempo è diventata in scala, e con la griglia
+  sempre disegnata sotto si vedeva. Ora si agganciano, ma con la regola giusta
+  per quello che sono: un simbolo è largo 30px in un quadretto da 40, quindi si
+  aggancia il suo **centro** al centro della cella e non l'angolo alla riga —
+  agganciare l'angolo l'avrebbe lasciato a cavallo di quattro celle, cioè "in un
+  quadretto" per le coordinate e storto per l'occhio.
+  - La regola stava già scritta, ma in un posto solo: `snapToCell` era in
+    `battaglia.js` e valeva per le pedine in combattimento. Non era una regola
+    della battaglia, era la regola di ogni simbolo sulla mappa: è passata in
+    `modello.js` accanto a `snapGrid`, e `onGrid`/`snapNode` sono ora l'unico
+    posto che decide dove va una bolla. I sette punti d'ingresso (creazione,
+    trascinamento, atterraggio del gruppo, Ordina, frecce, duplica, import del
+    dungeon) chiedono a lui invece di ripetere la scelta ciascuno per sé — prima
+    erano tre rami `if` copiati, uno dei quali (`battleOn() && type==="token"`)
+    esisteva solo perché la regola era nel modulo sbagliato.
+  - Il raggio dell'aggancio è quello **disegnato** (`markerR`): la pedina è un
+    pixel più grande del segnalino, e `mappa.js` ora legge di lì per disegnare il
+    disco invece di ricalcolare `MARKER_R+1` a mano. Con un raggio sbagliato il
+    centro geometrico finisce nella cella giusta e il disco no.
+  - **Qui la migrazione si fa** (in `migrateState`), al contrario delle forme in
+    scala: un simbolo si sposta al massimo di mezza cella e non cambia
+    dimensione, quindi non può finire sopra una bolla che prima non toccava.
+    L'unico modo di sovrapporne due è averli più vicini di un quadretto — e
+    succedeva davvero: l'import del dungeon disponeva i PG a 36px l'uno
+    dall'altro, sotto la cella, quindi ora li dispone a una cella.
+  - Tolto `allineaPedineAllaGriglia`: allineava le pedine accendendo il
+    combattimento, e non ha più niente da allineare. Era la stessa invariante
+    detta due volte, una delle quali solo a modalità accesa.
+  Verificato in Chromium: 19/19 sulla mappa (i cinque tipi di segnalino centrati
+  dopo la migrazione, i cinque dischi **disegnati** col centro a 20px dal bordo
+  cella, drag, frecce, creazione, la stanza che NON migra da sola ma si aggancia
+  al primo tocco, la torre che resta libera, console pulita) e 6/6 sulla
+  battaglia (accensione, griglia in modo battaglia, pedine nel quadretto,
+  spegnimento); screenshot riletto a scala 1:1; `tsc` ok.
+  Resta aperto: `nodeBox` dà 30×30 a ogni segnalino, ma il disco della pedina ne
+  misura 32 — un pixel di scarto fra il centro geometrico (che muove archi e
+  `nodeCenter`) e il centro disegnato. Non si vede e non l'ho toccato, ma è il
+  motivo per cui `markerR` esiste come funzione invece che come costante.
 
 - [x] **Pannello dettagli più largo e ridimensionabile** — fatto (19 lug 2026).
   Da 380px fissi (`max-width:42vw`) a 440px di default con maniglia di

@@ -169,7 +169,11 @@ function projectNode(n: Node, data: Node): Node {
     // devono: sono id di nodi invisibili), quindi il nome lo risolve il server e
     // lo consegna già come titolo — altrimenti i giocatori vedrebbero pedine mute.
     title: n.type === "token" ? nomePedina(n, data) : String(n.title ?? ""),
-    type: String(n.type ?? "zona"),              // il client la usa solo come chiave di lookup
+    // Il tipo va consegnato fedele: al tavolo decide il colore, ma anche la
+    // GEOMETRIA — isMarker() distingue i simboli, che stanno centrati in un
+    // quadretto, dalle bolle libere (snapNode in public/app/modello.js). Il
+    // ripiego "zona" è il caso libero, cioè quello che non sposta niente.
+    type: String(n.type ?? "zona"),
     status: "",                                  // "da fare / in corso" è preparazione del DM
     notes: String(n.playerNotes ?? ""),          // ← MAI n.notes
     img: safeUrl(n.img),

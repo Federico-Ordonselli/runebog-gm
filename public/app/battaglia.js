@@ -20,22 +20,17 @@
       = 1,5 metri. La modalità combattimento non introduce una scala nuova, rende
       rigido l'aggancio a quella esistente (vedi CELL). */
 
-import { node, uid, NODE_COLORS, MARKER_R, escapeHtml, CELL } from "./modello.js";
+import { node, uid, NODE_COLORS, escapeHtml, CELL, snapToCell } from "./modello.js";
 import { st, save, findNode, findParent, currentNode, RO } from "./stato.js";
 import { openConfirm } from "./viste.js";
 
 /* 1 quadretto = 5 piedi = 1,5 m. La costante vive in modello.js (unica
-   definizione della maglia); qui resta riesportata per gli import esistenti. */
-export { CELL };
+   definizione della maglia), e con lei ci vive ora anche l'aggancio al centro
+   della cella: non è più una regola della battaglia, è la regola di ogni
+   simbolo sulla mappa (vedi snapNode). Qui restano riesportate per gli import
+   esistenti. */
+export { CELL, snapToCell };
 export const METRI_PER_CELLA = "1,5 m";
-
-/* Una pedina è alta e larga quanto MARKER_R*2+2, meno di una cella: la si
-   centra nel quadretto invece di allinearla all'angolo, sennò "sta in un
-   quadretto" sarebbe vero per le coordinate e falso per l'occhio. */
-export function snapToCell(v, r = MARKER_R + 1){
-  const centro = v + r;
-  return Math.floor(centro / CELL) * CELL + CELL / 2 - r;
-}
 
 /* --- lo stato della battaglia sul livello corrente --- */
 export function battleOf(n = currentNode()){ return n && n.battle ? n.battle : null; }
@@ -93,19 +88,15 @@ export function toggleBattle(){
     return;
   }
   n.battle = {round: 1, turn: 0, order: []};
-  allineaPedineAllaGriglia(n);
   save(); ridisegna();
 }
 
-/* Accendendo la modalità, le pedine già sparse si agganciano ai quadretti: se
-   restassero a metà cella la griglia "rigida" sarebbe una promessa non mantenuta
-   proprio sul contenuto che c'era prima. */
-function allineaPedineAllaGriglia(n){
-  for(const c of n.children){
-    if(c.type !== "token" || typeof c.x !== "number") continue;
-    c.x = snapToCell(c.x); c.y = snapToCell(c.y);
-  }
-}
+/* Qui c'era un allineamento delle pedine all'accensione della modalità: le
+   pedine "già sparse" si agganciavano solo entrando in combattimento. Dal
+   22 lug 2026 non esistono pedine sparse — ogni simbolo nasce, si muove e si
+   carica agganciato al centro del quadretto (snapNode in modello.js), quindi
+   quella riparazione non aveva più niente da riparare. Il combattimento non
+   introduce una regola sua: alza il contrasto della griglia, e basta. */
 
 /* --- iniziativa ------------------------------------------------------------ */
 export function rollInitiative(){

@@ -2,14 +2,15 @@
    pointer (drag, pinch, long-press, collegamenti), sfondo del livello,
    navigazione tra livelli e operazioni sulla selezione. */
 
-import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, MARKER_R, STATUS_COLORS, nodeColor,
+import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeColor,
          isMarker, defShape, nodeBox, nodeCenter, node, uid, escapeHtml, escapeAttr,
-         gridShape, snapGrid, wallShape, wallBox, wallOpening, wallPlan, WALL } from "./modello.js";
+         gridShape, onGrid, snapGrid, snapNode,
+         wallShape, wallBox, wallOpening, wallPlan, WALL } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, pathNodes, RO } from "./stato.js";
 import { showView, openConfirm } from "./viste.js";
 import { renderDetail, compressImage } from "./pannello.js";
 import { showCtxFor } from "./menu.js";
-import { battleOn, snapToCell, tokenLink, renderBattleBar, CELL } from "./battaglia.js";
+import { battleOn, tokenLink, renderBattleBar, CELL } from "./battaglia.js";
 
 export function renderMap(){
   renderCrumbs();
@@ -337,7 +338,7 @@ export function renderCanvas(){
     // il focus (vedi il focusin in initMappa) e aria-pressed la annuncia
     const a11y = `tabindex="0" role="button" aria-pressed="${isSel}" aria-label="${ariaBlk(c)}"`;
     if(c.type==="token"){
-      const R = MARKER_R+1, tcol = col;
+      const R = markerR(c), tcol = col;
       // Una pedina collegata (a un PG o a un nemico) prende nome e PF dalla fonte:
       // sul campo e nella scheda c'è UN solo numero, non due che divergono.
       const link = tokenLink(c);
@@ -362,7 +363,7 @@ export function renderCanvas(){
           `<text x="${R}" y="${R*2+(pct===null?15:22)}" text-anchor="middle" style="font-size:11px;fill:var(--ink-dim)">${escapeHtml(nome)}</text>`}
       </g>`;
     }else if(isMarker(c)){
-      const R = MARKER_R;
+      const R = markerR(c);
       out += `<g class="blk marker${selCls}${shCls}" data-block="${c.id}" ${a11y} transform="translate(${c.x},${c.y})">
         <circle class="blk-shape" cx="${R}" cy="${R}" r="${R}" style="--c:${col}"/>
         <text x="${R}" y="${R+4}" text-anchor="middle" style="font-size:12px;fill:${col};font-weight:700">${(TYPES[c.type]||TYPES.nota).label[0]}</text>
@@ -460,10 +461,10 @@ export function arrangeGrid(){
   items.forEach((c,i)=>{
     const b = nodeBox(c);
     if(i%perRow===0 && i){ x=0; y+=rowH+GAP; rowH=0; }
-    // Le forme in scala restano sulla maglia anche nell'ordinamento: il GAP di
-    // 50 assorbe l'arrotondamento (±20 max), quindi niente sovrapposizioni.
-    if(gridShape(c)){ c.x=snapGrid(x); c.y=snapGrid(y); }
-    else { c.x=x; c.y=y; }
+    // Piante e simboli restano agganciati anche nell'ordinamento: il GAP di 50
+    // assorbe lo spostamento (±20 max), quindi niente sovrapposizioni.
+    const q = snapNode(c, x, y);
+    c.x = q.x; c.y = q.y;
     x += b.w+GAP; rowH = Math.max(rowH, b.h);
   });
   save(); planFit(true); renderDetail();
@@ -475,21 +476,21 @@ export function addSpatialChild(opts, x, y){
   let c;
   if(opts.marker) c = node("", opts.marker);
   else { c = node("", opts.shape==="quartiere" ? "zona" : "luogo"); c.shape = opts.shape; }
-  const b = nodeBox(c);
-  // In combattimento anche una pedina appena piazzata nasce dentro un quadretto:
-  // sennò il primo gesto dopo l'aggiunta sarebbe sempre "trascinala per allinearla".
-  if(battleOn() && c.type==="token"){
-    c.x = snapToCell(x-b.w/2);
-    c.y = snapToCell(y-b.h/2);
-  }else if(gridShape(c)){
+  if(gridShape(c)){
     // Le forme architettoniche nascono già sulla maglia: sono piante in scala
     // (1 quadretto = 1,5 m), non simboli. Le dimensioni diventano esplicite e
     // in quadretti interi: i default di SHAPES restano quelli delle bolle
     // vecchie e non sono tutti multipli di cella.
-    c.w = Math.max(CELL, snapGrid(b.w));
-    c.h = Math.max(CELL, snapGrid(b.h));
-    c.x = snapGrid(x-c.w/2);
-    c.y = snapGrid(y-c.h/2);
+    const d = nodeBox(c);
+    c.w = Math.max(CELL, snapGrid(d.w));
+    c.h = Math.max(CELL, snapGrid(d.h));
+  }
+  const b = nodeBox(c);
+  // Nasce già agganciata, che sia una pianta o un simbolo: sennò il primo gesto
+  // dopo l'aggiunta sarebbe sempre "trascinala per allinearla".
+  if(onGrid(c)){
+    const q = snapNode(c, x-b.w/2, y-b.h/2);
+    c.x = q.x; c.y = q.y;
   }else{
     c.x = Math.round((x-b.w/2)/10)*10;
     c.y = Math.round((y-b.h/2)/10)*10;
@@ -757,18 +758,14 @@ export function initMappa(){
     const p = planPoint(ev);
     if(planDrag.mode==="move"){
       const n = childOf(planDrag.id); if(!n) return;
-      // In combattimento una pedina sta in UN quadretto: aggancio alla cella e
-      // niente allineamento magnetico alle altre bolle, che tirerebbe fuori
-      // griglia proprio ciò che dev'esserci dentro.
-      if(battleOn() && n.type==="token"){
-        n.x = snapToCell(p.x-planDrag.dx);
-        n.y = snapToCell(p.y-planDrag.dy);
-        drawGuides(null, null);
-      }else if(gridShape(n)){
-        // Stessa ragione delle pedine: una pianta sta sulla maglia, e il
-        // magnetico verso bolle libere la tirerebbe fuori quadretto.
-        n.x = snapGrid(p.x-planDrag.dx);
-        n.y = snapGrid(p.y-planDrag.dy);
+      // Chi sta sulla maglia ci resta anche mentre lo si trascina, e per lui
+      // niente allineamento magnetico alle altre bolle: tirerebbe fuori
+      // quadretto proprio ciò che dev'esserci dentro. La maglia è già un
+      // allineamento, e più forte — due simboli in due celle sono allineati per
+      // costruzione, senza che nessuno debba centrare la guida.
+      if(onGrid(n)){
+        const q = snapNode(n, p.x-planDrag.dx, p.y-planDrag.dy);
+        n.x = q.x; n.y = q.y;
         drawGuides(null, null);
       }else{
         n.x = Math.round((p.x-planDrag.dx)/10)*10;
@@ -891,10 +888,11 @@ export function initMappa(){
       }
       if(planDrag.moved){
         // Il gruppo si muove rigido con l'ancora: se l'ancora era una bolla
-        // libera, i membri in scala sarebbero atterrati fuori quadretto.
+        // libera, i membri agganciati sarebbero atterrati fuori quadretto.
         for(const id of planDrag.group){
-          const m = childOf(id);
-          if(m && gridShape(m)){ m.x = snapGrid(m.x); m.y = snapGrid(m.y); }
+          const m = childOf(id); if(!m) continue;
+          const q = snapNode(m);
+          m.x = q.x; m.y = q.y;
         }
         save(); renderCanvas();
       }
@@ -1060,8 +1058,10 @@ export function duplicateSelected(){
     n.children.forEach(ch=>{ const old = ch.id; reid(ch); map[old] = ch.id; });
     n.edges = (n.edges||[]).map(e=>({...e, id:uid(), a:map[e.a]||e.a, b:map[e.b]||e.b}));
   })(copy);
-  // Una copia in scala trasla di un quadretto pieno: +30 la porterebbe fuori maglia.
-  const off = gridShape(copy) ? CELL : 30;
+  // Una copia agganciata trasla di un quadretto pieno: +30 la porterebbe fuori
+  // maglia, e per un simbolo vorrebbe dire uscire dal suo quadretto per finire
+  // a cavallo del successivo.
+  const off = onGrid(copy) ? CELL : 30;
   copy.x = (copy.x||0)+off; copy.y = (copy.y||0)+off;
   copy.title = (copy.title||"") + " (copia)";
   cur.children.push(copy);

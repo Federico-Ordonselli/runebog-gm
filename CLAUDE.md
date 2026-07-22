@@ -74,11 +74,37 @@ Le pedine **referenziano** la loro fonte (`playerId`, oppure `{nodeId, foeId}`) 
 ne copiano nome e PF: c'è un solo numero per creatura, letto alla fonte a ogni disegno.
 La griglia è quella che c'era già — `CELL` (40px, 1 quadretto = 1,5 m) è definita una
 sola volta in `modello.js`: `battaglia.js` la riesporta, il pattern `#grid` in `mappa.js`
-e `DG_SCALE` in `dungeon.js` la importano. Le forme con `grid:true` in `SHAPES`
-(edificio, stanza, piazza) vivono sulla maglia: posizione e dimensioni in quadretti
-interi a ogni interazione (creazione, drag, resize, frecce, input del pannello) —
-quartieri, torri e segnalini restano liberi, e le bolle esistenti fuori scala non
-migrano da sole: si agganciano al primo tocco.
+e `DG_SCALE` in `dungeon.js` la importano.
+
+**Chi sta sulla maglia, e come** (`onGrid`/`snapNode` in `modello.js`, l'unico
+posto che lo decide). Ci si sta in due modi, perché sono due cose diverse:
+
+- Le forme con `grid:true` in `SHAPES` (edificio, stanza, piazza) sono **piante
+  in scala**: si aggancia l'**angolo** (`snapGrid`) e anche le dimensioni sono
+  quadretti interi, a ogni interazione (creazione, drag, resize, frecce, input
+  del pannello).
+- I **segnalini** (`isMarker`: quest, encounter, PNG, nota, pedina) sono simboli
+  più stretti di un quadretto e ci stanno **dentro**: si aggancia il loro
+  **centro** al centro della cella (`snapToCell`). Agganciarne l'angolo li
+  lascerebbe a cavallo di quattro celle, sbilanciati di 5px in alto a sinistra —
+  "sta in un quadretto" vero per le coordinate e falso per l'occhio.
+  Il raggio che decide l'aggancio è quello **disegnato** (`markerR`: la pedina è
+  un pixel più grande del segnalino, e `mappa.js` legge di lì per disegnare il
+  disco): con un raggio sbagliato il centro geometrico finisce nella cella
+  giusta e il disco no.
+
+Fuori restano solo **quartiere e torre**, che non sono in scala. Chi è agganciato
+non riceve l'allineamento magnetico alle altre bolle: lo tirerebbe fuori dal
+quadretto, e la maglia è già un allineamento più forte. Le due migrazioni sono
+diverse **e devono restarlo**: i segnalini si centrano da sé al caricamento
+(`migrateState`), perché un simbolo si sposta al massimo di mezza cella e non
+cambia dimensione; le forme in scala no — ridimensionarle a quadretti interi le
+farebbe accavallare, quindi si agganciano al primo tocco. L'unico modo di
+sovrapporre due segnalini è averli più vicini di un quadretto: per questo
+l'import del dungeon dispone i PG a una cella l'uno dall'altro e non a 36px.
+Il combattimento **non introduce una regola sua** (alza il contrasto della
+griglia, e basta): l'allineamento delle pedine all'accensione è stato tolto il
+22 lug 2026 perché non aveva più niente da allineare.
 
 **Muri e porte** (`wallPlan` e dintorni in `modello.js`, disegno in `mappa.js`): il
 muro è il perimetro spezzato dalle porte, e **le porte non sono un dato** — stanno

@@ -5,7 +5,7 @@
    archi "tunnel", gli incontri sono nodi encounter coi nemici già contati, e i PG
    di state.players entrano come pedine trascinabili nella stanza d'ingresso. */
 
-import { node, uid, NODE_COLORS, MARKER_R, CELL } from "./modello.js";
+import { node, uid, NODE_COLORS, MARKER_R, CELL, snapNode } from "./modello.js";
 import { st, save, currentNode, RO } from "./stato.js";
 import { enterNode, planFit } from "./mappa.js";
 import { openAlert } from "./viste.js";
@@ -132,11 +132,14 @@ function dungeonFromExport(data){
   if(ent){
     const pcs = st.state.players.filter(pl=>(pl.name||"").trim());
     const cx = (ent.rect.x + ent.rect.w/2)*S, cy = (ent.rect.y + ent.rect.h/2)*S;
+    // Una pedina per quadretto, non a 36px l'una dall'altra: sotto la cella il
+    // passo non è "in fila stretta", è "nella stessa casella" — l'aggancio le
+    // farebbe collassare tutte sullo stesso disco.
     pcs.forEach((pl,i)=>{
       const tk = node(pl.name.trim(), "token");
       tk.color = NODE_COLORS[i % NODE_COLORS.length];
-      tk.x = Math.round(cx + (i - (pcs.length-1)/2)*36 - MARKER_R);
-      tk.y = Math.round(cy - MARKER_R);
+      const q = snapNode(tk, cx + (i - (pcs.length-1)/2)*CELL - MARKER_R, cy - MARKER_R);
+      tk.x = q.x; tk.y = q.y;
       dg.children.push(tk);
     });
   }

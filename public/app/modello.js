@@ -43,6 +43,36 @@ export const SHAPES = {
 };
 export const gridShape = n => !isMarker(n) && !!SHAPES[n.shape || defShape(n)]?.grid;
 
+/* Sulla maglia ci si sta in due modi, perché sono due cose diverse.
+   Una pianta è in scala e occupa quadretti interi: si aggancia l'ANGOLO, e la
+   sua dimensione è un multiplo di cella (snapGrid).
+   Un simbolo è più stretto di un quadretto e ci sta DENTRO: si aggancia il suo
+   CENTRO al centro della cella (snapToCell). Agganciarne l'angolo lo lascerebbe
+   a cavallo di quattro celle, sbilanciato di 5px verso l'alto a sinistra —
+   "sta in un quadretto" sarebbe vero per le coordinate e falso per l'occhio, che
+   è come stavano quest, encounter e PNG fino al 22 lug 2026.
+   Fuori restano quartiere e torre: non sono in scala, sono etichette di
+   territorio, e vivono libere come prima. */
+export const onGrid = n => gridShape(n) || isMarker(n);
+/* Il raggio disegnato del simbolo: la pedina è un filo più grande del segnalino
+   (vedi il disco in mappa.js, che legge di qui). Il raggio decide l'aggancio,
+   quindi dev'essere quello vero: con un raggio sbagliato il centro geometrico
+   finisce nel quadretto giusto e il disco no. */
+export const markerR = n => n.type === "token" ? MARKER_R + 1 : MARKER_R;
+export function snapToCell(v, r = MARKER_R + 1){
+  const centro = v + r;
+  return Math.floor(centro / CELL) * CELL + CELL / 2 - r;
+}
+/* L'unico posto che sa dove va una bolla sulla maglia. Le coordinate arrivano
+   da fuori (il puntatore, una griglia di riordino, la posizione attuale) perché
+   i chiamanti le calcolano in modi diversi; a scegliere la regola è il nodo. */
+export function snapNode(n, x = n.x, y = n.y){
+  if(typeof x !== "number" || typeof y !== "number") return {x, y};
+  if(gridShape(n)) return {x:snapGrid(x), y:snapGrid(y)};
+  if(isMarker(n)){ const r = markerR(n); return {x:snapToCell(x, r), y:snapToCell(y, r)}; }
+  return {x, y};
+}
+
 /* ---------------- muri ----------------
    Un muro non è un bordo più spesso: è il perimetro spezzato dalle porte. E le
    porte non sono un dato da tenere allineato — stanno dove un collegamento

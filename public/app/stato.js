@@ -2,7 +2,7 @@
    condiviso da tutti i moduli, il salvataggio (locale o cloud), le campagne
    multiple e le utilità sull'albero. */
 
-import { uid, node, escapeHtml, sanitizeState } from "./modello.js";
+import { uid, node, escapeHtml, sanitizeState, isMarker, snapNode } from "./modello.js";
 import { openAlert, openConfirm, showView } from "./viste.js";
 
 /* ==================== dove stiamo girando ====================
@@ -400,6 +400,13 @@ export function migrateState(s){
     // devono restare come il DM le aveva messe.
     if(n.tokenColor && !n.color) n.color = n.tokenColor;
     delete n.tokenColor;
+    // I simboli si centrano nel quadretto (22 lug 2026), e qui la migrazione si
+    // fa davvero invece di aspettare il primo tocco come per le forme in scala:
+    // un simbolo si sposta al massimo di mezza cella e NON cambia dimensione,
+    // quindi non può finire sopra una bolla che prima non toccava. L'unico modo
+    // di sovrapporre qualcosa è avere due segnalini più vicini di un quadretto —
+    // per questo l'import del dungeon dispone i PG a una cella l'uno dall'altro.
+    if(isMarker(n)){ const q = snapNode(n); n.x = q.x; n.y = q.y; }
     (n.children||[]).forEach(walk);
   })(s.root);
   // vecchia "Pianta" separata → diventa una zona dentro la radice
