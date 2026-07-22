@@ -4,7 +4,7 @@
 import { onGrid, CELL } from "./modello.js";
 import { st, save, doUndo, findNode } from "./stato.js";
 import { showView, openKeys } from "./viste.js";
-import { goUp, enterNode, planZoom, planFit, renderCanvas,
+import { goUp, enterNode, planZoom, planFit, renderCanvas, wallOf,
          requestDeleteSelection, duplicateSelected } from "./mappa.js";
 import { renderDetail, deleteEdge } from "./pannello.js";
 
@@ -65,6 +65,18 @@ export function initScorciatoie(){
       planZoom(1/1.2);
     }else if(k.toLowerCase()==="f"){
       planFit(true);
+    }else if(k.startsWith("Arrow") && st.selectedWallId){
+      // Un muro si sposta di quadretti interi come tutto ciò che sta sulla
+      // maglia, e senza il ritocco fine dello Shift: sta sui bordi delle celle,
+      // e un bordo di mezza cella non esiste.
+      const w = wallOf(st.selectedWallId);
+      if(w){
+        if(k==="ArrowLeft")  w.x-=CELL;
+        if(k==="ArrowRight") w.x+=CELL;
+        if(k==="ArrowUp")    w.y-=CELL;
+        if(k==="ArrowDown")  w.y+=CELL;
+        e.preventDefault(); save(); renderCanvas();
+      }
     }else if(k.startsWith("Arrow") && (st.multiSel.size || st.selectedId)){
       const ids = st.multiSel.size ? [...st.multiSel] : [st.selectedId];
       const step = e.shiftKey ? 1 : 10;

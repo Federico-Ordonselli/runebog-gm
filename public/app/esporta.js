@@ -21,7 +21,7 @@ function applyImportedJSON(text){
   migrateState(data);
   st.state = data;
   resetUndo();                       // l'import sostituisce tutto: niente undo all'indietro
-  st.path = [st.state.root.id]; st.selectedId = null; st.selectedEdgeId = null;
+  st.path = [st.state.root.id]; st.selectedId = null; st.selectedEdgeId = st.selectedWallId = null;
   save();
   showView("map");
 }

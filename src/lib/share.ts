@@ -198,6 +198,42 @@ function projectNode(n: Node, data: Node): Node {
   // qui sopra sono già stati tolti: ai giocatori resta un muro pieno, non
   // un'apertura da nascondere.
   if (typeof n.walls === "boolean") out.walls = n.walls;
+  // I muri liberi sono un'altra cosa da `walls` (vedi modello.js): sono il
+  // pavimento del livello, e al tavolo devono uscire — senza, i giocatori
+  // vedrebbero le pedine muoversi dentro una stanza che non c'è. Non nascondono
+  // niente: la sagoma di una stanza è ciò che si vede entrandoci, e un livello
+  // che i giocatori non possono vedere non arriva qui affatto (`shared`).
+  // Ricostruiti campo per campo come tutto il resto, e con `len` limitata: un
+  // JSON che dichiara un muro da un miliardo di quadretti pianta il browser dei
+  // giocatori, che è l'unico posto dove nessuno può chiudere la scheda e
+  // rimediare.
+  // Un segmento con una coordinata che non è un numero CADE, non viene corretto
+  // a zero: è la stessa regola di safeWallSeg in public/app/modello.js, e client
+  // e server devono concordare su cosa è un valore sicuro. Un muro rimesso a 0,0
+  // sarebbe un muro comparso in un angolo, cioè un guasto travestito da dato.
+  const muri = (Array.isArray(n.wallSegs) ? n.wallSegs : [])
+    .map((s: Node) => {
+      // `Node` è Record<string, any>, quindi il tipo non protegge da un `null`
+      // dentro l'array: senza questa riga una campagna importata con un buco
+      // faceva esplodere la ROUTE DEL TAVOLO, cioè l'unica pagina che il DM non
+      // può riparare mentre i giocatori la stanno guardando.
+      if (!s || typeof s !== "object") return null;
+      // `num` di questo file ripiega su `alt` e `Number(null)` è 0: qui serve il
+      // contrario, cioè "non dichiarato = cade". Senza, un muro con coordinata
+      // mancante ricompare a 0,0 — ed è il caso normale, non un cavillo:
+      // JSON.stringify scrive `null` al posto di un NaN.
+      const dichiarato = (v: unknown) =>
+        v === null || v === undefined || v === "" ? null : num(v);
+      const x = dichiarato(s.x), y = dichiarato(s.y), len = dichiarato(s.len);
+      if (x === null || y === null || len === null) return null;
+      return {
+        id: safeId(s.id), x, y,
+        dir: s.dir === "v" ? "v" : "h",
+        len: Math.max(1, Math.min(200, Math.round(len))),
+      };
+    })
+    .filter((s): s is NonNullable<typeof s> => s !== null);
+  if (muri.length) out.wallSegs = muri;
   const w = num(n.w), h = num(n.h);
   if (w) out.w = w;
   if (h) out.h = h;

@@ -42,7 +42,7 @@ export function showCtxFor(target, cx, cy){
   if(blkEl){
     const n = childOf(blkEl.dataset.block); if(!n) return;
     if(!st.multiSel.has(n.id)) st.multiSel = new Set([n.id]);
-    st.selectedId = n.id; st.selectedEdgeId = null; renderCanvas(); renderDetail();
+    st.selectedId = n.id; st.selectedEdgeId = st.selectedWallId = null; renderCanvas(); renderDetail();
     const items = [
       {id:"enter", label:"Entra →", run:()=>enterNode(n.id)},
       {id:"ren",   label:"Rinomina", run:()=>{ st.selectedId=n.id; renderDetail(); focusDetailTitle(); }},

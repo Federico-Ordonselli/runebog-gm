@@ -106,6 +106,42 @@ Il combattimento **non introduce una regola sua** (alza il contrasto della
 griglia, e basta): l'allineamento delle pedine all'accensione è stato tolto il
 22 lug 2026 perché non aveva più niente da allineare.
 
+**Muri liberi** (`wallSegs` in `modello.js`, disegno e gesto in `mappa.js`): sono
+la *seconda* cosa chiamata muro, e non c'entra con la prima. Il perimetro qui
+sotto è **derivato** — il contorno di una bolla, con le porte dove passa un
+collegamento — e serve a leggere una pianta a colpo d'occhio. Un muro libero è un
+**dato**: un segmento che il DM posa, trascina e allunga, e con cui costruisce il
+perimetro su cui si gioca (stanze a L, corridoi, tramezzi). Le porte lì sono i
+buchi che si lasciano fra un muro e l'altro, e non c'è niente da dichiarare.
+
+- Vivono in `n.wallSegs` sul nodo del **livello**, come `n.edges`: sono il
+  pavimento, non la sagoma di una bolla. Da non confondere con `n.walls`, che è
+  il flag acceso/spento del perimetro — **lo stesso nodo può avere entrambi.**
+- Forma: `{id, x, y, dir:"h"|"v", len}`, con `len` in quadretti interi. Gli
+  estremi si agganciano agli **incroci** della maglia (`snapGrid`), non al centro
+  della cella come i segnalini: su un battlemap le pedine stanno nelle celle e i
+  muri fra una cella e l'altra.
+- Un gesto solo allunga **e** ruota (`stretchWallSeg`): l'altro capo sta fermo e
+  l'asse lo decide lo spostamento più lungo. Niente comando "ruota" — sarebbe un
+  bottone per una cosa che il dito sta già dicendo.
+- La classe CSS è `.wall-seg`, **non** `.wall`: quella è già dei tratti del
+  perimetro, e un `closest(".wall")` intercettava i clic sul bordo delle bolle.
+- `st.selectedWallId` è il terzo selezionato, mutuamente esclusivo con
+  `selectedId` e `selectedEdgeId`: si azzerano insieme ovunque. Dove la tela
+  **non** si ridisegna (il pointerdown su una bolla, che deve tenere vivo il nodo
+  sotto il puntatore) la classe `.sel` si toglie a mano, e l'elenco deve
+  comprendere `.wall-seg.sel` — sennò resta acceso in oro un muro che il modello
+  ha già deselezionato.
+- **Le coordinate di un muro sono untrusted e non hanno rete**: quelle di una
+  bolla le ricalcola `ensureLayout` se non sono numeri, un muro no, e finiscono
+  in attributi SVG. `safeWallSeg` (client) e la proiezione in `share.ts`
+  (server) devono restare d'accordo: ciò che non è un numero **dichiarato** fa
+  cadere il segmento invece di essere corretto a 0,0 — attenzione che
+  `Number(null)` è 0 e che `JSON.stringify` scrive `null` al posto di un NaN,
+  quindi il caso capita per davvero. `len` ha un tetto (`WALL_MAX`, 200): un muro
+  da un miliardo di quadretti pianta il browser dei giocatori, che è l'unico
+  posto dove nessuno può chiudere la scheda e rimediare.
+
 **Muri e porte** (`wallPlan` e dintorni in `modello.js`, disegno in `mappa.js`): il
 muro è il perimetro spezzato dalle porte, e **le porte non sono un dato** — stanno
 dove il raggio centro→centro di un collegamento buca il perimetro, ricalcolate a

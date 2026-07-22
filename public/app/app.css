@@ -384,6 +384,19 @@
   /* Il passaggio segreto non apre il muro, lo segna — e solo per il DM: al tavolo
      l'arco non arriva nemmeno (DM_ONLY_EDGES in src/lib/share.ts). */
   .walls .wall-secret{stroke:var(--viola);stroke-linecap:butt;stroke-dasharray:2 4}
+  /* I muri liberi sono la stessa pietra del perimetro — è la stessa cosa vista
+     da un altro sistema, e due tinte diverse avrebbero suggerito due materiali.
+     Un filo più opachi perché sono il pavimento su cui si gioca, non il
+     contorno di un'icona. Capi piatti: un muro che sporge oltre l'incrocio non
+     combacia con quello che gli arriva perpendicolare. */
+  .wall-seg{cursor:move}
+  .wall-seg__hit{stroke:transparent;stroke-width:18;fill:none}
+  .wall-seg__line{stroke:var(--ink-dim);stroke-width:6;stroke-linecap:butt}
+  .wall-seg.sel .wall-seg__line,.wall-seg:focus-visible .wall-seg__line{
+    stroke:var(--gold);filter:drop-shadow(0 0 3px var(--gold))}
+  /* Le maniglie stanno SUGLI incroci della maglia, quindi devono leggersi anche
+     sopra la griglia: piene, non a contorno. */
+  .wall-seg__handle{fill:var(--gold);stroke:var(--bog);stroke-width:2;cursor:crosshair}
   .blk text{font-size:13px;fill:var(--ink);pointer-events:none;font-family:"Iowan Old Style",Palatino,Georgia,serif}
   .blk .link-handle{fill:var(--panel);stroke:var(--fen-dim);stroke-width:2;cursor:crosshair;opacity:0}
   .blk:hover .link-handle,.blk.sel .link-handle{opacity:1}

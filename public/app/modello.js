@@ -186,6 +186,51 @@ export function wallPlan(box, openings){
   }
   return {runs, doors, marks};
 }
+/* ---------------- muri liberi ----------------
+   Il perimetro qui sopra è DERIVATO: è il contorno di una bolla, e le porte
+   stanno dove passa un collegamento. Serve a leggere una pianta a colpo
+   d'occhio e per quello va benissimo — ma non ci si gioca sopra, perché è
+   sempre un rettangolo, ed è il rettangolo di UNA bolla.
+
+   Un muro libero è l'opposto: è un dato, un segmento che il DM posa dove vuole.
+   Con questi si costruisce il perimetro vero — stanze a L, corridoi, tramezzi —
+   e le porte sono i buchi che si lasciano fra un muro e l'altro. Nessuna delle
+   due cose sostituisce l'altra e non si incrociano: il perimetro è la sagoma di
+   una bolla, i muri liberi stanno sul PAVIMENTO di un livello, insieme alle
+   bolle e ai segnalini, e vivono nel nodo di quel livello (`n.wallSegs`).
+   Attenzione a non confonderlo con `n.walls`, che è il flag acceso/spento del
+   perimetro: lo stesso nodo può avere tutti e due, e vogliono dire cose diverse.
+
+   Corre sui BORDI dei quadretti, non dentro: su un battlemap le pedine stanno
+   nelle celle e i muri fra una cella e l'altra. Per questo gli estremi si
+   agganciano agli incroci della maglia (snapGrid) e non al centro della cella
+   come i segnalini. */
+export const WALL_MIN = 1;                  // meno di un quadretto non è un muro
+export const WALL_MAX = 200;                // 300 m: oltre, è un JSON che mente
+export const wallSegsOf = n => Array.isArray(n.wallSegs) ? n.wallSegs : [];
+export const wallSegEnds = w => w.dir === "v"
+  ? {x1:w.x, y1:w.y, x2:w.x,               y2:w.y + w.len*CELL}
+  : {x1:w.x, y1:w.y, x2:w.x + w.len*CELL,  y2:w.y};
+export const newWallSeg = (x, y, dir = "h", len = 2) =>
+  ({id:uid(), x:snapGrid(x), y:snapGrid(y), dir, len});
+
+/* Stira un muro dal capo che si sta trascinando: l'altro sta fermo, e l'asse lo
+   decide lo spostamento più lungo. Così un gesto solo allunga E ruota — non
+   serve un comando "ruota", che sarebbe un bottone per una cosa che il dito sta
+   già dicendo. */
+export function stretchWallSeg(w, capo, px, py){
+  const e = wallSegEnds(w);
+  const fx = capo === "a" ? e.x2 : e.x1, fy = capo === "a" ? e.y2 : e.y1;
+  const dx = snapGrid(px) - fx, dy = snapGrid(py) - fy;
+  const orizzontale = Math.abs(dx) >= Math.abs(dy);
+  const d = orizzontale ? dx : dy;
+  const len = Math.max(WALL_MIN, Math.min(WALL_MAX, Math.round(Math.abs(d) / CELL)));
+  w.dir = orizzontale ? "h" : "v";
+  w.len = len;
+  w.x = orizzontale ? (d >= 0 ? fx : fx - len*CELL) : fx;
+  w.y = orizzontale ? fy : (d >= 0 ? fy : fy - len*CELL);
+}
+
 /* Colore di default PER FORMA, non per tipo: prima edificio e stanza erano
    entrambi "luogo" e quindi lo stesso teal, così una pianta di dungeon era una
    distesa di rettangoli identici e la gerarchia si leggeva solo dalla taglia.
@@ -274,6 +319,34 @@ function safeUrl(v){
   return s;
 }
 
+/* Le coordinate di un muro finiscono dentro attributi SVG (x1/y1/x2/y2) e, a
+   differenza di quelle di una bolla, NON hanno una rete sotto: `ensureLayout`
+   ricalcola una x che non sia un numero — un muro invece resterebbe quello che
+   c'era nel JSON. Quindi qui si coerce, e ciò che non è un numero finito fa
+   cadere il segmento invece di finire nel markup. `len` ha anche un tetto: un
+   muro da un miliardo di quadretti non è un muro, è un modo di piantare il
+   browser di chi apre la campagna. */
+function safeWallSeg(w){
+  if(!w || typeof w !== "object") return null;
+  /* `Number(null)` è 0 e `Number("")` pure: senza il primo test un muro con una
+     coordinata mancante non cadrebbe, verrebbe "corretto" a 0,0 — cioè
+     ricomparirebbe nell'angolo del livello, che è un guasto travestito da dato.
+     E capita per davvero: JSON.stringify scrive `null` al posto di un NaN. */
+  const num = v => {
+    if(v === null || v === undefined || v === "") return null;
+    const x = Number(v);
+    return Number.isFinite(x) ? x : null;
+  };
+  const x = num(w.x), y = num(w.y), len = num(w.len);
+  if(x === null || y === null || len === null) return null;
+  return {
+    id: safeId(w.id ?? uid()),
+    x: snapGrid(x), y: snapGrid(y),
+    dir: w.dir === "v" ? "v" : "h",
+    len: Math.max(WALL_MIN, Math.min(WALL_MAX, Math.round(len)))
+  };
+}
+
 /* Pulisce in-place l'intero albero dello stato. Un solo punto: la chiama migrateState,
    che ogni percorso di caricamento attraversa (import, cloud, localStorage). */
 export function sanitizeState(s){
@@ -288,6 +361,8 @@ export function sanitizeState(s){
     // riferimenti della pedina: stesso safeId dei nodi/foe puntati, così restano allineati
     if(n.playerId != null) n.playerId = safeId(n.playerId);
     if(n.foe){ n.foe.nodeId = safeId(n.foe.nodeId); n.foe.foeId = safeId(n.foe.foeId); }
+    if(n.wallSegs != null) n.wallSegs = (Array.isArray(n.wallSegs) ? n.wallSegs : [])
+      .map(safeWallSeg).filter(Boolean);
     for(const e of (Array.isArray(n.edges) ? n.edges : [])){
       if(e.id != null) e.id = safeId(e.id);
       e.a = safeId(e.a); e.b = safeId(e.b);

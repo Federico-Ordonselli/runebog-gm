@@ -96,6 +96,11 @@
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"stanza"}'><svg width="18" height="18" aria-hidden="true"><rect x="2" y="2" width="14" height="14" rx="2" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Stanza</div>
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"piazza"}'><svg width="18" height="18" aria-hidden="true"><circle cx="9" cy="9" r="7" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Piazza</div>
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"torre"}'><svg width="18" height="18" aria-hidden="true"><polygon points="9,1 17,9 9,17 1,9" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Torre</div>
+        <!-- Il muro non è una bolla e non è un segnalino: è il pavimento su cui
+             si gioca, quindi ha una sua etichetta invece di stare in coda alle
+             forme, dove sarebbe sembrato l'ennesima sagoma da riempire. -->
+        <span class="pal-title" style="margin-left:6px">Pianta:</span>
+        <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"wall":true}' title="Un tratto di muro: posalo, trascinalo, tira i capi per allungarlo"><svg width="24" height="18" aria-hidden="true"><line x1="2" y1="9" x2="22" y2="9" style="stroke:var(--ink-dim)" stroke-width="5" stroke-linecap="butt"/></svg>Muro</div>
         <span class="pal-title" style="margin-left:6px">Segnalini:</span>
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"marker":"quest"}'><span class="type-badge" style="background:var(--gold)"></span>Quest</div>
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"marker":"encounter"}'><span class="type-badge" style="background:var(--ember)"></span>Encounter</div>

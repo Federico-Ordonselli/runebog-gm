@@ -35,6 +35,9 @@ export const st = {
   path: [],             // percorso di navigazione (id)
   selectedId: null,     // blocco selezionato nel livello corrente
   selectedEdgeId: null, // collegamento selezionato nel livello corrente
+  // Muro libero selezionato. I tre "selected*" sono mutuamente esclusivi: si
+  // azzerano insieme, e il pannello li legge in quest'ordine.
+  selectedWallId: null,
   multiSel: new Set(),  // selezione multipla (Ctrl+clic)
   detailOpen: false     // bottom sheet aperto manualmente (mobile)
 };
@@ -135,7 +138,7 @@ export function switchCampaign(id){
   catch(_){ st.state = emptyState(); }
   migrateState(st.state);
   resetUndo();                       // l'undo non attraversa le campagne
-  st.path = [st.state.root.id]; st.selectedId = null; st.selectedEdgeId = null; st.multiSel.clear();
+  st.path = [st.state.root.id]; st.selectedId = null; st.selectedEdgeId = st.selectedWallId = null; st.multiSel.clear();
   renderCampaignSelect(); showView("map");
 }
 export function newCampaign(){
@@ -147,7 +150,7 @@ export function newCampaign(){
   st.state = emptyState();
   resetUndo();
   persistCurrent(); renderCampaignSelect();
-  st.path = [st.state.root.id]; st.selectedId = null; st.selectedEdgeId = null; st.multiSel.clear();
+  st.path = [st.state.root.id]; st.selectedId = null; st.selectedEdgeId = st.selectedWallId = null; st.multiSel.clear();
   showView("map");
   setTimeout(()=>{ const i=document.querySelector("#detail input"); if(i){ i.focus(); i.select(); } }, 80);
 }
@@ -268,7 +271,7 @@ export function undo(){
   st.path = valid.length ? valid : [st.state.root.id];
   if(st.selectedId && !findNode(st.selectedId)) st.selectedId = null;
   st.multiSel = new Set([...st.multiSel].filter(id => findNode(id)));
-  if(st.selectedEdgeId) st.selectedEdgeId = null;
+  st.selectedEdgeId = st.selectedWallId = null;   // un arco o un muro possono non esserci più
   doSave();                          // persiste subito, senza passare da noteChange
   return true;
 }

@@ -5,7 +5,8 @@
 import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeColor,
          isMarker, defShape, nodeBox, nodeCenter, node, uid, escapeHtml, escapeAttr,
          gridShape, onGrid, snapGrid, snapNode,
-         wallShape, wallBox, wallOpening, wallPlan, WALL } from "./modello.js";
+         wallShape, wallBox, wallOpening, wallPlan, WALL,
+         wallSegsOf, wallSegEnds, newWallSeg, stretchWallSeg } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, pathNodes, RO } from "./stato.js";
 import { showView, openConfirm } from "./viste.js";
 import { renderDetail, compressImage } from "./pannello.js";
@@ -51,14 +52,14 @@ export function renderCrumbs(){
 
 export function goUp(){
   if(st.path.length>1){
-    st.selectedId = st.path[st.path.length-1]; st.selectedEdgeId = null;
+    st.selectedId = st.path[st.path.length-1]; st.selectedEdgeId = st.selectedWallId = null;
     st.multiSel = new Set([st.selectedId]);
     st.path.pop(); renderMap();
   }
 }
 
 export function enterNode(id){
-  st.path.push(id); st.selectedId = null; st.selectedEdgeId = null; st.multiSel.clear(); renderMap();
+  st.path.push(id); st.selectedId = null; st.selectedEdgeId = st.selectedWallId = null; st.multiSel.clear(); renderMap();
 }
 
 export function jumpTo(parentId, childId){
@@ -68,7 +69,7 @@ export function jumpTo(parentId, childId){
   // multi-selezione vecchia faceva muovere alle frecce le bolle sbagliate
   // dopo un salto da ricerca o diario quest.
   st.multiSel = new Set(childId ? [childId] : []);
-  st.selectedEdgeId = null;
+  st.selectedEdgeId = st.selectedWallId = null;
   renderMap();
 }
 
@@ -108,7 +109,32 @@ export function planZoom(f, cx, cy){
 }
 
 export const childOf = id => currentNode().children.find(c=>c.id===id);
+export const wallOf = id => wallSegsOf(currentNode()).find(w=>w.id===id);
 const canEditEdges = () => true;   // i collegamenti si creano a ogni livello, città inclusa
+
+/* La misura di un muro si dice in quadretti E in metri: il quadretto è l'unità
+   con cui lo si costruisce, il metro quella con cui si decide se ci passa un
+   carro. È la stessa coppia che il pannello mostra per le stanze. */
+export const misuraMuro = w =>
+  `${w.len} quadrett${w.len===1?"o":"i"} · ${String(w.len*1.5).replace(".", ",")} m`;
+const ariaMuro = w =>
+  `Muro ${w.dir==="v" ? "verticale" : "orizzontale"}, ${misuraMuro(w)}`;
+
+/* Sposta le linee di un muro senza ricostruire la tela: renderCanvas() riscrive
+   svg.innerHTML e distruggerebbe il nodo su cui è iniziato il pointerdown,
+   cioè la stessa trappola già commentata per il doppio clic. */
+function aggiornaMuro(w){
+  const g = planSvg().querySelector(`.wall-seg[data-wall="${w.id}"]`); if(!g) return;
+  const e = wallSegEnds(w);
+  g.querySelectorAll("line").forEach(l=>{
+    l.setAttribute("x1",e.x1); l.setAttribute("y1",e.y1);
+    l.setAttribute("x2",e.x2); l.setAttribute("y2",e.y2);
+  });
+  g.querySelectorAll(".wall-seg__handle").forEach(c=>{
+    const a = c.dataset.end==="a";
+    c.setAttribute("cx", a?e.x1:e.x2); c.setAttribute("cy", a?e.y1:e.y2);
+  });
+}
 
 function ensureLayout(parent){
   if(!Array.isArray(parent.edges)) parent.edges = [];
@@ -271,9 +297,12 @@ export function renderCanvas(){
   const svg = planSvg();
   const cur = currentNode();
   ensureLayout(cur);
+  // Un livello con dei muri non è vuoto: chi ha cominciato a tirare su un
+  // perimetro non deve vedersi tornare davanti l'invito a creare la prima bolla.
+  const vuoto = cur.children.length===0 && wallSegsOf(cur).length===0;
   const emptyEl = document.getElementById("empty-node");
-  emptyEl.classList.toggle("show", cur.children.length===0);
-  if(cur.children.length===0) emptyEl.innerHTML = emptyNodeMarkup();
+  emptyEl.classList.toggle("show", vuoto);
+  if(vuoto) emptyEl.innerHTML = emptyNodeMarkup();
   const hint = document.getElementById("plan-hint");
   hint.style.display = cur.children.length ? "" : "none";
   hint.textContent = planHintText();
@@ -324,6 +353,23 @@ export function renderCanvas(){
         <line x1="${mx-9}" y1="${my+9}" x2="${mx+9}" y2="${my-9}"/></g>`;
     if(e.label)
       out += `<text x="${mx}" y="${my-12}" text-anchor="middle">${escapeHtml(e.label)}</text>`;
+    out += `</g>`;
+  }
+
+  /* Muri liberi: sotto le bolle e i segnalini, sopra i collegamenti. È
+     l'ordine del pavimento — un muro è architettura, ci si cammina in mezzo,
+     quindi non deve mai coprire una pedina né rubarle il tocco. */
+  for(const w of wallSegsOf(cur)){
+    const e = wallSegEnds(w), sel = st.selectedWallId===w.id;
+    out += `<g class="wall-seg${sel?" sel":""}" data-wall="${w.id}" tabindex="0" role="button" aria-pressed="${sel}"
+      aria-label="${escapeAttr(ariaMuro(w))}">
+      <line class="wall-seg__hit" x1="${e.x1}" y1="${e.y1}" x2="${e.x2}" y2="${e.y2}"/>
+      <line class="wall-seg__line" x1="${e.x1}" y1="${e.y1}" x2="${e.x2}" y2="${e.y2}"/>`;
+    // Le maniglie compaiono solo sul muro selezionato: due pallini per ogni
+    // muro del livello sarebbero una pianta illeggibile.
+    if(sel && !RO)
+      out += `<circle class="wall-seg__handle" data-end="a" cx="${e.x1}" cy="${e.y1}" r="7"/>
+              <circle class="wall-seg__handle" data-end="b" cx="${e.x2}" cy="${e.y2}" r="7"/>`;
     out += `</g>`;
   }
 
@@ -473,6 +519,10 @@ export function arrangeGrid(){
 export function addSpatialChild(opts, x, y){
   if(RO) return;
   const cur = currentNode();
+  // Un muro non è una bolla e non entra in `children`: passa di qui perché è di
+  // qui che passano i tre modi di posare una cosa (trascina, arma-e-tocca,
+  // Invio dalla palette), e sdoppiarli avrebbe voluto dire tenerli allineati.
+  if(opts.wall) return addWallSeg(x, y);
   let c;
   if(opts.marker) c = node("", opts.marker);
   else { c = node("", opts.shape==="quartiere" ? "zona" : "luogo"); c.shape = opts.shape; }
@@ -496,9 +546,28 @@ export function addSpatialChild(opts, x, y){
     c.y = Math.round((y-b.h/2)/10)*10;
   }
   cur.children.push(c);
-  st.selectedId = c.id; st.selectedEdgeId = null; st.multiSel = new Set([c.id]);
+  st.selectedId = c.id; st.selectedEdgeId = st.selectedWallId = null; st.multiSel = new Set([c.id]);
   save(); renderMap();
   setTimeout(()=>{ const i=document.querySelector("#detail input"); if(i) i.focus(); }, 50);
+}
+/* Nasce lungo due quadretti e centrato sul punto toccato: uno solo è un
+   trattino che non si capisce cos'è, e nascere con un capo sotto il dito
+   costringerebbe a spostarlo prima ancora di guardarlo. */
+export function addWallSeg(x, y){
+  if(RO) return;
+  const cur = currentNode();
+  if(!Array.isArray(cur.wallSegs)) cur.wallSegs = [];
+  const w = newWallSeg(x - CELL, y);
+  cur.wallSegs.push(w);
+  st.selectedWallId = w.id; st.selectedId = null; st.selectedEdgeId = null; st.multiSel.clear();
+  save(); renderMap();
+}
+export function deleteWallSeg(id){
+  if(RO) return;
+  const cur = currentNode();
+  cur.wallSegs = wallSegsOf(cur).filter(w=>w.id!==id);
+  if(st.selectedWallId===id) st.selectedWallId = null;
+  save(); renderCanvas(); renderDetail();
 }
 export function quickAddCenter(){
   const opts = canEditEdges() ? {shape:"stanza"} : {shape:"quartiere"};
@@ -589,12 +658,17 @@ export function initMappa(){
       // già parte della selezione: al massimo diventa l'àncora, senza sciogliere
       // una selezione multipla costruita col Ctrl+clic
       if(st.multiSel.has(id)){ if(st.selectedId!==id){ st.selectedId = id; renderDetail(); } return; }
-      st.selectedId = id; st.selectedEdgeId = null; st.multiSel = new Set([id]);
+      st.selectedId = id; st.selectedEdgeId = st.selectedWallId = null; st.multiSel = new Set([id]);
       renderCanvas(); renderDetail();
     }else if(edgeEl){
       const id = edgeEl.dataset.edge;
       if(st.selectedEdgeId===id) return;
-      st.selectedEdgeId = id; st.selectedId = null; st.multiSel.clear();
+      st.selectedEdgeId = id; st.selectedId = null; st.selectedWallId = null; st.multiSel.clear();
+      renderCanvas(); renderDetail();
+    }else if(ev.target.closest(".wall-seg")){
+      const id = ev.target.closest(".wall-seg").dataset.wall;
+      if(st.selectedWallId===id) return;
+      st.selectedWallId = id; st.selectedId = null; st.selectedEdgeId = null; st.multiSel.clear();
       renderCanvas(); renderDetail();
     }
   });
@@ -602,7 +676,7 @@ export function initMappa(){
   svg.addEventListener("drop", ev=>{
     ev.preventDefault();
     let opts; try{ opts = JSON.parse(ev.dataTransfer.getData("text/plain")); }catch(_){ return; }
-    if(!opts || (!opts.shape && !opts.marker)) return;
+    if(!opts || (!opts.shape && !opts.marker && !opts.wall)) return;
     const p = planPoint(ev);
     addSpatialChild(opts, p.x, p.y);
   });
@@ -676,6 +750,8 @@ export function initMappa(){
     const rsEl   = RO ? null : ev.target.closest(".rs-handle");
     const blkEl  = ev.target.closest(".blk");
     const edgeEl = ev.target.closest(".edge");
+    const wallEl = ev.target.closest(".wall-seg");
+    const wHandle = RO ? null : ev.target.closest(".wall-seg__handle");
     const p = planPoint(ev);
     if(bgEdit && !blkEl && !edgeEl){
       const cur = currentNode();
@@ -705,6 +781,25 @@ export function initMappa(){
       }
       lastTap = {id:blkEl.dataset.block, t:now};
     }
+    /* I muri prima delle bolle: un muro sta sotto, quindi un tocco che lo
+       raggiunge non ha trovato niente sopra. La selezione NON ri-disegna la
+       tela — si accende la classe a mano e si tiene il nodo vivo sotto il
+       puntatore, sennò il trascinamento morirebbe sul nascere (stessa trappola
+       del doppio clic). Le maniglie compaiono al rilascio: mentre trascini non
+       servono, e al secondo tocco ci sono. */
+    if(wallEl && !RO){
+      const w = wallOf(wallEl.dataset.wall);
+      if(!w){ planDrag = null; return; }
+      st.selectedWallId = w.id; st.selectedId = null; st.selectedEdgeId = null; st.multiSel.clear();
+      svg.querySelectorAll(".blk.sel,.edge.sel,.wall-seg.sel").forEach(x=>x.classList.remove("sel"));
+      wallEl.classList.add("sel");
+      planDrag = wHandle
+        ? {mode:"wallend", id:w.id, end:wHandle.dataset.end, moved:false}
+        : {mode:"wallmove", id:w.id, dx:p.x-w.x, dy:p.y-w.y, moved:false};
+      renderDetail();
+      svg.setPointerCapture(ev.pointerId);
+      return;
+    }
     if(handle && blkEl && canEditEdges()){
       const n = childOf(blkEl.dataset.block), c = nodeCenter(n);
       planDrag = {mode:"link", from:n.id};
@@ -714,7 +809,7 @@ export function initMappa(){
       t.setAttribute("visibility","visible");
     }else if(blkEl){
       const n = childOf(blkEl.dataset.block);
-      st.selectedEdgeId = null;
+      st.selectedEdgeId = st.selectedWallId = null;
       if(ev.ctrlKey || ev.metaKey){            // Ctrl+clic: aggiungi/rimuovi dalla selezione
         if(st.multiSel.has(n.id)){
           st.multiSel.delete(n.id);
@@ -735,7 +830,11 @@ export function initMappa(){
       planDrag = {mode:"move", id:n.id, dx:p.x-n.x, dy:p.y-n.y, el:blkEl, moved:false,
                   group, start, collapse: group.length>1};
       blkEl.classList.add("dragging");
-      svg.querySelectorAll(".blk.sel,.edge.sel").forEach(x=>x.classList.remove("sel"));
+      // Anche i muri: qui la tela NON si ridisegna (il nodo sotto il puntatore
+      // deve sopravvivere al gesto), quindi la classe di chi era selezionato
+      // prima va tolta a mano — sennò resta acceso in oro un muro che il
+      // modello ha già deselezionato.
+      svg.querySelectorAll(".blk.sel,.edge.sel,.wall-seg.sel").forEach(x=>x.classList.remove("sel"));
       group.forEach(id=>{ const el=svg.querySelector(`.blk[data-block="${id}"]`); if(el) el.classList.add("sel"); });
       renderDetail();
     }else if(edgeEl){
@@ -805,6 +904,18 @@ export function initMappa(){
           l.setAttribute("x2",mx+9); l.setAttribute("y2", i? my-9 : my+9);
         });
       });
+    }else if(planDrag.mode==="wallmove" || planDrag.mode==="wallend"){
+      const w = wallOf(planDrag.id); if(!w) return;
+      if(planDrag.mode==="wallmove"){
+        // Il muro corre sui bordi delle celle, quindi si aggancia agli INCROCI
+        // della maglia (snapGrid) e non al centro come i segnalini.
+        w.x = snapGrid(p.x-planDrag.dx);
+        w.y = snapGrid(p.y-planDrag.dy);
+      }else{
+        stretchWallSeg(w, planDrag.end, p.x, p.y);
+      }
+      planDrag.moved = true;
+      aggiornaMuro(w);
     }else if(planDrag.mode==="resize"){
       const n = childOf(planDrag.id); if(!n) return;
       if(gridShape(n)){
@@ -896,6 +1007,10 @@ export function initMappa(){
         }
         save(); renderCanvas();
       }
+    }else if(planDrag.mode==="wallmove" || planDrag.mode==="wallend"){
+      // Il render qui serve: fa comparire le maniglie sul muro appena scelto.
+      if(planDrag.moved) save();
+      renderCanvas(); renderDetail();
     }else if(planDrag.mode==="resize"){
       save(); renderCanvas(); renderDetail();
     }else if(planDrag.mode==="bgmove"||planDrag.mode==="bgresize"){
@@ -1012,7 +1127,7 @@ export function goToNode(id){
     if(!chain) return;
     st.path = chain; st.selectedId = id;
   }
-  st.selectedEdgeId = null;
+  st.selectedEdgeId = st.selectedWallId = null;
   st.multiSel = new Set(st.selectedId ? [st.selectedId] : []);
   showView("map"); renderMap();
   const n = findNode(id);
@@ -1032,10 +1147,13 @@ export function doDeleteNodes(ids){
     if(par && Array.isArray(par.edges)) par.edges = par.edges.filter(e=>e.a!==id && e.b!==id);
     removeNode(id, st.state.root);
   }
-  st.multiSel.clear(); st.selectedId = null; st.selectedEdgeId = null;
+  st.multiSel.clear(); st.selectedId = null; st.selectedEdgeId = st.selectedWallId = null;
   save(); renderMap();
 }
 export function requestDeleteSelection(){
+  // Un muro se ne va senza chiedere: non contiene niente, e rifarlo è un
+  // trascinamento. La conferma serve dove si perde del lavoro dentro una bolla.
+  if(st.selectedWallId){ deleteWallSeg(st.selectedWallId); return; }
   const ids = st.multiSel.size ? [...st.multiSel] : (st.selectedId ? [st.selectedId] : []);
   const nodes = ids.map(id=>findNode(id)).filter(n=>n && n.id!==st.state.root.id);
   if(!nodes.length) return;
@@ -1065,10 +1183,10 @@ export function duplicateSelected(){
   copy.x = (copy.x||0)+off; copy.y = (copy.y||0)+off;
   copy.title = (copy.title||"") + " (copia)";
   cur.children.push(copy);
-  st.selectedId = copy.id; st.selectedEdgeId = null; st.multiSel = new Set([copy.id]);
+  st.selectedId = copy.id; st.selectedEdgeId = st.selectedWallId = null; st.multiSel = new Set([copy.id]);
   save(); renderMap();
 }
 
 // per gli onclick inline nei template e nell'HTML statico
 Object.assign(window, { enterNode, jumpTo, planFit, planZoom, arrangeGrid, quickAddCenter, addAtCenter,
-  pickBg, removeBg, toggleBgEdit, setBgOpacity, requestDeleteSelection, goToNode });
+  pickBg, removeBg, toggleBgEdit, setBgOpacity, requestDeleteSelection, goToNode, deleteWallSeg });

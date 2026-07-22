@@ -7,7 +7,8 @@ import { TYPES, STATUSES, SHAPES, EDGE_TYPES, NODE_COLORS, nodeColor,
          gridShape, wallShape, CELL } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, RO } from "./stato.js";
 import { openConfirm } from "./viste.js";
-import { renderMap, renderCrumbs, renderCanvas, bgEdit, isEmptyNode, doDeleteNodes } from "./mappa.js";
+import { renderMap, renderCrumbs, renderCanvas, bgEdit, isEmptyNode, doDeleteNodes,
+         wallOf, misuraMuro, deleteWallSeg } from "./mappa.js";
 import { statblockHTML } from "./mostri.js";
 
 /* Una forma in scala si legge in quadretti e metri (1 quadretto = 1,5 m):
@@ -81,6 +82,32 @@ function renderDetailCore(){
   const aside = document.getElementById("detail");
   if(RO) return renderTableDetail(aside);
   const cur = currentNode();
+
+  /* Pannello di un muro. Non ha campi da riempire — un muro non ha nome, note
+     né stato: è geometria. Quello che serve saperne è quanto è lungo, e quello
+     che serve poterci fare è toglierlo. Il resto si fa col dito sulla mappa. */
+  if(st.selectedWallId){
+    const w = wallOf(st.selectedWallId);
+    if(!w){ st.selectedWallId = null; }
+    else{
+      aside.innerHTML = `<div class="inner">
+        <div>
+          <span style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim)">
+            <span class="type-badge" style="background:var(--ink-dim)"></span>Muro
+          </span>
+          <h2>${w.dir==="v" ? "Verticale" : "Orizzontale"}</h2>
+        </div>
+        <p class="hint-sm">${escapeHtml(misuraMuro(w))}</p>
+        <p class="hint-sm">Trascina il muro per spostarlo, i due capi per allungarlo
+          o girarlo. Le frecce lo spostano di un quadretto. Le porte sono i buchi
+          che lasci fra un muro e l'altro.</p>
+        <div class="detail-actions">
+          <button class="btn danger" onclick="deleteWallSeg('${w.id}')">Elimina muro</button>
+        </div>
+      </div>`;
+      return;
+    }
+  }
 
   // pannello di un collegamento selezionato
   if(st.selectedEdgeId){
@@ -297,7 +324,7 @@ function mobileDetailSync(){
     aside.prepend(b);
   }
   aside.classList.toggle("open",
-    st.detailOpen || !!st.selectedId || !!st.selectedEdgeId || st.multiSel.size>0);
+    st.detailOpen || !!st.selectedId || !!st.selectedEdgeId || !!st.selectedWallId || st.multiSel.size>0);
 }
 export function renderDetail(){
   renderDetailCore();

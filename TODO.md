@@ -796,6 +796,55 @@ ma oggi le bolle non la rispettano: sono simboli, non piante.
   `nodeCenter`) e il centro disegnato. Non si vede e non l'ho toccato, ma è il
   motivo per cui `markerR` esiste come funzione invece che come costante.
 
+- [x] **Muri liberi: un perimetro per giocarci** — fatto (22 lug 2026). I muri
+  c'erano già ma erano **derivati**: il contorno rettangolare di una bolla, con
+  le porte dove passa un collegamento. Si leggono bene e non ci si gioca — è
+  sempre un rettangolo, ed è il rettangolo di *una* bolla. Ora c'è la seconda
+  cosa: il muro come **dato**, un segmento che si posa dalla palette («Pianta:
+  Muro»), si trascina, si allunga tirando un capo. Con quelli si fanno stanze a
+  L, corridoi e tramezzi, e le porte sono i buchi che si lasciano.
+  - Vivono in `n.wallSegs` sul nodo del **livello**, come `n.edges`: sono il
+    pavimento, non la sagoma di una bolla. `{id, x, y, dir, len}` con `len` in
+    quadretti. Gli estremi vanno sugli **incroci** della maglia, non al centro
+    della cella come i segnalini: su un battlemap le pedine stanno nelle celle e
+    i muri fra una cella e l'altra.
+  - Un gesto solo allunga **e** ruota (`stretchWallSeg`): l'altro capo sta fermo
+    e l'asse lo decide lo spostamento più lungo. Niente comando "ruota".
+  - Scelte del taglio: nessun campo da riempire nel pannello (un muro non ha
+    nome né note: è geometria — c'è la misura in quadretti e metri e il tasto per
+    toglierlo), e Canc lo elimina **senza conferma**, perché non contiene niente
+    e rifarlo è un trascinamento.
+  Tre difetti trovati dai test, non a occhio, e tutti e tre di una classe che a
+  guardare lo schermo non si vede:
+  - la classe CSS `wall` era **già presa** dai tratti del perimetro, quindi
+    `closest(".wall")` intercettava i clic sul bordo di ogni bolla. Ora
+    `.wall-seg`;
+  - cliccando una bolla il muro selezionato **restava acceso in oro**: lì la
+    tela non si ridisegna (il nodo sotto il puntatore deve sopravvivere al
+    gesto) e la classe `.sel` si toglie a mano, da un elenco che non conosceva i
+    muri;
+  - un `null` dentro `wallSegs` faceva **crollare la proiezione del tavolo** —
+    un 500 sulla pagina dei giocatori, da un JSON importato. Il client la
+    guardia ce l'aveva, il server no: è esattamente il caso in cui "client e
+    server devono concordare su cosa è un valore sicuro" non era vero.
+  E una divergenza fra il commento e il codice: la regola dichiarata era «una
+  coordinata non numerica fa cadere il muro», ma `Number(null)` è 0, quindi un
+  muro senza coordinate ricompariva a 0,0 invece di sparire. Capita davvero:
+  `JSON.stringify` scrive `null` al posto di un NaN.
+  Verificato: 18/18 sulla mappa (posa, selezione con due maniglie, spostamento
+  sugli incroci, allungamento, rotazione tirando di traverso, frecce,
+  eliminazione, e il bordo di una stanza che seleziona la bolla e non un muro),
+  6/6 sui muri ostili nell'app del DM (nessun attributo estraneo, nessun gestore
+  eseguito, stato salvato bonificato), 10/10 su `projectForPlayers` chiamata
+  davvero con dati ostili, 5/5 al tavolo in sola lettura (si vedono, niente
+  maniglie, non si spostano); 19/19 e 6/6 le suite esistenti senza regressioni;
+  `tsc` e `build` ok.
+  Resta aperto: i muri non si duplicano (Ctrl+D vale solo per le bolle) e non
+  entrano nella selezione multipla, quindi un perimetro lungo si costruisce un
+  pezzo per volta. Non l'ho fatto perché la selezione multipla oggi è un
+  `Set` di id di **nodi** e la scorciatoia dà per scontato `childOf`: farcela
+  entrare vuol dire toccare il gruppo di trascinamento, non aggiungere un ramo.
+
 - [x] **Pannello dettagli più largo e ridimensionabile** — fatto (19 lug 2026).
   Da 380px fissi (`max-width:42vw`) a 440px di default con maniglia di
   trascinamento tra tela e pannello (`#detail-grip` in `app.html`, gesto e
