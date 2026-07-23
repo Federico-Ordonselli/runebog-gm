@@ -139,10 +139,15 @@ function dragGroup(){
   muri.forEach(id=>{ const w=wallOf(id); if(w) startW[id]={x:w.x, y:w.y}; });
   return {nodi, muri, startN, startW, size: nodi.length + muri.length};
 }
-/* Trasla tutto il gruppo tranne l'àncora, che l'ha già fatto per conto suo con
-   la regola di aggancio che le compete. Rigido: chi finisce fuori dalla propria
-   maglia ci rientra al rilascio (riagganciaGruppo) — è la regola che le bolle
-   seguivano già, e i muri non ne introducono una seconda. */
+/* Trasla tutto il gruppo tranne l'àncora, di cui aggiorna DATI e DOM (transform
+   o aggiornaMuro). L'àncora la salta perché i suoi dati li ha già scritti chi
+   trascina, con la regola d'aggancio che le compete — ma il suo <g> nel DOM è
+   ancora fermo, quindi TOCCA AL CHIAMANTE ridisegnarla (il ramo "move" le mette
+   il transform, "wallmove" chiama aggiornaMuro). Saltarla e basta la lascia
+   ferma fino al renderCanvas del rilascio: è il bug delle bolle che non seguono
+   il puntatore. Rigido: chi finisce fuori dalla propria maglia ci rientra al
+   rilascio (riagganciaGruppo) — regola che le bolle seguivano già, e i muri non
+   ne introducono una seconda. */
 function moveGroupBy(g, ddx, ddy, ancora){
   const svg = planSvg();
   for(const id of g.nodi){
@@ -1053,6 +1058,11 @@ export function initMappa(){
         drawGuides(n, g);
       }
       planDrag.moved = true;
+      // L'àncora aggiorna i suoi DATI da sé (con la propria regola d'aggancio),
+      // ma il suo <g> nel DOM no: moveGroupBy la salta apposta. La ridisegniamo
+      // qui — come wallmove fa con aggiornaMuro sul muro àncora — sennò la bolla
+      // trascinata resta ferma fino al rilascio, quando renderCanvas la ripiazza.
+      if(planDrag.el) planDrag.el.setAttribute("transform",`translate(${n.x},${n.y})`);
       const s = planDrag.g.startN[n.id];
       moveGroupBy(planDrag.g, n.x - s.x, n.y - s.y, n.id);
       aggiornaArchiDi(planDrag.g.nodi);
