@@ -785,8 +785,11 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
   sincronizzato, righello disegna, misura sparisce a rilascio, tool resta attivo,
   Esc spegne, pan della mappa intatto senza tool, console pulita; tavolo RO:
   righello presente e misura), `tsc` e `npm test` ok.
-  - Prossimi tool, un file per volta (nessuno ancora fatto): aree d'effetto
-    (cerchio/cono/linea/quadrato), percorso a waypoint, coordinate (tool passivo,
+  - [x] **Aree d'effetto, geometria e cerchio** — fatto (23 lug 2026).
+    Geometrie pure pronte per cerchio, cono, linea e quadrato; il tool temporaneo
+    espone il cerchio finché il gestore non avrà un selettore dei sottotipi. Da
+    cablare allora gli altri tre footprint.
+  - Prossimi tool, un file per volta: percorso a waypoint, coordinate (tool passivo,
     servirebbe un callback `hoverMove` da aggiungere al contratto), mirino/raggio.
     Tutti temporanei, stesso contratto. I tool **persistenti** (aure salvate, fog
     of war, condizioni sulle pedine, ping condiviso) non passano dal registro

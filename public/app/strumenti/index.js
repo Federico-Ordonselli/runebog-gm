@@ -6,9 +6,10 @@
    Quando i tool passano di due, tenere l'array e registrare in ciclo (già così). */
 
 import { initGestoreTool, registraTool } from "./gestore.js";
+import { areeEffettoTool } from "./aree-effetto.js";
 import { righelloTool } from "./righello.js";
 
-const TOOLS = [righelloTool];
+const TOOLS = [righelloTool, areeEffettoTool];
 
 export function initStrumentiMappa(options){
   for(const tool of TOOLS) registraTool(tool);
