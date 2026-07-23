@@ -35,6 +35,7 @@
  * @property {(ctx:ToolContext, ev:PointerEvent, p:{x:number,y:number})=>boolean} pointerDown
  * @property {(ctx:ToolContext, ev:PointerEvent, p:{x:number,y:number})=>void} [pointerMove]
  * @property {(ctx:ToolContext, ev:PointerEvent, p:{x:number,y:number})=>void} [pointerUp]
+ * @property {(ctx:ToolContext, ev:KeyboardEvent)=>boolean} [keyDown]   Il tool attivo consuma il tasto (torna true) prima delle scorciatoie: gli serve per i suoi sottotipi (aree d'effetto: 1–4). Non riceve mai Escape, che spegne il tool.
  * @property {(ctx:ToolContext, reason:string)=>void} [cancel]
  */
 
@@ -241,6 +242,14 @@ function onKeyDown(ev){
     ev.stopImmediatePropagation();      // prima di scorciatoie.js, che leggerebbe Esc come deseleziona/risali
     attivaTool(null);
     return;
+  }
+  // Il tool attivo ha diritto al tasto PRIMA delle scorciatoie: gli serve per i
+  // suoi sottotipi (le aree d'effetto leggono 1–4). Se lo consuma non tocchiamo
+  // altro; se lo rifiuta si prosegue con la scorciatoia globale.
+  if(active && active.keyDown){
+    let preso = false;
+    proteggi(()=>{ preso = !!active.keyDown(ctx, ev); }, "keyDown");
+    if(preso){ ev.preventDefault(); ev.stopImmediatePropagation(); return; }
   }
   const id = shortcuts.get((ev.key || "").toLowerCase());
   if(!id) return;                       // tasto non nostro: non lo intercettiamo

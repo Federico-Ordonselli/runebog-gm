@@ -152,6 +152,40 @@ test("Escape spegne il tool prima delle scorciatoie", () => {
   assert.equal(ev._stopped, true);
 });
 
+test("il tool attivo riceve i tasti prima delle scorciatoie", () => {
+  _reset();
+  const visti = [];
+  registraTool(toolBase({ id: "a", keyDown: (ctx, ev) => { visti.push(ev.key); return ev.key === "1"; } }));
+  const { keyTarget } = initConFake();
+  attivaTool("a");
+  const ev = fakeEvent({ key: "1" });
+  keyTarget.listeners.keydown[0](ev);
+  assert.deepEqual(visti, ["1"], "il tasto è passato al tool");
+  assert.equal(ev._stopped, true, "un tasto consumato non prosegue");
+  assert.equal(toolAttivo(), "a", "il tool resta acceso");
+});
+
+test("un tasto non consumato dal tool resta alle scorciatoie", () => {
+  _reset();
+  // il tool ha scorciatoia R e rifiuta ogni tasto: 'r' deve comunque spegnerlo
+  registraTool(toolBase({ id: "a", shortcut: "R", keyDown: () => false }));
+  const { keyTarget } = initConFake();
+  attivaTool("a");
+  keyTarget.listeners.keydown[0](fakeEvent({ key: "r" }));
+  assert.equal(toolAttivo(), null, "la scorciatoia ha agito dopo il rifiuto del tool");
+});
+
+test("Escape non arriva mai al keyDown del tool", () => {
+  _reset();
+  let vistoEsc = false;
+  registraTool(toolBase({ id: "a", keyDown: (ctx, ev) => { if(ev.key === "Escape") vistoEsc = true; return true; } }));
+  const { keyTarget } = initConFake();
+  attivaTool("a");
+  keyTarget.listeners.keydown[0](fakeEvent({ key: "Escape" }));
+  assert.equal(vistoEsc, false, "Escape spegne il tool, non lo consuma il tool");
+  assert.equal(toolAttivo(), null);
+});
+
 test("un errore nel tool non lascia la mappa bloccata", () => {
   _reset();
   registraTool(toolBase({ id: "a", pointerMove: () => { throw new Error("boom"); } }));

@@ -785,10 +785,11 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
   sincronizzato, righello disegna, misura sparisce a rilascio, tool resta attivo,
   Esc spegne, pan della mappa intatto senza tool, console pulita; tavolo RO:
   righello presente e misura), `tsc` e `npm test` ok.
-  - [x] **Aree d'effetto, geometria e cerchio** — fatto (23 lug 2026).
-    Geometrie pure pronte per cerchio, cono, linea e quadrato; il tool temporaneo
-    espone il cerchio finché il gestore non avrà un selettore dei sottotipi. Da
-    cablare allora gli altri tre footprint.
+  - [x] **Aree d'effetto, quattro footprint** — fatto (23 lug 2026).
+    Geometrie pure per cerchio, cono, linea e quadrato, tutte cablate al gesto.
+    Il gestore ha ora un callback `keyDown(ctx,ev)→bool` nel contratto (inoltra
+    il tasto al tool attivo prima delle scorciatoie, mai Escape); le aree scelgono
+    il sottotipo coi tasti 1–4 e ridisegnano l'anteprima in corso al cambio.
   - Prossimi tool, un file per volta: percorso a waypoint, coordinate (tool passivo,
     servirebbe un callback `hoverMove` da aggiungere al contratto), mirino/raggio.
     Tutti temporanei, stesso contratto. I tool **persistenti** (aure salvate, fog

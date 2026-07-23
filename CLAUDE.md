@@ -225,10 +225,14 @@ Sono **temporanei**: disegnano su una tela a parte e non toccano mai la campagna
 - **Il contratto di un tool** (JSDoc in `gestore.js`): `id`, `label`, `shortcut`
   (un tasto), `scope` (`tutti`|`dm`|`tavolo`), e i callback `pointerDown` (torna
   `true` per prendere il gesto), `pointerMove`/`pointerUp`/`activate`/`deactivate`/
-  `cancel`. Riceve un `ToolContext` piccolo (`toMapPoint`, `snapToGrid`, `cell`,
-  `metersPerCell`, `layer`, `announce`, `clear`) — **mai** `st`, `save` o
-  `share.ts`. La geometria del righello è una funzione pura (`distanzaCelle`),
-  testata senza DOM.
+  `cancel`, più `keyDown(ctx,ev)` (torna `true` per consumare il tasto). Riceve un
+  `ToolContext` piccolo (`toMapPoint`, `snapToGrid`, `cell`, `metersPerCell`,
+  `layer`, `announce`, `clear`) — **mai** `st`, `save` o `share.ts`. La geometria
+  del righello è una funzione pura (`distanzaCelle`), testata senza DOM. `keyDown`
+  è la via dei **sottotipi** di un tool: le aree d'effetto scelgono cerchio/cono/
+  linea/quadrato coi tasti 1–4 senza aggiungere pulsanti. Il gestore lo inoltra al
+  tool attivo **prima** delle scorciatoie globali; Escape non ci arriva mai (spegne
+  il tool), e un tasto rifiutato (`false`) prosegue verso la scorciatoia.
 - **Aggiungere un tool** = un file sotto `strumenti/`, un import e una riga in
   `TOOLS` dentro `strumenti/index.js`. Nient'altro: non `app.html`, non `mappa.js`,
   non `tavolo.js`, non le API. Un tool **persistente** (aure salvate, fog of war,

@@ -1,7 +1,10 @@
-/* Le aree d'effetto sono temporanee: descrivono quattro footprint in quadretti,
-   ma per ora il contratto del gestore consente di esporre solo il cerchio. Le
-   funzioni pure restano separate dal disegno così sono utilizzabili sotto Node
-   e pronte per il futuro selettore dei sottotipi. */
+/* Le aree d'effetto sono temporanee: quattro footprint in quadretti (cerchio,
+   cono, linea, quadrato) che il DM disegna trascinando e che spariscono al
+   rilascio. Non toccano mai la campagna. Il sottotipo si sceglie coi tasti 1–4
+   mentre il tool è attivo — non con altri pulsanti in toolbar: il gestore
+   inoltra il tasto al tool (keyDown) prima delle scorciatoie. Le funzioni
+   geometriche sono pure e separate dal disegno, così sono testabili sotto Node
+   senza DOM. */
 
 import { distanzaCelle } from "./righello.js";
 import { svgEl, scalaSchermo, formattaNumero } from "./svg.js";
@@ -89,9 +92,30 @@ export function geometriaCono(origine, trascinamento, metriPerCella = 1.5){
   };
 }
 
+/* I quattro sottotipi e il tasto che li sceglie mentre il tool è attivo. La
+   scelta è una riga di tasti (1–4), non altri pulsanti: il gestore inoltra il
+   tasto al tool attivo (keyDown) prima delle scorciatoie. */
+const SOTTOTIPI = [
+  { key: "1", id: "cerchio",  label: "cerchio"  },
+  { key: "2", id: "cono",     label: "cono"     },
+  { key: "3", id: "linea",    label: "linea"    },
+  { key: "4", id: "quadrato", label: "quadrato" },
+];
+
 let sottotipo = "cerchio";
-let da = null;
+let da = null;       // origine del gesto, agganciata alla maglia (px mappa)
+let ultimo = null;   // ultimo punto del trascinamento (px mappa): serve a ridisegnare al cambio di sottotipo
 let gfx = null;
+
+function nomeSottotipo(){
+  return (SOTTOTIPI.find(s => s.id === sottotipo) || SOTTOTIPI[0]).label;
+}
+
+function annuncia(ctx){
+  const scelta = SOTTOTIPI.map(s => `${s.key} ${s.label}`).join(" · ");
+  ctx.announce(`Aree d'effetto — ${nomeSottotipo()}. Scegli con ${scelta}; `
+    + "trascina per disegnare, Esc per uscire.");
+}
 
 function geometriaPer(ctx, a, b){
   const origine = { x: a.x / ctx.cell, y: a.y / ctx.cell };
@@ -149,6 +173,7 @@ function disegna(ctx, a, b){
 function azzera(ctx){
   ctx.clear();
   da = null;
+  ultimo = null;
   gfx = null;
 }
 
@@ -160,20 +185,32 @@ export const areeEffettoTool = {
   shortcut: "A",
   scope: "tutti",
   activate(ctx){
-    ctx.announce("Aree d'effetto: trascina per definire il cerchio; Esc per uscire.");
+    annuncia(ctx);
   },
   deactivate(){
     da = null;
+    ultimo = null;
     gfx = null;
-    sottotipo = "cerchio";
+    sottotipo = "cerchio";   // riparte sempre dal cerchio al prossimo uso
+  },
+  keyDown(ctx, ev){
+    const scelto = SOTTOTIPI.find(s => s.key === ev.key);
+    if(!scelto) return false;                       // non è un nostro tasto: lo lascia al gestore
+    if(scelto.id !== sottotipo){
+      sottotipo = scelto.id;
+      if(da && ultimo) disegna(ctx, da, ultimo);    // ridisegna l'anteprima in corso col nuovo footprint
+    }
+    annuncia(ctx);
+    return true;
   },
   pointerDown(ctx, ev, p){
     da = ctx.snapToGrid(p);
+    ultimo = da;
     disegna(ctx, da, da);
     return true;
   },
   pointerMove(ctx, ev, p){
-    if(da) disegna(ctx, da, p);
+    if(da){ ultimo = p; disegna(ctx, da, p); }
   },
   pointerUp(ctx){ azzera(ctx); },
   cancel(ctx){ azzera(ctx); },
