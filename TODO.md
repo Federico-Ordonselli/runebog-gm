@@ -9,10 +9,10 @@ consiglio, non di vincolo. Le voci per esteso stanno nelle sezioni sotto.
 Nessun lavoro grosso in coda: la sezione regole è completa (dieci capitoli più
 il bestiario). Le prossime cose sono minori o da decidere insieme.
 
-**Da fare prima del prossimo deploy**: la migrazione `0001_revisione-campagna`
-va applicata a **entrambi** i branch Neon prima che il codice giri — dettagli e
-prove manuali in "Sincronizzazione cloud". Su `dev` è applicata (25 lug 2026,
-scoperta mancante durante la verifica di P0.2); su **`production` manca ancora**.
+La migrazione `0001_revisione-campagna` è applicata a **entrambi** i branch Neon
+(25 lug 2026: `dev` durante la verifica di P0.2, `production` prima del deploy,
+col branch di backup `backup-pre-revision` creato prima): niente blocca il push.
+Le prove manuali post-deploy sono in "Sincronizzazione cloud".
 
 Minori, già annotati al loro posto:
 `nodeBox` dà 30×30 a ogni segnalino ma il disco della pedina ne misura 32, un
