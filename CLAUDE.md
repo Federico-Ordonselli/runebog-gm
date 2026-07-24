@@ -20,15 +20,25 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
 ```bash
 npm run dev          # sviluppo su http://localhost:3000 (serve .env, vedi .env.example)
 npx tsc --noEmit     # typecheck — è il controllo principale, non c'è ESLint
-npm test             # test puri con node:test (test/strumenti|sync|formato-campagna)
+npm test             # test puri con node:test (test/{strumenti,sync,formato-campagna,critici})
 npm run build        # build di produzione (fa anche typecheck)
 ```
 
 I test sono pochi e **puri** (`node --test`, nessuna dipendenza, nessun DOM): oggi
 coprono il gestore degli strumenti mappa e la geometria del righello
 (`test/strumenti/`), il formato della cache cloud e la classificazione dei
-conflitti (`test/sync/`), più il contratto del documento campagna
-(`test/formato-campagna/`); il resto dell'app si verifica a mano nel browser. La CI
+conflitti (`test/sync/`), il contratto del documento campagna
+(`test/formato-campagna/`), più gli **invarianti critici** (`test/critici/`):
+`jsonForScript`, la proiezione del tavolo come whitelist (segreti marcati che non
+devono comparire nel JSON, nemmeno da campi futuri), `sanitizeState`, determinismo
+e coerenza del generatore di dungeon. Questi ultimi importano `share.ts`,
+`inline-json.ts` e l'engine **direttamente come `.ts`**: Node li spoglia dei tipi,
+quindi quei moduli devono restare a sintassi cancellabile (niente `enum`,
+`namespace`, parameter properties) e con **import con estensione** — è il motivo
+per cui `share.ts` importa `../../public/app/formato-campagna.js` e non il wrapper.
+Il warning `MODULE_TYPELESS_PACKAGE_JSON` è atteso: non aggiungere
+`"type":"module"` a `package.json` solo per zittirlo. Il resto dell'app si
+verifica a mano nel browser. La CI
 (`.github/workflows/ci.yml`) esegue typecheck + `npm test` + build su ogni push e
 PR, con `DATABASE_URL` fittizio: il client Neon viene creato all'import di
 `src/db/index.ts`, quindi il build richiede la variabile anche se nessuna pagina statica

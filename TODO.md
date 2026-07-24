@@ -889,10 +889,37 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
     `share.ts` deve continuare a leggere `tokenColor` e le route del tavolo a
     tenere il ripiego sulla riga grezza. Una tantum si può decidere una
     migrazione batch del JSONB, che oggi NON esiste di proposito.
-  - **Le cartelle di staging `runebog-p0.2-*` e `runebog-p0.3-*` rompono
-    `npx tsc` e `npm run build`** (importano `@/lib/formato-campagna` da fuori
-    `src/`): per verificare vanno spostate via temporaneamente. Da decidere:
-    cancellarle a integrazione finita o escluderle in `tsconfig`/`.gitignore`.
+  - ~~Le cartelle di staging rompevano `tsc` e build~~ — risolto (25 lug 2026):
+    a integrazione finita i tre pacchetti Codex sono stati spostati fuori dal
+    repo, in `~/progetti/runebog-pacchetti-codex/`, senza toccare `tsconfig`.
+
+## Test degli invarianti critici
+
+- [x] **Suite `test/critici/` (P0.3)** — fatto (25 lug 2026). Quindici test puri
+  sugli invarianti che, regrediti, esporrebbero segreti o eseguirebbero contenuto
+  importato: `jsonForScript` (chiusura `</script>`, U+2028/29, round trip);
+  la proiezione del tavolo come **whitelist provata al negativo** — una campagna
+  con segreti marcati (`"IL BOSS È UN DRAGO"`, PF esatti, id riservati, un campo
+  `futureSecret` che oggi non esiste) proiettata e cercata nel JSON: niente deve
+  comparire, mentre `malconcio`, la porta segreta resa muro pieno e i riferimenti
+  risolti in nomi sì; `sanitizeState` (id e riferimenti bonificati coerenti, URL
+  e colori ostili rimossi, muri invalidi caduti e validi agganciati);
+  il generatore di dungeon (stesso seed = stesso dungeon byte per byte, geometria
+  dentro la griglia, ogni mostro esportato presente nel bestiario sorgente).
+  I test importano `share.ts`, `inline-json.ts` e l'engine **come `.ts`** via
+  type stripping di Node: il vincolo che ne segue (sintassi cancellabile, import
+  con estensione) è documentato in `CLAUDE.md` — è il motivo per cui `share.ts`
+  ora importa `formato-campagna.js` direttamente e non dal wrapper.
+  73/73 in `npm test` (58 esistenti + 15), `tsc` e build ok, CI invariata.
+
+  **Resta fuori copertura, dichiaratamente** (dal README del pacchetto: questi
+  sono test puri, non E2E — non descriverli come tali): localStorage reale,
+  `pagehide`, richieste concorrenti vere, gesti browser, rendering, auth.
+  I prossimi consigliati, in ordine: POST/PATCH con DB isolato (200/409/413/422);
+  export → import → export della fixture legacy; browser: offline/chiusura/
+  recupero, due schede sulla stessa revisione, tavolo con polling e revoca link.
+  Per i browser test, scegliere un runner solo quando c'è una strategia stabile
+  per DB e autenticazione di prova.
 
 ## Mappe in scala
 

@@ -20,7 +20,10 @@
  */
 
 import { randomBytes } from "crypto";
-import { CURRENT_CAMPAIGN_SCHEMA_VERSION } from "./formato-campagna";
+// Direttamente dal sorgente .js, non dal wrapper "./formato-campagna": questo
+// modulo è importato anche dai test puri sotto Node, dove il type stripping
+// non risolve gli import senza estensione.
+import { CURRENT_CAMPAIGN_SCHEMA_VERSION } from "../../public/app/formato-campagna.js";
 
 type Node = Record<string, any>;
 
