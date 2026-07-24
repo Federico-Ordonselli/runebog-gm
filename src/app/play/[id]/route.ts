@@ -17,7 +17,22 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
   const html = await readFile(path.join(process.cwd(), "public", "app.html"), "utf8");
   // inietto stato e id PRIMA dello script dell'app: il boot li troverà in window.__cloud.
   // jsonForScript: lo stato può contenere "</script>" (es. importato da un JSON altrui).
-  const bridge = `<script>window.__cloud = { id: ${jsonForScript(row.id)}, state: ${jsonForScript(row.data)} };</script>`;
+  // revision e updatedAt viaggiano con lo stato: sono la base che ogni PATCH
+  // deve dichiarare, e la data da mostrare accanto a una copia locale trovata
+  // alla riapertura. Senza, il client non saprebbe da dove sta partendo.
+  const bridge = `<script>window.__cloud = ${jsonForScript({
+    id: row.id,
+    state: row.data,
+    revision: row.revision,
+    updatedAt: row.updatedAt.toISOString(),
+  })};</script>`;
   const out = html.replace("<script>", bridge + "\n<script>");
-  return new Response(out, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+  return new Response(out, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      // La pagina porta dentro lo stato e la sua revisione: una copia in cache
+      // rimetterebbe in circolo una base già superata.
+      "Cache-Control": "private, no-store",
+    },
+  });
 }

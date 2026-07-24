@@ -283,6 +283,13 @@
   dialog .d-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
   #share-dialog{max-width:440px}
 
+  /* Il dialogo del recupero cloud ha tre azioni invece di due: su schermo
+     stretto vanno a capo, sennò le etichette si troncano proprio dove serve
+     capire cosa si sta scegliendo. */
+  #cloud-recovery-dialog{max-width:520px}
+  #cloud-recovery-dialog > p{font-size:14px;line-height:1.5;margin-top:10px}
+  #cloud-recovery-dialog .cloud-recovery-actions{flex-wrap:wrap}
+
   /* ---------- dialog scorciatoie ---------- */
   #keys-dialog{max-width:480px}
   .keys-h{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin:14px 0 8px}

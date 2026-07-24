@@ -151,7 +151,11 @@ if(window.__cloud){
     tb.insertBefore(back, tabs);
   }
 }
-save();
+// Lo stato appena caricato dal cloud È già quello del server: salvarlo qui
+// creerebbe una revisione nuova a ogni apertura, e ogni altra scheda aperta
+// sulla stessa campagna si troverebbe in conflitto senza aver toccato niente.
+// In standalone il save() d'avvio resta utile: inizializza la persistenza.
+if(!window.__cloud) save();
 renderMap();
 
 // per l'onchange inline del selettore tema
