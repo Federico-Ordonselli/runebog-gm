@@ -837,11 +837,13 @@ Non negoziabili; se tocchi queste aree, mantienili:
   la cache locale è già stata scritta prima della richiesta, quindi alla
   riapertura il lavoro si ripropone (vedi Revisione, cache offline e conflitti).
 - Le immagini stanno in base64 dentro il JSON della campagna: occhio al limite di 4 MB.
-- `package.json` ha due **overrides npm** nati da alert Dependabot (lug 2026): postcss
-  ≥8.5.10 (Next lo pinna vulnerabile) ed esbuild ^0.25 sotto `@esbuild-kit` (dipendenza
-  abbandonata trascinata da drizzle-kit). Quando Next o drizzle-kit si aggiornano,
-  ricontrolla se sono diventati superflui. Se cambi gli overrides: npm NON li riapplica
-  a risoluzioni già nel lockfile — va rigenerato (`rm -rf node_modules package-lock.json
+- `package.json` ha tre **overrides npm** nati da alert Dependabot (lug 2026): postcss
+  ≥8.5.10 (Next lo pinna vulnerabile), sharp ^0.35 (CVE di libvips; Next 15.5 lo vuole
+  ancora ^0.34, e nel sito `next/image` non è usato da nessuna parte, quindi il rischio
+  di rottura è nullo) ed esbuild ^0.25 sotto `@esbuild-kit` (dipendenza abbandonata
+  trascinata da drizzle-kit). Quando Next o drizzle-kit si aggiornano, ricontrolla se
+  sono diventati superflui. Se cambi gli overrides: npm NON li riapplica a risoluzioni
+  già nel lockfile — va rigenerato (`rm -rf node_modules package-lock.json
   && npm install`).
 - Il registro migrazioni è `drizzle.__drizzle_migrations` (schema `drizzle`, non
   `public`): il baseline `0000_iniziale` è stato inserito a mano perché il DB esisteva
