@@ -25,8 +25,9 @@ npm run build        # build di produzione (fa anche typecheck)
 ```
 
 I test sono pochi e **puri** (`node --test`, nessuna dipendenza, nessun DOM): oggi
-coprono il gestore degli strumenti mappa e la geometria del righello (vedi
-`test/strumenti/`, il resto dell'app si verifica a mano nel browser). La CI
+coprono il gestore degli strumenti mappa e la geometria del righello
+(`test/strumenti/`) più il formato della cache cloud e la classificazione dei
+conflitti (`test/sync/`); il resto dell'app si verifica a mano nel browser. La CI
 (`.github/workflows/ci.yml`) esegue typecheck + `npm test` + build su ogni push e
 PR, con `DATABASE_URL` fittizio: il client Neon viene creato all'import di
 `src/db/index.ts`, quindi il build richiede la variabile anche se nessuna pagina statica
@@ -62,15 +63,54 @@ JSONB `campaign.data`, e per l'iniezione nel browser. La forma iniziale è defin
 sola volta in `src/lib/campaigns.ts`.
 
 Flusso cloud: `/play/[id]` (route handler, non pagina React) legge la riga e serve
-`app.html` iniettando `<script>window.__cloud = {id, state}</script>`; l'app rileva
-`window.__cloud` all'avvio e salva con `PATCH /api/campaigns/:id` (limite 4 MB,
-coalescing delle scritture, fallback su localStorage se offline). Senza `__cloud`
+`app.html` iniettando `<script>window.__cloud = {id, state, revision, updatedAt}</script>`;
+l'app rileva `window.__cloud` all'avvio e salva con `PATCH /api/campaigns/:id` (limite
+4 MB, coalescing delle scritture, cache su localStorage se offline). Senza `__cloud`
 l'app gira standalone su localStorage. **Ancora dell'iniezione**: le route inseriscono
 il bridge prima della prima occorrenza letterale dell'apertura di tag script senza
 attributi in `app.html` (quello del tema, in `<head>`) — quella stringa non deve
 comparire prima, nemmeno dentro un commento HTML.
 
 `/tavolo/[token]` è la variante in sola lettura per i giocatori (vedi Sicurezza).
+
+**Revisione, cache offline e conflitti** (`campaign.revision`, `public/app/sync-cloud.js`,
+il blocco cloud di `stato.js`): `revision` è un contatore monotono e ogni PATCH dichiara
+la `baseRevision` da cui parte. **La condizione sta dentro l'UPDATE**, insieme a quella
+di proprietà (`WHERE id AND user_id AND revision = base`): leggere prima e scrivere poi
+lascia fra le due query una finestra in cui un'altra scheda scrive, e l'ultimo arrivato
+sovrascrive in silenzio. Zero righe aggiornate **è** il 409; la lettura che distingue
+"non è tua" da "sei indietro" avviene **dopo** il tentativo, quando non c'è più niente
+da decidere. Una PATCH senza `baseRevision` è 400 e non revisione 0 — `Number(null)` è 0,
+e 0 vuol dire "sovrascrivi qualunque cosa ci sia". Il 409 riporta la versione del server:
+il client deve poterla mostrare accanto alla propria senza una seconda richiesta, cioè
+senza ridipendere dalla rete che ha appena fallito.
+
+- **Una cache per campagna** (`runebog-cloud-v1:<id>`), non la vecchia `runebog-gm-v1`
+  che era una chiave sola per tutte: apriva la B e ci scriveva sopra la A. La copia
+  porta `baseRevision` e `status`, e bastano a distinguere i tre casi che prima erano
+  uno (`classifyCloudRecovery`): già arrivata (si marca), server fermo dov'era (recupero
+  senza perdite), server avanzato (conflitto). La vecchia chiave **non si spedisce mai
+  da sé** — non si sa a quale campagna appartenga: si propone dicendolo (`legacy`).
+- **Si scrive in locale PRIMA di partire con la richiesta.** È l'ordine che rende
+  recuperabile una scheda chiusa a metà PATCH: scrivendo dopo la risposta, il caso
+  scoperto sarebbe proprio quello in cui la risposta non arriva.
+- **Un 200 marca sincronizzato lo snapshot SPEDITO**, non lo stato corrente
+  (`reconcileCloudAck`): fra la partenza e l'ACK l'utente ha continuato a scrivere, e
+  quelle battute restano pendenti con la nuova base. È la parte che si rompe solo con
+  la rete lenta, cioè mai durante una prova a mano — per questo è una funzione pura e
+  testata invece di stare dentro la `fetch`.
+- **Niente merge automatico.** Fondere due alberi campagna campo per campo è, visto
+  dall'utente, indistinguibile da una perdita silenziosa. Il dialogo ha tre azioni e
+  nessun Annulla, perché non esiste un default onesto; "Esporta entrambe" apposta **non**
+  chiude — mette al sicuro le due versioni senza scegliere. Mentre aspetta, `cloudPaused`
+  ferma il salvataggio: anche in `undo()`, che chiama `doSave()` per conto suo e
+  riscriverebbe la copia che il dialogo sta proponendo di recuperare.
+- `main.js` **non** salva all'avvio in cloud: creerebbe una revisione a ogni apertura,
+  e ogni altra scheda si troverebbe in conflitto senza aver toccato niente.
+- Il modulo non importa `stato.js`: stato, `store` e callback arrivano da fuori, ed è
+  ciò che rende la classificazione provabile con `node:test` (`test/sync/`). Quel che
+  resta in `stato.js` (fetch, debounce, dialogo) è tenuto sottile apposta e si prova a
+  mano — la procedura è in `TODO.md`.
 
 **Modalità combattimento** (`public/app/battaglia.js`): `n.battle` sta sul nodo del
 livello dove si combatte — la sua presenza è la modalità accesa, non c'è stato globale.
@@ -753,7 +793,9 @@ Non negoziabili; se tocchi queste aree, mantienili:
   iOS non arriva, e vale per ogni modo di andarsene — link, tasto Indietro,
   scheda chiusa. In locale la scrittura è sincrona e finisce lì; nel cloud la
   PATCH viene marcata `keepalive`, che però la specifica concede solo sotto i
-  64 KB — sopra resta un tentativo, non una garanzia.
+  64 KB — sopra resta un tentativo, non una garanzia. Non è più una perdita:
+  la cache locale è già stata scritta prima della richiesta, quindi alla
+  riapertura il lavoro si ripropone (vedi Revisione, cache offline e conflitti).
 - Le immagini stanno in base64 dentro il JSON della campagna: occhio al limite di 4 MB.
 - `package.json` ha due **overrides npm** nati da alert Dependabot (lug 2026): postcss
   ≥8.5.10 (Next lo pinna vulnerabile) ed esbuild ^0.25 sotto `@esbuild-kit` (dipendenza

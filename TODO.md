@@ -9,6 +9,10 @@ consiglio, non di vincolo. Le voci per esteso stanno nelle sezioni sotto.
 Nessun lavoro grosso in coda: la sezione regole è completa (dieci capitoli più
 il bestiario). Le prossime cose sono minori o da decidere insieme.
 
+**Da fare prima del prossimo deploy**: la migrazione `0001_revisione-campagna`
+va applicata a **entrambi** i branch Neon prima che il codice giri — dettagli e
+prove manuali in "Sincronizzazione cloud".
+
 Minori, già annotati al loro posto:
 `nodeBox` dà 30×30 a ogni segnalino ma il disco della pedina ne misura 32, un
 pixel fra centro geometrico e centro disegnato (per questo `markerR` è una
@@ -796,6 +800,56 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
     of war, condizioni sulle pedine, ping condiviso) non passano dal registro
     finché non hanno schema dati, migrazione, salvataggio cloud, proiezione
     server-side del tavolo e autorizzazioni.
+
+## Sincronizzazione cloud
+
+- [x] **Recupero offline e conflitti di salvataggio (P0.1)** — fatto
+  (24 lug 2026). Prima: la PATCH leggeva la riga, controllava la proprietà e poi
+  scriveva, quindi due schede sulla stessa campagna si sovrascrivevano in
+  silenzio; e la cache offline stava sotto `runebog-gm-v1`, **una chiave sola per
+  tutte le campagne**, senza sapere da quale versione del server discendesse — al
+  ritorno online l'unico gesto possibile era spedire e sperare.
+  Ora `campaign.revision` è un contatore monotono (migrazione
+  `drizzle/0001_revisione-campagna.sql`) e la condizione sta **dentro l'UPDATE**
+  insieme a quella di proprietà: zero righe aggiornate è il 409, e il 409 riporta
+  la versione del server perché il client possa mostrarla senza ridipendere dalla
+  rete che ha appena fallito. Una PATCH senza `baseRevision` è 400, non revisione
+  0. Frontend: `public/app/sync-cloud.js` (formato della cache, classificazione,
+  riconciliazione dell'ACK, dialogo), il blocco cloud di `stato.js`, `/play/[id]`
+  che inietta anche `revision` e `updatedAt`, `main.js` che non salva più
+  all'avvio in cloud. Tre azioni e nessun Annulla — conserva cloud, recupera
+  locale, esporta entrambe — e **nessun merge automatico**. Test:
+  `test/sync/cloud-sync.test.mjs`, 13 casi puri (ora in `npm test` e in CI);
+  `tsc` e `npm run build` ok. Documentato in `CLAUDE.md`.
+
+  **Resta da fare**, e sono cose misurate, non ipotesi:
+
+  - **La migrazione va applicata a ENTRAMBI i branch Neon** (`production` e
+    `dev`, vedi Trappole in `CLAUDE.md`) **prima** che il codice nuovo giri: una
+    route che scrive `revision` su un DB senza la colonna dà 42703, e il guasto
+    del 15 lug 2026 è esattamente questo. Ordine: backup → migrazione su
+    entrambi → deploy → smoke test. Un rollback del solo codice è innocuo, la
+    colonna in più non dà fastidio: **non toglierla** durante un'emergenza.
+  - **L'atomicità non ha un test automatico**: servirebbe un DB di prova, che
+    questo repo non ha (i test sono puri per scelta). La prova riproducibile è a
+    mano, e va rifatta se si tocca la route: aprire la stessa campagna in due
+    schede alla stessa revisione, salvare in A, salvare una modifica **diversa**
+    in B → B deve ricevere 409 e il dialogo, e la versione di A deve restare
+    intatta qualunque delle tre azioni si scelga. Le altre prove che i test puri
+    non coprono: offline + chiusura scheda + riapertura (deve comparire "Recupera
+    locale"); due campagne diverse (la cache di A non deve essere proposta per
+    B); modifica **durante** la PATCH con rete rallentata (due aggiornamenti
+    sequenziali, e al reload c'è anche la seconda modifica).
+  - **La cache legacy si vedrà una volta sola per utente**, ed è il momento
+    delicato: chi ha più campagne cloud ha sotto `runebog-gm-v1` l'ultima aperta,
+    quindi aprendone un'altra riceverà il dialogo con dentro il titolo sbagliato.
+    Il testo lo dice, ma vale la pena guardarlo con un account vero prima di
+    dormirci sopra.
+  - **Il tetto di localStorage non è quello della PATCH**: una campagna vicina ai
+    4 MB può far fallire la scrittura della cache (quota ~5 MB per origine) e
+    l'app lo dichiara ("Solo in memoria — usa Esporta"), ma vuol dire che proprio
+    le campagne più pesanti sono quelle senza rete di recupero. Le immagini fuori
+    dal JSON risolverebbero entrambi i limiti insieme.
 
 ## Mappe in scala
 

@@ -9,7 +9,7 @@
     "start": "next start",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "test": "node --test test/strumenti/*.test.mjs"
+    "test": "node --test test/strumenti/*.test.mjs test/sync/*.test.mjs"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.7.4",
