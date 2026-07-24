@@ -11,7 +11,8 @@ il bestiario). Le prossime cose sono minori o da decidere insieme.
 
 **Da fare prima del prossimo deploy**: la migrazione `0001_revisione-campagna`
 va applicata a **entrambi** i branch Neon prima che il codice giri — dettagli e
-prove manuali in "Sincronizzazione cloud".
+prove manuali in "Sincronizzazione cloud". Su `dev` è applicata (25 lug 2026,
+scoperta mancante durante la verifica di P0.2); su **`production` manca ancora**.
 
 Minori, già annotati al loro posto:
 `nodeBox` dà 30×30 a ogni segnalino ma il disco della pedina ne misura 32, un
@@ -850,6 +851,48 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
     l'app lo dichiara ("Solo in memoria — usa Esporta"), ma vuol dire che proprio
     le campagne più pesanti sono quelle senza rete di recupero. Le immagini fuori
     dal JSON risolverebbero entrambi i limiti insieme.
+
+## Formato del documento campagna
+
+- [x] **Schema versionato e validazione coerente (P0.2)** — fatto (25 lug 2026).
+  Prima l'unica difesa in scrittura erano tre righe (`root`, `checklist`,
+  `players` esistono): un albero profondo diecimila livelli, un id duplicato o
+  un'immagine `data:text/html` passavano. Ora c'è **un solo contratto**,
+  `public/app/formato-campagna.js` (riesportato al sito da
+  `src/lib/formato-campagna.ts`): limiti, forme, `schemaVersion` e migrazioni
+  nominate v0→v1 coi default **misurati** contro i render (`bg.opacity` 0.6,
+  `type` zona/nota, id generati dove `x.id !== c.id` li richiede). Regola scelta
+  insieme: **rigido in scrittura, tollerante in lettura** — import, POST e PATCH
+  rifiutano con 422 e il motivo (413 per `document_too_large`), mentre
+  `migrateState` e le due route del tavolo non falliscono mai per formato:
+  normalizzano se possono e ripiegano sulle difese esistenti
+  (`ultimoDifettoFormato`, `sanitizeState`, `projectForPlayers`).
+  `projectForPlayers` dichiara `schemaVersion` per costruzione; `newCampaignData`
+  nasce a versione corrente e viene validato anche lui nel POST.
+  Test: `test/formato-campagna/` (22 casi puri, fixture v0 e v1 in
+  `test/fixtures/`), in `npm test` e in CI. Verificato in Chromium (7/7:
+  standalone nasce a `schemaVersion` 1, import invalido rifiutato col motivo e
+  campagna intatta, import v0 migrato, console pulita) e via HTTP sul branch
+  Neon `dev`: le tre campagne v0 reali escono dal tavolo a 200 con
+  `schemaVersion: 1` nella proiezione. `tsc`, `npm test` 58/58 e build ok.
+
+  **Resta da fare:**
+
+  - **La prova del 422 con una sessione vera** non è automatizzata (niente DB di
+    prova, e il login serve una sessione JWT): a mano, da una campagna cloud
+    aperta, forzare un documento invalido (es. via devtools) e verificare che il
+    salvataggio mostri "Non sincronizzato: <motivo> · copia locale conservata" e
+    che la copia locale resti. Il percorso è coperto dai test puri del contratto
+    e dal codice sottile della route, ma l'ultimo miglio non è stato guardato.
+  - **Le campagne v0 nel JSONB restano v0 finché qualcuno non le risalva**: la
+    lettura è tollerante apposta, quindi non c'è fretta — ma finché esistono,
+    `share.ts` deve continuare a leggere `tokenColor` e le route del tavolo a
+    tenere il ripiego sulla riga grezza. Una tantum si può decidere una
+    migrazione batch del JSONB, che oggi NON esiste di proposito.
+  - **Le cartelle di staging `runebog-p0.2-*` e `runebog-p0.3-*` rompono
+    `npx tsc` e `npm run build`** (importano `@/lib/formato-campagna` da fuori
+    `src/`): per verificare vanno spostate via temporaneamente. Da decidere:
+    cancellarle a integrazione finita o escluderle in `tsconfig`/`.gitignore`.
 
 ## Mappe in scala
 

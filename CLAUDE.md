@@ -20,14 +20,15 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
 ```bash
 npm run dev          # sviluppo su http://localhost:3000 (serve .env, vedi .env.example)
 npx tsc --noEmit     # typecheck — è il controllo principale, non c'è ESLint
-npm test             # test puri con node:test (test/strumenti/*.test.mjs)
+npm test             # test puri con node:test (test/strumenti|sync|formato-campagna)
 npm run build        # build di produzione (fa anche typecheck)
 ```
 
 I test sono pochi e **puri** (`node --test`, nessuna dipendenza, nessun DOM): oggi
 coprono il gestore degli strumenti mappa e la geometria del righello
-(`test/strumenti/`) più il formato della cache cloud e la classificazione dei
-conflitti (`test/sync/`); il resto dell'app si verifica a mano nel browser. La CI
+(`test/strumenti/`), il formato della cache cloud e la classificazione dei
+conflitti (`test/sync/`), più il contratto del documento campagna
+(`test/formato-campagna/`); il resto dell'app si verifica a mano nel browser. La CI
 (`.github/workflows/ci.yml`) esegue typecheck + `npm test` + build su ogni push e
 PR, con `DATABASE_URL` fittizio: il client Neon viene creato all'import di
 `src/db/index.ts`, quindi il build richiede la variabile anche se nessuna pagina statica
@@ -57,10 +58,39 @@ Il repo contiene **due applicazioni** che condividono un formato dati:
    su `window` con l'`Object.assign` in fondo a ogni modulo. Le versioni
    standalone/desktop sono state ritirate: questa è l'unica copia del sorgente.
 
-Il ponte è **un unico oggetto JSON serializzabile** (`{root, checklist, players}`) che
-contiene l'intero stato di una campagna: stessa forma per Esporta/Importa, per la colonna
-JSONB `campaign.data`, e per l'iniezione nel browser. La forma iniziale è definita una
-sola volta in `src/lib/campaigns.ts`.
+Il ponte è **un unico oggetto JSON serializzabile** (`{schemaVersion, root, checklist,
+players}`) che contiene l'intero stato di una campagna: stessa forma per Esporta/Importa,
+per la colonna JSONB `campaign.data`, e per l'iniezione nel browser. La forma iniziale è
+definita una sola volta in `src/lib/campaigns.ts`.
+
+**Il contratto del documento** (`public/app/formato-campagna.js`, riesportato al sito
+da `src/lib/formato-campagna.ts`): un solo modulo, senza dipendenze, decide cosa è una
+campagna valida — limiti, forme, `schemaVersion` e migrazioni nominate (v0 è il formato
+storico senza il campo; i default di `migrateV0ToV1` sono **misurati** contro ciò che i
+render facevano già, non inventati). Valida la FORMA e non sostituisce la bonifica:
+`sanitizeState` nell'app e le proiezioni di `share.ts` restano. Regola:
+**rigido in scrittura, tollerante in lettura.**
+
+- Morde nei percorsi di **scrittura**: l'import (`esporta.js`), `POST /api/campaigns` e
+  la PATCH — 422 col motivo in `detail.message` (413 per `document_too_large`), che il
+  client mostra accanto a "copia locale conservata". Il rifiuto non perde mai lavoro:
+  la cache locale è scritta prima della richiesta (vedi Revisione qui sotto). Nel JSONB
+  entra `prepared.value`, cioè il documento già migrato; anche `newCampaignData` passa
+  dalla validazione nel POST, così la fabbrica non può divergere dal contratto.
+- NON morde nei percorsi di **lettura**: `migrateState` è l'imbuto di ogni caricamento
+  (cloud, localStorage, undo, recupero) e non lancia — normalizza se può, lascia il
+  difetto in `ultimoDifettoFormato` e prosegue con le difese esistenti. Le due route
+  del tavolo tentano la normalizzazione e ripiegano sulla riga grezza: un 422 lì
+  chiuderebbe fuori i giocatori per un difetto che solo il DM può correggere.
+- `prepareCampaignDocument` **muta il documento in loco** quando migra: i chiamanti
+  che tengono il riferimento (come `migrateState`) non hanno niente da riassegnare.
+- `projectForPlayers` dichiara `schemaVersion` corrente **per costruzione**: la
+  proiezione è ricostruita campo per campo da `share.ts`, e le sue whitelist
+  (`safeId`, `safeUrl`, `safeColor`) sono già allineate alle regole del validatore —
+  i tre elenchi si toccano insieme (vedi il commento su `FUORI_DALL_ATTRIBUTO`).
+- Uno schema **futuro** si rifiuta senza tentare downgrade; i limiti generici della
+  scansione (`genericValues`) sono una rete di sicurezza, non un limite di prodotto,
+  e un test impone che non contraddicano mai i limiti dichiarati (`nodes`).
 
 Flusso cloud: `/play/[id]` (route handler, non pagina React) legge la riga e serve
 `app.html` iniettando `<script>window.__cloud = {id, state, revision, updatedAt}</script>`;
