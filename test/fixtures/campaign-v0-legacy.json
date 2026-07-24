@@ -1,0 +1,23 @@
+{
+  "root": {
+    "id": "root",
+    "title": "Vecchia campagna",
+    "type": "zona",
+    "children": [
+      {
+        "id": "locanda",
+        "title": "La locanda",
+        "type": "luogo",
+        "children": [],
+        "edges": []
+      }
+    ],
+    "edges": []
+  },
+  "checklist": [
+    {"id": "check-1", "text": "Preparare la sessione"}
+  ],
+  "players": [
+    {"id": "pg-1", "name": "Ada"}
+  ]
+}

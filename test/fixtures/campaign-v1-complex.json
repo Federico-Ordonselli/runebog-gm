@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "root": {
+    "id": "root",
+    "title": "Cripta",
+    "type": "zona",
+    "status": "",
+    "notes": "Solo per il DM",
+    "playerNotes": "Ingresso della cripta",
+    "img": null,
+    "children": [
+      {
+        "id": "room-1",
+        "title": "Sala",
+        "type": "luogo",
+        "status": "in corso",
+        "notes": "",
+        "img": null,
+        "children": [
+          {
+            "id": "goblin",
+            "title": "Goblin",
+            "type": "encounter",
+            "status": "",
+            "notes": "",
+            "img": null,
+            "children": [],
+            "edges": [],
+            "x": 40,
+            "y": 40,
+            "shape": null,
+            "monster": {
+              "meta": "Umanoide Piccolo",
+              "actions": "Scimitarra",
+              "dex": 14,
+              "hpDefault": 7,
+              "foes": [
+                {"id": "foe-1", "name": "Goblin 1", "hp": 7, "hpMax": 7}
+              ]
+            }
+          }
+        ],
+        "edges": [],
+        "wallSegs": [
+          {"id": "wall-1", "x": 0, "y": 0, "dir": "h", "len": 4, "porta": "chiusa"}
+        ],
+        "battle": {
+          "round": 1,
+          "turn": 0,
+          "order": [
+            {"id": "turn-1", "kind": "pg", "playerId": "pg-1", "init": 15}
+          ]
+        },
+        "x": 0,
+        "y": 0,
+        "w": 160,
+        "h": 120,
+        "shape": "stanza",
+        "walls": true,
+        "shared": true
+      }
+    ],
+    "edges": [],
+    "x": null,
+    "y": null,
+    "shape": null
+  },
+  "checklist": [
+    {"id": "check-1", "text": "Preparare la cripta", "done": false}
+  ],
+  "players": [
+    {"id": "pg-1", "name": "Ada", "cls": "Ladra", "hp": 20, "hpMax": 20, "notes": ""}
+  ]
+}
