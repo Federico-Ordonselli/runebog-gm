@@ -1,5 +1,6 @@
 import { db } from "@/db";
 import { campaigns } from "@/db/schema";
+import { prepareCampaignDocument } from "@/lib/formato-campagna";
 import { jsonForScript } from "@/lib/inline-json";
 import { projectForPlayers } from "@/lib/share";
 import { eq } from "drizzle-orm";
@@ -16,7 +17,12 @@ export async function GET(_: Request, { params }: { params: Promise<{ token: str
   const [row] = await db.select().from(campaigns).where(eq(campaigns.shareToken, token));
   if (!row) return new Response("Tavolo non trovato: il link è sbagliato o il DM l'ha chiuso.", { status: 404 });
 
-  const state = projectForPlayers(row.data as any);
+  // Tollerante in lettura: il contratto normalizza quando riesce, ma un documento
+  // che non lo passa (campagne mai risalvate, scritte prima del contratto) NON
+  // spegne il tavolo — projectForPlayers è già difensivo campo per campo, e un
+  // 422 qui chiuderebbe fuori i giocatori per un difetto che solo il DM può correggere.
+  const prepared = prepareCampaignDocument(row.data);
+  const state = projectForPlayers((prepared.ok ? prepared.value : row.data) as any);
   if (!state) return new Response("Tavolo non trovato.", { status: 404 });
 
   const html = await readFile(path.join(process.cwd(), "public", "app.html"), "utf8");

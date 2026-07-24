@@ -20,6 +20,7 @@
  */
 
 import { randomBytes } from "crypto";
+import { CURRENT_CAMPAIGN_SCHEMA_VERSION } from "./formato-campagna";
 
 type Node = Record<string, any>;
 
@@ -295,6 +296,10 @@ export function projectForPlayers(data: Node | null | undefined) {
   if (!data?.root) return null;
   const root = projectNode(data.root, data);     // la radice c'è sempre: è il contenitore
   return {
+    // La proiezione esce alla versione corrente per costruzione: è costruita
+    // campo per campo QUI, non copiata dal documento del DM — quindi la sua
+    // versione la dichiara questo codice, non la riga in banca dati.
+    schemaVersion: CURRENT_CAMPAIGN_SCHEMA_VERSION,
     root,
     checklist: [],                               // la checklist è la lista della spesa del DM
     players: (Array.isArray(data.players) ? data.players : []).map((p: Node) => ({

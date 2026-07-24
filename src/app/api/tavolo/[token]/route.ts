@@ -1,5 +1,6 @@
 import { db } from "@/db";
 import { campaigns } from "@/db/schema";
+import { prepareCampaignDocument } from "@/lib/formato-campagna";
 import { projectForPlayers } from "@/lib/share";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -14,7 +15,11 @@ export async function GET(_: Request, { params }: { params: Promise<{ token: str
   const [row] = await db.select().from(campaigns).where(eq(campaigns.shareToken, token));
   if (!row) return NextResponse.json({ error: "not found" }, { status: 404 });
 
-  const state = projectForPlayers(row.data as any);
+  // Tollerante in lettura, come /tavolo/[token]: la normalizzazione è un
+  // miglioramento quando riesce, mai un requisito — il polling dei giocatori
+  // non deve rompersi per un documento che il contratto non riconosce.
+  const prepared = prepareCampaignDocument(row.data);
+  const state = projectForPlayers((prepared.ok ? prepared.value : row.data) as any);
   if (!state) return NextResponse.json({ error: "not found" }, { status: 404 });
 
   return NextResponse.json(

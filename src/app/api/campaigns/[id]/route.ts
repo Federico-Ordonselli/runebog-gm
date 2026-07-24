@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { campaigns } from "@/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { campaignErrorMessage, prepareCampaignDocument } from "@/lib/formato-campagna";
 
 const MAX_BYTES = 4 * 1024 * 1024; // limite body Vercel ~4.5MB: immagini enormi → storage esterno in v2
 
@@ -61,12 +62,26 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (!Number.isSafeInteger(baseRevision) || baseRevision < 0)
     return NextResponse.json({ error: "baseRevision non valida" }, { status: 400, headers: NO_STORE });
 
+  // Rigido in scrittura: nel JSONB entra solo ciò che passa il contratto, già
+  // migrato alla versione corrente. Il rifiuto non perde lavoro — la copia
+  // locale del client è stata scritta PRIMA della richiesta — e il 422 porta
+  // il motivo, che il client mostra: senza, l'unico segnale sarebbe un
+  // salvataggio che non avviene mai.
+  const prepared = prepareCampaignDocument(data);
+  if (!prepared.ok) {
+    const status = prepared.error.code === "document_too_large" ? 413 : 422;
+    return NextResponse.json({
+      error: "invalid_document",
+      detail: { ...prepared.error, message: campaignErrorMessage(prepared.error) },
+    }, { status, headers: NO_STORE });
+  }
+
   // Il titolo vuoto non ribattezza la campagna: senza rileggere la riga prima di
   // scrivere, il vecchio nome si conserva non toccando la colonna.
   const title = typeof data.root.title === "string" ? data.root.title.trim() : "";
   const [updated] = await db.update(campaigns)
     .set({
-      data,
+      data: prepared.value,
       ...(title ? { name: title.slice(0, 120) } : {}),
       updatedAt: new Date(),
       revision: sql`${campaigns.revision} + 1`,
