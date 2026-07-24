@@ -412,7 +412,12 @@ function validateNodeShallow(node, path){
     return bad("expected_boolean", "shared deve essere booleano", `${path}.shared`);
   if(node.walls !== undefined && typeof node.walls !== "boolean")
     return bad("expected_boolean", "walls deve essere booleano", `${path}.walls`);
-  if(node.color !== undefined && !COLOR_RE.test(node.color))
+  // `color: null` è un gesto dell'app, non un dato rotto: il campione
+  // "Predefinito della forma" nel pannello fa `editNode('color', null)` per
+  // tornare al default (come `img: null` col bottone Rimuovi). Trovato al primo
+  // smoke test in produzione: il 422 bloccava il salvataggio di una campagna
+  // il cui unico torto era un click legittimo.
+  if(node.color !== undefined && node.color !== null && !COLOR_RE.test(node.color))
     return bad("invalid_color", "Colore non valido", `${path}.color`);
   for(const key of ["x","y","w","h"]){
     if((error = validateOptionalNumber(node[key], `${path}.${key}`, {

@@ -117,6 +117,19 @@ test("un documento già v1 non viene ritoccato dalle migrazioni", ()=>{
   assert.equal(result.error.path, "$.root.bg.opacity");
 });
 
+test("un colore null è «Predefinito della forma», non un colore rotto", ()=>{
+  /* pannello.js scrive `editNode('color', null)` dal campione Predefinito: è il
+     gesto con cui il DM toglie la scelta esplicita. Trovato al primo smoke test
+     in produzione — il contratto rifiutava una campagna vera per questo. */
+  const value = campaign();
+  value.root.children = [{...node("fig"), color:null}];
+  const result = prepareCampaignDocument(value);
+  assert.equal(result.ok, true, result.error?.code);
+  const ostile = campaign();
+  ostile.root.color = "red;position:fixed";
+  assert.equal(prepareCampaignDocument(ostile).ok, false);
+});
+
 test("rifiuta uno schema futuro senza tentare downgrade", ()=>{
   const value = campaign();
   value.schemaVersion = CURRENT_CAMPAIGN_SCHEMA_VERSION + 1;
