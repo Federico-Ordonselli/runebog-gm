@@ -47,12 +47,17 @@ export const passwordResetTokens = pgTable("password_reset_token", {
 
 /* ---- le campagne: un JSONB per campagna, stesso formato di Esporta/Importa ----
    shareToken: il link per il tavolo dei giocatori. Nullo = campagna non condivisa.
-   Rigenerarlo invalida di colpo tutti i link già distribuiti. */
+   Rigenerarlo invalida di colpo tutti i link già distribuiti.
+   revision: contatore monotono, incrementato dalla PATCH. Non è un timestamp e non
+   è un hash: serve a dire "la copia da cui sei partito è ancora quella corrente?",
+   e a dirlo DENTRO la query che scrive (vedi PATCH in api/campaigns/[id]), sennò
+   fra il controllo e la scrittura ci sta un'altra scheda. */
 export const campaigns = pgTable("campaign", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull().default("Nuova campagna"),
   data: jsonb("data").notNull(),
   shareToken: text("share_token").unique(),
+  revision: integer("revision").notNull().default(0),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
 });

@@ -8,6 +8,13 @@
       "when": 1784122015956,
       "tag": "0000_iniziale",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1784922659435,
+      "tag": "0001_revisione-campagna",
+      "breakpoints": true
     }
   ]
 }
