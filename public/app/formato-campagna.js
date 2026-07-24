@@ -28,7 +28,17 @@ export const CAMPAIGN_LIMITS = Object.freeze({
   documentBytes: 4 * 1024 * 1024 - 4096,
   imageBytes: Math.floor(3.75 * 1024 * 1024),
   genericDepth: 96,
-  genericValues: 120000,
+  /* Rete di sicurezza della scansione, NON un limite di prodotto: quelli sono
+     `nodes`, `childrenPerNode` e compagni. Deve stare sopra ciò che
+     `documentBytes` può esprimere, sennò contraddice i limiti veri — a 120.000
+     mordeva a ~2.000 nodi e rendeva `nodes: 5000` irraggiungibile, cioè una
+     campagna dichiarata ammessa veniva rifiutata. Misurato: 4 MiB di JSON
+     contengono al massimo 2,0 milioni di valori (un array di zeri, la densità
+     massima possibile) e la scansione ci mette 140 ms; una campagna vera da
+     5.000 nodi con muri fa 305.016 valori in 23 ms. I byte si controllano
+     sempre PRIMA del parse (requestBytes nella route, documentBytes in
+     parseCampaignJson), quindi qui non arriva mai niente di illimitato. */
+  genericValues: 2000000,
   genericArrayItems: 12000,
   treeDepth: 32,
   nodes: 5000,
@@ -532,7 +542,17 @@ export function parseCampaignJson(text){
   return prepareCampaignDocument(document, {sourceBytes:bytes});
 }
 
+/* Il percorso si tronca perché un pezzo lo scrive il file: dentro `$.root.…`
+   ci finiscono i nomi delle chiavi trovate, e una chiave lunga 250.000
+   caratteri farebbe un avviso alto quanto lo schermo. Non è una questione di
+   sicurezza — il messaggio va in `textContent` — ma di leggibilità: chi legge
+   deve capire dove guardare. */
+const PERCORSO_MAX = 120;
+
 export function campaignErrorMessage(error){
   if(!error) return "Campagna non valida.";
-  return `${error.message}${error.path && error.path !== "$" ? ` (${error.path})` : ""}`;
+  if(!error.path || error.path === "$") return error.message;
+  const path = error.path.length > PERCORSO_MAX
+    ? error.path.slice(0, PERCORSO_MAX) + "…" : error.path;
+  return `${error.message} (${path})`;
 }

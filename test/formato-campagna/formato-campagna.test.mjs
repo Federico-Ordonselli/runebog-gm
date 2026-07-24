@@ -131,6 +131,26 @@ test("rifiuta JSON malformato in modo controllato", ()=>{
   assert.equal(result.error.code, "invalid_json");
 });
 
+test("i limiti non si contraddicono: una campagna al tetto dei nodi passa", ()=>{
+  /* `genericValues` è una rete di sicurezza della scansione, non un limite di
+     prodotto: se scende sotto ciò che `nodes` dichiara ammesso, una campagna
+     dichiarata valida viene rifiutata — e il DM si ritrova con un 422 a ogni
+     salvataggio, senza che nessun limite di prodotto sia stato superato.
+     Misurato: 5.000 nodi con muri fanno 305.016 valori. */
+  // I 5.000 nodi si raggiungono annidando: `childrenPerNode` ne ammette 600 per
+  // livello. Otto rami pieni sono la forma più grande costruibile in fretta.
+  const rami = 8, perRamo = CAMPAIGN_LIMITS.childrenPerNode;
+  const stanza = nome => ({
+    ...node(nome), type:"luogo", shape:"stanza",
+    wallSegs: Array.from({length:8}, (_, k)=>({id:`${nome}-w${k}`, x:0, y:k*40, dir:"h", len:2})),
+  });
+  const radice = node("root", Array.from({length:rami}, (_, r)=>
+    node(`r${r}`, Array.from({length:perRamo}, (_, i)=>stanza(`n${r}-${i}`)))));
+  const result = prepareCampaignDocument(campaign(radice));
+  assert.equal(result.ok, true, result.error?.code);
+  assert.equal(result.stats.nodes, 1 + rami + rami*perRamo);
+});
+
 test("rifiuta un campo ignoto estremamente profondo", ()=>{
   const value = campaign();
   let cursor = value;

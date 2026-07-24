@@ -3,6 +3,7 @@
 
 import { st, save, migrateState, resetUndo, clearSel } from "./stato.js";
 import { openAlert, showView } from "./viste.js";
+import { parseCampaignJson, campaignErrorMessage } from "./formato-campagna.js";
 
 export function exportJSON(){
   const json = JSON.stringify(st.state, null, 2);
@@ -14,10 +15,16 @@ export function exportJSON(){
   a.click();
   URL.revokeObjectURL(a.href);
 }
+/* L'import è un percorso di SCRITTURA, quindi qui il contratto morde: un file
+   che non passa non entra, e non si perde niente perché la campagna aperta
+   resta dov'era. È anche il vettore per cui il contratto esiste — JSON altrui,
+   forma plausibile, contenuto ostile — e le tre righe di prima (`root`,
+   `checklist`, `players` esistono) lasciavano passare un albero profondo
+   diecimila livelli. */
 function applyImportedJSON(text){
-  const data = JSON.parse(text);
-  if(!data.root || !Array.isArray(data.checklist) || !Array.isArray(data.players))
-    throw new Error("formato non valido");
+  const esito = parseCampaignJson(text);
+  if(!esito.ok) throw new Error(campaignErrorMessage(esito.error));
+  const data = esito.value;
   migrateState(data);
   st.state = data;
   resetUndo();                       // l'import sostituisce tutto: niente undo all'indietro
@@ -30,8 +37,13 @@ export function initEsporta(){
     const f = e.target.files[0]; if(!f) return;
     const r = new FileReader();
     r.onload = ()=>{
+      /* Il motivo si mostra: "non è una campagna Runebog" è vero per un file
+         sbagliato e fuorviante per un export vero che sfora un limite — e in
+         quel secondo caso è l'unica indicazione su cosa correggere. È testo
+         controllato (messaggi fissi più un percorso troncato), e finisce in
+         textContent, non in HTML. */
       try{ applyImportedJSON(r.result); }
-      catch(_){ openAlert("Questo file non è una campagna Runebog: serve il .json creato con Esporta."); }
+      catch(err){ openAlert(`Importazione non riuscita. ${err.message}`); }
       e.target.value = "";
     };
     r.readAsText(f);

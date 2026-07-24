@@ -13,6 +13,11 @@ import {
   reconcileCloudAck,
   openCloudRecoveryDialog,
 } from "./sync-cloud.js";
+import {
+  CURRENT_CAMPAIGN_SCHEMA_VERSION,
+  prepareCampaignDocument,
+  campaignErrorMessage,
+} from "./formato-campagna.js";
 
 /* ==================== dove stiamo girando ====================
    Due contesti col server, riconosciuti da cosa ha iniettato prima dei moduli:
@@ -143,6 +148,7 @@ export function defaultState(){
     {id:uid(), a:locanda.id, b:faro.id,    type:"segreto", label:"cunicolo sotto il guado", notes:""}
   ];
   return {
+    schemaVersion: CURRENT_CAMPAIGN_SCHEMA_VERSION,
     root,
     checklist: [
       {id:uid(), text:"Leggere le note della Locanda della Biscia", done:true},
@@ -163,7 +169,10 @@ let campaignId = null;
 function loadCampaignsIdx(){ try{ return JSON.parse(store.get(IDX_KEY)) || []; }catch(_){ return []; } }
 function persistIndex(){ store.set(IDX_KEY, JSON.stringify(campaignsIdx)); }
 function emptyState(name){
-  return { root: node(name || "Nuova campagna", "zona"), checklist: [], players: [] };
+  return {
+    schemaVersion: CURRENT_CAMPAIGN_SCHEMA_VERSION,
+    root: node(name || "Nuova campagna", "zona"), checklist: [], players: [],
+  };
 }
 function persistCurrent(){
   if(window.__cloud || !campaignId) return;
@@ -509,6 +518,18 @@ async function cloudPush(finale = false, json = null){
                   "var(--ember)");
       return;
     }
+    if(res.status === 400 || res.status === 422){
+      /* Il server ha rifiutato la FORMA, non la revisione: ritentare non serve
+         a niente, e la copia locale resta dov'è — è l'unica che contiene il
+         lavoro. Il motivo si mostra perché è l'unica indicazione su cosa
+         correggere: senza, l'unico segnale sarebbe un salvataggio che non
+         avviene mai. */
+      const problema = await res.json().catch(()=>({}));
+      cloudStatus(
+        `Non sincronizzato: ${problema.detail?.message || "formato non valido"} · copia locale conservata`,
+        "var(--ember)");
+      return;
+    }
     if(res.status === 409){
       // Il server è andato avanti da un'altra parte. La copia locale NON si
       // tocca: è una delle due versioni fra cui si sta per scegliere.
@@ -621,7 +642,30 @@ export function findParent(id, cur=st.state.root){
   for(const c of cur.children){ const f=findParent(id,c); if(f) return f; }
   return null;
 }
+/* L'ultimo documento che ha attraversato migrateState senza passare il
+   contratto, e perché. Lo legge il pannello di salvataggio per dirlo una volta
+   invece di gridarlo a ogni ridisegno. */
+export let ultimoDifettoFormato = null;
+
 export function migrateState(s){
+  /* Il contratto morde in SCRITTURA (import, POST, PATCH) e qui NO. Questo è
+     l'imbuto che attraversa ogni caricamento — cloud, localStorage, undo,
+     recupero offline — e lanciare di qui vorrebbe dire: campagna storta,
+     schermo bianco, nessun modo di correggerla, perché per correggerla bisogna
+     aprirla. Quindi si normalizza se si può, e se non si può si prosegue con le
+     difese che c'erano già (sanitizeState, qui sotto), lasciando detto cosa non
+     andava. Il salvataggio successivo riceverà un 422 dal server, che è dove il
+     rifiuto costa una modifica e non una campagna.
+
+     `prepareCampaignDocument` muta `s` in loco quando migra, quindi non c'è
+     niente da riassegnare. Gira PRIMA delle migrazioni visuali qui sotto perché
+     è lui a dare `type` e `id` ai nodi che non li hanno — e `isMarker`, due
+     righe più giù, legge proprio `type`. */
+  const esito = prepareCampaignDocument(s);
+  ultimoDifettoFormato = esito.ok ? null : esito.error;
+  if(!esito.ok)
+    console.warn("Campagna non conforme al contratto:", campaignErrorMessage(esito.error));
+
   (function walk(n){
     if(!Array.isArray(n.edges)) n.edges=[];
     // tokenColor era il colore del solo segnalino "token"; ora `color` vale per
