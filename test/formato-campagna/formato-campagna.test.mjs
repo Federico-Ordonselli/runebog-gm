@@ -14,6 +14,7 @@ import {
   CAMPAIGN_LIMITS,
   utf8ByteLength,
   scanJsonLimits,
+  migrateCampaignDocument,
   prepareCampaignDocument,
   parseCampaignJson,
 } from "../../public/app/formato-campagna.js";
@@ -136,6 +137,27 @@ test("rifiuta uno schema futuro senza tentare downgrade", ()=>{
   const result = prepareCampaignDocument(value);
   assert.equal(result.ok, false);
   assert.equal(result.error.code, "future_schema_version");
+});
+
+test("una migrazione che non avanza la versione è un errore, non un loop", ()=>{
+  /* Il loop rilegge schemaVersion dal documento dopo ogni migrazione: senza la
+     guardia di avanzamento, una migrazione futura che dimentica di scriverla
+     (o la scrive storta) non è un bug benigno — è la route PATCH appesa.
+     La tabella si inietta dal parametro dei test: quella vera avanza sempre. */
+  const ferma = migrateCampaignDocument({root:node("root")}, {0: ()=>{}});
+  assert.equal(ferma.ok, false);
+  assert.equal(ferma.error.code, "stalled_migration");
+  const indietro = migrateCampaignDocument({root:node("root")}, {0: d=>{ d.schemaVersion = 0; }});
+  assert.equal(indietro.ok, false);
+  assert.equal(indietro.error.code, "stalled_migration");
+});
+
+test("una versione senza migrazione propria si ferma subito", ()=>{
+  // Il lookup è confinato alle chiavi proprie della tabella: una versione
+  // intera senza voce dà missing_migration, non un giro sui prototipi.
+  const esito = migrateCampaignDocument({root:node("root")}, {});
+  assert.equal(esito.ok, false);
+  assert.equal(esito.error.code, "missing_migration");
 });
 
 test("rifiuta JSON malformato in modo controllato", ()=>{

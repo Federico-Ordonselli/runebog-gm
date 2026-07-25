@@ -229,8 +229,9 @@ export const CAMPAIGN_MIGRATIONS = Object.freeze({
   0: migrateV0ToV1,
 });
 
-/** @returns {EsitoCampagna} */
-export function migrateCampaignDocument(document){
+/** Il parametro `migrations` esiste per i test: il default è la tabella vera.
+ * @returns {EsitoCampagna} */
+export function migrateCampaignDocument(document, migrations = CAMPAIGN_MIGRATIONS){
   if(!isObject(document)) return bad("not_an_object", "La campagna deve essere un oggetto");
   let version = document.schemaVersion === undefined ? 0 : document.schemaVersion;
   if(!Number.isSafeInteger(version) || version < 0)
@@ -244,11 +245,20 @@ export function migrateCampaignDocument(document){
 
   const fromVersion = version;
   while(version < CURRENT_CAMPAIGN_SCHEMA_VERSION){
-    const migration = CAMPAIGN_MIGRATIONS[version];
-    if(!migration)
+    // `version` è già un intero validato, quindi questo lookup non può risalire
+    // la catena dei prototipi — ma il vincolo sta scritto qui invece che dedotto
+    // da tre righe più su, e uno scanner lo vede senza seguire il flusso.
+    if(!Object.prototype.hasOwnProperty.call(migrations, version))
       return bad("missing_migration", `Manca la migrazione dallo schema ${version}`, "$.schemaVersion");
-    migration(document);
-    version = document.schemaVersion;
+    migrations[version](document);
+    // Una migrazione deve AVANZARE la versione. Rileggere dal documento senza
+    // questo vincolo significa fidarsi che ogni migrazione futura scriva un
+    // intero sano e in avanti: quella che non lo fa non è un bug benigno, è un
+    // loop infinito dentro la route PATCH — cioè il server appeso.
+    const next = document.schemaVersion;
+    if(!Number.isSafeInteger(next) || next <= version)
+      return bad("stalled_migration", `La migrazione dallo schema ${version} non ha avanzato la versione`, "$.schemaVersion");
+    version = next;
   }
   return ok(document, {fromVersion, migrated:fromVersion !== version});
 }
