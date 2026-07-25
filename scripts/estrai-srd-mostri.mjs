@@ -50,7 +50,16 @@ function ruoloFont(size, family, color) {
 
 const unescapeXml = s => s.replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&quot;", '"')
   .replaceAll("&apos;", "'").replaceAll("&#34;", '"').replaceAll("&#39;", "'").replaceAll("&amp;", "&");
-const senzaTag = s => unescapeXml(s.replace(/<[^>]+>/g, "")).replace(/­/g, "");
+/* Lo strip dei tag itera fino a punto fisso: una passata sola lascerebbe in
+   piedi un tag ricomposto dai resti di due ("<<i>b>" → "<b>"). Nell'XML di
+   pdftohtml il caso non si presenta, ma il costo è zero e il vincolo diventa
+   dimostrato invece che sperato — l'unescape delle entità arriva DOPO, quindi
+   un "&lt;" letterale del testo non diventa mai un tag da spogliare. */
+const senzaTag = s => {
+  let pulita = s, prima;
+  do { prima = pulita; pulita = pulita.replace(/<[^>]+>/g, ""); } while (pulita !== prima);
+  return unescapeXml(pulita).replace(/­/g, "");
+};
 
 /* --- raccolta dei frammenti in righe, colonna per colonna --- */
 function estraiRighe(xml) {

@@ -42,6 +42,17 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
   (`mostri.js`); azioni bonus e reazioni restano ripiegate in `actions` coi
   marcatori. Verificato: 18/18 in Chromium (ricerca, applica Goblin capo e
   Aboleth, campi in italiano, attribuzione CC-BY, console pulita), `tsc` ok.
+- [ ] **L'estrattore dei mostri non rigenera più: i colori sono confrontati per
+  uguaglianza esatta.** Scoperto il 25 lug 2026 provando a rigenerare: con
+  poppler 26.07 gli stessi inchiostri escono `#8b2321`/`#510000`/`#221f21` dove
+  `ruoloFont` in `scripts/estrai-srd-mostri.mjs` pretende
+  `#88191f`/`#4a0508`/`#231f20` — ogni frammento cade su "corpo" e il bestiario
+  esce **vuoto** (446 byte). È la trappola già risolta nell'estrattore delle
+  regole ("i colori si riconoscono per relazione tra i canali", vedi CLAUDE.md):
+  questo script è nato prima di quella lezione. Il file committato è a posto e
+  non serve rigenerarlo; il fix serve la prossima volta che servirà. La ricetta
+  è portare `ruoloFont` alle relazioni tra canali come `rossoTitolo`/
+  `grigioServizio` di `estrai-srd-regole.mjs`, e riverificare le 331 schede.
 - [x] **Allineare il generatore di dungeon al bestiario italiano** — fatto
   (19 lug 2026). I 334 mostri di `src/lib/dungeon/srd-data.ts` erano il dataset
   5.1 in inglese: ora sono 312 voci coi nomi delle schede italiane 5.2.1 e
