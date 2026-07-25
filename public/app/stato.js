@@ -2,7 +2,8 @@
    condiviso da tutti i moduli, il salvataggio (locale o cloud), le campagne
    multiple e le utilità sull'albero. */
 
-import { uid, node, escapeHtml, sanitizeState, isMarker, snapNode } from "./modello.js";
+import { uid, node, escapeHtml, sanitizeState, isMarker, snapNode,
+         nodeBox, defShape, scalaSopra, SHAPES, SCALA } from "./modello.js";
 import { openAlert, openConfirm, showView } from "./viste.js";
 import {
   readCloudCache,
@@ -704,6 +705,78 @@ export function removeNode(id, cur){
 }
 export function currentNode(){ return findNode(st.path[st.path.length-1]) || st.state.root; }
 export function pathNodes(){ return st.path.map(id=>findNode(id)).filter(Boolean); }
+
+/* ==================== zoom indietro ====================
+   Una campagna non è una città: è più città, in una regione, in un mondo. Verso
+   il basso l'albero è sempre stato infinito (una bolla contiene una mappa che
+   contiene una mappa), verso l'alto no — la radice si fissava alla creazione, e
+   una campagna nata città restava città per sempre. Da qui la si allarga.
+
+   Costa poco perché la radice è un nodo come gli altri: allargare la campagna è
+   metterle un genitore, non cambiare lo schema. Il documento resta
+   `{schemaVersion, root, …}` con la stessa forma, e nessuno degli altri moduli
+   deve sapere che è successo qualcosa.
+
+   La scala del livello nuovo NON si chiede: la dice SCALA_TERRITORIO, un
+   gradino sopra quello attuale. Un menu con quattro voci sarebbe una domanda a
+   cui il DM può rispondere male (un continente dentro una regione) e che
+   comunque si corregge dal pannello, dove la scala della radice è un campo. */
+/* Il segnaposto che un livello nuovo si porta finché il DM non lo rinomina.
+
+   Non è "Nuova regione" perché il titolo della radice È il nome della campagna
+   nell'elenco (doSave qui sopra): chiamarla così farebbe sparire "Guado
+   dell'Airone" dal menu delle campagne, e da lì non la si riconoscerebbe più.
+   Portando dentro il nome di prima l'elenco resta leggibile.
+
+   Ma il prefisso precedente si TOGLIE, sennò tre zoom di fila danno "Mondo di
+   Continente di Nazione di Guado dell'Airone": il nome che conta è quello che
+   il DM ha scritto, non la pila di contenitori che ci sono cresciuti attorno.
+   Chi avesse chiamato una campagna "Regione di Ferro" la vede diventare
+   "Nazione di Ferro", che è comunque la cosa giusta. */
+const PREFISSO_SCALA = new RegExp(`^(?:${SCALA.map(s=>SHAPES[s].label).join("|")}) di `, "i");
+const titoloSopra = (scala, titolo) => {
+  const nome = String(titolo||"").replace(PREFISSO_SCALA, "").trim();
+  return nome ? `${SHAPES[scala].label} di ${nome}` : `${SHAPES[scala].label} senza nome`;
+};
+
+const contieneCondivisi = n => (n.children||[]).some(c => c.shared || contieneCondivisi(c));
+
+export function zoomOut(){
+  if(RO || !st.state) return false;
+  const vecchia = st.state.root;
+  const scala = scalaSopra(vecchia.shape || defShape(vecchia));
+  if(!scala) return false;                 // sopra il mondo non c'è niente: è il capolinea
+
+  /* Da radice a bolla: le serve tutto quello che una radice non aveva. La forma
+     era implicita (defShape), e va scritta ora che qualcuno la disegnerà; la
+     posizione non c'era, e la si mette al centro invece di lasciarla a
+     ensureLayout, che la spedirebbe in cima a un cerchio da 220px per fare
+     spazio a fratelli che non esistono. */
+  vecchia.shape = vecchia.shape || defShape(vecchia);
+  const b = nodeBox(vecchia);
+  vecchia.x = Math.round(-b.w/2/10)*10;
+  vecchia.y = Math.round(-b.h/2/10)*10;
+
+  /* Al tavolo la radice è visibile per costruzione ("la radice c'è sempre: è il
+     contenitore", projectForPlayers in src/lib/share.ts). Scendendo di un
+     gradino smette di esserlo, e senza questa riga i giocatori aprirebbero il
+     link e troverebbero un mondo vuoto al posto di tutto quello che avevano:
+     ciò che sta sotto resta `shared`, ma diventa irraggiungibile. È la stessa
+     catena di contenitori che revealNode risale (tavolo.js), applicata qui
+     all'indietro — e solo se sotto c'era davvero qualcosa di rivelato: in una
+     campagna senza niente al tavolo, rivelare la vecchia radice metterebbe sulla
+     mappa dei giocatori una bolla che il DM non ha mai scelto di mostrare. */
+  if(!vecchia.shared && contieneCondivisi(vecchia)) vecchia.shared = true;
+
+  const su = node(titoloSopra(scala, vecchia.title), "zona");
+  su.shape = scala;
+  su.children = [vecchia];
+  st.state.root = su;
+  st.path = [su.id];                       // si esce guardando il livello nuovo: è quello che si è chiesto
+  clearSel();
+  save();                                  // passa da noteChange: lo zoom indietro si annulla con Ctrl+Z
+  return true;
+}
 
 // Gli onclick inline nei template cercano funzioni globali: i moduli ES non ne
 // creano, quindi le espongo esplicitamente.

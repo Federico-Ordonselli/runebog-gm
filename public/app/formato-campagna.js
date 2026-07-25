@@ -58,7 +58,12 @@ export const CAMPAIGN_LIMITS = Object.freeze({
 
 const NODE_TYPES = new Set(["zona","luogo","quest","encounter","png","token","nota"]);
 const STATUSES = new Set(["","da fare","in corso","fatto"]);
-const SHAPES = new Set(["quartiere","edificio","stanza","piazza","torre"]);
+// I cinque territori più le quattro costruzioni. Questo elenco e SHAPES in
+// modello.js sono la stessa verità vista da due lati (il contratto e il
+// disegno) e un test li impone identici: una forma che l'app sa disegnare ma
+// il validatore non conosce fa rimbalzare con 422 il salvataggio di una
+// campagna legittima, e il DM se ne accorge solo dopo averla costruita.
+const SHAPES = new Set(["mondo","continente","nazione","regione","quartiere","edificio","stanza","piazza","torre"]);
 const EDGE_TYPES = new Set(["strada","bloccata","ponte","segreto","tunnel"]);
 const DOOR_TYPES = new Set(["aperta","chiusa","chiave","segreta"]);
 const IMAGE_MIMES = new Set(["png","jpeg","jpg","webp","gif","avif","svg+xml"]);

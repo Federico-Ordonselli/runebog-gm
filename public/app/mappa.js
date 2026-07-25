@@ -7,9 +7,9 @@ import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeCo
          gridShape, onGrid, snapGrid, snapNode,
          wallShape, wallBox, wallOpening, wallPlan, WALL,
          wallSegsOf, wallSegEnds, newWallSeg, stretchWallSeg,
-         DOOR_TYPES, doorKind, wallLabel } from "./modello.js";
+         DOOR_TYPES, doorKind, wallLabel, shapeType, scalaSopra, scalaDentro } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, pathNodes, RO,
-         clearSel, selectNode, selectWall } from "./stato.js";
+         clearSel, selectNode, selectWall, zoomOut } from "./stato.js";
 import { showView, openConfirm } from "./viste.js";
 import { renderDetail, compressImage } from "./pannello.js";
 import { showCtxFor } from "./menu.js";
@@ -49,6 +49,25 @@ export function renderCrumbs(){
     back.style.marginLeft="auto";
     back.onclick = goUp;
     wrap.appendChild(back);
+  }else if(!RO && scalaSopra(st.state.root.shape || defShape(st.state.root))){
+    /* Sopra la radice non c'è niente da raggiungere: c'è da crearlo. È lo stesso
+       posto di "↩ Su" perché è la stessa domanda — cosa contiene questo? — e
+       tenerli distinti nel testo evita l'unico guaio possibile: premere "su" per
+       abitudine e trovarsi un livello nuovo nella campagna. Sparisce quando la
+       radice è già un mondo (scalaSopra torna null): non si impilano contenitori
+       senza nome sopra il mondo. */
+    const su = document.createElement("button");
+    su.textContent = "⤢ Zoom indietro";
+    su.title = "La campagna è più larga di così: crea il livello che contiene questo";
+    su.style.marginLeft = "auto";
+    su.onclick = ()=>{
+      if(!zoomOut()) return;
+      renderMap();
+      // Il nome è un segnaposto: il cursore ci finisce dentro, come per una
+      // campagna nuova. Il ritardo aspetta che il pannello sia stato riscritto.
+      setTimeout(()=>{ const i=document.querySelector("#detail input"); if(i){ i.focus(); i.select(); } }, 80);
+    };
+    wrap.appendChild(su);
   }
 }
 
@@ -433,19 +452,25 @@ function emptyNodeMarkup(){
     <button class="ep-chip" onclick="addAtCenter('${kind}','${key}')" title="Aggiungi: ${label}">
       <span class="ep-ico ${forma}" style="--c:${colore}"></span>${label}
     </button>`;
-  const bolle = Object.entries(SHAPES).map(([k,s])=>
+  // Due gruppi e non uno, come nella barra in alto: nove forme in fila sarebbero
+  // un muro, e soprattutto territori e costruzioni sono due domande diverse —
+  // "quanto è largo questo pezzo di mondo" e "che cosa ci si costruisce".
+  const forme = terr => Object.entries(SHAPES).filter(([,s])=>!!s.territorio===terr).map(([k,s])=>
     chip("shape", k, s.label, SHAPE_COLORS[k]||"var(--teal)",
          s.circle ? "tondo" : s.diamond ? "rombo" : "quadro")).join("");
   const segnalini = ["quest","encounter","png","nota","token"].map(t=>
     chip("marker", t, TYPES[t].label, TYPES[t].color, "punto")).join("");
   const palette = `<div class="empty-pal">
-    <div class="ep-group"><span class="ep-lab">Bolle</span>${bolle}</div>
+    <div class="ep-group"><span class="ep-lab">Territorio</span>${forme(true)}</div>
+    <div class="ep-group"><span class="ep-lab">Luoghi</span>${forme(false)}</div>
     <div class="ep-group"><span class="ep-lab">Segnalini</span>${segnalini}</div>
   </div>`;
 
   if(st.path.length===1)
     return h("La campagna parte da qui.") +
-           p("Ogni bolla è una zona o un luogo, e dentro può contenere un'altra mappa. Scegli qui, trascina dalla barra in alto, o fai doppio clic sulla tela.") +
+           p("Ogni bolla è un pezzo di mondo o un luogo, e dentro può contenere un'altra mappa: "+
+             "un mondo tiene continenti, una regione tiene città, una città tiene edifici. "+
+             "Se questo livello è già troppo stretto, «⤢ Zoom indietro» qui sopra gli mette un mondo attorno.") +
            palette;
   return h("Questo livello è ancora vuoto.") +
          p("Mettici quello che vuoi: una stanza, una quest, un encounter. Scegli qui, trascina dalla barra in alto, o fai doppio clic sulla tela.") +
@@ -680,7 +705,7 @@ export function addSpatialChild(opts, x, y){
   if(opts.wall) return addWallSeg(x, y, opts.porta);
   let c;
   if(opts.marker) c = node("", opts.marker);
-  else { c = node("", opts.shape==="quartiere" ? "zona" : "luogo"); c.shape = opts.shape; }
+  else { c = node("", shapeType(opts.shape)); c.shape = opts.shape; }
   if(gridShape(c)){
     // Le forme architettoniche nascono già sulla maglia: sono piante in scala
     // (1 quadretto = 1,5 m), non simboli. Le dimensioni diventano esplicite e
@@ -738,9 +763,18 @@ export function deleteWallSeg(id){
   if(st.selectedWallId===id) st.selectedWallId = [...st.multiSelWalls].at(-1) || null;
   save(); renderCanvas(); renderDetail();
 }
+/* Quello che nasce senza che tu abbia scelto una forma — doppio clic sulla tela,
+   ＋ da tastiera — è il gradino sotto il livello in cui sei (scalaDentro in
+   modello.js): dentro un mondo un continente, dentro un edificio una stanza.
+   Prima era una stanza sempre, a ogni livello: si vedeva poco finché il livello
+   più largo era una città, ma dentro un mondo una stanza è una risposta assurda
+   a un doppio clic. */
+export const formaImplicita = () => {
+  const cur = currentNode();
+  return scalaDentro(cur.shape || defShape(cur));
+};
 export function quickAddCenter(){
-  const opts = canEditEdges() ? {shape:"stanza"} : {shape:"quartiere"};
-  addAtCenter(opts.shape ? "shape" : "marker", opts.shape || opts.marker);
+  addAtCenter("shape", formaImplicita());
 }
 /* Crea al centro della vista corrente. La usano i pulsanti dell'empty state:
    lì non c'è un punto scelto dall'utente, quindi il centro è l'unica posizione
@@ -1193,7 +1227,7 @@ export function initMappa(){
           if(lastBgTap && now-lastBgTap.t<finestra && Math.hypot(ev.clientX-lastBgTap.x, ev.clientY-lastBgTap.y)<30){
             lastBgTap = null;
             const pp = planPointXY(ev.clientX, ev.clientY);
-            addSpatialChild(canEditEdges()?{shape:"stanza"}:{shape:"quartiere"}, pp.x, pp.y);
+            addSpatialChild({shape: formaImplicita()}, pp.x, pp.y);
             planDrag = null;
             return;
           }

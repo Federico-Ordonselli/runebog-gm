@@ -39,13 +39,59 @@ export const SHAPES = {
   // li ereditano via nodeBox, e cambiarli sarebbe la migrazione che si è deciso
   // di non fare. Le forme in scala nascono con dimensioni esplicite agganciate
   // (vedi addSpatialChild in mappa.js).
-  quartiere:{label:"Quartiere", w:200, h:140},
+  //
+  // territorio:true = un pezzo di mondo, non una costruzione. Sono elencati dal
+  // più largo al più stretto perché quest'ordine SI VEDE: la palette e i due
+  // menu a tendina della forma leggono Object.entries(SHAPES), e messi così
+  // dichiarano una scala invece di un elenco. Nessuno di loro sta sulla maglia
+  // (una nazione non si misura in quadretti da 1,5 m) né ha muri.
+  mondo:      {label:"Mondo",      w:440, h:300, territorio:true},
+  continente: {label:"Continente", w:380, h:260, territorio:true},
+  nazione:    {label:"Nazione",    w:320, h:220, territorio:true},
+  regione:    {label:"Regione",    w:260, h:180, territorio:true},
+  quartiere:  {label:"Quartiere",  w:200, h:140, territorio:true},
   // walls: true = muri accesi di default, "opt" = muri possibili ma spenti (vedi wallShape)
   edificio: {label:"Edificio",  w:140, h:80,  grid:true, walls:"opt"},
   stanza:   {label:"Stanza",    w:80,  h:80,  grid:true, walls:true},
   piazza:   {label:"Piazza",    w:110, h:110, circle:true, grid:true},
   torre:    {label:"Torre",     w:80,  h:80,  diamond:true}
 };
+
+/* La scala: che cosa contiene che cosa, dal più largo al più stretto. UNA lista
+   sola, letta nei due versi, perché "cosa c'è sopra?" e "cosa nasce dentro?"
+   sono la stessa domanda — e due elenchi si sarebbero contraddetti al primo
+   gradino aggiunto.
+
+   Le due risposte non si CHIEDONO a nessuno, ed è il punto: lo zoom indietro
+   (zoomOut in stato.js) sa già che sopra una regione c'è una nazione, e il
+   doppio clic sulla tela sa già che dentro un mondo si fanno continenti, non
+   stanze. Un menu con sette voci sarebbe una domanda a cui si può rispondere
+   male, per una cosa che la forma del livello dice già.
+
+   Comprende anche edificio e stanza: sotto un quartiere si costruisce, e la
+   catena non ha ragione di interrompersi dove cambia il genere di cosa.
+   Piazza e torre restano fuori: non sono un gradino, sono due modi di essere
+   un luogo, e infilarle nella lista avrebbe voluto dire scegliere se una
+   piazza sta sopra o sotto una torre — che non vuol dire niente. */
+export const SCALA = ["mondo","continente","nazione","regione","quartiere","edificio","stanza"];
+export function scalaSopra(shape){
+  const i = SCALA.indexOf(shape);
+  // Fuori dalla scala (una piazza, una torre, una radice importata strana):
+  // sopra un posto ci sta il primo territorio, non il vuoto.
+  if(i < 0) return "quartiere";
+  return i === 0 ? null : SCALA[i-1];   // sopra il mondo non c'è niente: è il capolinea
+}
+export function scalaDentro(shape){
+  const i = SCALA.indexOf(shape);
+  // Sotto la stanza non si scende, e dentro una piazza o una torre si fanno
+  // stanze: è quello che il doppio clic faceva già prima della scala.
+  if(i < 0) return "stanza";
+  return SCALA[i+1] || "stanza";
+}
+/* Il tipo di bolla che nasce da una forma. Era il confronto letterale
+   `shape==="quartiere"` dentro addSpatialChild: con cinque territori doveva
+   smettere di essere una stringa scritta a mano in un altro modulo. */
+export const shapeType = shape => SHAPES[shape]?.territorio ? "zona" : "luogo";
 export const gridShape = n => !isMarker(n) && !!SHAPES[n.shape || defShape(n)]?.grid;
 
 /* Sulla maglia ci si sta in due modi, perché sono due cose diverse.
@@ -278,6 +324,16 @@ export function stretchWallSeg(w, capo, px, py){
    quartiere, stanza e piazza diventavano tre aranci. --track resta sabbia
    pallida ovunque, e con l'arancio della piazza non si confonde. */
 export const SHAPE_COLORS = {
+  /* I cinque territori hanno UN colore solo, ed è voluto: il colore dice che
+     cosa è una bolla (un pezzo di mondo, non una costruzione), a dire quanto è
+     grande sono il nome e la dimensione. Cinque verdi diversi avrebbero voluto
+     dire quattro token nuovi da far reggere in tutti e cinque i temi per
+     distinguere cose che non si incontrano quasi mai sulla stessa mappa —
+     dentro un continente ci sono nazioni, non una nazione e un quartiere. */
+  mondo:     "var(--fen)",
+  continente:"var(--fen)",
+  nazione:   "var(--fen)",
+  regione:   "var(--fen)",
   quartiere:"var(--fen)",
   edificio: "var(--teal)",
   stanza:   "var(--track)",

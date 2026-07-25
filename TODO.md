@@ -1556,3 +1556,66 @@ Dal report UX del 15 lug 2026 (`.impeccable/critique/`, baseline 29/40), in ordi
   "Incolla dungeon" / "Da file…". Il dungeon diventa una bolla `luogo` con stanze posizionate,
   corridoi come sfondo pianta + archi tunnel, incontri con `foes` per il tracking PF,
   e i PG di `state.players` come token trascinabili all'ingresso (schema export `1.1`).
+
+## La scala della campagna
+
+Una campagna non è una città: è più città, in una regione, in un mondo. Verso il
+basso l'albero è sempre stato infinito (una bolla contiene una mappa che contiene
+una mappa) e più città si potevano già fare oggi, mettendone cinque nella radice —
+a mancare erano il **vocabolario**, che si fermava a `quartiere`, e la
+possibilità di salire **sopra** la radice, che si fissava alla creazione.
+
+- [x] **Zoom indietro: regioni, nazioni, continenti, mondi** — fatto (25 lug 2026).
+  Nuova scala `SCALA` in `modello.js` (`mondo › continente › nazione › regione ›
+  quartiere › edificio › stanza`), letta nei due versi da `scalaSopra` e
+  `scalaDentro`. Costa poco perché **la radice è un nodo come gli altri**:
+  `zoomOut()` (`stato.js`) le mette un genitore e riassegna `state.root`, il
+  documento resta `{schemaVersion, root, …}` con la stessa forma e nessun altro
+  modulo si accorge di niente — nessuna migrazione, nessun campo nuovo.
+  Il bottone «⤢ Zoom indietro» sta nel posto di «↩ Su» (stessa domanda: cosa
+  contiene questo?) ma con un testo diverso, perché premere "su" per abitudine
+  non deve creare un livello; sparisce quando la radice è già un mondo.
+  Quattro decisioni che sono guardie, tutte in `CLAUDE.md`:
+  - **Una lista sola**, non due: un test impone che `scalaDentro` sia l'inversa
+    di `scalaSopra`, sennò al primo gradino aggiunto i due elenchi divergono.
+  - **Non si chiede niente al DM** (né la scala del livello nuovo né quella del
+    doppio clic): un menu di sette voci è una domanda a cui si può rispondere
+    male, per una cosa che la forma del livello dice già. Si corregge dal campo
+    **Scala** del pannello, visibile solo sulla radice.
+  - **La vecchia radice eredita `shared`** se sotto aveva qualcosa di rivelato:
+    al tavolo la radice è visibile per costruzione, e scendendo di un gradino
+    smetteva di esserlo — i giocatori avrebbero trovato un mondo vuoto al posto
+    di tutto. È la catena di `revealNode` applicata all'indietro.
+  - Il titolo nuovo porta dentro quello vecchio e **toglie il prefisso
+    precedente**: il titolo della radice è il nome della campagna nell'elenco, e
+    senza lo strip tre zoom davano "Mondo di Continente di Nazione di X" (visto
+    davvero nella prima verifica in Chromium).
+  Corretto per la stessa ragione il doppio clic sulla tela: creava una `stanza` a
+  **ogni** livello (`canEditEdges()` è `() => true` da sempre, quindi il ramo
+  `quartiere` era morto), e dentro un mondo è una risposta assurda. Ora crea il
+  gradino sotto il livello corrente (`formaImplicita` in `mappa.js`).
+  Test: `test/scala/` (8 casi) — percorribilità della catena nei due versi,
+  capolinea al mondo e alla stanza, forme fuori scala, e l'accordo fra `SHAPES`
+  e la whitelist del contratto, interrogata validando un documento vero.
+  Verifica in Chromium: cinque zoom fino al mondo, rinomina col fuoco già nel
+  campo, discesa fino alla città di partenza intatta, Ctrl+Z che disfa, zero
+  errori in console.
+
+Cosa **resta** da fare, misurato:
+
+- **La barra della palette è più larga di prima**: 2368px di `scrollWidth` a
+  390px di viewport (erano ~1900). Il problema è preesistente e dichiarato in
+  `mappa.js` (sotto i 760px la scrollbar è nascosta, quindi metà palette è
+  invisibile), ma cinque territori l'hanno peggiorato di circa un quarto. Le
+  mitigazioni ci sono già — la palette del livello vuoto e il "tocca e poi
+  posa" — ma su telefono la barra andrebbe ripensata, non allungata ancora.
+- **Nella palette del livello vuoto i cinque territori sono cinque quadrati
+  identici**: `chip()` in `emptyNodeMarkup` conosce solo tondo/rombo/quadro,
+  mentre la barra in alto ha un'icona per forma (globo, costa, confine,
+  tratteggio, pieno). Non è sbagliato — lì a distinguere sono l'etichetta e il
+  gruppo — ma è un'occasione persa di far vedere la scala.
+- **Niente vieta un mondo dentro una stanza**: il menu "Forma sulla pianta" di
+  una bolla figlia elenca tutte e nove le forme. Non fa danno (un mondo è una
+  bolla come un'altra) e un vincolo gerarchico vero sarebbe una gabbia in un
+  editor che vive di alberi liberi — ma se un giorno desse fastidio, il posto è
+  `shapeOpts` in `pannello.js`.

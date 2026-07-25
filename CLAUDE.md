@@ -20,7 +20,7 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
 ```bash
 npm run dev          # sviluppo su http://localhost:3000 (serve .env, vedi .env.example)
 npx tsc --noEmit     # typecheck — è il controllo principale, non c'è ESLint
-npm test             # test puri con node:test (test/{strumenti,sync,formato-campagna,critici})
+npm test             # test puri con node:test (test/{strumenti,sync,formato-campagna,dungeon,scala,critici})
 npm run build        # build di produzione (fa anche typecheck)
 ```
 
@@ -29,7 +29,8 @@ coprono il gestore degli strumenti mappa e la geometria del righello
 (`test/strumenti/`), il formato della cache cloud e la classificazione dei
 conflitti (`test/sync/`), il contratto del documento campagna
 (`test/formato-campagna/`), le pareti che l'import del dungeon costruisce
-(`test/dungeon/`), più gli **invarianti critici** (`test/critici/`):
+(`test/dungeon/`), la scala della campagna e l'accordo fra le due liste di forme
+(`test/scala/`), più gli **invarianti critici** (`test/critici/`):
 `jsonForScript`, la proiezione del tavolo come whitelist (segreti marcati che non
 devono comparire nel JSON, nemmeno da campi futuri), `sanitizeState`, determinismo
 e coerenza del generatore di dungeon. Questi ultimi importano `share.ts`,
@@ -160,6 +161,56 @@ ne copiano nome e PF: c'è un solo numero per creatura, letto alla fonte a ogni 
 La griglia è quella che c'era già — `CELL` (40px, 1 quadretto = 1,5 m) è definita una
 sola volta in `modello.js`: `battaglia.js` la riesporta, il pattern `#grid` in `mappa.js`
 e `DG_SCALE` in `dungeon.js` la importano.
+
+**La scala della campagna** (`SCALA`, `scalaSopra`, `scalaDentro` in `modello.js`,
+25 lug 2026): `mondo › continente › nazione › regione › quartiere › edificio ›
+stanza`. Verso il basso l'albero è sempre stato infinito — una bolla contiene una
+mappa che contiene una mappa — ma il vocabolario si fermava a `quartiere` e la
+radice si fissava alla creazione: una campagna nata città restava città, e per
+allargarla bisognava esportare il JSON e riscriverlo a mano.
+
+- **Allargare la campagna non è un cambio di schema**: la radice è un nodo come
+  gli altri, quindi lo zoom indietro (`zoomOut` in `stato.js`) le mette un
+  genitore e riassegna `state.root`. Il documento resta `{schemaVersion, root, …}`
+  con la stessa forma e nessun altro modulo si accorge di niente.
+- **UNA lista letta nei due versi**, non due elenchi: "cosa c'è sopra?" e "cosa
+  nasce dentro?" sono la stessa domanda, e un test impone che `scalaDentro` sia
+  l'inversa di `scalaSopra`. Sopra `mondo` non c'è niente (`null`), ed è quello
+  che spegne il bottone invece di impilare contenitori senza nome; sotto `stanza`
+  non si scende. Piazza e torre restano **fuori**: non sono un gradino, e
+  metterle nella lista avrebbe voluto dire decidere se una piazza sta sopra o
+  sotto una torre.
+- **Nessuna delle due risposte si chiede al DM.** Lo zoom indietro sa già che
+  sopra una regione c'è una nazione; il doppio clic sulla tela crea il gradino
+  sotto il livello corrente (`formaImplicita` in `mappa.js`) — prima creava una
+  stanza a ogni livello, che dentro un mondo è una risposta assurda. Si corregge
+  dal campo **Scala** del pannello, che è visibile solo sulla radice: lì la forma
+  non è "come la disegno" (nessuno disegna la radice: ci si è dentro) ma "quanto
+  è larga la campagna".
+- **La vecchia radice eredita `shared`** se sotto aveva qualcosa di rivelato.
+  Al tavolo la radice è visibile per costruzione (`projectForPlayers` in
+  `share.ts`: "è il contenitore"); scendendo di un gradino smette di esserlo, e
+  senza quella riga i giocatori troverebbero un mondo vuoto al posto di tutto
+  quello che avevano — è la catena di contenitori di `revealNode` (`tavolo.js`)
+  applicata all'indietro. Solo se c'era qualcosa da vedere: rivelare una radice
+  sotto cui non è mai stato condiviso niente metterebbe al tavolo una bolla che
+  il DM non ha scelto di mostrare.
+- Il titolo del livello nuovo è un segnaposto che **porta dentro il nome di
+  prima** (`Regione di Guado dell'Airone`) e ne toglie il prefisso precedente: il
+  titolo della radice **è** il nome della campagna nell'elenco, quindi "Nuova
+  regione" la farebbe sparire dal menu, e senza lo strip tre zoom danno "Mondo di
+  Continente di Nazione di X".
+- `territorio:true` in `SHAPES` è ciò che rende una forma una `zona` invece di un
+  `luogo` (`shapeType`, letto da `addSpatialChild`): era il confronto letterale
+  `shape==="quartiere"` dentro `mappa.js`. I cinque territori hanno **un colore
+  solo**: il colore dice che cosa è una bolla, a dire quanto è grande sono il
+  nome e la dimensione.
+- L'elenco delle forme è in **due posti** — `SHAPES` (`modello.js`) e la whitelist
+  del contratto (`formato-campagna.js`) — e `test/scala/` impone che coincidano:
+  una forma che l'app disegna ma il validatore non conosce fa rimbalzare con 422
+  il salvataggio di una campagna legittima, e il DM lo scopre dopo averla
+  costruita. La palette in `app.html` va allineata a mano; quella del livello
+  vuoto (`emptyNodeMarkup`) si genera da `SHAPES`.
 
 **Chi sta sulla maglia, e come** (`onGrid`/`snapNode` in `modello.js`, l'unico
 posto che lo decide). Ci si sta in due modi, perché sono due cose diverse:

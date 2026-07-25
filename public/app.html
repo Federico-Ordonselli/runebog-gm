@@ -90,8 +90,21 @@
         <!-- tabindex/role/aria-pressed: la palette si usa anche da tastiera.
              Invio o Spazio piazzano al centro della vista (il flusso "arma e
              tocca" resta per mouse e touch); aria-pressed segnala l'armamento. -->
-        <span class="pal-title">Bolle:</span>
+        <!-- I cinque territori sono una SCALA, e stanno in quest'ordine perché
+             l'ordine si legge: dal mondo al quartiere è lo stesso verso in cui
+             si zooma dentro. Il contorno si fa più definito scendendo (mondo e
+             continente hanno una costa, un quartiere ha dei bordi disegnati):
+             è la differenza vera fra le due estremità della scala.
+             Le forme e i colori vengono da SHAPES/SHAPE_COLORS in modello.js —
+             qui vanno tenuti allineati a mano, ma la palette del livello vuoto
+             (emptyNodeMarkup in mappa.js) li genera da lì. -->
+        <span class="pal-title">Territorio:</span>
+        <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"mondo"}'><svg width="20" height="18" aria-hidden="true"><circle cx="9" cy="9" r="7.5" fill="none" style="stroke:var(--fen)" stroke-width="2"/><ellipse cx="9" cy="9" rx="3" ry="7.5" fill="none" style="stroke:var(--fen)" stroke-width="1.5"/></svg>Mondo</div>
+        <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"continente"}'><svg width="22" height="18" aria-hidden="true"><polygon points="3,7 8,2 15,3 19,8 16,15 8,16 4,12" fill="none" style="stroke:var(--fen)" stroke-width="2" stroke-linejoin="round"/></svg>Continente</div>
+        <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"nazione"}'><svg width="24" height="18" aria-hidden="true"><rect x="1" y="2" width="22" height="14" rx="3" fill="none" style="stroke:var(--fen)" stroke-width="2"/><line x1="10" y1="2" x2="14" y2="16" style="stroke:var(--fen)" stroke-width="1.5" stroke-dasharray="2 2"/></svg>Nazione</div>
+        <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"regione"}'><svg width="26" height="18" aria-hidden="true"><rect x="1" y="1" width="24" height="16" rx="5" fill="none" style="stroke:var(--fen)" stroke-width="2" stroke-dasharray="4 3"/></svg>Regione</div>
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"quartiere"}'><svg width="26" height="18" aria-hidden="true"><rect x="1" y="1" width="24" height="16" rx="3" fill="none" style="stroke:var(--fen)" stroke-width="2"/></svg>Quartiere</div>
+        <span class="pal-title" style="margin-left:6px">Luoghi:</span>
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"edificio"}'><svg width="24" height="18" aria-hidden="true"><rect x="2" y="3" width="20" height="12" rx="2" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Edificio</div>
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"stanza"}'><svg width="18" height="18" aria-hidden="true"><rect x="2" y="2" width="14" height="14" rx="2" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Stanza</div>
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"piazza"}'><svg width="18" height="18" aria-hidden="true"><circle cx="9" cy="9" r="7" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Piazza</div>

@@ -194,6 +194,14 @@ function renderDetailCore(){
     .map(s=>`<option value="${s}" ${s===n.status?"selected":""}>${s||"—"}</option>`).join("");
   const shapeOpts = Object.entries(SHAPES)
     .map(([k,v])=>`<option value="${k}" ${(n.shape||defShape(n))===k?"selected":""}>${v.label}</option>`).join("");
+  /* La radice non ha una "forma sulla pianta" — nessuno la disegna: si è dentro.
+     Ha però una SCALA, ed è un dato vero da quando la campagna può crescere
+     verso l'alto: è lei a dire cosa crea lo zoom indietro (SCALA_TERRITORIO in
+     modello.js), ed è l'unico modo di dichiarare che una campagna comincia già
+     mondo senza doverci arrivare a gradini. Solo territori: una radice
+     "stanza" direbbe che la campagna intera è una stanza. */
+  const scalaOpts = Object.entries(SHAPES).filter(([,v])=>v.territorio)
+    .map(([k,v])=>`<option value="${k}" ${(n.shape||defShape(n))===k?"selected":""}>${v.label}</option>`).join("");
 
   const childRows = n.children.map(c=>{
     const cc = nodeColor(c);
@@ -226,6 +234,11 @@ function renderDetailCore(){
       <div class="field"><label>Stato</label>
         <select onchange="editNode('${n.id}','status',this.value)">${statusOpts}</select></div>
     </div>
+
+    ${isRoot && !isMarker(n) ? `<div class="field"><label>Scala</label>
+      <select onchange="editNode('${n.id}','shape',this.value)">${scalaOpts}</select>
+      <p class="hint-sm">Quanto è larga la campagna, e cosa crea lo zoom indietro:
+        il gradino subito sopra questo. Un mondo non ha niente sopra.</p></div>` : ""}
 
     ${!isMarker(n) && !isRoot ? `<div class="field"><label>Forma sulla pianta</label>
       <select onchange="editNode('${n.id}','shape',this.value)">${shapeOpts}</select></div>
