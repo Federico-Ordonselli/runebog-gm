@@ -345,7 +345,7 @@ function doorOpenings(cur){
       if(!wallShape(n)) continue;
       const o = wallOpening(wallBox(nodeBox(n)), Q.x-P.x, Q.y-P.y);
       if(!o) continue;
-      o.secret = !!t.dmOnly;              // un passaggio segreto non buca il muro
+      o.dmOnly = !!t.dmOnly;              // un passaggio segreto non buca il muro
       if(!map.has(n.id)) map.set(n.id, []);
       map.get(n.id).push(o);
     }

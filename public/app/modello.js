@@ -160,7 +160,7 @@ export function wallPlan(box, openings){
     const bordo = Math.min(WALL, len/2);
     const gaps = [];
     for(const o of openings){
-      if(o.side !== s || o.secret) continue;
+      if(o.side !== s || o.dmOnly) continue;
       const w = Math.min(DOOR, len - 2*bordo);
       if(w <= 0) continue;                            // lato troppo corto: resta pieno
       const a = Math.max(bordo, Math.min(len - bordo - w, o.pos - w/2));
@@ -184,7 +184,7 @@ export function wallPlan(box, openings){
     if(cur < len) runs.push(wallSeg(wb, s, cur, len, len));
   }
   for(const o of openings){
-    if(!o.secret) continue;
+    if(!o.dmOnly) continue;
     const len = sideLen(wb, o.side), w = Math.min(DOOR*0.7, len);
     const a = Math.max(0, Math.min(len - w, o.pos - w/2));
     marks.push(wallSeg(wb, o.side, a, a + w, len, true));
