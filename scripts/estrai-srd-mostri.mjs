@@ -38,14 +38,52 @@ const xmlIntervalli = INTERVALLI.map(([f, l], i) => {
 });
 rmSync(tmp, { recursive: true, force: true });
 
-/* --- classificazione dei font: (taglia, colore) → ruolo --- */
+/* --- classificazione dei font: (taglia, colore) → ruolo ---
+
+   I colori NON si confrontano per uguaglianza (stessa lezione di
+   estrai-srd-regole.mjs): il codice esatto dipende da come poppler quantizza,
+   non dal documento — lo stesso inchiostro è uscito #88191f/#4a0508/#5a5757/
+   #231f20 con la resa di luglio 2026 e #8b2321/#510000/#616366/#221f21 con
+   poppler 26.07, e con le costanti sbagliate OGNI frammento cadeva su "corpo":
+   bestiario vuoto, senza un errore. Si riconoscono per relazione tra i canali,
+   che sopravvive alla quantizzazione. Le cinque famiglie stanno su fasce
+   disgiunte, misurate sull'intero corpus (pp. 282, 294–405):
+
+   - grigio di servizio (piè di pagina, "MOD SALV"): canali vicini e CHIARI;
+   - grigio della riga tipo/taglia: canali vicini, fascia media — sotto c'è
+     solo il quasi-nero del corpo, che resta il ripiego;
+   - rosso dei titoli: r medio-alto, verde e blu bassi e tra loro vicini
+     (identico a rossoTitolo delle regole);
+   - rosso scurissimo di statistiche e tabella caratteristiche: r basso,
+     verde e blu quasi nulli — è il #510000 che rossoTitolo esclude apposta. */
+const canali = col => {
+  const m = /^#(\w{2})(\w{2})(\w{2})$/.exec(col);
+  return m && m.slice(1).map(h => parseInt(h, 16));
+};
+const grigioServizio = col => {
+  const c = canali(col);
+  return !!c && Math.max(...c) - Math.min(...c) <= 0x10 && Math.min(...c) >= 0x70;
+};
+const grigioTipo = col => {
+  const c = canali(col);
+  return !!c && Math.max(...c) - Math.min(...c) <= 0x10 && Math.min(...c) >= 0x40 && Math.min(...c) < 0x70;
+};
+const rossoTitolo = col => {
+  const c = canali(col);
+  return !!c && c[0] >= 0x60 && c[0] <= 0xb0 && c[1] < c[0] - 0x50 && c[2] < c[0] - 0x50 && Math.abs(c[1] - c[2]) <= 0x20;
+};
+const rossoStat = col => {
+  const c = canali(col);
+  return !!c && c[0] >= 0x30 && c[0] < 0x60 && c[1] <= 0x10 && c[2] <= 0x10;
+};
+
 function ruoloFont(size, family, color) {
-  if (color === "#7b7879" || color === "#8b8989") return "scarta";      // piè di pagina, "MOD SALV"
-  if (family.includes("Cambria")) return "scarta";                      // prosa del capitolo Oggetti magici
-  if (color === "#88191f") return size >= 26 ? "intestazione" : size >= 21 ? "titolo" : "sezione";
-  if (color === "#5a5757") return "tipo";
-  if (color === "#4a0508") return family.includes("GillSans") ? "tabella" : "stat";
-  return "corpo";                                                        // Optima #231f20
+  if (grigioServizio(color)) return "scarta";                            // piè di pagina, "MOD SALV"
+  if (family.includes("Cambria")) return "scarta";                       // prosa del capitolo Oggetti magici
+  if (rossoTitolo(color)) return size >= 26 ? "intestazione" : size >= 21 ? "titolo" : "sezione";
+  if (grigioTipo(color)) return "tipo";
+  if (rossoStat(color)) return family.includes("GillSans") ? "tabella" : "stat";
+  return "corpo";                                                        // il quasi-nero dell'Optima
 }
 
 const unescapeXml = s => s.replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&quot;", '"')
