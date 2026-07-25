@@ -10,6 +10,10 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# La CI legge il codice e basta: il token non deve poter scrivere niente.
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
