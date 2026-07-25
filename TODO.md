@@ -938,6 +938,38 @@ La maglia esiste già ed è una sola — `CELL` 40px = 1 quadretto = 1,5 m (5 pi
 identica tra pattern `#grid` in `mappa.js`, battaglia e `DG_SCALE` in `dungeon.js` —
 ma oggi le bolle non la rispettano: sono simboli, non piante.
 
+- [x] **Le stanze del generatore nascono con le pareti** — fatto (25 lug 2026).
+  Il dungeon importato aveva le stanze come rettangoli colorati col perimetro
+  *derivato*: si legge a colpo d'occhio ma non ci si gioca sopra, perché le
+  porte stanno dove passa il raggio centro→centro di un arco e non dove il
+  generatore ha messo la soglia. Ora l'import costruisce **muri veri**
+  (`public/app/dungeon-muri.js`, chiamato da `dungeon.js`) sul nodo del livello
+  — la bolla-dungeon — e spegne il perimetro derivato delle stanze
+  (`rn.walls = false`), sennò sarebbero due piante della stessa stanza a 5px
+  l'una dall'altra. Le porte sono le celle `3` della griglia, un quadretto
+  l'una, `porta:"chiusa"` come quella della palette; il quadrato d'oro che le
+  segnava nello sfondo è stato tolto (stava sulla cella di corridoio, cioè
+  accanto alla porta vera: due segni per una porta sola).
+  **Derivate all'import e non emesse dal motore**: la griglia dice già dove sono
+  le pareti, quindi un campo nuovo vorrebbe uno schema nuovo, due verità da
+  allineare, e lascerebbe senza muri ogni export già salvato — così invece anche
+  un JSON di giugno nasce murato. Misurato: 44 muri per un dungeon da 6 stanze,
+  122 per uno da 16 (il massimo che la UI concede), contro i 3000 di
+  `wallsPerNode`.
+  **Guasto trovato mentre si verificava, non dopo**: renderizzando l'output di
+  un seed a caso (20260725, 11 stanze) una stanza usciva *sigillata*. Il motore
+  marca le celle `3` guardando dalla cella di corridoio e si ferma alla prima
+  stanza che tocca, quindi una soglia stretta fra due stanze finisce a una sola
+  e l'altra resta murata pur avendo il corridoio addosso — col perimetro
+  derivato non si vedeva, perché le porte venivano dagli archi. `apriUnPassaggio`
+  promuove la prima cella di corridoio adiacente, una sola. Test nuovi in
+  `test/dungeon/` (13, geometria pura più il giro completo col motore vero su 78
+  dungeon: muri sulla maglia, porte da un quadretto, nessuna stanza sigillata,
+  totale sotto il limite del formato); `tsc` e `npm test` (89) ok.
+  Resta da provare a mano in Chromium: l'import dagli appunti e da file, i muri
+  che si selezionano e si trascinano come quelli posati a mano, e il tavolo con
+  la bolla-dungeon condivisa.
+
 - [x] **Muri per le stanze** — fatto (19 lug 2026). Il muro è il perimetro
   spezzato dalle porte (`wallPlan` in `public/app/modello.js`, disegno in
   `shapeMarkup`/`wallsMarkup` di `mappa.js`, tinte in `app.css`), e **le porte

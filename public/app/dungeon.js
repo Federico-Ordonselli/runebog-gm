@@ -1,11 +1,13 @@
 /* Import dal generatore di dungeon.
    L'export di /dungeon (runebog-dungeon-generator) diventa una bolla nel livello
    corrente: le stanze sono blocchi alle coordinate vere della griglia (1 quadrato
-   = 40px, la stessa maglia del canvas), i corridoi sono lo sfondo della pianta più
-   archi "tunnel", gli incontri sono nodi encounter coi nemici già contati, e i PG
-   di state.players entrano come pedine trascinabili nella stanza d'ingresso. */
+   = 40px, la stessa maglia del canvas) con le loro PARETI vere attorno (muri
+   liberi, vedi dungeon-muri.js), i corridoi sono lo sfondo della pianta più archi
+   "tunnel", gli incontri sono nodi encounter coi nemici già contati, e i PG di
+   state.players entrano come pedine trascinabili nella stanza d'ingresso. */
 
 import { node, uid, NODE_COLORS, MARKER_R, CELL, snapNode } from "./modello.js";
+import { muriDelleStanze } from "./dungeon-muri.js";
 import { st, save, currentNode, RO } from "./stato.js";
 import { enterNode, planFit } from "./mappa.js";
 import { openAlert } from "./viste.js";
@@ -19,10 +21,15 @@ const DG_ROOM_IT = {ingresso:"Ingresso",combattimento:"Combattimento",tesoro:"Te
   enigma:"Enigma",riposo:"Riposo",tana:"Tana",vuota:"Vuota",boss:"Boss"};
 
 function dungeonBgImage(g){
-  // Solo corridoi e porte: le stanze le disegnano i blocchi che ci stanno sopra.
+  // Solo il pavimento dei corridoi: le stanze le disegnano i blocchi che ci
+  // stanno sopra, e le porte sono muri veri sul perimetro delle stanze
+  // (dungeon-muri.js). Il quadrato d'oro che le segnava qui è stato tolto il
+  // 25 lug 2026: stava sulla cella di corridoio, quindi ACCANTO alla porta
+  // disegnata sulla parete — due segni per una porta sola, in due posti diversi.
+  // La cella `3` resta pavimento, che è quello che è.
   // Le corse orizzontali di corridoio si fondono in un rect solo: meno byte in salvataggio.
   const S = DG_SCALE;
-  let rects = "", doors = "";
+  let rects = "";
   for(let y=0; y<g.rows.length; y++){
     const row = g.rows[y];
     let run = -1;
@@ -33,16 +40,13 @@ function dungeonBgImage(g){
         rects += `<rect x="${run*S}" y="${y*S}" width="${(x-run)*S}" height="${S}"/>`;
         run = -1;
       }
-      if(x<row.length && row[x]==="3")
-        doors += `<rect x="${x*S+7}" y="${y*S+7}" width="${S-14}" height="${S-14}"/>`;
     }
   }
   // Hex fissi obbligati: questo SVG diventa un'immagine data-URI (documento a
   // sé), dove i token var(--…) della pagina non esistono. È l'eccezione, non
   // il modello: nel DOM della pagina i colori passano dai token del tema.
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${g.width*S} ${g.height*S}">`
-    + `<g fill="#8a8f98" fill-opacity="0.45">${rects}</g>`
-    + `<g fill="#d8b25a" fill-opacity="0.9">${doors}</g></svg>`;
+    + `<g fill="#8a8f98" fill-opacity="0.45">${rects}</g></svg>`;
   return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
 }
 
@@ -94,6 +98,13 @@ function dungeonFromExport(data){
     rn.shape = "stanza";
     rn.x = r.rect.x*S; rn.y = r.rect.y*S;
     rn.w = r.rect.w*S; rn.h = r.rect.h*S;
+    // Perimetro derivato SPENTO: adesso le pareti sono muri veri (sotto), e i
+    // due non si sommano. Quello corre 5px dentro la sagoma — due linee
+    // parallele a mezzo quadretto l'una dall'altra — e apre le porte dove passa
+    // il raggio centro→centro di un arco, cioè quasi mai dove sta la porta del
+    // dungeon: sarebbero due piante diverse della stessa stanza. La casella nel
+    // pannello resta, se il DM cancella i muri e vuole indietro la sagoma.
+    rn.walls = false;
     rn.notes = dungeonRoomNotes(r);
     if(r.type==="ingresso" && !entrance) entrance = r;
     idmap[r.id] = rn.id;
@@ -121,6 +132,11 @@ function dungeonFromExport(data){
     }
     dg.children.push(rn);
   }
+
+  /* Le pareti stanno sul nodo del LIVELLO, non nelle bolle stanza: i muri liberi
+     sono il pavimento di un livello e le coordinate delle stanze sono già in
+     questo spazio, quindi combaciano al pixel senza conversioni. */
+  dg.wallSegs = muriDelleStanze(data.grid.rows, data.rooms.map(r=>r && r.rect));
 
   for(const [a,b] of (data.connections||[])){
     if(idmap[a] && idmap[b])

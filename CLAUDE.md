@@ -28,7 +28,8 @@ I test sono pochi e **puri** (`node --test`, nessuna dipendenza, nessun DOM): og
 coprono il gestore degli strumenti mappa e la geometria del righello
 (`test/strumenti/`), il formato della cache cloud e la classificazione dei
 conflitti (`test/sync/`), il contratto del documento campagna
-(`test/formato-campagna/`), più gli **invarianti critici** (`test/critici/`):
+(`test/formato-campagna/`), le pareti che l'import del dungeon costruisce
+(`test/dungeon/`), più gli **invarianti critici** (`test/critici/`):
 `jsonForScript`, la proiezione del tavolo come whitelist (segreti marcati che non
 devono comparire nel JSON, nemmeno da campi futuri), `sanitizeState`, determinismo
 e coerenza del generatore di dungeon. Questi ultimi importano `share.ts`,
@@ -339,6 +340,28 @@ I nomi dei mostri in `srd-data.ts` DEVONO combaciare con le schede italiane di
 (`statblockSRD()` in `mostri.js`, la stessa ricetta del bestiario) — gli export
 legacy in inglese passano dalla mappa `public/app/dungeon-nomi.js`. Il motore
 sceglie i mostri per tag e GS, mai per nome: rinominare è sicuro, disallineare no.
+
+Le stanze importate portano le loro **pareti vere** (`public/app/dungeon-muri.js`,
+25 lug 2026): muri liberi sul nodo del livello — cioè sulla bolla-dungeon, che è
+il livello dove stanno le stanze — e non il perimetro derivato, che infatti
+`dungeon.js` spegne (`rn.walls = false`). I due non si sommano: quello corre 5px
+dentro la sagoma e apre le porte dove passa il raggio centro→centro di un arco,
+cioè quasi mai dove sta la porta del dungeon. Sono **derivate all'import** dalla
+griglia dell'export (celle `3`), non emesse dal motore: un campo nuovo vorrebbe
+uno schema nuovo e due verità da allineare, e lascerebbe senza muri ogni export
+già salvato. Sono ~122 muri per un dungeon da 16 stanze, il massimo che la UI
+concede, contro i 3000 di `wallsPerNode`. Due cose che sono guardie:
+
+- **Una stanza sigillata non fallisce niente**: sembra funzionare finché
+  qualcuno non prova a entrarci. Capita perché il motore marca le celle `3`
+  guardando DALLA cella di corridoio e si ferma alla prima stanza che tocca —
+  una soglia stretta fra due stanze finisce a una sola. Col perimetro derivato
+  non si vedeva (le porte venivano dagli archi, che ci sono sempre); con le
+  pareti vere è un muro pieno. `apriUnPassaggio` promuove la prima cella di
+  corridoio adiacente, e un test lo impone su 78 dungeon.
+- Il quadrato d'oro che segnava le porte nello **sfondo** è stato tolto: stava
+  sulla cella di corridoio, cioè accanto alla porta disegnata sulla parete —
+  due segni per una porta sola, in due posti diversi.
 
 **Sezione regole** (`/srd`): i capitoli dell'SRD 5.2.1 in italiano. I JSON di
 `src/lib/srd/capitoli/` sono GENERATI da `scripts/estrai-srd-regole.mjs` (fratello
