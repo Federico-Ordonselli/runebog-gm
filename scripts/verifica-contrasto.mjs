@@ -85,8 +85,14 @@ const COPPIE = [
   ["--ember",          "--surface",     4.5, "distruttivo su pannello"],
   ["--arcane",         "--surface",     4.5, "arcano su pannello"],
   ["--on-ember",       "--ember-deep",  4.5, "testo sul bottone distruttivo"],
-  ["--edge",           "--surface",     3,   "bordo su pannello"],
-  ["--edge-lit",       "--surface",     3,   "bordo acceso su pannello"],
+  /* Il bordo che WCAG 1.4.11 guarda è quello dei COMPONENTI, e da qui passa
+     su entrambe le superfici su cui compare: i bottoni stanno sul pannello
+     (app.css .btn, globals.css .btn), i campi sul fondo incassato (app.css
+     input/textarea/select, globals.css .input). --edge e --edge-soft NON
+     sono qui apposta: sono separatori decorativi, che la norma non copre e
+     che stanno bassi per scelta — una griglia marcata è rumore. */
+  ["--edge-ui",        "--surface",     3,   "bordo dei componenti sul pannello"],
+  ["--edge-ui",        "--peat-sunk",   3,   "bordo dei campi sul fondo incassato"],
   ["--track",          "--peat",        3,   "strada sulla mappa"],
   ["--tunnel",         "--peat",        3,   "tunnel sulla mappa"],
   ["--dg-trap",        "--peat",        3,   "trappola sulla mappa"],

@@ -6,6 +6,10 @@
     --panel:    var(--surface);
     --panel-2:  var(--surface-hi);
     --line:     var(--edge);
+    /* Il contorno di un componente (campo, tendina, bottone) non è la riga che
+       separa due sezioni: quello dice dove finisce la cosa su cui si clicca, e
+       WCAG 1.4.11 gli chiede 3:1. Vedi il commento sui bordi in themes.css. */
+    --line-ui:  var(--edge-ui);
     --ink:      var(--parchment);
     --ink-dim:  var(--parchment-dim);
     --fen:      var(--moss);
@@ -31,7 +35,7 @@
   button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   input,textarea,select{
     font:inherit;color:var(--ink);background:var(--bog-2);
-    border:1px solid var(--line);border-radius:6px;padding:7px 9px;width:100%;
+    border:1px solid var(--line-ui);border-radius:6px;padding:7px 9px;width:100%;
   }
   input:focus,textarea:focus,select:focus,button:focus-visible{outline:2px solid var(--fen-dim);outline-offset:1px}
   textarea{resize:vertical;min-height:90px}
@@ -77,7 +81,7 @@
      regole SRD, che in topbar non ci starebbero (a 1600px avanzano 13px). */
   #topbar-more{display:block}
   .btn{
-    padding:7px 13px;border:1px solid var(--line);border-radius:8px;
+    padding:7px 13px;border:1px solid var(--line-ui);border-radius:8px;
     background:var(--panel);color:var(--ink);font-size:13px;
   }
   .btn:hover{border-color:var(--fen-dim);color:var(--fen)}
@@ -91,7 +95,7 @@
   .btn.primary:hover{background:var(--fen-hov);border-color:var(--fen-hov);color:var(--bog)}
   /* Il distruttivo si dichiara a riposo, non solo all'hover: su touch l'hover
      non esiste e nel confirm "Elimina" era identico ad "Annulla". */
-  .btn.danger{color:var(--ember);border-color:color-mix(in srgb, var(--ember) 35%, var(--line))}
+  .btn.danger{color:var(--ember);border-color:color-mix(in srgb, var(--ember) 35%, var(--line-ui))}
   .btn.danger:hover{border-color:var(--ember);color:var(--ember)}
 
   /* ---------- layout ---------- */

@@ -166,7 +166,9 @@ body {
   gap: 0.5rem;
   padding: 0.7rem 1.15rem;
   border-radius: var(--r-sm);
-  border: 1px solid var(--edge);
+  /* --edge-ui e non --edge: qui il bordo delimita un componente (vedi il
+     commento sui due ruoli in public/themes.css). */
+  border: 1px solid var(--edge-ui);
   background: var(--surface-hi);
   color: var(--parchment);
   font: inherit;
@@ -255,7 +257,7 @@ body {
   margin-top: 0.3rem;
   padding: 0.65rem 0.75rem;
   background: var(--peat-sunk);
-  border: 1px solid var(--edge);
+  border: 1px solid var(--edge-ui);
   border-radius: var(--r-sm);
   color: var(--parchment);
   font: inherit;

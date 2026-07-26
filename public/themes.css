@@ -19,9 +19,18 @@
   --surface-hi:  #1b261f;
   --surface-hov: #22302a;
 
-  /* Bordi */
+  /* Bordi. DUE ruoli, e non è una sfumatura: --edge (e --edge-soft) sono
+     separatori DECORATIVI — righe fra due sezioni, cornici di riquadri — e
+     stanno bassi apposta, perché una griglia marcata è rumore. --edge-ui è
+     il contorno di un COMPONENTE: campi, aree di testo, menu a tendina,
+     bottoni. Lì il bordo non decora, dice dove finisce la cosa su cui si
+     clicca, e WCAG 1.4.11 gli chiede 3:1 — misurato su ENTRAMBE le
+     superfici su cui compare, il pannello (i bottoni) e il fondo dei campi
+     (gli input). Fino al 26 lug 2026 era un token solo, quello decorativo,
+     e i campi erano bordati a 1,3:1 in undici temi su dodici. */
   --edge:        #2a352e;
   --edge-soft:   #1f2a24;
+  --edge-ui:     #636961;
   --edge-lit:    #3d4f43;
 
   /* Testo. --parchment-mute è il colore dei placeholder: deve reggere
@@ -91,6 +100,7 @@
   --edge:        #c7ba9c;
   --edge-soft:   #dccfb2;
   --edge-lit:    #9c8a68;
+  --edge-ui:     #827965;
 
   --parchment:      #2b2620;
   --parchment-dim:  #63543f;
@@ -102,7 +112,11 @@
   --moss-hov:    #245239;
 
   --wisp:        #1d6469;
-  --wisp-lit:    #2a8288;
+  /* Sui temi chiari lo stato "acceso" SCURISCE, come --moss-hov qui sotto:
+     questo era l'unico che schiariva, e il titolo di un capitolo SRD in hover
+     (--wisp-lit su --surface-hov, srd.css) restava a 3,01:1 contro i 4,5 che
+     gli servono. Alba e Inchiostro nascono già nel verso giusto. */
+  --wisp-lit:    #17494e;
 
   --lantern:     #86610f;
 
@@ -137,6 +151,7 @@
   --edge:        #2b3542;
   --edge-soft:   #1f2833;
   --edge-lit:    #43536a;
+  --edge-ui:     #616973;
 
   --parchment:      #e4e7ec;
   --parchment-dim:  #9ba5b3;
@@ -177,6 +192,7 @@
   --edge:        #3d2a20;
   --edge-soft:   #2c1e17;
   --edge-lit:    #614433;
+  --edge-ui:     #746357;
 
   --parchment:      #f0e2d2;
   --parchment-dim:  #b39d88;
@@ -241,6 +257,7 @@
   --edge:        #3a3a3a;
   --edge-soft:   #2a2a2a;
   --edge-lit:    #6e6e6e;
+  --edge-ui:     #676767;
 
   --parchment:      #ffffff;
   --parchment-dim:  #c8c8c8;
@@ -291,6 +308,11 @@
   --edge:        #64748b;
   --edge-soft:   #22354e;
   --edge-lit:    #5c7ba3;
+  /* Lo slate della palette regge già 3,3:1 sul pannello: la proposta lo
+     destinava proprio a testo e bordi, e qui non c'è niente da correggere.
+     Va però DICHIARATO — senza, si eredita quello di Torbiera, che su navy
+     scende a 2,78:1. */
+  --edge-ui:     #64748b;
 
   --parchment:      #f8fafc;
   --parchment-dim:  #bccbdd;
@@ -335,6 +357,7 @@
   --edge:        #c9c9c9;
   --edge-soft:   #e0e0e0;
   --edge-lit:    #8a8a8a;
+  --edge-ui:     #888888;
 
   --parchment:      #1a1a1a;
   --parchment-dim:  #4d4d4d;
@@ -388,6 +411,7 @@
   --edge:        #5c656e;
   --edge-soft:   #3d444b;
   --edge-lit:    #98a2ac;
+  --edge-ui:     #727a82;
 
   --parchment:      #f8f9fa;
   --parchment-dim:  #ced4da;
@@ -434,6 +458,7 @@
   --edge:        #c9b8a4;
   --edge-soft:   #ddcfbd;
   --edge-lit:    #8f7c65;
+  --edge-ui:     #877a6d;
 
   --parchment:      #2c2520;
   --parchment-dim:  #5f5249;
@@ -485,6 +510,7 @@
   --edge:        #3d425a;
   --edge-soft:   #262a3a;
   --edge-lit:    #6b7396;
+  --edge-ui:     #63687d;
 
   --parchment:      #e2e8f0;
   --parchment-dim:  #a8b0c0;
@@ -531,6 +557,7 @@
   --edge:        #55402d;
   --edge-soft:   #33241a;
   --edge-lit:    #8a6a48;
+  --edge-ui:     #7d6843;
 
   --parchment:      #fde68a;
   --parchment-dim:  #cbb46a;
@@ -568,6 +595,9 @@
   --edge:        #767676;
   --edge-soft:   #5a5a5a;
   --edge-lit:    #ffffff;
+  /* Il bordo di questo tema è già sopra soglia (4,4:1): dichiarato per non
+     ereditare quello di Torbiera, più scuro. */
+  --edge-ui:     #767676;
 
   --parchment:      #ffffff;
   --parchment-dim:  #e2e2e2;

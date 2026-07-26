@@ -1699,19 +1699,33 @@ quella schermata.
   Verifica in Chromium: i sette temi aperti sull'app vera, topbar, palette,
   pannello e tela. `npx tsc --noEmit` e i 97 test puliti.
 
+- [x] **I bordi dei componenti passano 3:1** — fatto (26 lug 2026), difetto
+  **preesistente** e non introdotto dalle palette. `--edge` bordava sia i
+  separatori decorativi sia i componenti veri (`input,textarea,select` e `.btn`
+  in `app.css`, `.btn` e `.input` in `globals.css`): a 1,3:1 su Brace, e sotto
+  soglia in undici temi su dodici. WCAG 1.4.11 chiede 3:1 al contorno di un
+  componente, non a una riga divisoria, quindi la correzione è **separare i due
+  ruoli** invece di alzare tutto: alzare `--edge` avrebbe toccato 51 usi, quasi
+  tutti separatori, trasformando in griglia dei temi curati.
+  - Token nuovo `--edge-ui` (alias `--line-ui` nell'app), calcolato tema per
+    tema come il **minimo** che regge 3:1 su entrambe le superfici su cui
+    compare — il pannello per i bottoni, il fondo incassato per i campi. È un
+    bordo, non un tratto di penna.
+  - Due temi passavano già e sono rimasti come sono: Alto contrasto, e Gilda —
+    il cui `--edge` è lo slate della palette proposta, che la destinava proprio
+    a testo e bordi. Vanno comunque **dichiarati**: senza, ereditano
+    `--edge-ui` da `:root`, cioè quello di Torbiera, e Gilda scendeva a 2,78:1.
+    È la trappola da ricordare per ogni token nuovo aggiunto a `:root`.
+  - Corretto insieme l'unico difetto di **testo** che restava: su Pergamena
+    `--wisp-lit` era più chiaro di `--wisp`, unico fra i temi chiari, e il
+    titolo di un capitolo SRD in hover stava a 3,01:1. Sui fondi chiari lo
+    stato "acceso" scurisce, come già fa `--moss-hov`.
+  `npm run temi:contrasto` ora esce **0 coppie sotto soglia** su dodici temi.
+  Verifica in Chromium su Torbiera, Pergamena, Gilda e Alba: i bordi di campi e
+  bottoni si leggono, i separatori restano discreti.
+
 Cosa **resta** da fare, misurato:
 
-- **I bordi sono sotto soglia in undici temi su dodici**: `--edge` su
-  `--surface` sta fra 1,3:1 (Brace) e 2,3:1 (Segnale), e `--edge-lit` fra 2,0 e
-  3,0 — solo Alto contrasto passa. WCAG 1.4.11 chiede 3:1 ai contorni dei
-  **componenti** (campi, bottoni), non ai separatori decorativi, quindi il
-  primo passo è distinguere i due usi in `app.css` e `globals.css`: se `--edge`
-  borda anche gli input, è un difetto vero e va alzato. Difetto **preesistente**,
-  non introdotto dalle palette nuove.
-- **Un difetto vero già misurato**: su Pergamena il titolo di un capitolo SRD in
-  hover (`--wisp-lit` su `--surface-hov`, `srd.css`) sta a 3,01:1 contro i 4,5
-  che gli servono. È l'unica coppia di testo sotto soglia in tutti e dodici i
-  temi.
 - **Il sito non ha un selettore di tema**: la chiave `runebog-theme` è
   condivisa e `layout.tsx` applica quello salvato, ma per cambiarlo bisogna
   passare dall'app. Con dodici temi (e tre chiari) inizia a pesare.

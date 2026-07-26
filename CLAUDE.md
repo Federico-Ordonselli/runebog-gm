@@ -426,6 +426,19 @@ in nessun altro posto.
 - I temi si raggruppano **per fondo** (scuri, chiari, accessibilità): è il criterio
   con cui si sceglie davvero, cioè la luce che si ha in stanza. "Alto contrasto"
   sta per conto suo — è un'esigenza, non un'atmosfera.
+- **Il bordo ha due token e non è una sfumatura**: `--edge`/`--edge-soft` sono
+  separatori **decorativi** (righe fra sezioni, cornici) e stanno bassi apposta,
+  perché una griglia marcata è rumore; `--edge-ui` è il contorno di un
+  **componente** — campi, tendine, bottoni — dove il bordo dice dove finisce la
+  cosa su cui si clicca, e WCAG 1.4.11 gli chiede 3:1. Va misurato su **entrambe**
+  le superfici su cui compare: il pannello (i bottoni) e il fondo incassato (gli
+  input). Nell'app l'alias è `--line-ui`; il verificatore controlla `--edge-ui` e
+  **non** `--edge`, che la norma non copre. Fino al 26 lug 2026 era un token solo,
+  quello decorativo, e i campi erano bordati a 1,3:1 in undici temi su dodici.
+- Un tema che non ridichiara un token **eredita quello di `:root`**, cioè di
+  Torbiera — non il proprio omologo. Gilda ha un `--edge` che passerebbe da sé,
+  ma senza dichiarare anche `--edge-ui` si prendeva quello verde di Torbiera e
+  scendeva a 2,78:1 sul navy. Vale per ogni token nuovo aggiunto a `:root`.
 - **`npm run temi:contrasto` misura tutti i temi insieme** e esce con codice 1 se
   una coppia sta sotto la sua soglia WCAG (4.5:1 sul testo, 3:1 sui contorni). Le
   coppie sono quelle che l'interfaccia usa **davvero**, ognuna trovata nel CSS e
