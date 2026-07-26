@@ -131,7 +131,12 @@
   /* La palette dell'empty state: le stesse scelte della barra in alto, messe
      dove l'occhio è già. Su schermo stretto la barra scorre in orizzontale con
      la scrollbar nascosta, quindi lassù i segnalini non si vedono proprio. */
-  .empty-pal{display:flex;flex-direction:column;gap:8px;align-items:center;max-width:min(560px,90vw)}
+  /* 640 e non 560: da quando le pastiglie portano la sagoma vera (23px invece
+     di un quadratino da 12) i cinque territori non entravano più in una riga, e
+     il quinto andava a capo da solo — ma quei cinque SONO una scala, e una
+     scala si legge in fila. Su schermo stretto comanda il 90vw, dove il ritorno
+     a capo è il comportamento giusto. */
+  .empty-pal{display:flex;flex-direction:column;gap:8px;align-items:center;max-width:min(640px,90vw)}
   .ep-group{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center}
   .ep-lab{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--grigio)}
   .ep-chip{
@@ -139,13 +144,16 @@
     border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);
   }
   .ep-chip:hover{border-color:var(--fen-dim);color:var(--fen)}
-  /* L'icona ripete la forma che si otterrà: tonda per la piazza, rombo per la
-     torre. Il colore è quello vero del default, così la scelta si riconosce
-     poi sulla pianta. */
+  /* L'icona ripete la forma che si otterrà, e per le bolle È quella forma: la
+     disegna silhouetteForma (mappa.js), la stessa funzione della tela. Il
+     colore è quello vero del default, così la scelta si riconosce poi sulla
+     pianta. Qui manca il contesto .blk, quindi tratto e riempimento si
+     ridichiarano — il tratto è più sottile perché il riquadro è un ventesimo. */
   .ep-ico{width:12px;height:12px;flex:none;border:2px solid var(--c);border-radius:2px}
-  .ep-ico.tondo{border-radius:50%}
-  .ep-ico.rombo{transform:rotate(45deg)}
   .ep-ico.punto{border-radius:50%;background:var(--c);border-color:var(--c)}
+  .ep-ico.ep-sil{width:23px;height:17px;border:0;border-radius:0}
+  .ep-sil .blk-shape,.ep-sil .terr-mark{fill:none;stroke:var(--c);stroke-width:1.6}
+  .ep-sil .terr-mark{opacity:.5}
 
   /* bolle */
   .bubble{cursor:pointer}
@@ -395,6 +403,12 @@
     stroke:var(--gold);stroke-width:3;
     filter:drop-shadow(0 0 7px rgba(216,178,90,.45)) drop-shadow(0 2px 4px rgba(0,0,0,.5));
   }
+  /* Il segno interno di un territorio (il meridiano del mondo, il confine della
+     nazione) è decorazione, non contorno: niente ombra, niente transizione, e
+     soprattutto non è .blk-shape — la selezione e l'alone di "condiviso" devono
+     accendere una linea sola. Più sottile e smorzato del contorno, sennò a
+     colpo d'occhio si legge come un secondo bordo. */
+  .blk .terr-mark{fill:none;stroke:var(--c, var(--fen));stroke-width:1.5;opacity:.5}
   /* I muri sono pietra, non il colore della bolla: il colore dice CHE COSA è il
      luogo, il muro dice che è costruito. Lo spessore arriva dal markup (WALL in
      modello.js), qui si decide solo la tinta. */

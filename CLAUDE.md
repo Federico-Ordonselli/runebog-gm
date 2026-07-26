@@ -203,8 +203,39 @@ allargarla bisognava esportare il JSON e riscriverlo a mano.
 - `territorio:true` in `SHAPES` è ciò che rende una forma una `zona` invece di un
   `luogo` (`shapeType`, letto da `addSpatialChild`): era il confronto letterale
   `shape==="quartiere"` dentro `mappa.js`. I cinque territori hanno **un colore
-  solo**: il colore dice che cosa è una bolla, a dire quanto è grande sono il
-  nome e la dimensione.
+  solo**: il colore dice che cosa è una bolla (un pezzo di mondo, non una
+  costruzione), e cinque verdi sarebbero quattro token nuovi da far reggere in
+  cinque temi. A dire quanto è largo un territorio sono la dimensione, il nome
+  e la **sagoma**.
+- **Ogni gradino ha la sua sagoma** (`disegno` in `SHAPES`, `silhouetteForma` in
+  `mappa.js`, 26 lug 2026), e la regola è che più il territorio è largo, meno il
+  suo contorno è una linea che qualcuno ha tracciato: il mondo è un corpo visto
+  da fuori (ellisse più meridiano), il continente ha una costa, la nazione ha un
+  confine tratteggiato disegnato sopra la terra, la regione ha una linea
+  amministrativa, il quartiere ha bordi veri — il rettangolo di sempre, che è
+  anche `defShape` di ogni zona e per questo non cambia aspetto da solo.
+  - La conoscenza sta in `SHAPES` e **non** in un confronto sul nome dentro il
+    renderer: è lo stesso errore di `shape==="quartiere"`, ripetuto sul disegno.
+  - **Una funzione sola disegna qualunque forma**, e la usano sia la tela sia le
+    pastiglie del livello vuoto — che prima erano un quadratino CSS
+    "tondo/rombo/quadro", cioè una terza descrizione delle stesse nove forme. La
+    palette in `app.html` resta scritta a mano (va allineata a occhio) e fino a
+    questo lavoro **prometteva cinque profili che la tela non disegnava**: cinque
+    rettangoli identici. È il divario che questa funzione chiude.
+  - **Tratteggi e raccordi sono proporzionali al riquadro**, non in pixel: la
+    stessa funzione disegna una regione da 260px e un'icona da 20, e un `rx=18`
+    buono sulla tela trasforma l'icona in una pillola. Il confine della nazione
+    ha pochi trattini apposta (otto sul giro): a sedici, sull'icona, spariva e la
+    nazione diventava indistinguibile dal quartiere.
+  - La costa è una **curva** chiusa (Catmull-Rom → Bézier) su vertici fissi, non
+    una spezzata e non una sagoma generata dall'id: `renderCanvas` ridisegna in
+    continuo, quindi una costa casuale cambierebbe profilo a ogni battuta. I
+    vertici sono a raggio variabile attorno al centro, con dei golfi: provata
+    prima tutta convessa, la curva usciva un uovo indistinguibile dal mondo, che
+    nella scala gli sta accanto.
+  - Il segno interno (meridiano, confine) è `.terr-mark` e **non** `.blk-shape`:
+    quella classe porta selezione, focus e alone di "condiviso", e due elementi
+    la accenderebbero due volte.
 - L'elenco delle forme è in **due posti** — `SHAPES` (`modello.js`) e la whitelist
   del contratto (`formato-campagna.js`) — e `test/scala/` impone che coincidano:
   una forma che l'app disegna ma il validatore non conosce fa rimbalzare con 422

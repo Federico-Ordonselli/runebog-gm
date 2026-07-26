@@ -1601,6 +1601,45 @@ possibilità di salire **sopra** la radice, che si fissava alla creazione.
   campo, discesa fino alla città di partenza intatta, Ctrl+Z che disfa, zero
   errori in console.
 
+- [x] **Un disegno per gradino: mondo, continente, nazione, regione** — fatto
+  (26 lug 2026). La palette in alto prometteva cinque profili (globo, costa,
+  confine, tratteggio, pieno) e la tela ne disegnava **uno**: `shapeMarkup`
+  mandava tutti e cinque i territori sullo stesso rettangolo arrotondato, dello
+  stesso verde. Adesso la sagoma è un campo di `SHAPES` (`disegno`) e la disegna
+  `silhouetteForma` in `mappa.js` — un campo e non un confronto sul nome dentro
+  il renderer, che è l'errore già pagato con `shape==="quartiere"`.
+  La regola: più il territorio è largo, meno il contorno è una linea che
+  qualcuno ha tracciato. Mondo = ellisse più meridiano, continente = costa,
+  nazione = rettangolo più un confine tratteggiato defilato (defilato perché al
+  centro ci stanno titolo e anteprima dei figli), regione = tratteggiata,
+  quartiere = il rettangolo di sempre — che è anche `defShape` di ogni zona,
+  quindi nessuna campagna esistente cambia aspetto da sola.
+  **Il colore resta uno solo** per tutti e cinque: era già una decisione
+  motivata (cinque verdi = quattro token nuovi da far reggere in cinque temi), e
+  la sagoma dice la stessa cosa gratis, anche in monocromia.
+  Quattro cose imparate facendole:
+  - **La stessa funzione disegna anche le pastiglie** del livello vuoto, che
+    erano un quadratino CSS tondo/rombo/quadro — cioè una terza descrizione
+    delle nove forme accanto a `SHAPES` e alla palette di `app.html`. Chiude la
+    voce "cinque quadrati identici" che stava qui sotto fra i lavori residui.
+  - **Tratteggi e raccordi vanno in proporzione al riquadro**: un `rx=18` giusto
+    su una regione da 260px trasforma in una pillola un'icona da 20×14, e un
+    tratteggio a sedici trattini lì sparisce (il confine ne fa otto apposta:
+    a sedici la nazione era indistinguibile dal quartiere).
+  - **La costa è una curva e i suoi vertici hanno dei golfi.** Provata prima
+    come spezzata: a 380px si legge come un cristallo. Poi smussata con
+    Catmull-Rom ma su vertici tutti convessi: usciva un uovo indistinguibile dal
+    mondo, che nella scala gli sta **accanto** — il confronto che conta non è
+    con il rettangolo, è con il gradino vicino.
+  - La sagoma è **fissa**, non derivata dall'id: `renderCanvas` ridisegna in
+    continuo (anche col polling del tavolo), quindi una costa casuale cambierebbe
+    profilo a ogni battuta di tasto.
+  Verifica in Chromium: le cinque bolle sulla tela, le due palette a confronto,
+  tema Torbiera e Pergamena. `npx tsc --noEmit` e `npm test` (97) puliti.
+  Allargata `.empty-pal` a 640px: con le sagome le pastiglie sono più larghe e
+  il quinto territorio andava a capo da solo, mentre quei cinque sono una scala
+  e una scala si legge in fila.
+
 Cosa **resta** da fare, misurato:
 
 - **La barra della palette è più larga di prima**: 2368px di `scrollWidth` a
@@ -1609,11 +1648,12 @@ Cosa **resta** da fare, misurato:
   invisibile), ma cinque territori l'hanno peggiorato di circa un quarto. Le
   mitigazioni ci sono già — la palette del livello vuoto e il "tocca e poi
   posa" — ma su telefono la barra andrebbe ripensata, non allungata ancora.
-- **Nella palette del livello vuoto i cinque territori sono cinque quadrati
-  identici**: `chip()` in `emptyNodeMarkup` conosce solo tondo/rombo/quadro,
-  mentre la barra in alto ha un'icona per forma (globo, costa, confine,
-  tratteggio, pieno). Non è sbagliato — lì a distinguere sono l'etichetta e il
-  gruppo — ma è un'occasione persa di far vedere la scala.
+- **Le icone della palette in `app.html` restano scritte a mano** e vanno
+  allineate a occhio a `silhouetteForma`: sono markup statico, non generato.
+  Oggi combaciano (la costa è il `path` generato dalla funzione stessa per un
+  riquadro 18×14, incollato lì), ma è l'unico posto dove la sagoma può tornare a
+  divergere. Se un giorno desse fastidio, la strada è generare quella barra da
+  `SHAPES` all'avvio, come già fa `emptyNodeMarkup`.
 - **Niente vieta un mondo dentro una stanza**: il menu "Forma sulla pianta" di
   una bolla figlia elenca tutte e nove le forme. Non fa danno (un mondo è una
   bolla come un'altra) e un vincolo gerarchico vero sarebbe una gabbia in un

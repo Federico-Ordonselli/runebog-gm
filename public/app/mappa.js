@@ -329,13 +329,100 @@ function ensureLayout(parent){
   });
 }
 
+/* La costa di un continente: una sagoma FISSA, in coordinate 0..1 sul riquadro.
+   Fissa e non generata dall'id perché renderCanvas ridisegna in continuo (anche
+   col polling del tavolo): una costa casuale cambierebbe profilo a ogni battuta
+   di tasto. Sono gli stessi vertici dell'icona nella palette di app.html,
+   normalizzati sul loro riquadro: chi trascina quella sagoma deve ritrovare
+   quella sagoma sulla tela. */
+const COSTA = [
+  [1,.5],    [.872,.715], [.733,.903], [.5,1],   [.3,.846],  [.089,.737],
+  [0,.5],    [.119,.28],  [.305,.162], [.5,0],   [.73,.102], [.864,.29],
+];
+
+/* La costa si chiude su una CURVA e non su una spezzata: gli stessi sette
+   vertici, portati a 380px, si leggono come un cristallo — a quella taglia gli
+   spigoli sono la cosa che si vede per prima, e un continente non ha spigoli.
+   La ricetta è Catmull-Rom convertita in Bézier, cioè la curva morbida che
+   passa PER i punti dati invece che vicino: i vertici restano quelli
+   dell'icona nella palette, che è il patto da non rompere. */
+function curvaChiusa(punti, W, H){
+  const P = punti.map(([u,v]) => [u*W, v*H]);
+  const n = P.length, v = x => x.toFixed(1);
+  let d = `M${v(P[0][0])},${v(P[0][1])}`;
+  for(let i = 0; i < n; i++){
+    const [p0,p1,p2,p3] = [P[(i-1+n)%n], P[i], P[(i+1)%n], P[(i+2)%n]];
+    d += `C${v(p1[0]+(p2[0]-p0[0])/6)},${v(p1[1]+(p2[1]-p0[1])/6)}`
+       + ` ${v(p2[0]-(p3[0]-p1[0])/6)},${v(p2[1]-(p3[1]-p1[1])/6)}`
+       + ` ${v(p2[0])},${v(p2[1])}`;
+  }
+  return d + "Z";
+}
+
+/* La sagoma di una forma, senza niente attorno. UNA funzione, e la disegnano
+   sia la tela sia le pastiglie della palette del livello vuoto: erano un
+   quadratino CSS che diceva solo "tondo, rombo o quadro", cioè una terza
+   descrizione delle stesse nove forme accanto a SHAPES e alla palette in
+   app.html. Adesso quella palette non può più promettere una sagoma che la
+   tela non disegna — è esattamente il divario che i territori avevano.
+
+   Il principio della scala: più il territorio è largo, meno il suo contorno è
+   una linea che qualcuno ha tracciato. Un mondo è un corpo visto da fuori (una
+   sfera col suo meridiano), un continente ha una costa, una nazione ha un
+   confine disegnato sopra la terra, una regione ha una linea amministrativa —
+   tratteggiata, perché sul terreno non c'è — e un quartiere ha dei bordi veri,
+   il rettangolo di sempre. La scala si legge quindi anche a colpo d'occhio,
+   senza leggere il nome e senza confrontare due bolle per dimensione.
+
+   Solo il primo elemento porta .blk-shape: è quello che riceve il ring di
+   selezione, il focus da tastiera e l'alone di "condiviso". I segni interni
+   sono decorazione e stanno in .terr-mark, sennò la lanterna si sdoppierebbe.
+
+   I tratteggi sono PROPORZIONALI al riquadro e non in pixel fissi: la stessa
+   funzione disegna una regione da 260px e un'icona da 20, e un "14 9" buono
+   sulla tela lascerebbe l'icona con un trattino e mezzo. Si dichiara quanti
+   trattini fare sul giro, così il ritmo è lo stesso a ogni taglia — e sono
+   pochi (otto) sul confine di una nazione: a sedici, sull'icona, quella linea
+   spariva e la nazione diventava indistinguibile dal quartiere. */
+function silhouetteForma(s, box, col){
+  const c = `style="--c:${col}"`;
+  const W = box.w, H = box.h;
+  const tratto = (giro, quanti) => {
+    const passo = giro/quanti;
+    return `stroke-dasharray="${(passo*.6).toFixed(2)} ${(passo*.4).toFixed(2)}"`;
+  };
+  /* Anche il raccordo va limitato dal riquadro, per la stessa ragione dei
+     tratteggi: un rx da 18px su un'icona da 20×14 non arrotonda gli angoli, la
+     trasforma in una pillola. Il tetto lascia intatte le bolle sulla tela, che
+     sono tutte abbondantemente sopra la soglia. */
+  const raccordo = max => Math.min(max, Math.min(W, H)/4);
+  switch(s.disegno){
+    case "globo":
+      return `<ellipse class="blk-shape" cx="${W/2}" cy="${H/2}" rx="${W/2}" ry="${H/2}" ${c}/>
+        <ellipse class="terr-mark" cx="${W/2}" cy="${H/2}" rx="${(W*.2).toFixed(1)}" ry="${H/2}" ${c}/>`;
+    case "costa":
+      return `<path class="blk-shape" d="${curvaChiusa(COSTA, W, H)}" ${c}/>`;
+    case "confine":
+      // Il confine corre defilato e non a metà: al centro ci stanno il titolo e
+      // l'anteprima dei figli, e una linea in mezzo taglierebbe la bolla in due
+      // invece di dire "di là comincia un'altra nazione".
+      return `<rect class="blk-shape" width="${W}" height="${H}" rx="${raccordo(10)}" ${c}/>
+        <line class="terr-mark" ${tratto(H*1.4, 8)} x1="${(W*.74).toFixed(1)}" y1="0" x2="${(W*.86).toFixed(1)}" y2="${H}" ${c}/>`;
+    case "tratteggio":
+      return `<rect class="blk-shape" ${tratto((W+H)*2, 16)} width="${W}" height="${H}" rx="${raccordo(18)}" ${c}/>`;
+  }
+  if(s.circle)  return `<ellipse class="blk-shape" cx="${W/2}" cy="${H/2}" rx="${W/2}" ry="${H/2}" ${c}/>`;
+  if(s.diamond) return `<polygon class="blk-shape" points="${W/2},0 ${W},${H/2} ${W/2},${H} 0,${H/2}" ${c}/>`;
+  return `<rect class="blk-shape" width="${W}" height="${H}" rx="${raccordo(10)}" ${c}/>`;
+}
+
 function shapeMarkup(n, box, col, aperture){
   const s = SHAPES[n.shape||defShape(n)] || {};
-  if(s.circle)  return `<ellipse class="blk-shape" cx="${box.w/2}" cy="${box.h/2}" rx="${box.w/2}" ry="${box.h/2}" style="--c:${col}"/>`;
-  if(s.diamond) return `<polygon class="blk-shape" points="${box.w/2},0 ${box.w},${box.h/2} ${box.w/2},${box.h} 0,${box.h/2}" style="--c:${col}"/>`;
-  const muri = wallShape(n) ? wallsMarkup(box, aperture||[]) : "";
-  // una pianta ha angoli veri: il raccordo da 10px appartiene al simbolo, non al muro
-  return `<rect class="blk-shape" width="${box.w}" height="${box.h}" rx="${muri?3:10}" style="--c:${col}"/>${muri}`;
+  // I muri sono l'unico caso che cambia la sagoma invece di aggiungersi: una
+  // pianta murata ha angoli veri, il raccordo da 10px appartiene al simbolo.
+  if(!wallShape(n)) return silhouetteForma(s, box, col);
+  return `<rect class="blk-shape" width="${box.w}" height="${box.h}" rx="3" style="--c:${col}"/>${
+    wallsMarkup(box, aperture||[])}`;
 }
 /* Lo spessore lo passa il markup, non il CSS: la sporgenza degli angoli è
    calcolata su WALL in modello.js, e un valore che diverge aprirebbe i cantoni. */
@@ -448,18 +535,28 @@ function emptyNodeMarkup(){
      scrollbar nascosta, quindi metà palette (i segnalini) è proprio invisibile.
      Generata da SHAPES e TYPES, le stesse sorgenti della barra: non possono
      divergere. */
-  const chip = (kind, key, label, colore, forma) => `
+  const chip = (kind, key, label, colore, ico) => `
     <button class="ep-chip" onclick="addAtCenter('${kind}','${key}')" title="Aggiungi: ${label}">
-      <span class="ep-ico ${forma}" style="--c:${colore}"></span>${label}
+      ${ico}${label}
     </button>`;
+  /* L'icona di una forma È la forma, disegnata da silhouetteForma: la stessa
+     funzione della tela, quindi le due non possono divergere. Il viewBox ha un
+     margine perché il tratto è centrato sul contorno e a filo di riquadro ne
+     resterebbe fuori metà. I segnalini restano un pallino: sulla tela sono un
+     disco con dentro un'iniziale, e a 12px l'iniziale non si legge. */
+  const icoForma = (s, colore) => `<svg class="ep-ico ep-sil" viewBox="-1.5 -1.5 23 17"
+      width="23" height="17" style="--c:${colore}" aria-hidden="true">${
+      silhouetteForma(s, {w:20, h:14}, colore)}</svg>`;
   // Due gruppi e non uno, come nella barra in alto: nove forme in fila sarebbero
   // un muro, e soprattutto territori e costruzioni sono due domande diverse —
   // "quanto è largo questo pezzo di mondo" e "che cosa ci si costruisce".
-  const forme = terr => Object.entries(SHAPES).filter(([,s])=>!!s.territorio===terr).map(([k,s])=>
-    chip("shape", k, s.label, SHAPE_COLORS[k]||"var(--teal)",
-         s.circle ? "tondo" : s.diamond ? "rombo" : "quadro")).join("");
+  const forme = terr => Object.entries(SHAPES).filter(([,s])=>!!s.territorio===terr).map(([k,s])=>{
+    const col = SHAPE_COLORS[k]||"var(--teal)";
+    return chip("shape", k, s.label, col, icoForma(s, col));
+  }).join("");
   const segnalini = ["quest","encounter","png","nota","token"].map(t=>
-    chip("marker", t, TYPES[t].label, TYPES[t].color, "punto")).join("");
+    chip("marker", t, TYPES[t].label, TYPES[t].color,
+         `<span class="ep-ico punto" style="--c:${TYPES[t].color}"></span>`)).join("");
   const palette = `<div class="empty-pal">
     <div class="ep-group"><span class="ep-lab">Territorio</span>${forme(true)}</div>
     <div class="ep-group"><span class="ep-lab">Luoghi</span>${forme(false)}</div>

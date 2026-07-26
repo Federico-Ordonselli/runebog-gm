@@ -45,10 +45,20 @@ export const SHAPES = {
   // menu a tendina della forma leggono Object.entries(SHAPES), e messi così
   // dichiarano una scala invece di un elenco. Nessuno di loro sta sulla maglia
   // (una nazione non si misura in quadretti da 1,5 m) né ha muri.
-  mondo:      {label:"Mondo",      w:440, h:300, territorio:true},
-  continente: {label:"Continente", w:380, h:260, territorio:true},
-  nazione:    {label:"Nazione",    w:320, h:220, territorio:true},
-  regione:    {label:"Regione",    w:260, h:180, territorio:true},
+  //
+  // disegno = la sagoma con cui il territorio si disegna, al posto del
+  // rettangolo. È un campo e non un confronto letterale dentro mappa.js perché
+  // quella strada l'abbiamo già percorsa una volta (shape==="quartiere" per
+  // decidere zona/luogo): il renderer dispaccia su disegno e non sa i nomi.
+  // Il colore invece resta UNO solo per tutti e cinque (vedi SHAPE_COLORS): la
+  // sagoma non costa token, regge in tutti i temi e si legge in monocromia.
+  mondo:      {label:"Mondo",      w:440, h:300, territorio:true, disegno:"globo"},
+  continente: {label:"Continente", w:380, h:260, territorio:true, disegno:"costa"},
+  nazione:    {label:"Nazione",    w:320, h:220, territorio:true, disegno:"confine"},
+  regione:    {label:"Regione",    w:260, h:180, territorio:true, disegno:"tratteggio"},
+  // Il quartiere non ha disegno: è il rettangolo pieno, cioè il capolinea
+  // "bordi disegnati" della scala — e la forma che ereditano per default tutte
+  // le zone senza shape (defShape), che non devono cambiare aspetto da sole.
   quartiere:  {label:"Quartiere",  w:200, h:140, territorio:true},
   // walls: true = muri accesi di default, "opt" = muri possibili ma spenti (vedi wallShape)
   edificio: {label:"Edificio",  w:140, h:80,  grid:true, walls:"opt"},
@@ -325,11 +335,12 @@ export function stretchWallSeg(w, capo, px, py){
    pallida ovunque, e con l'arancio della piazza non si confonde. */
 export const SHAPE_COLORS = {
   /* I cinque territori hanno UN colore solo, ed è voluto: il colore dice che
-     cosa è una bolla (un pezzo di mondo, non una costruzione), a dire quanto è
-     grande sono il nome e la dimensione. Cinque verdi diversi avrebbero voluto
-     dire quattro token nuovi da far reggere in tutti e cinque i temi per
-     distinguere cose che non si incontrano quasi mai sulla stessa mappa —
-     dentro un continente ci sono nazioni, non una nazione e un quartiere. */
+     cosa è una bolla (un pezzo di mondo, non una costruzione). Cinque verdi
+     diversi avrebbero voluto dire quattro token nuovi da far reggere in tutti e
+     cinque i temi, per una differenza che il colore non è il posto giusto per
+     dire. A dire quanto è largo un territorio sono la dimensione, il nome e la
+     SAGOMA (il campo disegno in SHAPES): quella non costa token, si legge in
+     monocromia e resta leggibile per un daltonico. */
   mondo:     "var(--fen)",
   continente:"var(--fen)",
   nazione:   "var(--fen)",
