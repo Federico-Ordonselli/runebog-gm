@@ -22,6 +22,7 @@ npm run dev          # sviluppo su http://localhost:3000 (serve .env, vedi .env.
 npx tsc --noEmit     # typecheck — è il controllo principale, non c'è ESLint
 npm test             # test puri con node:test (test/{strumenti,sync,formato-campagna,dungeon,scala,critici})
 npm run build        # build di produzione (fa anche typecheck)
+npm run temi:contrasto   # rapporti WCAG di tutti i temi (esce 1 se una coppia è sotto soglia)
 ```
 
 I test sono pochi e **puri** (`node --test`, nessuna dipendenza, nessun DOM): oggi
@@ -410,9 +411,44 @@ si ha davanti. Entrambe sono gestite in `main.js`; la larghezza è la variabile 
 `--detail-w` su `:root`, così il clamp in `vw` resta al CSS, che segue i resize della
 finestra.
 
-**Temi**: `public/themes.css` è la sorgente unica dei token colore, letta sia dal sito
-(link in `layout.tsx`) sia da `app.html`. I nomi sono per ruolo (`--moss` = accento
-primario), non per tinta: i temi si cambiano lì e in nessun altro posto.
+**Temi** (dodici, lug 2026): `public/themes.css` è la sorgente unica dei token
+colore, letta sia dal sito (link in `layout.tsx`) sia da `app.html`. I nomi sono
+per ruolo (`--moss` = accento primario), non per tinta: i temi si cambiano lì e
+in nessun altro posto.
+
+- **L'elenco dei temi sta in `public/app/temi.js`**, modulo di soli dati senza
+  import: `main.js` ci riempie il `<select>` della topbar e `menu.js` le voci del
+  menu "⋯". Erano tre elenchi scritti a mano (le `<option>` in `app.html`, l'array
+  di validazione, la mappa id→etichetta): a cinque temi reggeva, a dodici il modo
+  di romperli è **silenzioso** — un tema aggiunto al CSS e dimenticato lì non
+  compare, uno tolto dal CSS si sceglie e non fa niente. Resta da allineare a mano
+  solo `themes.css`, che i colori li ha davvero.
+- I temi si raggruppano **per fondo** (scuri, chiari, accessibilità): è il criterio
+  con cui si sceglie davvero, cioè la luce che si ha in stanza. "Alto contrasto"
+  sta per conto suo — è un'esigenza, non un'atmosfera.
+- **`npm run temi:contrasto` misura tutti i temi insieme** e esce con codice 1 se
+  una coppia sta sotto la sua soglia WCAG (4.5:1 sul testo, 3:1 sui contorni). Le
+  coppie sono quelle che l'interfaccia usa **davvero**, ognuna trovata nel CSS e
+  citata nel commento accanto: aggiungerne una senza dire dove sta è come non
+  averla. È il controllo che rende scrivibile un tema nuovo — a dodici temi
+  l'occhio non li copre più, e un accento che su Torbiera brilla su Pergamena è
+  a 3:1 senza che nessuno lo noti.
+- Lo script controlla anche che le **cinque famiglie** (`--moss` accento, `--wisp`
+  link, `--lantern` evidenza, `--ember` distruttivo, `--arcane` arcano) restino
+  distinguibili **fra loro**, che è una domanda diversa dal contrasto sul fondo:
+  un tema in cui accento e distruttivo sono lo stesso rosso passa ogni soglia e
+  resta inservibile. Si misura in **ΔE Lab e non col rapporto WCAG** — quello
+  guarda la luminanza e dava per uguali un verde e un ciano della stessa
+  chiarezza, 110 avvisi su temi che vanno benissimo. La soglia (17) è **misurata**
+  sui temi originali: la coppia più vicina già accettata è il rame e l'oro di
+  Brace, ΔE 17,4. È un avviso e non un errore — due famiglie vicine si possono
+  tenere, come fa Brace, ma dicendolo.
+- Quando una palette arriva da fuori con tre colori, quelli **restano dove la
+  proposta li destinava** e il resto si deriva; e prima di correggere un valore
+  "che sembra basso" **va misurato**: l'oro di Taverna e l'arancione di Gilda
+  erano stati schiariti per prudenza e passavano già (5,2:1 e 5,5:1), mentre il
+  teal di Alba (3,74:1) e il viola di Sottosuolo (4,28:1) andavano davvero
+  corretti. Il valore giusto è quello che passa, non quello che rassicura.
 
 **Generatore di dungeon**: motore puro e deterministico (seed-based) in
 `src/lib/dungeon/engine.ts`, dataset SRD in `src/lib/dungeon/srd-data.ts`, UI in

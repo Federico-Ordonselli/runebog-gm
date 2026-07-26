@@ -15,14 +15,35 @@ import { initChecklist } from "./checklist.js";
 import { initEsporta } from "./esporta.js";
 import { initDungeon } from "./dungeon.js";
 import { initTavolo } from "./tavolo.js";
+import { GRUPPI, TEMA_DEFAULT, temaValido, temiDelGruppo } from "./temi.js";
 
 /* --- temi: scelti qui, ricordati, e validi anche sul sito (stessa chiave) --- */
-const TEMI = ["torbiera","pergamena","cripta","brace","contrasto"];
+
+/* Il <select> si RIEMPIE da temi.js invece di elencare dodici <option> in
+   app.html: erano tre elenchi da tenere allineati a mano, e il modo di
+   romperli era silenzioso. Se il markup non c'è (una pagina che carica i
+   moduli senza la topbar) non succede niente. */
+function popolaTemi(){
+  const sel = document.getElementById("theme-select");
+  if(!sel || sel.options.length) return;
+  for(const g of GRUPPI){
+    const voci = temiDelGruppo(g);
+    if(!voci.length) continue;
+    const grp = document.createElement("optgroup");
+    grp.label = g;
+    for(const t of voci){
+      const o = document.createElement("option");
+      o.value = t.id; o.textContent = t.label;
+      grp.appendChild(o);
+    }
+    sel.appendChild(grp);
+  }
+}
 
 function setTheme(nome){
-  if(!TEMI.includes(nome)) nome = "torbiera";
+  if(!temaValido(nome)) nome = TEMA_DEFAULT;
   // "torbiera" è il default in themes.css: nessun attributo = tema di base.
-  if(nome === "torbiera") delete document.documentElement.dataset.theme;
+  if(nome === TEMA_DEFAULT) delete document.documentElement.dataset.theme;
   else document.documentElement.dataset.theme = nome;
   try{ localStorage.setItem("runebog-theme", nome); }catch(e){}
   const sel = document.getElementById("theme-select");
@@ -109,8 +130,9 @@ initStato();
 
 // Allinea il menu a ciò che lo script inline in <head> ha già applicato prima
 // del disegno (i moduli girano a DOM completo: niente listener da aspettare).
-let salvato = "torbiera";
-try{ salvato = localStorage.getItem("runebog-theme") || "torbiera"; }catch(e){}
+popolaTemi();
+let salvato = TEMA_DEFAULT;
+try{ salvato = localStorage.getItem("runebog-theme") || TEMA_DEFAULT; }catch(e){}
 setTheme(salvato);
 
 initViste();

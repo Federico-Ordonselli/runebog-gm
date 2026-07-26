@@ -1659,3 +1659,59 @@ Cosa **resta** da fare, misurato:
   bolla come un'altra) e un vincolo gerarchico vero sarebbe una gabbia in un
   editor che vive di alberi liberi — ma se un giorno desse fastidio, il posto è
   `shapeOpts` in `pannello.js`.
+
+## Temi
+
+Cinque temi si giudicano a occhio. Dodici no — e il modo in cui un tema si
+rompe è silenzioso: un accento che su Torbiera brilla, su un fondo chiaro sta
+a 3:1, e nessuno se ne accorge finché non apre proprio quel tema con proprio
+quella schermata.
+
+- [x] **Sette palette nuove** — fatto (26 lug 2026). Da un elenco di palette
+  proposte dall'esterno: Notturno (nero/ciano), Gilda (navy/arancione),
+  Alba (bianco/teal), Segnale (carboncino/giallo), Inchiostro (carta/cremisi),
+  Sottosuolo (obsidiana/viola), Taverna (noce/oro). Si passa da 5 a 12, da 1
+  tema chiaro a 3.
+  Tre delle sette **duplicano** per struttura Pergamena, Cripta e Brace, ed è
+  stato detto prima di farle: la richiesta è stata confermata, quindi ci sono.
+  Quello che cambia davvero è il numero di temi chiari e il fatto che ora
+  esistano accenti che prima nessun tema aveva (il viola primario, il giallo
+  ad alta visibilità).
+  - **Una palette da tre colori non veste trenta token**: fondo, testo e
+    accento arrivano dalla proposta, il resto è derivato, e ogni tema dichiara
+    in `themes.css` da dove viene e che cosa ha dovuto cambiare.
+  - **Prima di correggere un valore, misurarlo**: l'oro di Taverna e
+    l'arancione di Gilda erano stati schiariti per prudenza e passavano già
+    (5,2:1 e 5,5:1); il teal di Alba (3,74:1) e il viola di Sottosuolo
+    (4,28:1) andavano corretti davvero. Il valore giusto è quello che passa.
+  - **L'elenco dei temi è diventato uno solo** (`public/app/temi.js`): erano
+    tre (le `<option>` in `app.html`, l'array in `main.js`, la mappa in
+    `menu.js`). Il `<select>` e il menu "⋯" si generano da lì, raggruppati per
+    fondo. È l'unico modo in cui aggiungere il tredicesimo tema non richiede
+    di ricordarsi tre posti.
+  - **`npm run temi:contrasto`** (`scripts/verifica-contrasto.mjs`) misura
+    tutti i temi insieme: 19 coppie che l'interfaccia usa davvero, più la
+    distanza ΔE fra le cinque famiglie di accento. Due cose imparate
+    scrivendolo: i commenti del CSS nominano dei token e il lettore ci
+    cascava (`--on-ember` spariva, cioè taceva proprio sulla coppia da
+    guardare); e il rapporto WCAG **non** serve a dire se due accenti si
+    somigliano — misura la luminanza, e dava 110 avvisi su temi riusciti.
+  Verifica in Chromium: i sette temi aperti sull'app vera, topbar, palette,
+  pannello e tela. `npx tsc --noEmit` e i 97 test puliti.
+
+Cosa **resta** da fare, misurato:
+
+- **I bordi sono sotto soglia in undici temi su dodici**: `--edge` su
+  `--surface` sta fra 1,3:1 (Brace) e 2,3:1 (Segnale), e `--edge-lit` fra 2,0 e
+  3,0 — solo Alto contrasto passa. WCAG 1.4.11 chiede 3:1 ai contorni dei
+  **componenti** (campi, bottoni), non ai separatori decorativi, quindi il
+  primo passo è distinguere i due usi in `app.css` e `globals.css`: se `--edge`
+  borda anche gli input, è un difetto vero e va alzato. Difetto **preesistente**,
+  non introdotto dalle palette nuove.
+- **Un difetto vero già misurato**: su Pergamena il titolo di un capitolo SRD in
+  hover (`--wisp-lit` su `--surface-hov`, `srd.css`) sta a 3,01:1 contro i 4,5
+  che gli servono. È l'unica coppia di testo sotto soglia in tutti e dodici i
+  temi.
+- **Il sito non ha un selettore di tema**: la chiave `runebog-theme` è
+  condivisa e `layout.tsx` applica quello salvato, ma per cambiarlo bisogna
+  passare dall'app. Con dodici temi (e tre chiari) inizia a pesare.

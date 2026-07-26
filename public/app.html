@@ -57,13 +57,12 @@
   <span id="savestate" role="status" aria-live="polite"></span>
   <label id="theme-wrap" title="Tema">
     <span class="sr-only">Tema</span>
-    <select id="theme-select" onchange="setTheme(this.value)">
-      <option value="torbiera">Torbiera</option>
-      <option value="pergamena">Pergamena</option>
-      <option value="cripta">Cripta</option>
-      <option value="brace">Brace</option>
-      <option value="contrasto">Alto contrasto</option>
-    </select>
+    <!-- Vuoto apposta: le voci le mette popolaTemi() in app/main.js leggendo
+         app/temi.js, raggruppate per fondo. Elencarle qui voleva dire tenere
+         allineati a mano tre elenchi (questo, main.js e menu.js) e a dodici
+         temi il modo di romperli è silenzioso: un tema aggiunto al CSS e
+         dimenticato qui semplicemente non compare. -->
+    <select id="theme-select" onchange="setTheme(this.value)"></select>
   </label>
   <button id="keys-btn" class="btn tiny" onclick="openKeys()" title="Scorciatoie da tastiera" aria-label="Scorciatoie da tastiera">?</button>
   <button class="btn only-cloud" onclick="openShare()" title="Link per i giocatori">Tavolo</button>

@@ -209,6 +209,354 @@
      Torbiera — su questo fondale scuro reggono senza ritocchi. */
 }
 
+/* ============================================================
+   I SETTE TEMI DI LUGLIO 2026
+   Nascono da palette proposte per intero (fondo, testo, accento) e non
+   dalle tinte di questo progetto. Ognuno dichiara qui sotto da dove viene
+   e che cosa ha dovuto cambiare, perché una palette da tre colori non
+   basta a vestire trenta token: il fondo, il testo e l'accento arrivano
+   dalla proposta, il resto è DERIVATO — e la derivazione ha una regola
+   sola, misurata e non a occhio (`scripts/verifica-contrasto.mjs`): ogni
+   coppia che l'interfaccia usa davvero sta sopra la sua soglia WCAG.
+
+   Le famiglie da tenere distinte sono CINQUE, e vale per tutti i temi:
+   accento primario (--moss), collegamenti (--wisp), evidenza (--lantern),
+   distruttivo (--ember), arcano (--arcane). Dove una palette ne dichiara
+   solo una, le altre quattro si scelgono lontane da quella — sennò due
+   ruoli diversi finiscono dello stesso colore e l'interfaccia smette di
+   dire quale cosa è cliccabile e quale cancella.
+   ============================================================ */
+
+/* ---------- Notturno: nero d'inchiostro e azzurro elettrico ----------
+   Da "High-Contrast Dark Mode" (#121212 / #FFFFFF / #00D2FF). È il
+   fratello morbido di Alto contrasto: stesso impianto, ma il fondo è
+   grigio ferro invece che nero assoluto e i bordi non urlano. */
+[data-theme="notturno"] {
+  --peat:        #121212;
+  --peat-sunk:   #0d0d0d;
+  --surface:     #1a1a1a;
+  --surface-hi:  #242424;
+  --surface-hov: #2e2e2e;
+
+  --edge:        #3a3a3a;
+  --edge-soft:   #2a2a2a;
+  --edge-lit:    #6e6e6e;
+
+  --parchment:      #ffffff;
+  --parchment-dim:  #c8c8c8;
+  --parchment-mute: #a0a0a0;
+
+  --moss:        #00d2ff;
+  --moss-lit:    #6ee2ff;
+  --moss-deep:   #00647a;
+
+  /* Il primario è già ciano: i collegamenti virano al menta, sennò due
+     ruoli diversi sarebbero due sfumature dello stesso azzurro. */
+  --wisp:        #5eead4;
+  --wisp-lit:    #99f6e4;
+
+  --lantern:     #ffd166;
+
+  --ember:          #ff8a75;
+  --ember-deep:     #9b1c1c;
+  --ember-lit:      #b32020;
+  --ember-edge:     #7a2c22;
+  --ember-edge-lit: #c0553f;
+  --ember-hov:      #ffa694;
+
+  --arcane:      #c4b5fd;
+
+  --glow:        #1c1c1c;
+
+  /* --dg-*, --track e --tunnel: ereditati da Torbiera, il fondo è scuro. */
+}
+
+/* ---------- Gilda: navy da compagnia mercantile, sigillo arancione ----------
+   Da "Classic Corporate" (#0A192F / #64748B / #F8FAFC / #FF6B00). L'unica
+   proposta che non nasce per un tavolo da gioco, e si vede: è la più
+   sobria delle sette. Tutti e quattro i colori dati restano dove la
+   proposta li destinava — lo slate era il "colore strutturale", cioè
+   testo e bordi, e sta in --edge; l'arancione era per i bottoni primari,
+   quindi è --moss e regge 5,5:1 sul pannello. Il distruttivo gli
+   confina, e come in Brace lo tengo nettamente più rosso: il colore da
+   solo non deve mai portare il significato, accanto c'è sempre la parola
+   "Elimina". */
+[data-theme="gilda"] {
+  --peat:        #0a192f;
+  --peat-sunk:   #071324;
+  --surface:     #102341;
+  --surface-hi:  #17304f;
+  --surface-hov: #1f3d61;
+
+  --edge:        #64748b;
+  --edge-soft:   #22354e;
+  --edge-lit:    #5c7ba3;
+
+  --parchment:      #f8fafc;
+  --parchment-dim:  #bccbdd;
+  --parchment-mute: #9db0c6;
+
+  --moss:        #ff6b00;
+  --moss-lit:    #ff9142;
+  --moss-deep:   #9c4a06;
+
+  --wisp:        #7dd3fc;
+  --wisp-lit:    #bae6fd;
+
+  --lantern:     #ffc94d;
+
+  --ember:          #ff8080;
+  --ember-deep:     #a01f1f;
+  --ember-lit:      #b82727;
+  --ember-edge:     #7d3030;
+  --ember-edge-lit: #c25a5a;
+  --ember-hov:      #ff9c9c;
+
+  --arcane:      #c4a3ff;
+
+  --glow:        #0e2340;
+}
+
+/* ---------- Alba: bianco caldo, carboncino, verde acqua ----------
+   Da "Soft Light Mode" (#FAFAFA / #1A1A1A / #0D9488). Il chiaro SOBRIO:
+   Pergamena è carta invecchiata e molto caratterizzata, questo è un
+   foglio bianco. Come lì, sul chiaro l'hover dell'accento non può
+   schiarire (toglierebbe contrasto) e le tinte sabbia della mappa
+   virano all'inchiostro. */
+[data-theme="alba"] {
+  color-scheme: light;
+
+  --peat:        #fafafa;
+  --peat-sunk:   #efefef;
+  --surface:     #ffffff;
+  --surface-hi:  #f1f1f1;
+  --surface-hov: #e4e4e4;
+
+  --edge:        #c9c9c9;
+  --edge-soft:   #e0e0e0;
+  --edge-lit:    #8a8a8a;
+
+  --parchment:      #1a1a1a;
+  --parchment-dim:  #4d4d4d;
+  --parchment-mute: #5a5a5a;
+
+  /* Il teal proposto (#0D9488) sul bianco si ferma a 3,74:1: qui l'accento
+     è anche testo (titoli, voci attive), quindi va scurito fino a passare.
+     Questo arriva a 4,92:1 sul pannello rialzato, che è la superficie più
+     chiara su cui compare — il valore prima si fermava a 4,49, e mancare
+     la soglia per un centesimo è mancarla. */
+  --moss:        #0c756c;
+  --moss-lit:    #0f8f83;
+  --moss-deep:   #115e59;
+  --moss-hov:    #115e59;
+
+  --wisp:        #1d4ed8;
+  --wisp-lit:    #1e40af;
+
+  --lantern:     #8a5a08;
+
+  --ember:          #b91c1c;
+  --ember-deep:     #b91c1c;
+  --ember-lit:      #a01818;
+  --ember-edge:     #e0a8a8;
+  --ember-edge-lit: #991b1b;
+  --ember-hov:      #d12626;
+
+  --arcane:      #6d28d9;
+
+  --glow:        #f4f4f4;
+
+  --dg-trap:     #9a4a0c;
+  --dg-lair:     #a71d1d;
+
+  --track:       #7d6a3a;
+  --tunnel:      #63542e;
+}
+
+/* ---------- Segnale: carboncino e giallo ad alta visibilità ----------
+   Da "High-Accessibility Pop" (#212529 / #F8F9FA / #FFD166). Il giallo è
+   l'accento, quindi l'evidenza della mappa NON può restare oro: sono due
+   ruoli diversi e sarebbero la stessa tinta. Vira al ciano, ed è
+   esattamente il motivo per cui questi token si chiamano per ruolo. */
+[data-theme="segnale"] {
+  --peat:        #212529;
+  --peat-sunk:   #191c1f;
+  --surface:     #2b3035;
+  --surface-hi:  #363c42;
+  --surface-hov: #434a52;
+
+  --edge:        #5c656e;
+  --edge-soft:   #3d444b;
+  --edge-lit:    #98a2ac;
+
+  --parchment:      #f8f9fa;
+  --parchment-dim:  #ced4da;
+  --parchment-mute: #adb5bd;
+
+  --moss:        #ffd166;
+  --moss-lit:    #ffe0a3;
+  --moss-deep:   #8a6410;
+
+  --wisp:        #66d9a0;
+  --wisp-lit:    #93e8bd;
+
+  --lantern:     #7fd8ff;
+
+  --ember:          #ff8a80;
+  --ember-deep:     #a4161a;
+  --ember-lit:      #bd1a1f;
+  --ember-edge:     #7d3330;
+  --ember-edge-lit: #c85a55;
+  --ember-hov:      #ffa8a0;
+
+  --arcane:      #d0a9ff;
+
+  --glow:        #23272b;
+}
+
+/* ---------- Inchiostro: carta rosata e ceralacca ----------
+   Da "Ink & Parchment" (#F4EBE1 / #2C2520 / #991B1B). È il tema che ha
+   chiesto il compromesso peggiore: la proposta destina il cremisi ai
+   bottoni primari, ma qui il distruttivo ha già un colore suo, e due
+   rossi in un'interfaccia sono un problema vero. Il primario resta
+   cremisi come dichiarato e il distruttivo vira alla ruggine scura —
+   restano la coppia più vicina dei sette temi, e a separarli è la parola
+   accanto al bottone prima ancora del colore. */
+[data-theme="inchiostro"] {
+  color-scheme: light;
+
+  --peat:        #f4ebe1;
+  --peat-sunk:   #e9dccc;
+  --surface:     #fbf6f0;
+  --surface-hi:  #f0e5d9;
+  --surface-hov: #e3d5c5;
+
+  --edge:        #c9b8a4;
+  --edge-soft:   #ddcfbd;
+  --edge-lit:    #8f7c65;
+
+  --parchment:      #2c2520;
+  --parchment-dim:  #5f5249;
+  --parchment-mute: #665950;
+
+  --moss:        #991b1b;
+  --moss-lit:    #b02222;
+  --moss-deep:   #7f1515;
+  --moss-hov:    #7f1515;
+
+  --wisp:        #175b6b;
+  --wisp-lit:    #124a58;
+
+  --lantern:     #8a6508;
+
+  --ember:          #7c2d12;
+  --ember-deep:     #7c2d12;
+  --ember-lit:      #6b2610;
+  --ember-edge:     #c9a390;
+  --ember-edge-lit: #6b2610;
+  --ember-hov:      #8f3616;
+
+  --arcane:      #5b3a9e;
+
+  --glow:        #fbf5ee;
+
+  --dg-trap:     #9a4a0c;
+  --dg-lair:     #8a2f14;
+
+  --track:       #86703c;
+  --tunnel:      #6a5730;
+}
+
+/* ---------- Sottosuolo: obsidiana, argento elfico, viola arcano ----------
+   Da "The Underdark" (#12131C / #E2E8F0 / #A855F7 + #22C55E). Dava due
+   accenti e li uso per due ruoli: il viola è il primario, il verde acido
+   i collegamenti. Il viola proposto (#A855F7) sul pannello si ferma a
+   4,2:1, sotto la soglia del testo: schiarito quel tanto che basta a
+   passare, che è la ragione per cui questi valori si misurano invece di
+   sceglierli. L'arcano dei segnalini vira al ciano — con un primario
+   viola sarebbe scomparso dentro l'accento. */
+[data-theme="sottosuolo"] {
+  --peat:        #12131c;
+  --peat-sunk:   #0d0e16;
+  --surface:     #1a1c28;
+  --surface-hi:  #242736;
+  --surface-hov: #2f3345;
+
+  --edge:        #3d425a;
+  --edge-soft:   #262a3a;
+  --edge-lit:    #6b7396;
+
+  --parchment:      #e2e8f0;
+  --parchment-dim:  #a8b0c0;
+  --parchment-mute: #8b93a5;
+
+  --moss:        #bd82fa;
+  --moss-lit:    #d3aafc;
+  --moss-deep:   #6b21a8;
+
+  --wisp:        #22c55e;
+  --wisp-lit:    #4ade80;
+
+  --lantern:     #fbbf24;
+
+  --ember:          #f87171;
+  --ember-deep:     #991b1b;
+  --ember-lit:      #b02222;
+  --ember-edge:     #6f2a2a;
+  --ember-edge-lit: #bf5252;
+  --ember-hov:      #fb9595;
+
+  --arcane:      #67e8f9;
+
+  --glow:        #1b1d2b;
+}
+
+/* ---------- Taverna: noce tostato, ambra, oro da paladino ----------
+   Da "The Adventurer's Tavern" (#1E130B / #FDE68A / #D97706), e i tre
+   colori proposti restano tutti e tre come dati. Qui il TESTO è ambra e
+   non bianco: è la scelta più forte delle sette, la proposta la fa
+   apposta, e regge (11,5:1 sul fondo). L'oro dell'accento arriva a
+   5,2:1 sul pannello e 4,6:1 su quello rialzato — era stato schiarito
+   "per sicurezza" prima di misurarlo, e la misura ha detto che non
+   serviva: il valore giusto è quello che passa, non quello che rassicura.
+   Il distruttivo confina con l'accento come in Brace e in Gilda, e vale
+   la stessa regola: nettamente più rosso, e mai il colore da solo. */
+[data-theme="taverna"] {
+  --peat:        #1e130b;
+  --peat-sunk:   #170e07;
+  --surface:     #291b10;
+  --surface-hi:  #35251a;
+  --surface-hov: #422f21;
+
+  --edge:        #55402d;
+  --edge-soft:   #33241a;
+  --edge-lit:    #8a6a48;
+
+  --parchment:      #fde68a;
+  --parchment-dim:  #cbb46a;
+  --parchment-mute: #ad9558;
+
+  --moss:        #d97706;
+  --moss-lit:    #f0a01a;
+  --moss-deep:   #92590a;
+
+  --wisp:        #6ee7b7;
+  --wisp-lit:    #a7f3d0;
+
+  --lantern:     #fcd34d;
+
+  --ember:          #ff8a80;
+  --ember-deep:     #9b1c1c;
+  --ember-lit:      #b32222;
+  --ember-edge:     #7a3128;
+  --ember-edge-lit: #c25a4a;
+  --ember-hov:      #ffa79f;
+
+  --arcane:      #c4b5fd;
+
+  --glow:        #2b1a0e;
+}
+
 /* ---------- Alto contrasto: non un'atmosfera, un'esigenza ---------- */
 [data-theme="contrasto"] {
   --peat:        #000000;

@@ -6,6 +6,7 @@ import { TYPES, SHAPES, EDGE_TYPES, STATUS_COLORS, isMarker, defShape,
 import { st, currentNode, newCampaign, askDeleteCampaign, doUndo, RO,
          selectNode, selectWall } from "./stato.js";
 import { openKeys } from "./viste.js";
+import { GRUPPI, TEMA_DEFAULT, temiDelGruppo } from "./temi.js";
 import { exportJSON } from "./esporta.js";
 import { childOf, enterNode, duplicateSelected, addSpatialChild, arrangeGrid,
          planPointXY, renderCanvas, wallOf, setWallDoor, deleteWallSeg } from "./mappa.js";
@@ -137,9 +138,7 @@ export function showCtxFor(target, cx, cy){
    topbar scende a due righe e la tela si riprende lo schermo. I bottoni estesi
    restano nel markup: su desktop questo bottone è display:none. */
 export function openTopbarMenu(ev){
-  const cur = document.getElementById("theme-select")?.value || "torbiera";
-  const TEMI = {torbiera:"Torbiera", pergamena:"Pergamena", cripta:"Cripta",
-                brace:"Brace", contrasto:"Alto contrasto"};
+  const cur = document.getElementById("theme-select")?.value || TEMA_DEFAULT;
   const items = [];
   /* Le regole stanno accanto al generatore di dungeon perché sono la stessa
      cosa: uno strumento che vive altrove nel sito e si apre in una scheda
@@ -164,11 +163,18 @@ export function openTopbarMenu(ev){
       "---"
     );
   }else items.push(regole, "---");
-  items.push({head:"Tema"});
-  for(const [k,label] of Object.entries(TEMI))
-    // setTheme vive in main.js (l'entry point): importarlo da qui invertirebbe
-    // il verso dell'avvio, quindi si passa dal window come gli onclick inline.
-    items.push({id:"th-"+k, label: label + (cur===k?"  ✓":""), run:()=>window.setTheme(k)});
+  /* Un'intestazione per gruppo e non una sola "Tema": dodici voci di fila, su
+     un telefono, sono un elenco da scorrere alla cieca. I gruppi sono gli
+     stessi del <select> in topbar, perché vengono dallo stesso posto. */
+  for(const g of GRUPPI){
+    const voci = temiDelGruppo(g);
+    if(!voci.length) continue;
+    items.push({head: g === "Scuri" || g === "Chiari" ? "Tema — " + g.toLowerCase() : g});
+    for(const t of voci)
+      // setTheme vive in main.js (l'entry point): importarlo da qui invertirebbe
+      // il verso dell'avvio, quindi si passa dal window come gli onclick inline.
+      items.push({id:"th-"+t.id, label: t.label + (cur===t.id?"  ✓":""), run:()=>window.setTheme(t.id)});
+  }
   items.push("---", {id:"keys", label:"Scorciatoie da tastiera", run:openKeys});
   if(!RO && !window.__cloud){
     items.push("---",
