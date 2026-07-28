@@ -211,6 +211,35 @@ export function newCampaign(){
   showView("map");
   setTimeout(()=>{ const i=document.querySelector("#detail input"); if(i){ i.focus(); i.select(); } }, 80);
 }
+/* L'import di un file entra in una campagna NUOVA invece di sostituire quella
+   aperta. In locale uno slot non costa niente, quindi la domanda "vuoi
+   sostituire?" non si fa proprio: si risponde di no per costruzione, e due
+   clic su un file sbagliato smettono di essere una campagna persa. Chi voleva
+   davvero rimpiazzare ha il selettore di campagne e l'Elimina, che la conferma
+   ce l'ha già.
+   Solo standalone: in cloud (`/play/[id]`) l'indirizzo È la campagna, non
+   esistono slot, e lì l'import resta una sostituzione — con la conferma che
+   esporta.js chiede prima di arrivare qui. */
+export function importAsNewCampaign(data){
+  if(window.__cloud) return false;
+  clearTimeout(saveTimer); persistCurrent();       // la campagna di prima si chiude salvata
+  const id = uid();
+  campaignId = id; store.set(CUR_KEY, id);
+  // Stesso fallback di persistCurrent, che riscrive comunque questo nome un
+  // rigo più sotto: due default diversi qui darebbero due nomi in due istanti.
+  campaignsIdx.push({id, name: data.root.title || "Campagna", updatedAt: Date.now()});
+  st.state = data;
+  resetUndo();                       // l'undo non attraversa le campagne
+  persistCurrent(); renderCampaignSelect();
+  st.path = [st.state.root.id]; clearSel();
+  showView("map");
+  /* Il selettore in topbar cambia da sé, ma è un cambiamento silenzioso in un
+     angolo: senza una riga detta, chi importa non sa se ha aggiunto o
+     sostituito. `#savestate` è già role=status, quindi la sente anche un
+     lettore di schermo. */
+  cloudStatus("Importata come campagna nuova ✓");
+  return true;
+}
 export function askDeleteCampaign(){
   if(window.__cloud) return;
   if(campaignsIdx.length<=1){ openAlert("È l'unica campagna: creane un'altra prima di poterla eliminare."); return; }
@@ -323,15 +352,22 @@ export function initStato(){
   });
 }
 
-/* ==================== undo ====================
+/* ==================== undo / redo ====================
    Lo stato è un JSON unico: uno snapshot è la sua serializzazione, annullare è un
    parse. Lo stack tiene le serializzazioni PRECEDENTI alle modifiche; una raffica
    di save() ravvicinati (digitazione in un campo) conta come una modifica sola,
-   sennò Ctrl+Z toglierebbe una lettera alla volta. */
+   sennò Ctrl+Z toglierebbe una lettera alla volta.
+
+   Il redo è lo stesso meccanismo con gli stack scambiati, e l'unica regola che
+   deve reggere è la **storia lineare**: una modifica nuova dopo un annulla
+   invalida il ramo rifatto (`noteChange` svuota `redoStack`). Senza, Ctrl+Y
+   riporterebbe a un futuro che non discende più dal presente — cioè una perdita
+   silenziosa, che è esattamente il guasto che l'undo esiste per evitare. */
 const UNDO_CAP = 20;
 const BURST_MS = 800;      // poco sopra il debounce di save: una pausa che fa
                            // scattare il salvataggio chiude anche la raffica
 let undoStack = [];
+let redoStack = [];
 let lastSnap = null;       // serializzazione dello stato all'ultimo salvataggio compiuto
 let lastEditAt = 0;
 
@@ -346,9 +382,14 @@ function refreshUndoBtn(){
   const b = document.getElementById("undo-btn");
   if(b) b.hidden = !undoStack.length ||
                    (undoStack.length === 1 && undoStack[0] === lastSnap);
+  /* Il rifai non ha bisogno di proxy: `redoStack` si riempie solo dentro undo(),
+     quindi "non vuoto" è la risposta esatta e non una stima. */
+  const r = document.getElementById("redo-btn");
+  if(r) r.hidden = !redoStack.length;
 }
 export function resetUndo(){
   undoStack = [];
+  redoStack = [];
   lastSnap = st.state ? JSON.stringify(st.state) : null;
   lastEditAt = 0;
   refreshUndoBtn();
@@ -359,9 +400,34 @@ function noteChange(){
     undoStack.push(lastSnap);
     if(undoStack.length > UNDO_CAP) undoStack.shift();
   }
+  // Storia lineare: da qui in avanti il ramo rifatto non discende più da niente.
+  redoStack.length = 0;
   lastEditAt = now;
   refreshUndoBtn();
 }
+
+/* Rimettere sotto i piedi dell'app uno stato serializzato: è il pezzo che undo e
+   redo hanno davvero in comune, e stava tutto dentro undo(). Duplicarlo avrebbe
+   voluto dire due elenchi di cose da ripulire, e quello del redo sarebbe
+   invecchiato per primo — è la via meno battuta. */
+function applySnapshot(json){
+  clearTimeout(saveTimer);
+  st.state = JSON.parse(json);
+  migrateState(st.state);
+  // percorso e selezione possono puntare a nodi che nello stato ripristinato
+  // non esistono (es. undo di una creazione mentre ci si era entrati dentro)
+  const valid = [];
+  for(const id of st.path){ if(findNode(id)) valid.push(id); else break; }
+  st.path = valid.length ? valid : [st.state.root.id];
+  if(st.selectedId && !findNode(st.selectedId)) st.selectedId = null;
+  st.multiSel = new Set([...st.multiSel].filter(id => findNode(id)));
+  // un arco o un muro possono non esserci più — e un muro non si sa cercare
+  // come findNode fa coi nodi, quindi si azzera invece di filtrare
+  st.selectedEdgeId = st.selectedWallId = null;
+  st.multiSelWalls.clear();
+  doSave();                          // persiste subito, senza passare da noteChange
+}
+
 export function undo(){
   // `cloudPaused` va guardato anche qui e non solo in save(): undo() chiama
   // doSave() di suo, e riscriverebbe la copia locale che il dialogo sta
@@ -378,36 +444,46 @@ export function undo(){
     }
   }
   if(target === null) return false;
-  clearTimeout(saveTimer);
-  st.state = JSON.parse(target);
-  migrateState(st.state);
-  // percorso e selezione possono puntare a nodi che nello stato ripristinato
-  // non esistono (es. undo di una creazione mentre ci si era entrati dentro)
-  const valid = [];
-  for(const id of st.path){ if(findNode(id)) valid.push(id); else break; }
-  st.path = valid.length ? valid : [st.state.root.id];
-  if(st.selectedId && !findNode(st.selectedId)) st.selectedId = null;
-  st.multiSel = new Set([...st.multiSel].filter(id => findNode(id)));
-  // un arco o un muro possono non esserci più — e un muro non si sa cercare
-  // come findNode fa coi nodi, quindi si azzera invece di filtrare
-  st.selectedEdgeId = st.selectedWallId = null;
-  st.multiSelWalls.clear();
-  doSave();                          // persiste subito, senza passare da noteChange
+  redoStack.push(cur);               // dove si stava: è l'unica cosa che il redo deve sapere
+  if(redoStack.length > UNDO_CAP) redoStack.shift();
+  applySnapshot(target);
+  return true;
+}
+export function redo(){
+  if(RO || cloudPaused || !st.state) return false;
+  const cur = JSON.stringify(st.state);
+  let target = null;
+  while(redoStack.length){           // stessa pulizia dell'undo: gli identici non sono un passo
+    const s = redoStack.pop();
+    if(s !== cur){ target = s; break; }
+  }
+  if(target === null) return false;
+  /* Si torna indietro sull'undoStack, non su `lastSnap`: applySnapshot chiama
+     doSave(), che riscrive lastSnap: senza questa riga il Ctrl+Z successivo non
+     avrebbe più dove tornare e la coppia annulla/rifai non sarebbe reversibile. */
+  undoStack.push(cur);
+  if(undoStack.length > UNDO_CAP) undoStack.shift();
+  applySnapshot(target);
   return true;
 }
 /* L'annulla con feedback: unico punto d'ingresso per Ctrl+Z (scorciatoie.js),
-   la voce nel menu ⋯ e il bottone ↶ su touch — stessa esperienza da ovunque. */
-export function doUndo(){
+   la voce nel menu ⋯ e il bottone ↶ su touch — stessa esperienza da ovunque.
+   Il rifai gli sta accanto per costruzione: se i due messaggi si scrivessero in
+   due punti diversi, uno dei due direbbe "Niente da annullare" al momento
+   sbagliato. */
+function annunciaStoria(fatto, ok, ko){
   const el = document.getElementById("savestate");
-  if(undo()){
+  if(fatto){
     const attiva = document.querySelector(".view.active");
     showView(attiva ? attiva.id.replace("view-","") : "map");
-    el.textContent = "Modifica annullata ↩";
+    el.textContent = ok;
   }else{
-    el.textContent = "Niente da annullare";
+    el.textContent = ko;
   }
   refreshUndoBtn();
 }
+export function doUndo(){ annunciaStoria(undo(), "Modifica annullata ↩", "Niente da annullare"); }
+export function doRedo(){ annunciaStoria(redo(), "Modifica ripristinata ↪", "Niente da ripristinare"); }
 
 /* ==================== salvataggio ==================== */
 let saveTimer = null;
@@ -780,4 +856,4 @@ export function zoomOut(){
 
 // Gli onclick inline nei template cercano funzioni globali: i moduli ES non ne
 // creano, quindi le espongo esplicitamente.
-Object.assign(window, { switchCampaign, newCampaign, askDeleteCampaign, doUndo });
+Object.assign(window, { switchCampaign, newCampaign, askDeleteCampaign, doUndo, doRedo });

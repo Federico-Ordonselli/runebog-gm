@@ -487,6 +487,13 @@
   .foe-armlbl{font-size:13px}
   .foe-tags{width:100%;margin-top:6px;font-size:12px}
   .mon-sm{min-height:52px}
+  /* Le azioni si leggono ad alta voce a metà turno, e una scheda SRD non ci sta
+     in tre righe: il campo cresce col testo invece di nasconderne metà dietro
+     la maniglia di ridimensionamento. `field-sizing` dove c'è; dove non c'è
+     resta il min-height, comunque più alto del generico da 90px. Il tetto serve
+     perché sotto ci stanno i dadi: un mostro leggendario non deve spingerli
+     fuori schermo. Il tracker PF sta sopra e non si muove. */
+  .mon-actions{min-height:150px;max-height:340px;field-sizing:content}
   .mon-meta{width:100%;margin-top:6px;font-style:italic}
   .ab-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:10px}
   .ab-cell{text-align:center}
@@ -693,14 +700,17 @@
      laptop, ma si tocca col dito. Il desktop resta compatto com'è. */
   button, .pal-item, .check-item input[type=checkbox]{touch-action:manipulation}
 
-  /* L'undo visibile (↶): solo su touch — col mouse c'è Ctrl+Z, e in topbar
-     desktop non c'è larghezza da spendere. Sul telefono (≤760px) nemmeno:
-     la riga 2 è piena e il bottone la spingerebbe a tre righe — lì l'annulla
-     sta nel menu ⋯, a un tap. hidden (governato da stato.js, niente da
-     annullare) vince comunque: il selettore lo esclude. */
-  #undo-btn{display:none}
+  /* L'undo visibile (↶) e il redo (↷): solo su touch — col mouse ci sono Ctrl+Z
+     e Ctrl+Maiusc+Z, e in topbar desktop non c'è larghezza da spendere. Sul
+     telefono (≤760px) nemmeno: la riga 2 è piena e i bottoni la spingerebbero a
+     tre righe — lì annulla e rifai stanno nel menu ⋯, a un tap. hidden
+     (governato da stato.js: niente da annullare, niente da rifare) vince
+     comunque, perché il selettore lo esclude. I due condividono la regola
+     apposta: sono lo stesso gesto letto nei due versi, e separarli è il modo di
+     ritrovarsi il rifai visibile dove l'annulla non c'è. */
+  #undo-btn, #redo-btn{display:none}
   @media (pointer:coarse) and (min-width:761px){
-    #undo-btn:not([hidden]){display:inline-flex;align-items:center;justify-content:center}
+    #undo-btn:not([hidden]), #redo-btn:not([hidden]){display:inline-flex;align-items:center;justify-content:center}
   }
 
   @media (pointer:coarse){

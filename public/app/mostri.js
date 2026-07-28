@@ -4,7 +4,7 @@
 
 import { uid, escapeHtml, escapeAttr } from "./modello.js";
 import { findNode, save } from "./stato.js";
-import { renderDetail, editNode, secOpen } from "./pannello.js";
+import { renderDetail, editNode, secOpen, secShow } from "./pannello.js";
 import { foesInCampo } from "./battaglia.js";
 import { renderCanvas } from "./mappa.js";
 
@@ -123,6 +123,10 @@ export function applySRD(id, idx){
   if(!m.foes.length) m.foes.push(newFoe(s.name, s.hp));
   else m.foes.forEach(f=>{ f.hpMax = s.hp; f.hp = Math.min(f.hp, s.hp) || s.hp; });
   if(!n.title) editNode(id, "title", s.name);
+  /* La scheda si apre: il primo nemico appena creato la chiuderebbe (è la
+     regola di secOpen), e chi ha appena cercato "goblin" vedrebbe comparire
+     una barra dei PF e sparire le statistiche che stava scegliendo. */
+  secShow("mon-sheet");
   save(); renderDetail();
 }
 
@@ -176,36 +180,69 @@ export function statblockHTML(n){
   const alive = m.foes.filter(f=>f.hp>0).length;
   const total = m.foes.reduce((s,f)=>s+f.hp,0);
   const campo = foesInCampo(n.id);      // quante di queste creature sono già pedine
+  /* L'ordine di questo blocco è l'ordine del TAVOLO, non quello della scheda
+     stampata: PF, azioni, dadi — le tre cose che si toccano mentre si gioca —
+     e sotto, ripiegata, l'anagrafica del mostro, che si consulta in
+     preparazione e quasi mai durante un turno. Prima era il contrario: il
+     tracker PF stava in fondo a ~700px di form, e sullo sheet mobile da 62dvh
+     voleva dire scorrere l'intera scheda a ogni colpo andato a segno.
+     Il campo che si apre è comunque quello giusto: senza nemici da seguire non
+     c'è niente da tracciare, e la scheda torna in cima da sé. */
   return `<div class="field statblock">
-    <label>Scheda mostro — D&D 5e</label>
-    <div class="srd-wrap">
-      <input id="srd-search" placeholder="🔎 Cambia mostro (cerca nella SRD)…"
-        oninput="srdSearch('${n.id}', this.value)" autocomplete="off">
-      <div id="srd-results"></div>
+    <label>Combattimento</label>
+    <div class="foe-list">
+      <div class="foe-head"><span>${m.foes.length>1?`${alive}/${m.foes.length} in vita · ${total} PF totali`:"Nemico"}</span>
+        <button class="btn tiny" onclick="addFoe('${n.id}')">+ nemico</button></div>
+      ${m.foes.map(f=>foeCard(n.id,f)).join("")}
+      ${campo.tot ? `<div class="campo-row">
+        <button class="btn tiny ${campo.in<campo.tot?"primary":""}" onclick="expandEncounter('${n.id}')"
+          ${campo.in>=campo.tot?"disabled":""}>⚔ Espandi in pedine</button>
+        <span class="hint-sm">${campo.in===0
+          ? `${campo.tot} pedin${campo.tot===1?"a":"e"} da piazzare sul campo`
+          : campo.in>=campo.tot ? "Tutte in campo — i PF sono gli stessi qui e sulla pianta"
+          : `${campo.in} di ${campo.tot} in campo`}</span>
+      </div>` : ""}
     </div>
-    <input class="mon-meta" value="${escapeAttr(m.meta)}" oninput="editMon('${n.id}','meta',this.value)" placeholder="Tipo e taglia (es. Mostruosità Grande, senza allineamento)">
-    <div class="row">
-      <div class="field"><label>CA</label><input value="${escapeAttr(m.ac)}" oninput="editMon('${n.id}','ac',this.value)"></div>
-      <div class="field"><label>Iniziativa</label><input value="${escapeAttr(m.init)}" oninput="editMon('${n.id}','init',this.value)"></div>
-      <div class="field"><label>Velocità</label><input value="${escapeAttr(m.speed)}" oninput="editMon('${n.id}','speed',this.value)"></div>
-    </div>
-    <div class="ab-grid">
-      ${ABILITIES.map(([k,lbl])=>`<div class="ab-cell">
-        <label>${lbl}</label>
-        <input type="number" value="${m[k]}" oninput="editMon('${n.id}','${k}',parseInt(this.value)||10); this.nextElementSibling.textContent=abMod(this.value)">
-        <span class="ab-mod">${abMod(m[k])}</span>
-      </div>`).join("")}
-    </div>
-    <div class="row">
-      <div class="field"><label>GS (PE)</label><input value="${escapeAttr(m.cr)}" oninput="editMon('${n.id}','cr',this.value)"></div>
-      <div class="field"><label>Sensi</label><input value="${escapeAttr(m.senses)}" oninput="editMon('${n.id}','senses',this.value)"></div>
-    </div>
+
     <label>Azioni</label>
-    <textarea oninput="editMon('${n.id}','actions',this.value)">${escapeHtml(m.actions||"")}</textarea>
-    <!-- Consultazione rara in combattimento: parte chiusa, il tracker PF e le
-         Azioni restano sempre a portata di mano. -->
-    <details class="field" data-sec="mon-extra" ontoggle="secToggle(this)"${secOpen("mon-extra")}>
-      <summary>Resto della scheda</summary>
+    <textarea class="mon-actions" oninput="editMon('${n.id}','actions',this.value)">${escapeHtml(m.actions||"")}</textarea>
+
+    <label>Tiradadi</label>
+    <div class="dice-bar">
+      ${[20,12,10,8,6,4].map(d=>`<button class="btn tiny" onclick="rollDice('d${d}')">d${d}</button>`).join("")}
+      <input id="dice-expr" placeholder="2d6+3" onkeydown="if(event.key==='Enter')rollDice(this.value)">
+      <button class="btn tiny" onclick="rollDice(document.getElementById('dice-expr').value)">Tira</button>
+      <span id="dice-out"></span>
+    </div>
+
+    <!-- Una sezione sola per tutta l'anagrafica, non due annidate: "Resto della
+         scheda" dentro "Scheda mostro" sarebbe un livello di richiusura per
+         distinguere caratteristiche da tiri salvezza, che in sessione non si
+         guardano né le une né gli altri. -->
+    <details class="field" data-sec="mon-sheet" ontoggle="secToggle(this)"${secOpen("mon-sheet", !m.foes.length)}>
+      <summary>Scheda mostro — D&D 5e</summary>
+      <div class="srd-wrap">
+        <input id="srd-search" placeholder="🔎 Cambia mostro (cerca nella SRD)…"
+          oninput="srdSearch('${n.id}', this.value)" autocomplete="off">
+        <div id="srd-results"></div>
+      </div>
+      <input class="mon-meta" value="${escapeAttr(m.meta)}" oninput="editMon('${n.id}','meta',this.value)" placeholder="Tipo e taglia (es. Mostruosità Grande, senza allineamento)">
+      <div class="row">
+        <div class="field"><label>CA</label><input value="${escapeAttr(m.ac)}" oninput="editMon('${n.id}','ac',this.value)"></div>
+        <div class="field"><label>Iniziativa</label><input value="${escapeAttr(m.init)}" oninput="editMon('${n.id}','init',this.value)"></div>
+        <div class="field"><label>Velocità</label><input value="${escapeAttr(m.speed)}" oninput="editMon('${n.id}','speed',this.value)"></div>
+      </div>
+      <div class="ab-grid">
+        ${ABILITIES.map(([k,lbl])=>`<div class="ab-cell">
+          <label>${lbl}</label>
+          <input type="number" value="${m[k]}" oninput="editMon('${n.id}','${k}',parseInt(this.value)||10); this.nextElementSibling.textContent=abMod(this.value)">
+          <span class="ab-mod">${abMod(m[k])}</span>
+        </div>`).join("")}
+      </div>
+      <div class="row">
+        <div class="field"><label>GS (PE)</label><input value="${escapeAttr(m.cr)}" oninput="editMon('${n.id}','cr',this.value)"></div>
+        <div class="field"><label>Sensi</label><input value="${escapeAttr(m.senses)}" oninput="editMon('${n.id}','senses',this.value)"></div>
+      </div>
       <div class="row">
         <div class="field"><label>Tiri salvezza</label><input value="${escapeAttr(m.saves)}" oninput="editMon('${n.id}','saves',this.value)"></div>
         <div class="field"><label>Abilità</label><input value="${escapeAttr(m.skills)}" oninput="editMon('${n.id}','skills',this.value)"></div>
@@ -221,27 +258,8 @@ export function statblockHTML(n){
       <textarea class="mon-sm" oninput="editMon('${n.id}','legendary',this.value)">${escapeHtml(m.legendary||"")}</textarea>
     </details>
 
-    <div class="foe-list">
-      <div class="foe-head"><span>${m.foes.length>1?`${alive}/${m.foes.length} in vita · ${total} PF totali`:"Nemico"}</span>
-        <button class="btn tiny" onclick="addFoe('${n.id}')">+ nemico</button></div>
-      ${m.foes.map(f=>foeCard(n.id,f)).join("")}
-      ${campo.tot ? `<div class="campo-row">
-        <button class="btn tiny ${campo.in<campo.tot?"primary":""}" onclick="expandEncounter('${n.id}')"
-          ${campo.in>=campo.tot?"disabled":""}>⚔ Espandi in pedine</button>
-        <span class="hint-sm">${campo.in===0
-          ? `${campo.tot} pedin${campo.tot===1?"a":"e"} da piazzare sul campo`
-          : campo.in>=campo.tot ? "Tutte in campo — i PF sono gli stessi qui e sulla pianta"
-          : `${campo.in} di ${campo.tot} in campo`}</span>
-      </div>` : ""}
-    </div>
-
-    <label>Tiradadi</label>
-    <div class="dice-bar">
-      ${[20,12,10,8,6,4].map(d=>`<button class="btn tiny" onclick="rollDice('d${d}')">d${d}</button>`).join("")}
-      <input id="dice-expr" placeholder="2d6+3" onkeydown="if(event.key==='Enter')rollDice(this.value)">
-      <button class="btn tiny" onclick="rollDice(document.getElementById('dice-expr').value)">Tira</button>
-      <span id="dice-out"></span>
-    </div>
+    <!-- Fuori dalla sezione richiudibile: l'attribuzione CC-BY è una condizione
+         della licenza, e una licenza dietro un <summary> chiuso non è resa. -->
     <p class="srd-attrib">Dati mostri: SRD 5.2.1 (regole 2024) © Wizards of the Coast — CC-BY-4.0</p>
   </div>`;
 }

@@ -74,6 +74,10 @@
        qualcosa da annullare. Niente classe dm-only: la regola dei gradini la
        nasconderebbe sotto i 1400px; al tavolo lo stack resta comunque vuoto. -->
   <button id="undo-btn" class="btn tiny" hidden onclick="doUndo()" title="Annulla l'ultima modifica" aria-label="Annulla l'ultima modifica">↶</button>
+  <!-- Il rifai compare solo dopo un annulla (stato.js governa hidden): prima non
+       ha niente da rifare, e un bottone spento in permanenza è rumore in una
+       topbar che su touch è già stretta. -->
+  <button id="redo-btn" class="btn tiny" hidden onclick="doRedo()" title="Ripristina la modifica annullata" aria-label="Ripristina la modifica annullata">↷</button>
   <!-- Solo mobile (display:none su desktop): raccoglie le azioni rare in sessione. -->
   <button id="topbar-more" class="btn" onclick="openTopbarMenu(event)" title="Altre azioni" aria-label="Altre azioni" aria-haspopup="menu">⋯</button>
   <input type="file" id="import-file" accept=".json,application/json" hidden>
@@ -217,6 +221,7 @@
   <div class="keys-grid">
     <span><kbd>Ctrl</kbd><kbd>K</kbd></span><span>Cerca in tutta la campagna</span>
     <span><kbd>Ctrl</kbd><kbd>Z</kbd></span><span>Annulla l'ultima modifica</span>
+    <span><kbd>Ctrl</kbd><kbd>Maiusc</kbd><kbd>Z</kbd></span><span>Ripristina la modifica annullata (anche <kbd>Ctrl</kbd><kbd>Y</kbd>)</span>
     <span><kbd>?</kbd></span><span>Questo elenco</span>
   </div>
   <h3 class="keys-h">Sulla mappa</h3>

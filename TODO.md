@@ -1729,3 +1729,86 @@ Cosa **resta** da fare, misurato:
 - **Il sito non ha un selettore di tema**: la chiave `runebog-theme` è
   condivisa e `layout.tsx` applica quello salvato, ma per cambiarlo bisogna
   passare dall'app. Con dodici temi (e tre chiari) inizia a pesare.
+
+## Il lavoro del DM non si perde (i tre P1 della critique)
+
+- [x] **I tre P1 aperti dalla critique del 17 lug** — fatto (28 lug 2026). Erano
+  fermi da tre giri (29/40 in tutte e tre le critique), e due dei tre sono lo
+  stesso guasto visto da due lati: **il lavoro dell'utente non ha rete**.
+
+- [x] **L'import non sostituisce più la campagna aperta** (`esporta.js`,
+  `importAsNewCampaign` in `stato.js`). Due clic e un file sbagliato erano una
+  campagna persa, con l'undo azzerato dall'import stesso.
+  La correzione **non è un dialogo di conferma**, o almeno non in locale: uno
+  slot di campagna non costa niente, quindi la campagna importata è una **in
+  più** e la domanda non si fa proprio — si risponde di no per costruzione.
+  Chi voleva davvero rimpiazzare ha il selettore e l'Elimina, che la conferma
+  ce l'ha già.
+  - **La conferma resta dov'è inevitabile**: in cloud (`/play/[id]`) l'indirizzo
+    È la campagna e slot non ce ne sono, quindi lì l'import sovrascrive e il
+    dialogo conta le bolle da una parte e dall'altra, con lo stesso rimando
+    all'Esporta di "Elimina campagna" — stesso danno, stessa rassicurazione.
+  - **La validazione viene prima della domanda**: un file illeggibile non mette
+    a rischio niente, e chiedere "sostituisco?" per poi fallire sarebbe uno
+    spavento per nulla. Chi legge il dialogo sa già che il file è buono.
+  - Il cambio di campagna è silenzioso di suo (cambia una `<option>` in
+    topbar), quindi `#savestate` lo dice: "Importata come campagna nuova ✓",
+    che essendo `role=status` arriva anche a un lettore di schermo.
+
+- [x] **Redo** (`redo`/`doRedo` in `stato.js`, Ctrl+Maiusc+Z e Ctrl+Y). Un
+  Ctrl+Z di troppo distruggeva lavoro senza rimedio: il contratto dell'annulla
+  era rotto a metà.
+  - È lo **stesso meccanismo con gli stack scambiati** — lo stato è un JSON
+    unico, quindi uno snapshot è una `stringify` e tornarci è una `parse` — e
+    l'unica regola che deve reggere è la **storia lineare**: `noteChange` svuota
+    `redoStack`, sennò dopo una modifica nuova il rifai riporterebbe a un futuro
+    che non discende più dal presente, cioè una perdita silenziosa, che è
+    esattamente il guasto per cui l'undo esiste.
+  - `applySnapshot` è il pezzo che i due condividono (percorso, selezioni e muri
+    da ripulire): stava tutto dentro `undo()`, e copiarlo avrebbe voluto dire
+    due elenchi da tenere allineati, di cui quello del redo — la via meno
+    battuta — sarebbe invecchiato per primo.
+  - `redo()` rimette lo stato corrente sull'**undoStack** e non si affida a
+    `lastSnap`: `applySnapshot` chiama `doSave()`, che `lastSnap` lo riscrive, e
+    senza quella riga il Ctrl+Z successivo non avrebbe più dove tornare.
+  - Due scorciatoie e non una: Ctrl+Maiusc+Z è la convenzione di macOS e degli
+    editor grafici, Ctrl+Y quella di Windows, e chi arriva da una delle due
+    prova la sua e basta. Il bottone ↷ in topbar segue la regola di ↶ (solo
+    touch, ≥761px) e compare **solo dopo un annulla**: `redoStack` si riempie
+    soltanto dentro `undo()`, quindi lì "non vuoto" è la risposta esatta e non
+    il proxy che ↶ deve accontentarsi di essere.
+
+- [x] **Il pannello di un encounter comincia dal combattimento**
+  (`statblockHTML` in `mostri.js`, punto di innesto in `pannello.js`). Il
+  tracker PF era in fondo alla scheda, sotto ~700px di form, e sullo sheet
+  mobile da 62dvh voleva dire scorrere l'intera anagrafica del mostro a ogni
+  colpo andato a segno.
+  - L'ordine ora è quello del **tavolo** e non quello della scheda stampata: PF,
+    azioni, dadi — le tre cose che si toccano giocando — e sotto, ripiegata in
+    una sola sezione, l'anagrafica. Il blocco è montato **subito sotto il
+    titolo**: un encounter lo si apre per i PF, non per la larghezza in pixel.
+    Misurato in Chromium: il tracker passa da ~700px a **194px** dall'inizio del
+    pannello su desktop, e su un 390×844 sta dentro lo sheet **senza scorrere**.
+  - Una sezione sola, non due annidate: "Resto della scheda" dentro "Scheda
+    mostro" sarebbe stato un livello di richiusura per distinguere
+    caratteristiche da tiri salvezza, che in sessione non si guardano né le une
+    né gli altri.
+  - **Riempire una sezione chiusa è indistinguibile dal non far niente**: chi
+    sceglie un goblin dalla SRD si vedeva comparire una barra dei PF e sparire
+    le statistiche che stava scegliendo, perché `applySRD` crea il primo nemico
+    e la regola di apertura è "aperta se non ci sono nemici". Da lì `secShow` in
+    `pannello.js`, che apre una sezione da fuori: il `force` di `secOpen`
+    risponde a una condizione dello stato e non sa distinguere "il mostro c'era
+    già" da "il mostro è arrivato ora".
+  - L'attribuzione CC-BY resta **fuori** dalla sezione richiudibile: è una
+    condizione della licenza, e una licenza dietro un `<summary>` chiuso non è
+    resa.
+  - Rifinitura vista solo a schermo acceso: il campo **Azioni** teneva tre righe
+    e tagliava il resto dietro la maniglia di ridimensionamento. Ora cresce col
+    testo (`field-sizing:content`, `min-height` più alto dove non c'è) con un
+    tetto, perché sotto ci stanno i dadi.
+
+  Verifica in Chromium, 24 controlli automatici più le schermate: annulla/rifai
+  da tastiera e dal bottone su tablet (44×44), storia lineare, import che lascia
+  intatta la campagna di prima, pannello encounter a 1440×900 e a 390×844.
+  `npx tsc --noEmit` e i 97 test puliti, zero errori in console.

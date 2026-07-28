@@ -155,6 +155,45 @@ senza ridipendere dalla rete che ha appena fallito.
   resta in `stato.js` (fetch, debounce, dialogo) è tenuto sottile apposta e si prova a
   mano — la procedura è in `TODO.md`.
 
+**Annulla, rifai, e l'import che non distrugge** (`undo`/`redo`/`applySnapshot` in
+`stato.js`, `esporta.js`): lo stato è un JSON unico, quindi uno snapshot è una
+`JSON.stringify` e tornarci è una `parse`. Il redo è lo **stesso meccanismo con gli
+stack scambiati** e `applySnapshot` è il pezzo che i due condividono — percorso,
+selezioni e muri che nello stato ripristinato possono non esistere più.
+
+- **Storia lineare**: `noteChange` svuota `redoStack`. Una modifica nuova dopo un
+  annulla stacca il ramo rifatto, e senza quella riga Ctrl+Y riporterebbe a un futuro
+  che non discende più dal presente — cioè una perdita silenziosa, esattamente il
+  guasto per cui l'undo esiste.
+- `redo()` rimette lo stato corrente sull'**undoStack** e non si appoggia a `lastSnap`:
+  `applySnapshot` chiama `doSave()`, che `lastSnap` lo riscrive, e senza quella riga il
+  Ctrl+Z successivo non avrebbe più dove tornare.
+- Il bottone ↷ compare **solo dopo un annulla** e la sua condizione è esatta
+  (`redoStack` si riempie soltanto dentro `undo()`), mentre quella di ↶ è per forza un
+  proxy: il check vero vorrebbe serializzare fino a 4 MB a ogni battitura.
+- **L'import entra in una campagna nuova** (`importAsNewCampaign`) invece di sostituire
+  quella aperta: in locale uno slot non costa niente, quindi alla domanda "vuoi
+  sostituire?" si risponde di no per costruzione, e non la si fa. In cloud
+  (`/play/[id]`) l'indirizzo È la campagna e slot non ce ne sono: lì l'import
+  sovrascrive, e la conferma conta le bolle da una parte e dall'altra. La validazione
+  del contratto viene **prima** della conferma — un file illeggibile non mette a
+  rischio niente, e chiedere per poi fallire è uno spavento per nulla.
+
+**Il pannello di un encounter è ordinato per il tavolo** (`statblockHTML` in
+`mostri.js`, montato subito sotto il titolo da `pannello.js`): PF, azioni, dadi — le
+tre cose che si toccano giocando — e sotto, in **una** sezione richiudibile,
+l'anagrafica del mostro. Non è l'ordine di una scheda stampata, ed è voluto: il resto
+del pannello (tipo, note, colore) è preparazione, e al tavolo non si scorre. Due
+conseguenze da tenere:
+
+- **Riempire una sezione chiusa è indistinguibile dal non far niente**: `applySRD` crea
+  il primo nemico, e la regola d'apertura ("aperta se non ci sono nemici") chiuderebbe
+  la scheda proprio a chi ha appena scelto il mostro. Da lì `secShow` in `pannello.js`
+  — il `force` di `secOpen` risponde a una condizione dello stato e non sa distinguere
+  "c'era già" da "è arrivato ora".
+- L'attribuzione CC-BY sta **fuori** dalla sezione richiudibile: è una condizione della
+  licenza, e una licenza dietro un `<summary>` chiuso non è resa.
+
 **Modalità combattimento** (`public/app/battaglia.js`): `n.battle` sta sul nodo del
 livello dove si combatte — la sua presenza è la modalità accesa, non c'è stato globale.
 Le pedine **referenziano** la loro fonte (`playerId`, oppure `{nodeId, foeId}`) e non

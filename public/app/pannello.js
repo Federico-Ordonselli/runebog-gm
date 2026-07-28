@@ -29,6 +29,13 @@ export function secOpen(key, force=false){ return (force || openSecs.has(key)) ?
 export function secToggle(el){
   if(el.open) openSecs.add(el.dataset.sec); else openSecs.delete(el.dataset.sec);
 }
+/* Aprire una sezione da fuori, per chi ci ha appena messo dentro qualcosa:
+   `force` di secOpen risponde a una condizione dello stato ("c'è un'immagine"),
+   e non sa distinguere "il mostro c'era già" da "il mostro è arrivato ora".
+   Riempire una sezione chiusa senza aprirla è indistinguibile dal non far
+   niente — è il caso di applySRD (mostri.js), dove il DM ha appena scelto una
+   scheda e deve vedere che è arrivata. */
+export function secShow(key){ openSecs.add(key); }
 
 /* Il pannello del tavolo. È una funzione a parte, e non un renderDetail() pieno di
    `if(RO)`: quello che i giocatori vedono deve poter essere letto tutto insieme, in
@@ -228,6 +235,12 @@ function renderDetailCore(){
     <div class="field"><label>Titolo</label>
       <input value="${escapeAttr(n.title)}" oninput="editNode('${n.id}','title',this.value)"></div>`}
 
+    <!-- Subito sotto il nome, e non in fondo: un encounter selezionato durante
+         una sessione lo si apre per i PF, non per la larghezza in pixel. Il
+         resto del pannello (tipo, note, colore) è preparazione, e la
+         preparazione può stare sotto — al tavolo non si scorre. -->
+    ${n.type==="encounter" ? statblockHTML(n) : ""}
+
     <div class="row">
       <div class="field"><label>Tipo</label>
         <select onchange="editNode('${n.id}','type',this.value)" ${isRoot?"disabled":""}>${typeOpts}</select></div>
@@ -327,8 +340,6 @@ function renderDetailCore(){
         ${n.img?`<button class="btn danger" onclick="editNode('${n.id}','img',null)">Rimuovi</button>`:""}
       </div>
     </details>
-
-    ${n.type==="encounter" ? statblockHTML(n) : ""}
 
     ${n.children.length?`<div class="field"><label>Contenuto (${n.children.length})</label>
       <div class="child-list">${childRows}</div></div>`:""}

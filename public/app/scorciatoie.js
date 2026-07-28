@@ -2,7 +2,7 @@
    e, per quelle della mappa, solo con la vista Mappa aperta. */
 
 import { onGrid, CELL } from "./modello.js";
-import { st, save, doUndo, findNode, clearSel } from "./stato.js";
+import { st, save, doUndo, doRedo, findNode, clearSel } from "./stato.js";
 import { showView, openKeys } from "./viste.js";
 import { goUp, enterNode, planZoom, planFit, renderCanvas, wallOf,
          requestDeleteSelection, duplicateSelected } from "./mappa.js";
@@ -25,6 +25,14 @@ export function initScorciatoie(){
     if((e.ctrlKey||e.metaKey) && !e.shiftKey && e.key.toLowerCase()==="z"){
       e.preventDefault();
       doUndo();
+      return;
+    }
+    /* Ctrl+Shift+Z e Ctrl+Y sono la stessa cosa: il primo è la convenzione di
+       macOS e degli editor grafici, il secondo quella di Windows. Chi arriva da
+       una delle due prova la sua e basta, quindi rispondono entrambe. */
+    if((e.ctrlKey||e.metaKey) && ((e.shiftKey && e.key.toLowerCase()==="z") || e.key.toLowerCase()==="y")){
+      e.preventDefault();
+      doRedo();
       return;
     }
     // "?" apre l'elenco delle scorciatoie da qualunque vista (fuori dai campi:

@@ -3,7 +3,7 @@
 
 import { TYPES, SHAPES, EDGE_TYPES, STATUS_COLORS, isMarker, defShape,
          DOOR_TYPES, doorKind } from "./modello.js";
-import { st, currentNode, newCampaign, askDeleteCampaign, doUndo, RO,
+import { st, currentNode, newCampaign, askDeleteCampaign, doUndo, doRedo, RO,
          selectNode, selectWall } from "./stato.js";
 import { openKeys } from "./viste.js";
 import { GRUPPI, TEMA_DEFAULT, temiDelGruppo } from "./temi.js";
@@ -151,7 +151,10 @@ export function openTopbarMenu(ev){
     items.push(
       // Sempre presente, non solo a stack pieno: è la via touch all'undo e deve
       // essere scopribile; a stack vuoto doUndo risponde "Niente da annullare".
+      // Il rifai le sta accanto per la stessa ragione: un annulla senza rifai è
+      // un contratto rotto a metà, e col dito non esiste Ctrl+Shift+Z.
       {id:"undo", label:"Annulla l'ultima modifica ↩", run:doUndo},
+      {id:"redo", label:"Ripristina la modifica ↪", run:doRedo},
       "---",
       {id:"exp", label:"Esporta la campagna", run:()=>exportJSON()},
       {id:"imp", label:"Importa da file…", run:()=>document.getElementById("import-file").click()},
