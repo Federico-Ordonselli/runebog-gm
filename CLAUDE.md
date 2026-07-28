@@ -202,6 +202,31 @@ La griglia è quella che c'era già — `CELL` (40px, 1 quadretto = 1,5 m) è de
 sola volta in `modello.js`: `battaglia.js` la riesporta, il pattern `#grid` in `mappa.js`
 e `DG_SCALE` in `dungeon.js` la importano.
 
+- **Nel tabellone d'iniziativa ogni distinzione ha due canali** (29 lug 2026), che
+  è la regola che `.ini-row.on` seguiva già da sola: il turno corrente si dice con
+  fondo, grassetto **e** `▸`. Da che parte sta una riga lo diceva invece il solo
+  colore della striscia, e `--fen`/`--ember` su Brace sono la coppia di famiglie
+  più vicina dei dodici temi (ΔE 17,4, dichiarato in `themes.css`) — due righe
+  identiche per chi non distingue quei rossi. Ora c'è anche un glifo (`.ini-tipo`:
+  ◆ per i PG, ▲ per i nemici), e sono due **silhouette**: ◆ e ◇ sarebbero di nuovo
+  un canale solo, il peso. Il glifo prende lo stesso token della striscia, perché
+  è lo stesso segnale detto due volte e non un secondo codice da imparare.
+  - **Il caso che conta è il tavolo**, non la vista DM: lì il 🎲 che marcava i PG
+    non c'è (è un comando, e al tavolo non si comanda), quindi la striscia
+    restava davvero sola. Regge perché `projectBattle` (`share.ts`) manda già
+    `kind`, che è l'unica cosa di cui il glifo ha bisogno.
+  - Il glifo è `aria-hidden` e la parola sta in un `.sr-only` che **apre** la
+    riga: un lettore di schermo annuncerebbe "rombo nero", che non è
+    l'informazione, e il lato va sentito prima del nome.
+  - Costa 15px alla colonna del nome (98 → 83px nella vista DM, dove il 🎲
+    occupa il fondo; al tavolo restano 122px). Da lì il `title` sul nome. Il
+    tetto vero è `#battle-bar` a 216px fissi, che è una voce sua in `TODO.md`.
+  - Una voce la cui fonte non c'è più **non dichiara un lato**: prima prendeva
+    `foe` per esclusione e si disegnava rossa, cioè annunciava un nemico dove
+    c'è un buco. Tiene però un `.ini-tipo` vuoto, sennò la sua riga rientra e la
+    fila dei glifi smette di essere una fila. Al tavolo il caso non esiste:
+    `projectBattle` quelle voci le filtra.
+
 **La scala della campagna** (`SCALA`, `scalaSopra`, `scalaDentro` in `modello.js`,
 25 lug 2026): `mondo › continente › nazione › regione › quartiere › edificio ›
 stanza`. Verso il basso l'albero è sempre stato infinito — una bolla contiene una

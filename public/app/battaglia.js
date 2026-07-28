@@ -264,21 +264,49 @@ export function renderBattleBar(){
   // ragione del num() in src/lib/share.ts.
   const intero = (v, alt = 0) => Number.isFinite(Number(v)) ? Math.trunc(Number(v)) : alt;
 
+  /* Da che parte sta una riga si diceva col solo colore della striscia, e su
+     Brace accento e distruttivo sono la coppia più vicina dei dodici temi
+     (ΔE 17,4, dichiarato in themes.css): chi non distingue quei due rossi
+     leggeva due righe identiche. Il segnale in più è una FORMA — la stessa
+     ricetta di .ini-row.on, che il turno corrente lo dice con fondo,
+     grassetto E ▸ — e le due sagome sono diverse di silhouette, non di
+     riempimento: ◆ e ◇ sarebbero di nuovo un solo canale, il peso.
+     Serve soprattutto AL TAVOLO, che è dove nessuno può chiedere: lì il 🎲
+     che marcava i PG nella vista DM non c'è, e la striscia restava sola.
+     Il glifo è aria-hidden e la parola sta in .sr-only, perché a un lettore
+     di schermo "rombo nero" non dice niente; la parola apre la riga, così il
+     lato si sente prima del nome.
+     Costa 15px alla colonna del nome, che nella vista DM scende da 98 a 83 e
+     tronca prima (un nome da tavolo ne chiede ~126): da qui il title sul nome,
+     che è l'affordance dei puntini. Il tetto vero è la barra a 216px fissi,
+     che è un lavoro suo — vedi TODO.md. */
+  const lato = c => !c
+    // La voce senza fonte tiene comunque la colonna: un segnaposto vuoto, sennò
+    // la sua riga rientra di 15px e la fila di glifi smette di essere una fila.
+    ? `<span class="ini-tipo" aria-hidden="true"></span>`
+    : c.pg
+      ? `<span class="ini-tipo" title="Personaggio giocante" aria-hidden="true">◆</span><span class="sr-only">Personaggio giocante:</span>`
+      : `<span class="ini-tipo" title="Nemico" aria-hidden="true">▲</span><span class="sr-only">Nemico:</span>`;
+
   const righe = b.order.map((e, i) => {
     const c = combattente(e);
     const attivo = i === b.turn;
     const morto = c && c.giu;
     const nome = c ? c.nome : "(rimosso)";
+    // Una voce la cui fonte non c'è più non ha un lato: prima prendeva "foe"
+    // per esclusione e si disegnava rossa, cioè dichiarava un nemico dove c'è
+    // solo un buco. Niente striscia e niente glifo, resta il nome barrato.
     const cls = ["ini-row", attivo ? "on" : "", morto ? "dead" : "",
-                 c?.pg ? "pg" : "foe", c ? "" : "gone"].filter(Boolean).join(" ");
+                 c ? (c.pg ? "pg" : "foe") : "gone"].filter(Boolean).join(" ");
     // aria-current: chi usa un lettore di schermo deve sentire di chi è il turno,
     // non dedurlo dal colore della riga
     return `<div class="${cls}"${attivo ? ' aria-current="true"' : ""}>
+      ${lato(c)}
       ${RO
         ? `<span class="ini-num">${intero(e.init)}</span>`
         : `<input class="ini-num" type="number" value="${intero(e.init)}" aria-label="Iniziativa di ${escapeHtml(nome)}"
              onchange="setInit('${e.id}', this.value)">`}
-      <span class="ini-name">${escapeHtml(nome)}</span>
+      <span class="ini-name" title="${escapeHtml(nome)}">${escapeHtml(nome)}</span>
       ${c?.pg && !RO ? `<button class="btn tiny" title="Tira per questo PG" onclick="rollForPg('${e.id}')">🎲</button>` : ""}
     </div>`;
   }).join("");

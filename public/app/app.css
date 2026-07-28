@@ -581,8 +581,18 @@
     display:flex;align-items:center;gap:6px;padding:3px 5px;border-radius:6px;
     border-left:3px solid transparent;font-size:13px;
   }
+  /* Il lato si dice due volte: la striscia (colore, che si legge di sbieco) e
+     il glifo (forma, che regge senza il colore). Il glifo prende lo stesso
+     token della striscia — sono lo stesso segnale, non due — ed è testo, quindi
+     la soglia è 4,5:1: la reggono le coppie accento/pannello e distruttivo/
+     pannello che verifica-contrasto.mjs misura già.
+     Largo il minimo: qui ogni pixel è un carattere in meno prima dei puntini
+     del nome, che nel tabellone è la cosa che si legge davvero. */
+  .ini-tipo{flex:none;width:9px;font-size:11px;line-height:1;text-align:center}
   .ini-row.pg{border-left-color:var(--fen)}
+  .ini-row.pg .ini-tipo{color:var(--fen)}
   .ini-row.foe{border-left-color:var(--ember)}
+  .ini-row.foe .ini-tipo{color:var(--ember)}
   /* Il turno corrente non si affida al solo colore: ha anche il fondo pieno e
      il nome in grassetto, e ▸ come indicatore di forma. */
   .ini-row.on{background:var(--panel-2);font-weight:700}

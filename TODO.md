@@ -7,19 +7,20 @@ ostacolo è già stato misurato, così non si rifà l'indagine. L'ordine è di
 consiglio, non di vincolo. Le voci per esteso stanno nelle sezioni sotto.
 
 La sezione regole è completa (dieci capitoli più il bestiario). Quello che
-resta viene dall'**audit del 28 lug 2026** (16/20): i tre P1 sono chiusi, il
-primo P2 anche (i bordi di componente, 28 lug), e quelli che restano sono
-elencati **con la misura già fatta** in "Cosa resta dell'audit", in fondo al
-file. In ordine di consiglio:
+resta viene dall'**audit del 28 lug 2026** (16/20): i tre P1 sono chiusi, e dei
+P2 sono chiusi i bordi di componente (28 lug) e i due canali del tabellone
+d'iniziativa (29 lug). Quelli che restano sono elencati **con la misura già
+fatta** in "Cosa resta dell'audit", in fondo al file. In ordine di consiglio:
 
-1. **PG e mostro si distinguono solo dal colore** nel tabellone d'iniziativa, e
-   al tavolo sparisce anche il 🎲 che nella vista DM marcava i PG.
-2. **`JSON.stringify` dell'intero stato ogni 5 s** al tavolo: la risposta porta
+1. **`JSON.stringify` dell'intero stato ogni 5 s** al tavolo: la risposta porta
    già `updatedAt`, è una riga.
-3. **`#battle-bar` a 216px** senza variante mobile, e i bersagli sotto i 44px
+2. **`#battle-bar` a 216px** senza variante mobile, e i bersagli sotto i 44px
    che la regola `pointer:coarse` non copre (fra cui i risultati di Ctrl+K).
-4. I P3: `alt="riferimento"`, `.hp-bar i` sotto soglia in due temi.
-5. **Trovati misurando i bordi il 28 lug**, e sono controlli che al rest non
+   Il 29 lug la barra ha perso altri 15px di colonna del nome per far posto al
+   glifo PG/nemico: nella vista DM il nome sta in 83px e ne chiederebbe ~126,
+   quindi qui c'è una misura in più di quando la voce è stata scritta.
+3. I P3: `alt="riferimento"`, `.hp-bar i` sotto soglia in due temi.
+4. **Trovati misurando i bordi il 28 lug**, e sono controlli che al rest non
    si vedono: `#detail-grip` a riposo è `--line` (1,37:1 su Torbiera), cioè la
    maniglia che ridimensiona il pannello è invisibile finché non ci passi
    sopra; `.q-star` spenta è `--line`, e la stella "non preferita" è un
@@ -1949,18 +1950,52 @@ Cosa **resta** da fare, misurato:
     `.q-star` spenta (`color:var(--line)`). Anche `.tab[aria-selected]` del sito
     è rimasto su `--edge`: lì il bordo non è l'unico segnale (cambiano anche
     fondo e colore), e alzarlo avrebbe solo fatto più rumore.
-- **PG e mostro si distinguono solo dal colore** nel tabellone d'iniziativa
-  (`.ini-row.pg`/`.foe`, striscia da 3px). Nel tema Brace accento e distruttivo
-  sono la coppia più vicina dei dodici (ΔE 17,4, dichiarato in `themes.css`), e
-  **al tavolo** sparisce anche il 🎲 che nella vista DM marcava i PG. La ricetta
-  c'è già a due righe di distanza: `.ini-row.on` usa fondo, grassetto **e** `▸`.
+- [x] **PG e mostro si distinguevano solo dal colore** nel tabellone
+  d'iniziativa — fatto (29 lug 2026). La striscia da 3px di `.ini-row.pg`/`.foe`
+  era l'unico segnale, e su Brace accento e distruttivo sono la coppia di
+  famiglie più vicina dei dodici temi (ΔE 17,4, dichiarato in `themes.css`):
+  due righe indistinguibili. Applicata la ricetta che stava già due righe più
+  in là — `.ini-row.on` dice il turno con fondo, grassetto **e** `▸` — con un
+  glifo `.ini-tipo` (◆ i PG, ▲ i nemici) accanto alla striscia.
+  - **Due silhouette, non due riempimenti**: ◆ e ◇ sarebbero stati di nuovo un
+    canale solo, il peso. Il glifo prende **lo stesso token** della striscia
+    (`--fen`/`--ember`): è lo stesso segnale detto due volte, non un secondo
+    codice da imparare. Essendo testo la soglia è 4,5:1, e la reggono le coppie
+    accento/pannello e distruttivo/pannello che `verifica-contrasto.mjs` misura
+    già — nessuna riga nuova in `COPPIE`.
+  - **Il caso che conta è il tavolo**: lì il 🎲 che marcava i PG nella vista DM
+    non c'è, quindi la striscia era davvero sola. Regge senza toccare il server,
+    perché `projectBattle` (`share.ts`) manda già `kind`.
+  - Il glifo è `aria-hidden` e la parola sta in un `.sr-only` che apre la riga:
+    "rombo nero" non è l'informazione, e il lato va sentito prima del nome.
+    Prima nel tabellone non c'era alcun modo di sentirlo.
+  - **Costa 15px al nome** (vista DM 98 → 83px; al tavolo restano 122px, che è
+    dove i nomi contano). Un nome da tavolo ne chiede ~126, quindi il nome porta
+    ora un `title`. Il tetto vero è `#battle-bar` a 216px fissi, voce a sé qui
+    sotto: allargare la barra è quel lavoro, non questo.
+  - Correzione venuta di conseguenza: una voce **senza fonte** (nemico
+    cancellato) prendeva `foe` per esclusione e si disegnava rossa — annunciava
+    un nemico dove c'è un buco. Ora non dichiara nessun lato e tiene un
+    `.ini-tipo` vuoto, sennò la riga rientra e la fila dei glifi si sfalsa. Al
+    tavolo il caso non esiste: `projectBattle` filtra quelle voci.
+  - Verifica in Chromium: **180 controlli** su tutti e dodici i temi (glifo,
+    `.sr-only`, glifo e striscia dello stesso colore, contrasto ≥ 4,5:1, la
+    riga senza fonte) più **9 al tavolo** con la proiezione vera di `share.ts`
+    (nessun bottone nelle righe, 4 voci su 5, i due glifi distinti) a 390px.
+    Quattro scatti (Torbiera, Brace, Pergamena, Alto contrasto), console pulita,
+    `npx tsc --noEmit`, 97 test e `npm run temi:contrasto` (12/12) puliti.
 - **`JSON.stringify` dell'intero stato ogni 5 s** al tavolo (`tavolo.js`, il
   confronto in `pollTable`). Due serializzazioni complete del documento — con le
   immagini in base64 dentro, tetto 4 MB — sul telefono dei giocatori. La
   risposta porta **già** `updatedAt` (`src/app/api/tavolo/[token]/route.ts`):
   confrontare quello e ricadere sullo `stringify` solo quando cambia.
 - **`#battle-bar` è fisso a 216px** e non ha variante sotto i 760px: su un
-  telefono da 360 copre il 60% della tela, proprio durante uno scontro.
+  telefono da 360 copre il 60% della tela, proprio durante uno scontro. Dentro
+  quei 216px la riga d'iniziativa è misurata (29 lug 2026): 3px di striscia,
+  9 di glifo, 38 di iniziativa, 33 del 🎲 e 24 di spazi, cioè **83px al nome**
+  contro i ~126 che ne chiede uno da tavolo. Al tavolo il 🎲 non c'è e ne
+  restano 122, quindi il caso stretto è la vista DM — dove però il nome intero
+  sta anche altrove. Allargare la barra è questo lavoro, non quello del glifo.
 - **Bersagli sotto i 44px non coperti** dalla regola `pointer:coarse`:
   `#qs-results button` e `#srd-results button` (~33px, e sono l'esito di
   Ctrl+K), `.q-star` (~26px), `.swatch` (26px), `details.field > summary`;
