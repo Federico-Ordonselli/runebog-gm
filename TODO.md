@@ -6,8 +6,22 @@ Scritti per essere ripresi **a freddo**: ognuno dice dove si tocca e quale
 ostacolo è già stato misurato, così non si rifà l'indagine. L'ordine è di
 consiglio, non di vincolo. Le voci per esteso stanno nelle sezioni sotto.
 
-Nessun lavoro grosso in coda: la sezione regole è completa (dieci capitoli più
-il bestiario). Le prossime cose sono minori o da decidere insieme.
+La sezione regole è completa (dieci capitoli più il bestiario). Quello che
+resta viene dall'**audit del 28 lug 2026** (16/20): i tre P1 sono chiusi, i P2
+e i P3 sono elencati **con la misura già fatta** in "Cosa resta dell'audit",
+in fondo al file. In ordine di consiglio:
+
+1. **`--edge` fa da bordo di componente in ~15 punti** e sta sotto 3:1 in dieci
+   temi su dodici. È la correzione del 26 lug lasciata a metà — fatta su campi
+   e bottoni, non sul resto — e chiude anche il buco nel verificatore, che di
+   quelle coppie non sa niente. Il lavoro più sostanzioso dei cinque.
+2. **PG e mostro si distinguono solo dal colore** nel tabellone d'iniziativa, e
+   al tavolo sparisce anche il 🎲 che nella vista DM marcava i PG.
+3. **`JSON.stringify` dell'intero stato ogni 5 s** al tavolo: la risposta porta
+   già `updatedAt`, è una riga.
+4. **`#battle-bar` a 216px** senza variante mobile, e i bersagli sotto i 44px
+   che la regola `pointer:coarse` non copre (fra cui i risultati di Ctrl+K).
+5. I P3: `alt="riferimento"`, `.hp-bar i` sotto soglia in due temi.
 
 La migrazione `0001_revisione-campagna` è applicata a **entrambi** i branch Neon
 (25 lug 2026: `dev` durante la verifica di P0.2, `production` prima del deploy,
