@@ -484,7 +484,18 @@ in nessun altro posto.
   citata nel commento accanto: aggiungerne una senza dire dove sta è come non
   averla. È il controllo che rende scrivibile un tema nuovo — a dodici temi
   l'occhio non li copre più, e un accento che su Torbiera brilla su Pergamena è
-  a 3:1 senza che nessuno lo noti.
+  a 3:1 senza che nessuno lo noti. Il rovescio: `COPPIE` è **scritto a mano**,
+  quindi lo script misura ciò che qualcuno si è ricordato di dichiarare. Un
+  guasto fuori da quell'elenco passa con 12/12 verdi (28 lug 2026: l'anello di
+  focus, sotto soglia in cinque temi, con lo script pulito).
+- **L'anello di focus è l'accento PIENO** (`--moss`, nell'app `--fen`), mai
+  `--moss-deep`: quella è la variante scura per riempimenti e barre, e come
+  *contorno* stava a 1,94:1 su Sottosuolo. Le coppie che lo reggono sono quelle
+  dell'accento su fondo e su pannello, a soglia 4,5 — più severa dei 3 che WCAG
+  1.4.11 chiede a un focus, quindi non serve una riga in più in `COPPIE`, serve
+  che quelle righe lo **dicano** (il commento le cita). Caso da tenere a mente:
+  `#detail-grip` ha `outline:none` e l'indicatore *è* la striscia che si
+  accende, quindi lì il colore non ha un secondo segnale a cui appoggiarsi.
 - Lo script controlla anche che le **cinque famiglie** (`--moss` accento, `--wisp`
   link, `--lantern` evidenza, `--ember` distruttivo, `--arcane` arcano) restino
   distinguibili **fra loro**, che è una domanda diversa dal contrasto sul fondo:
@@ -1019,6 +1030,38 @@ Non negoziabili; se tocchi queste aree, mantienili:
 - **`#empty-node` copre l'intera tela** (`inset:0`): il suo `pointer-events:none` non
   è cosmetico: senza, un livello vuoto non riceve né drop dalla palette, né tocchi,
   né doppi clic. Se aggiungi elementi cliccabili lì dentro, ridagli `pointer-events:auto`.
+- **Le scorciatoie della mappa non possiedono Invio, Spazio e Canc**
+  (`scorciatoie.js`, 28 lug 2026): quei tasti appartengono al comando che ha il
+  focus. Il filtro copriva `input/textarea/select` e si fermava lì, quindi su un
+  bottone del pannello Invio entrava nella bolla selezionata e Canc la
+  cancellava — un comando raggiunto con Tab si poteva mettere a fuoco e **non
+  premere**. La palette si era difesa da sola con uno `stopPropagation()`
+  (`mappa.js`, "arma e tocca"), che è il segno che la toppa andava alla
+  sorgente: una toppa per elemento vuol dire che ogni elemento nuovo nasce
+  rotto. La **tela è esclusa** dal filtro apposta — bolle e muri hanno
+  `tabindex` e `role=button`, ma lì quei due tasti li vuole proprio quell'elenco;
+  frecce, zoom, F ed Esc restano globali, che non sono tasti che un comando
+  consuma.
+- **Con un dialogo aperto la pagina sotto è inerte**: le scorciatoie escono
+  subito su `dialog[open]` (in quest'app i sei dialoghi sono tutti `showModal()`,
+  quindi `[open]` implica modale). Senza, l'Escape che chiude il dialogo
+  proseguiva e deselezionava anche la bolla: il pannello si ridisegnava e il
+  ritorno del focus garantito da `showModal()` veniva disfatto un istante dopo.
+  È la stessa guardia che c'era già per `#ctx-menu`.
+- **Un modale si fa con `<dialog>` e `showModal()`**, non con un `<div>` e una
+  classe: Escape, la trappola del focus e il ritorno del focus a chi ha aperto
+  li dà il browser. Il lightbox delle immagini è stato l'ultimo a passare (28 lug
+  2026): da `<div>` si apriva solo col mouse — il trigger era un tag immagine con
+  un `onclick`, che non prende il focus — e una volta aperto non si chiudeva più
+  da tastiera. Il trigger va reso un `<button>`, sennò il modale è a posto e
+  irraggiungibile.
+- **`prefers-reduced-motion` va dichiarato DUE volte**: `src/app/globals.css`
+  per il sito e `public/app/app.css` per l'editor. `app.html` carica soltanto
+  `themes.css` e `app.css`, quindi la regola del sito non lo raggiunge — e
+  l'editor è la metà dove il movimento si vede davvero (il pannello dettagli che
+  sale dal fondo su mobile). Vale per ogni regola d'uso, non solo per questa: i
+  *colori* hanno una sorgente unica (`themes.css`), le *regole* no, ed è così
+  che le due metà si allontanano in silenzio.
 - **Il salvataggio è ritardato di 700 ms** (`save()` in `stato.js`, per non
   scrivere a ogni battitura) e a chiudere quella finestra è il `pagehide`
   registrato da `initStato`. Serve perché dall'editor si esce con un clic: il

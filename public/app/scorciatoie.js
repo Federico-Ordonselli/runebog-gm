@@ -21,6 +21,14 @@ export function initScorciatoie(){
     const t = e.target;
     if(t && t.matches && t.matches("input, textarea, select")) return;
     if(document.getElementById("ctx-menu").classList.contains("show")) return;
+    /* Con un dialogo aperto la pagina sotto è inerte — è il senso di showModal(),
+       e in questa app i dialoghi sono tutti modali. Senza questa riga l'Escape
+       che chiude il dialogo proseguiva fino a qui e deselezionava anche la
+       bolla: il pannello si ridisegnava e il focus non aveva più dove tornare,
+       cioè il ritorno del focus che showModal() garantisce veniva disfatto un
+       istante dopo. Vale per tutti e sei, non solo per il lightbox: Canc dentro
+       il dialogo del tavolo cancellava la selezione dietro. */
+    if(document.querySelector("dialog[open]")) return;
     // Ctrl+Z globale (dopo il filtro sui campi: lì comanda l'undo nativo del browser)
     if((e.ctrlKey||e.metaKey) && !e.shiftKey && e.key.toLowerCase()==="z"){
       e.preventDefault();
@@ -40,6 +48,21 @@ export function initScorciatoie(){
     if(e.key==="?"){ e.preventDefault(); openKeys(); return; }
     if(!document.getElementById("view-map").classList.contains("active")) return;
     const k = e.key;
+    /* Invio, Spazio e Canc appartengono al COMANDO che ha il focus, non alla
+       tela. Il filtro sui campi qui sopra copriva input/textarea/select e si
+       fermava lì: su un bottone del pannello Invio entrava nella bolla
+       selezionata e Canc la cancellava, cioè un comando raggiunto con Tab si
+       poteva mettere a fuoco e non premere. La palette si era già difesa da
+       sola con uno stopPropagation (mappa.js, "arma e tocca"): una toppa per
+       elemento, e ogni elemento nuovo nasce rotto finché qualcuno non se ne
+       ricorda — per questo sta qui.
+       La TELA è esclusa apposta: bolle e muri hanno tabindex e role=button, ma
+       lì Invio e Spazio li vuole proprio questo elenco (entra nel livello,
+       aggiungi alla selezione multipla). Frecce, zoom, F ed Esc restano
+       globali: non sono tasti che un comando a fuoco consuma. */
+    if((k==="Enter" || k===" " || k==="Delete" || k==="Backspace") &&
+       t && t.closest && !t.closest("#plan-svg") &&
+       t.closest("button, a, summary, [role=button], [tabindex]")) return;
     if(k==="Escape"){
       if(st.selectedId||st.selectedEdgeId||st.selectedWallId||st.multiSel.size||st.multiSelWalls.size){
         // se il focus è su una bolla, va tolto: il ripristino del focus dopo il

@@ -66,7 +66,9 @@ function renderTableDetail(aside){
       <div class="ro-text">${escapeHtml(n.notes)}</div></div>` : ""}
 
     ${n.img ? `<div class="field"><label>Immagine</label>
-      <img id="detail-img" class="show" src="${n.img}" alt="riferimento" onclick="openLightbox('${n.id}')">
+      <button class="img-zoom" onclick="openLightbox('${n.id}')" aria-label="Ingrandisci l'immagine">
+        <img id="detail-img" src="${n.img}" alt="riferimento">
+      </button>
     </div>` : ""}
 
     ${c ? `<div class="field"><label>Combattimento</label>
@@ -334,7 +336,9 @@ function renderDetailCore(){
 
     <details class="field" data-sec="img" ontoggle="secToggle(this)"${secOpen("img", !!n.img)}>
       <summary>Mappa / immagine di riferimento</summary>
-      <img id="detail-img" class="${n.img?"show":""}" src="${n.img||""}" alt="riferimento" onclick="openLightbox('${n.id}')">
+      ${n.img ? `<button class="img-zoom" onclick="openLightbox('${n.id}')" aria-label="Ingrandisci l'immagine">
+        <img id="detail-img" src="${n.img}" alt="riferimento">
+      </button>` : ""}
       <div class="img-actions" style="margin-top:8px">
         <button class="btn" onclick="pickImage('${n.id}')">${n.img?"Sostituisci":"Carica"} immagine</button>
         ${n.img?`<button class="btn danger" onclick="editNode('${n.id}','img',null)">Rimuovi</button>`:""}
@@ -464,7 +468,10 @@ export function compressImage(dataUrl, cb){
 export function openLightbox(id){
   const n = findNode(id); if(!n||!n.img) return;
   document.getElementById("lightbox-img").src = n.img;
-  document.getElementById("lightbox").classList.add("show");
+  /* showModal() e non una classe: è la chiamata che accende Escape, la trappola
+     del focus e il ritorno del focus al bottone che l'ha aperto. Il src si
+     scrive PRIMA, sennò il dialogo si apre su un'immagine vuota. */
+  document.getElementById("lightbox").showModal();
 }
 
 // per gli onclick/ontoggle inline nei template

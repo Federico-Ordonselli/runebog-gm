@@ -208,7 +208,12 @@
 
 <div id="ctx-menu"></div>
 
-<div id="lightbox" onclick="this.classList.remove('show')"><img id="lightbox-img" alt="Mappa di riferimento"></div>
+<!-- <dialog> e non un <div> con una classe: Escape, la trappola del focus e il
+     ritorno del focus a chi l'ha aperto li dà il browser. Da <div> l'immagine si
+     apriva solo col mouse e, una volta aperta, da tastiera non si chiudeva più:
+     nessuno dei due gesti aveva un equivalente. Il clic ovunque chiude, come
+     prima — il dialogo copre la viewport, quindi "ovunque" è ancora ovunque. -->
+<dialog id="lightbox" onclick="this.close()"><img id="lightbox-img" alt="Mappa di riferimento"></dialog>
 
 <dialog id="share-dialog">
   <h2 class="serif" style="font-size:19px;margin-bottom:12px">Il tavolo dei giocatori</h2>

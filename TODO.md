@@ -1812,3 +1812,108 @@ Cosa **resta** da fare, misurato:
   da tastiera e dal bottone su tablet (44×44), storia lineare, import che lascia
   intatta la campagna di prima, pannello encounter a 1440×900 e a 390×844.
   `npx tsc --noEmit` e i 97 test puliti, zero errori in console.
+
+## I tre P1 dell'audit (accessibilità da tastiera e movimento)
+
+- [x] **I tre P1 aperti dall'audit del 28 lug** — fatto (28 lug 2026). Filo
+  comune: l'app dell'editor e il sito **dicono cose diverse sulle stesse
+  regole**. I token colore hanno una sorgente unica (`themes.css`), le regole
+  d'uso no, e le due metà si stavano allontanando in silenzio.
+
+- [x] **L'anello di focus è l'accento pieno** (`app.css`: la regola su
+  `input/textarea/select/button:focus-visible`, `.pal-item:focus-visible`,
+  lo sfondo di `#detail-grip`). Era `--fen-dim`, cioè `--moss-deep`: la
+  variante scura, nata per riempimenti e barre, che come **contorno** scendeva
+  sotto i 3:1 di WCAG 1.4.11 in **cinque temi su dodici** — 1,94:1 su
+  Sottosuolo, 2,48 su Segnale, 2,54 su Gilda, 2,57 su Notturno, 2,90 su
+  Taverna. Il sito usava già `--moss` (`globals.css`): erano due ricette per la
+  stessa cosa, e quella sbagliata stava nella metà che si usa da tastiera per
+  ore. `#detail-grip` era il caso peggiore: ha `outline:none`, quindi la
+  striscia che si accende **è** l'indicatore e non ha un secondo segnale.
+  - `verifica-contrasto.mjs` non se n'era accorto perché le sue `COPPIE` sono
+    un elenco scritto a mano, e nessuna riga guardava il focus. Non ne servivano
+    di nuove — `--moss` su fondo e su pannello ci sono già, a soglia 4,5, più
+    severa dei 3 che il focus chiede: serviva che quelle righe **dicessero**
+    che ora ci pende anche l'anello. È il commento a essere stato aggiornato.
+
+- [x] **Il lightbox è un `<dialog>`** (`app.html`, `openLightbox` in
+  `pannello.js`, `.img-zoom` in `app.css`). Prima era un `<div>` con una classe:
+  si apriva cliccando un tag immagine con un `onclick` addosso — che non prende
+  il focus — e una volta aperto **non si chiudeva più da tastiera**. Nessuno dei
+  due gesti aveva un equivalente. Ora l'immagine sta dentro un `<button>` e
+  `showModal()` porta Escape, la trappola del focus e il ritorno del focus a chi
+  ha aperto. Il clic ovunque chiude come prima.
+  - Caduto per conseguenza il tag immagine con la sorgente vuota che il ramo DM
+    emetteva quando il nodo non ha immagine (certi browser lo risolvono
+    sull'URL della pagina e lo richiedono una seconda volta): ora il markup
+    emette il tag solo quando l'immagine c'è, e il vecchio `display:none`/`.show`
+    non serve più.
+
+- [x] **`app.css` rispetta `prefers-reduced-motion`**. La regola gemella del
+  sito non arrivava fin lì — `app.html` carica `themes.css` e `app.css`, e
+  basta — quindi chi aveva chiesto meno movimento se lo vedeva rispettato sul
+  sito e ignorato nell'editor, che è la metà dove si passa la serata.
+  L'animazione vistosa è una sola: il pannello dettagli che sale dal fondo su
+  mobile. L'alternativa è il **salto istantaneo**, non l'assenza.
+
+- [x] **Trovato verificando, e più largo dei tre**: le scorciatoie della mappa
+  rubavano **Invio, Spazio e Canc** a qualunque comando avesse il focus
+  (`scorciatoie.js`). Il filtro copriva `input/textarea/select` e si fermava lì,
+  quindi su un bottone del pannello Invio entrava nella bolla selezionata e Canc
+  la cancellava: un comando raggiunto con Tab si poteva mettere a fuoco e **non
+  premere**. Senza questo, il bottone nuovo del lightbox sarebbe stato
+  raggiungibile e inerte, cioè il P1 sarebbe stato chiuso solo a metà.
+  - Che la toppa andasse messa alla sorgente lo diceva già il codice: la palette
+    si era difesa da sola con uno `stopPropagation()` (`mappa.js`, "arma e
+    tocca"). Una toppa per elemento vuol dire che ogni elemento nuovo nasce
+    rotto finché qualcuno non se ne ricorda.
+  - La **tela è esclusa** apposta: bolle e muri hanno `tabindex` e
+    `role=button`, ma lì Invio e Spazio li vuole proprio quell'elenco. Frecce,
+    zoom, F ed Esc restano globali — non sono tasti che un comando consuma.
+  - Seconda guardia, stessa indagine: **con un dialogo aperto la pagina sotto è
+    inerte**. L'Escape che chiudeva il dialogo proseguiva fino alle scorciatoie
+    e deselezionava anche la bolla, così il pannello si ridisegnava e il ritorno
+    del focus garantito da `showModal()` veniva disfatto un istante dopo. Vale
+    per tutti e sei i dialoghi: Canc dentro il dialogo del tavolo cancellava la
+    selezione dietro.
+
+  Verifica in Chromium, 16 controlli automatici: apertura con Tab+Invio,
+  chiusura con Escape, ritorno del focus, il clic che chiude ancora, l'anello di
+  focus misurato in tre temi, la durata della transizione con e senza
+  `reducedMotion`, più le tre regressioni della tela (Invio entra nel livello,
+  Spazio ribalta la selezione multipla, Canc dal pannello non cancella più).
+  `npx tsc --noEmit`, i 97 test e `npm run temi:contrasto` puliti.
+
+### Cosa resta dell'audit (P2 e P3, con la misura già fatta)
+
+- **`--edge` fa da bordo di componente in ~15 punti** e sta sotto 3:1 in **10
+  temi su 12** (peggiore Brace 1,32:1; passano solo Gilda e Alto contrasto, che
+  lo dichiarano alto per altre ragioni). È la correzione del 26 lug lasciata a
+  metà: fatta su campi e bottoni, non sul resto. I punti in `app.css`:
+  `.pal-item`, `.ep-chip`, `.check-item`, `.foe-card`, `.q-row`,
+  `.child-list .child`, `kbd`, `#ctx-menu`, `#qs-results`, `#srd-results`,
+  `.hp-btn`, `#battle-bar`, `.foe-ro`, `.only-dm`; più `.campaign` in
+  `globals.css` (`--edge-soft`, 1,20–1,56:1). Vanno a `--line-ui`; restano a
+  `--line` i separatori veri (bordo della topbar, `.detail-actions`,
+  `.share-field`, `#ctx-menu hr`). **Poi le due coppie vanno aggiunte a
+  `COPPIE`**, sennò il verificatore continua a tacere.
+- **PG e mostro si distinguono solo dal colore** nel tabellone d'iniziativa
+  (`.ini-row.pg`/`.foe`, striscia da 3px). Nel tema Brace accento e distruttivo
+  sono la coppia più vicina dei dodici (ΔE 17,4, dichiarato in `themes.css`), e
+  **al tavolo** sparisce anche il 🎲 che nella vista DM marcava i PG. La ricetta
+  c'è già a due righe di distanza: `.ini-row.on` usa fondo, grassetto **e** `▸`.
+- **`JSON.stringify` dell'intero stato ogni 5 s** al tavolo (`tavolo.js`, il
+  confronto in `pollTable`). Due serializzazioni complete del documento — con le
+  immagini in base64 dentro, tetto 4 MB — sul telefono dei giocatori. La
+  risposta porta **già** `updatedAt` (`src/app/api/tavolo/[token]/route.ts`):
+  confrontare quello e ricadere sullo `stringify` solo quando cambia.
+- **`#battle-bar` è fisso a 216px** e non ha variante sotto i 760px: su un
+  telefono da 360 copre il 60% della tela, proprio durante uno scontro.
+- **Bersagli sotto i 44px non coperti** dalla regola `pointer:coarse`:
+  `#qs-results button` e `#srd-results button` (~33px, e sono l'esito di
+  Ctrl+K), `.q-star` (~26px), `.swatch` (26px), `details.field > summary`;
+  `.btn--sm` del sito (~26–30px). `globals.css` non ha nessuna regola
+  `pointer:coarse`.
+- Minori: `alt="riferimento"` su un'immagine che ha `n.name` a disposizione;
+  `.hp-bar i` (barra PF dei PG) a 2,87:1 su Notturno e 2,21:1 su Sottosuolo —
+  lo stato critico `.low` resta leggibile ovunque.

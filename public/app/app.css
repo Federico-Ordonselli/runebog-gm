@@ -37,7 +37,14 @@
     font:inherit;color:var(--ink);background:var(--bog-2);
     border:1px solid var(--line-ui);border-radius:6px;padding:7px 9px;width:100%;
   }
-  input:focus,textarea:focus,select:focus,button:focus-visible{outline:2px solid var(--fen-dim);outline-offset:1px}
+  /* L'anello di focus è l'accento PIENO, non --fen-dim: quella è la variante
+     scura, nata per riempimenti e barre, e come CONTORNO scendeva sotto i 3:1
+     che WCAG 1.4.11 chiede a un indicatore di focus — 1,94:1 su Sottosuolo,
+     2,48 su Segnale, 2,54 su Gilda, 2,57 su Notturno, 2,90 su Taverna. Il sito
+     usava già --moss (globals.css): erano due ricette per la stessa cosa, e
+     quella sbagliata stava nella metà che si usa da tastiera per ore.
+     Le coppie sono misurate da scripts/verifica-contrasto.mjs. */
+  input:focus,textarea:focus,select:focus,button:focus-visible{outline:2px solid var(--fen);outline-offset:1px}
   textarea{resize:vertical;min-height:90px}
   ::placeholder{color:var(--grigio)}
 
@@ -185,7 +192,12 @@
     background:var(--line);transition:background .15s;
   }
   #detail-grip::before{content:"";position:absolute;top:0;bottom:0;left:-3px;right:-3px}
-  #detail-grip:hover,#detail-grip:focus-visible,#detail-grip.dragging{background:var(--fen-dim);outline:none}
+  /* Qui l'indicatore di focus È la striscia che si accende (outline:none: un
+     contorno attorno a 5px sarebbe un francobollo), quindi deve reggere 3:1
+     contro ENTRAMBE le superfici che tocca — il pannello a destra e la tela a
+     sinistra. Da --fen-dim non ci arrivava, e questa maniglia non ha un
+     secondo segnale a cui appoggiarsi. */
+  #detail-grip:hover,#detail-grip:focus-visible,#detail-grip.dragging{background:var(--fen);outline:none}
   /* Durante il trascinamento il puntatore esce dalla maniglia e passa sopra tela e
      pannello: senza questo, ogni elemento sorvolato rimetterebbe il suo cursore e
      i testi si selezionerebbero. */
@@ -215,8 +227,18 @@
   .row{display:flex;gap:10px}
   .row>.field{flex:1}
   .type-badge{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:baseline}
-  #detail-img{width:100%;border-radius:var(--r);border:1px solid var(--line);display:none;cursor:zoom-in}
-  #detail-img.show{display:block}
+  /* L'immagine sta dentro un <button>: un tag immagine con un onclick addosso
+     non prende il focus, quindi ingrandire era un gesto da solo mouse — si
+     arrivava alla sezione con Tab e lì la catena finiva. Niente .btn: il bersaglio è
+     l'immagine intera, non una pastiglia, e la sua taglia è già ben oltre i
+     44px del dito. L'anello di focus arriva dalla regola generale su
+     button:focus-visible: una ricetta sola per tutto ciò che si mette a fuoco.
+     Il vecchio display:none/.show non c'è più perché il markup emette il tag
+     solo quando l'immagine c'è: prima, senza, restava un tag immagine con la
+     sorgente vuota, che certi browser risolvono sull'URL della pagina e
+     richiedono una seconda volta. */
+  .img-zoom{display:block;width:100%;cursor:zoom-in}
+  #detail-img{display:block;width:100%;border-radius:var(--r);border:1px solid var(--line)}
   .img-actions{display:flex;gap:8px}
   #detail h2{font-size:19px;color:var(--fen)}
   .detail-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;padding-top:14px;border-top:1px solid var(--line)}
@@ -229,13 +251,20 @@
   .child-list .child:hover{border-color:var(--fen-dim)}
   .child-list .child .st{margin-left:auto;font-size:11px;color:var(--ink-dim)}
 
-  /* lightbox immagine */
+  /* lightbox immagine — è un <dialog> (vedi il commento in app.html).
+     Disfa la ricetta generica dei dialoghi qui sotto: lì c'è un pannello con
+     bordo, padding e max-width, qui c'è l'immagine e basta. Niente z-index:
+     un dialogo modale sta nel top layer, sopra tutto per costruzione.
+     Il fondo passa a ::backdrop, che è l'elemento che il browser disegna
+     dietro un modale — prima era il background del div stesso. */
   #lightbox{
-    position:fixed;inset:0;background:rgba(6,10,8,.92);display:none;
-    align-items:center;justify-content:center;z-index:50;cursor:zoom-out;
+    inset:0;margin:0;width:100vw;max-width:none;height:100dvh;max-height:none;
+    padding:0;border:0;background:none;display:none;
+    align-items:center;justify-content:center;cursor:zoom-out;
   }
-  #lightbox.show{display:flex}
-  #lightbox img{max-width:94vw;max-height:94vh;border-radius:8px}
+  #lightbox[open]{display:flex}
+  #lightbox::backdrop{background:rgba(6,10,8,.92)}
+  #lightbox img{max-width:94vw;max-height:94dvh;border-radius:8px}
 
   /* ---------- checklist ---------- */
   #view-check{flex-direction:column;align-items:center;overflow-y:auto}
@@ -360,7 +389,7 @@
     background:var(--panel);cursor:grab;font-size:13px;color:var(--ink);user-select:none;
     touch-action:manipulation}
   .pal-item:hover{border-color:var(--fen-dim);color:var(--fen)}
-  .pal-item:focus-visible{outline:2px solid var(--fen-dim);outline-offset:1px}
+  .pal-item:focus-visible{outline:2px solid var(--fen);outline-offset:1px}
   .pal-item:active{cursor:grabbing}
   .pal-item svg{display:block}
   /* Armato: il prossimo tocco sulla mappa piazza questo elemento. */
@@ -785,4 +814,22 @@
     /* liste e pannelli con più aria per i pollici */
     .btn{padding:8px 12px}
     .btn.tiny{padding:5px 9px}
+  }
+
+  /* ---------- movimento ridotto ----------
+     La regola gemella del sito (src/app/globals.css) NON arriva fin qui:
+     app.html carica themes.css e questo file, e basta. Chi aveva chiesto al
+     sistema di ridurre il movimento se lo vedeva quindi rispettato sul sito e
+     ignorato nell'editor, che è la metà dove si passa la serata.
+     L'alternativa al movimento è il salto istantaneo, non l'assenza: il
+     pannello dettagli su mobile arriva lo stesso, senza scivolare su dalla
+     base — ed è l'unica animazione davvero vistosa dell'app. Le altre sono
+     transizioni brevi su filter e transform (bolle, barre PF, maniglia).
+     Stessa ricetta del sito apposta: erano già due file che dicevano cose
+     diverse sullo stesso tema, e questo è il verso in cui riavvicinarli. */
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      transition-duration:0.01ms !important;
+      animation-duration:0.01ms !important;
+    }
   }

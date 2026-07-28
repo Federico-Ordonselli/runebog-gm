@@ -74,8 +74,16 @@ const COPPIE = [
   ["--parchment-dim",  "--surface",     4.5, "testo smorzato su pannello"],
   // il placeholder dei campi: il commento in themes.css lo impone su --peat-sunk
   ["--parchment-mute", "--peat-sunk",   4.5, "placeholder nei campi"],
-  ["--moss",           "--peat",        4.5, "accento su fondo"],
-  ["--moss",           "--surface",     4.5, "accento su pannello"],
+  /* Queste tre righe reggono DUE cose, e la seconda è arrivata dopo: oltre al
+     testo d'accento, l'anello di focus dell'app (app.css: la regola su
+     input/textarea/select/button:focus-visible, .pal-item:focus-visible, e lo
+     sfondo di #detail-grip, che di indicatore non ne ha altri). A quello WCAG
+     1.4.11 chiede 3:1, cioè meno di quanto già si pretende qui — quindi non
+     serve una coppia in più, serve che chi tocca queste soglie sappia che sta
+     toccando anche il focus. Prima l'anello usava --moss-deep e scendeva a
+     1,94:1 su Sottosuolo: nessuna riga di questo elenco lo guardava. */
+  ["--moss",           "--peat",        4.5, "accento su fondo, e anello di focus sulla tela"],
+  ["--moss",           "--surface",     4.5, "accento su pannello, e anello di focus nel pannello"],
   // app.css: nav.tabs button.active, #ctx-menu button:hover, .pal-item.armed
   ["--moss",           "--surface-hi",  4.5, "accento sul pannello rialzato"],
   ["--wisp",           "--surface",     4.5, "link su pannello"],
