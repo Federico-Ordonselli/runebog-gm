@@ -8,7 +8,17 @@
     --line:     var(--edge);
     /* Il contorno di un componente (campo, tendina, bottone) non è la riga che
        separa due sezioni: quello dice dove finisce la cosa su cui si clicca, e
-       WCAG 1.4.11 gli chiede 3:1. Vedi il commento sui bordi in themes.css. */
+       WCAG 1.4.11 gli chiede 3:1. Vedi il commento sui bordi in themes.css.
+
+       Quale dei due, in pratica: --line-ui se il bordo delimita una cosa che si
+       opera (campo, bottone, chip, riga cliccabile, scheda che ne contiene) o un
+       livello che GALLEGGIA e non ha altro che lo stacchi da ciò che sta sotto
+       (#ctx-menu, #qs-results, #srd-results, #battle-bar). --line se separa due
+       zone della stessa superficie: il bordo della topbar, .detail-actions,
+       .share-field, #ctx-menu hr.
+       I <dialog> restano su --line apposta, e sono l'eccezione che dice la
+       regola: hanno un ::backdrop che scurisce tutto il resto, quindi a
+       staccarli è il riempimento e non il contorno. */
     --line-ui:  var(--edge-ui);
     --ink:      var(--parchment);
     --ink-dim:  var(--parchment-dim);
@@ -152,7 +162,7 @@
   .ep-lab{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--grigio)}
   .ep-chip{
     display:inline-flex;align-items:center;gap:6px;padding:6px 10px;font-size:13px;
-    border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);
+    border:1px solid var(--line-ui);border-radius:8px;background:var(--panel);color:var(--ink);
   }
   .ep-chip:hover{border-color:var(--fen-dim);color:var(--fen)}
   /* L'icona ripete la forma che si otterrà, e per le bolle È quella forma: la
@@ -245,7 +255,7 @@
   .child-list{display:flex;flex-direction:column;gap:6px}
   .child-list .child{
     display:flex;align-items:center;gap:8px;padding:7px 10px;
-    background:var(--bog-2);border:1px solid var(--line);border-radius:8px;
+    background:var(--bog-2);border:1px solid var(--line-ui);border-radius:8px;
     cursor:pointer;font-size:14px;
   }
   .child-list .child:hover{border-color:var(--fen-dim)}
@@ -275,7 +285,7 @@
   #check-list{display:flex;flex-direction:column;gap:6px}
   .check-item{
     display:flex;align-items:center;gap:12px;padding:10px 14px;
-    background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+    background:var(--panel);border:1px solid var(--line-ui);border-radius:var(--r);
   }
   .check-item input[type=checkbox]{width:18px;height:18px;accent-color:var(--fen-dim);flex:none;cursor:pointer}
   .check-item .txt{flex:1}
@@ -288,17 +298,17 @@
   #view-players{flex-direction:column;align-items:center;overflow-y:auto}
   #players-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;width:min(980px,94vw);padding-bottom:60px}
   .pcard{
-    background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+    background:var(--panel);border:1px solid var(--line-ui);border-radius:var(--r);
     padding:16px;display:flex;flex-direction:column;gap:10px;
   }
   .pcard .head{display:flex;align-items:baseline;gap:8px}
   .pcard input.pname{font-family:"Iowan Old Style",Palatino,Georgia,serif;font-size:17px;font-weight:600;background:none;border:none;border-bottom:1px dashed transparent;border-radius:0;padding:2px 0;color:var(--fen)}
-  .pcard input.pname:hover,.pcard input.pname:focus{border-bottom-color:var(--line)}
+  .pcard input.pname:hover,.pcard input.pname:focus{border-bottom-color:var(--line-ui)}
   .pcard input.pclass{background:none;border:none;border-bottom:1px dashed transparent;border-radius:0;padding:2px 0;font-size:13px;color:var(--ink-dim)}
-  .pcard input.pclass:hover,.pcard input.pclass:focus{border-bottom-color:var(--line)}
+  .pcard input.pclass:hover,.pcard input.pclass:focus{border-bottom-color:var(--line-ui)}
   .hp-block{display:flex;align-items:center;gap:8px}
   .hp-block .hp-btn{
-    width:30px;height:30px;border:1px solid var(--line);border-radius:8px;
+    width:30px;height:30px;border:1px solid var(--line-ui);border-radius:8px;
     background:var(--bog-2);font-size:16px;font-weight:700;flex:none;
   }
   .hp-block .hp-btn:hover{border-color:var(--fen-dim)}
@@ -338,7 +348,7 @@
   .keys-grid > span:nth-child(odd){white-space:nowrap}
   kbd{
     display:inline-block;font:11px/1 -apple-system,Helvetica,sans-serif;color:var(--ink);
-    border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;
+    border:1px solid var(--line-ui);border-bottom-width:2px;border-radius:4px;
     padding:3px 6px;background:var(--bog-2);margin-right:3px;
   }
   #share-dialog p{font-size:13px;line-height:1.55;margin-bottom:10px}
@@ -358,7 +368,7 @@
   html.ro #plan-toolbar{justify-content:flex-end}
 
   .only-dm{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);
-    border:1px solid var(--line);border-radius:99px;padding:1px 6px;margin-left:6px}
+    border:1px solid var(--line-ui);border-radius:99px;padding:1px 6px;margin-left:6px}
   .hint-sm{font-size:12px;line-height:1.5;color:var(--ink-dim);margin-top:6px}
   /* Confine semantico, non un campo qualsiasi: qui si decide cosa vedono i
      giocatori. Un po' più d'aria del gap standard (14px) del pannello. */
@@ -369,7 +379,7 @@
 
   .ro-text{white-space:pre-wrap;font-size:14px;line-height:1.6;color:var(--ink)}
   .foe-ro{display:flex;align-items:center;justify-content:space-between;gap:10px;
-    padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);margin-top:6px;font-size:13px}
+    padding:8px 10px;border:1px solid var(--line-ui);border-radius:var(--r);margin-top:6px;font-size:13px}
   .foe-state{font-size:11px;letter-spacing:.04em;color:var(--ink-dim)}
   .foe-state.s-illeso{color:var(--fen)}
   .foe-state.s-ferito{color:var(--gold)}
@@ -385,7 +395,7 @@
   .pal-title{font-size:12px;color:var(--ink-dim);letter-spacing:.06em;text-transform:uppercase}
   .pal-sep{flex:1}
   /* 7px 10px = la ricetta chip dei menu (#ctx-menu, #qs-results) */
-  .pal-item{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;
+  .pal-item{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid var(--line-ui);border-radius:8px;
     background:var(--panel);cursor:grab;font-size:13px;color:var(--ink);user-select:none;
     touch-action:manipulation}
   .pal-item:hover{border-color:var(--fen-dim);color:var(--fen)}
@@ -499,7 +509,7 @@
   .foe-list{margin:8px 0}
   .foe-head{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--ink-dim);
     letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px}
-  .foe-card{border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--panel);margin-bottom:7px}
+  .foe-card{border:1px solid var(--line-ui);border-radius:8px;padding:8px;background:var(--panel);margin-bottom:7px}
   .foe-card:last-child{margin-bottom:0}
   .foe-card.dead{opacity:.5}
   .foe-card.dead .foe-name{text-decoration:line-through}
@@ -531,8 +541,12 @@
   .ab-mod{display:block;font-size:11px;color:var(--ink-dim);margin-top:2px}
   .srd-wrap{position:relative;margin-top:6px}
   #srd-search{width:100%}
+  /* Il bordo di un livello che galleggia non separa due zone: dice dove finisce
+     la tendina e ricomincia quello che c'è sotto. Qui sotto c'è il pannello
+     (--panel), ed è quella l'adiacenza che deve reggere: il riempimento è
+     --panel-2, un gradino più chiaro, e contro quello nessun bordo si stacca. */
   #srd-results{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:40;display:none;
-    background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:4px;
+    background:var(--panel-2);border:1px solid var(--line-ui);border-radius:9px;padding:4px;
     max-height:260px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.5)}
   #srd-results.show{display:block}
   #srd-results button{display:flex;justify-content:space-between;gap:8px;width:100%;text-align:left;
@@ -556,7 +570,7 @@
     position:absolute;left:12px;top:12px;width:216px;max-height:calc(100% - 24px);
     display:none;flex-direction:column;gap:6px;padding:10px;border-radius:var(--r);
     background:color-mix(in srgb, var(--panel) 92%, transparent);
-    border:1px solid var(--line);overflow-y:auto;z-index:3;
+    border:1px solid var(--line-ui);overflow-y:auto;z-index:3;
   }
   #battle-bar.show{display:flex}
   .ini-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -611,7 +625,7 @@
   .q-h{font-size:15px;color:var(--fen);letter-spacing:.06em;text-transform:uppercase;margin:26px 0 10px}
   .q-h:first-child{margin-top:0}
   .q-empty{color:var(--ink-dim);font-size:13px}
-  .q-row{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;
+  .q-row{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line-ui);border-radius:10px;
     padding:10px 12px;margin-bottom:8px;background:var(--panel)}
   .q-row.done{opacity:.55}
   .q-row.done .q-title{text-decoration:line-through}
@@ -635,7 +649,7 @@
   #qs-kbd{
     position:absolute;right:7px;top:50%;transform:translateY(-50%);
     font:11px/1 -apple-system,Helvetica,sans-serif;color:var(--ink-dim);
-    border:1px solid var(--line);border-radius:4px;padding:3px 5px;
+    border:1px solid var(--line-ui);border-radius:4px;padding:3px 5px;
     background:var(--bog-2);pointer-events:none;white-space:nowrap;
   }
   #quick-search:focus + #qs-kbd,
@@ -647,7 +661,7 @@
   }
   #qs-results{
     position:absolute;top:calc(100% + 6px);right:0;min-width:290px;max-height:330px;overflow-y:auto;
-    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    background:var(--panel);border:1px solid var(--line-ui);border-radius:10px;
     box-shadow:0 10px 30px rgba(0,0,0,.5);padding:5px;display:none;z-index:55;
   }
   #qs-results.show{display:block}
@@ -671,7 +685,7 @@
   /* ---------- menu contestuale ---------- */
   #ctx-menu{
     position:fixed;z-index:60;min-width:190px;display:none;
-    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    background:var(--panel);border:1px solid var(--line-ui);border-radius:10px;
     box-shadow:0 10px 30px rgba(0,0,0,.5);padding:5px;
   }
   #ctx-menu.show{display:block}

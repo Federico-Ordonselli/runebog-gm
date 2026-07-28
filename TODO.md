@@ -7,21 +7,25 @@ ostacolo è già stato misurato, così non si rifà l'indagine. L'ordine è di
 consiglio, non di vincolo. Le voci per esteso stanno nelle sezioni sotto.
 
 La sezione regole è completa (dieci capitoli più il bestiario). Quello che
-resta viene dall'**audit del 28 lug 2026** (16/20): i tre P1 sono chiusi, i P2
-e i P3 sono elencati **con la misura già fatta** in "Cosa resta dell'audit",
-in fondo al file. In ordine di consiglio:
+resta viene dall'**audit del 28 lug 2026** (16/20): i tre P1 sono chiusi, il
+primo P2 anche (i bordi di componente, 28 lug), e quelli che restano sono
+elencati **con la misura già fatta** in "Cosa resta dell'audit", in fondo al
+file. In ordine di consiglio:
 
-1. **`--edge` fa da bordo di componente in ~15 punti** e sta sotto 3:1 in dieci
-   temi su dodici. È la correzione del 26 lug lasciata a metà — fatta su campi
-   e bottoni, non sul resto — e chiude anche il buco nel verificatore, che di
-   quelle coppie non sa niente. Il lavoro più sostanzioso dei cinque.
-2. **PG e mostro si distinguono solo dal colore** nel tabellone d'iniziativa, e
+1. **PG e mostro si distinguono solo dal colore** nel tabellone d'iniziativa, e
    al tavolo sparisce anche il 🎲 che nella vista DM marcava i PG.
-3. **`JSON.stringify` dell'intero stato ogni 5 s** al tavolo: la risposta porta
+2. **`JSON.stringify` dell'intero stato ogni 5 s** al tavolo: la risposta porta
    già `updatedAt`, è una riga.
-4. **`#battle-bar` a 216px** senza variante mobile, e i bersagli sotto i 44px
+3. **`#battle-bar` a 216px** senza variante mobile, e i bersagli sotto i 44px
    che la regola `pointer:coarse` non copre (fra cui i risultati di Ctrl+K).
-5. I P3: `alt="riferimento"`, `.hp-bar i` sotto soglia in due temi.
+4. I P3: `alt="riferimento"`, `.hp-bar i` sotto soglia in due temi.
+5. **Trovati misurando i bordi il 28 lug**, e sono controlli che al rest non
+   si vedono: `#detail-grip` a riposo è `--line` (1,37:1 su Torbiera), cioè la
+   maniglia che ridimensiona il pannello è invisibile finché non ci passi
+   sopra; `.q-star` spenta è `--line`, e la stella "non preferita" è un
+   comando che non si legge. Nessuno dei due è un bordo — sono riempimenti —
+   e in entrambi i casi la domanda vera è **quanto forte** debba essere un
+   comando a riposo, che è una scelta di disegno e non una soglia.
 
 La migrazione `0001_revisione-campagna` è applicata a **entrambi** i branch Neon
 (25 lug 2026: `dev` durante la verifica di P0.2, `production` prima del deploy,
@@ -1900,17 +1904,51 @@ Cosa **resta** da fare, misurato:
 
 ### Cosa resta dell'audit (P2 e P3, con la misura già fatta)
 
-- **`--edge` fa da bordo di componente in ~15 punti** e sta sotto 3:1 in **10
-  temi su 12** (peggiore Brace 1,32:1; passano solo Gilda e Alto contrasto, che
-  lo dichiarano alto per altre ragioni). È la correzione del 26 lug lasciata a
-  metà: fatta su campi e bottoni, non sul resto. I punti in `app.css`:
-  `.pal-item`, `.ep-chip`, `.check-item`, `.foe-card`, `.q-row`,
-  `.child-list .child`, `kbd`, `#ctx-menu`, `#qs-results`, `#srd-results`,
-  `.hp-btn`, `#battle-bar`, `.foe-ro`, `.only-dm`; più `.campaign` in
-  `globals.css` (`--edge-soft`, 1,20–1,56:1). Vanno a `--line-ui`; restano a
-  `--line` i separatori veri (bordo della topbar, `.detail-actions`,
-  `.share-field`, `#ctx-menu hr`). **Poi le due coppie vanno aggiunte a
-  `COPPIE`**, sennò il verificatore continua a tacere.
+- [x] **`--edge` faceva da bordo di componente in ~15 punti** — fatto
+  (28 lug 2026). Stava sotto 3:1 in **10 temi su 12** (peggiore Brace 1,32:1;
+  passavano solo Gilda e Alto contrasto, che lo dichiarano alto per altre
+  ragioni). Era la correzione del 26 lug lasciata a metà: fatta su campi e
+  bottoni, non sul resto. Diciassette punti passati a `--line-ui` — i quattordici
+  dell'audit più tre che l'elenco non aveva: `.pcard` (il gemello di `.foe-card`:
+  lasciarlo indietro rifaceva l'incoerenza che il token serve a chiudere), le due
+  sottolineature di `.pcard input` (campi, cioè la categoria già in ambito il
+  26 lug) e `#qs-kbd` (il gemello di `kbd`). Restano su `--line` i separatori
+  veri: bordo della topbar, `.detail-actions`, `.share-field`, `#ctx-menu hr`,
+  `#plan-hint`.
+  - **La regola che decide è il ruolo, ed è scritta accanto agli alias** in
+    `app.css`: `--line-ui` a ciò che si opera o **galleggia** senza altro che lo
+    stacchi da sotto; `--line` a ciò che separa due zone della stessa superficie.
+    I `<dialog>` restano decorativi ed è l'eccezione che dice la regola: il
+    `::backdrop` scurisce tutto il resto, quindi a staccarli è il riempimento.
+  - **Le coppie nuove sono due, e sono i due estremi dello stesso gradiente.**
+    I livelli che galleggiano hanno introdotto una superficie che nessuna riga di
+    `COPPIE` aveva mai misurato — la **tela** — e lì il caso peggiore per un
+    mezzotono non è `--peat` ma `--glow`: Torbiera, Cripta e Brace passavano su
+    peat (3,34–3,45) e cadevano sul glow (2,85–2,96), cioè **proprio dove
+    `#battle-bar` si apre** (12px dall'angolo in alto a sinistra). Ritoccati i
+    tre `--edge-ui` (`#636961`→`#686e66`, `#616973`→`#646c75`,
+    `#746357`→`#766559`): ora 3,05–3,09 sul glow. Notturno (3,01) e Sottosuolo
+    (3,03) sono rimasti come stavano — passano, e il valore giusto è quello che
+    passa, non quello che rassicura.
+  - **`--edge-ui`/`--surface-hi` NON è stata aggiunta**, ed è una decisione, non
+    una dimenticanza: sta a 2,56–2,87 in otto temi, ma un bordo ha due adiacenze
+    e ne basta una: `#srd-results` è basso contro il proprio riempimento e regge
+    sul pannello che ha sotto (3,06–3,88). Dichiararla avrebbe voluto dire
+    inventare una severità, e `COPPIE` vuole coppie trovate nel CSS.
+  - Verifica in Chromium, **204 controlli** su tutti e dodici i temi: per ogni
+    selettore toccato il colore **calcolato** dal browser dev'essere `--edge-ui`,
+    e per i tre separatori di controllo `--edge` — è quel gruppo di controllo a
+    provare che sono stati spostati i selettori e non il token. Più la sonda su
+    `.campaign` nel sito e tre scatti (Torbiera, Brace, Pergamena) col menu
+    contestuale e il tabellone aperti sulla tela. `npx tsc --noEmit`, 97 test e
+    `npm run temi:contrasto` (12/12) puliti.
+  - Due controlli **non toccati** perché il difetto non è il bordo ma quanto sia
+    forte un comando a riposo, che è una scelta di disegno: `#detail-grip`
+    (fondo `--line`, 1,37:1 — la maniglia del pannello è invisibile finché non
+    ci passi sopra, e il commento accanto pretende 3:1 solo dall'**acceso**) e
+    `.q-star` spenta (`color:var(--line)`). Anche `.tab[aria-selected]` del sito
+    è rimasto su `--edge`: lì il bordo non è l'unico segnale (cambiano anche
+    fondo e colore), e alzarlo avrebbe solo fatto più rumore.
 - **PG e mostro si distinguono solo dal colore** nel tabellone d'iniziativa
   (`.ini-row.pg`/`.foe`, striscia da 3px). Nel tema Brace accento e distruttivo
   sono la coppia più vicina dei dodici (ΔE 17,4, dichiarato in `themes.css`), e

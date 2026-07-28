@@ -24,13 +24,22 @@
      stanno bassi apposta, perché una griglia marcata è rumore. --edge-ui è
      il contorno di un COMPONENTE: campi, aree di testo, menu a tendina,
      bottoni. Lì il bordo non decora, dice dove finisce la cosa su cui si
-     clicca, e WCAG 1.4.11 gli chiede 3:1 — misurato su ENTRAMBE le
-     superfici su cui compare, il pannello (i bottoni) e il fondo dei campi
-     (gli input). Fino al 26 lug 2026 era un token solo, quello decorativo,
-     e i campi erano bordati a 1,3:1 in undici temi su dodici. */
+     clicca, e WCAG 1.4.11 gli chiede 3:1 — misurato su TUTTE le superfici
+     su cui compare: il pannello (i bottoni), il fondo dei campi (gli input)
+     e la tela (i livelli che ci galleggiano sopra: menu contestuale,
+     risultati di Ctrl+K, tabellone dell'iniziativa, righe delle campagne).
+     Fino al 26 lug 2026 era un token solo, quello decorativo, e i campi
+     erano bordati a 1,3:1 in undici temi su dodici.
+
+     La tela è un gradiente fra --glow e --peat, e per un MEZZOTONO come
+     questo l'estremo peggiore è --glow, non --peat: --edge-ui sta in mezzo,
+     quindi è l'angolo illuminato ad avvicinarglisi. Vale il contrario per il
+     testo, ed è il motivo per cui torbiera, cripta e brace sono state
+     ritoccate il 28 lug — passavano su --peat (3,34–3,45) e cadevano sul
+     glow (2,85–2,96) proprio dove il tabellone di combattimento si apre. */
   --edge:        #2a352e;
   --edge-soft:   #1f2a24;
-  --edge-ui:     #636961;
+  --edge-ui:     #686e66;
   --edge-lit:    #3d4f43;
 
   /* Testo. --parchment-mute è il colore dei placeholder: deve reggere
@@ -151,7 +160,7 @@
   --edge:        #2b3542;
   --edge-soft:   #1f2833;
   --edge-lit:    #43536a;
-  --edge-ui:     #616973;
+  --edge-ui:     #646c75;
 
   --parchment:      #e4e7ec;
   --parchment-dim:  #9ba5b3;
@@ -192,7 +201,7 @@
   --edge:        #3d2a20;
   --edge-soft:   #2c1e17;
   --edge-lit:    #614433;
-  --edge-ui:     #746357;
+  --edge-ui:     #766559;
 
   --parchment:      #f0e2d2;
   --parchment-dim:  #b39d88;

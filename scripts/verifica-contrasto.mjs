@@ -15,11 +15,17 @@
 
    Le COPPIE qui sotto sono quelle che l'interfaccia usa DAVVERO, ognuna
    trovata nel CSS e non immaginata: se ne aggiungi una, cita dove sta.
-   Quello che questo script NON vede: il testo dentro le immagini, i
-   gradienti (il fondo del sito è un radial-gradient fra --glow e --peat:
-   qui si misura --peat, che è l'estremo peggiore), e l'opacità applicata
-   dai componenti — .terr-mark disegna al 50%, e lì il contrasto vero è
-   metà di quello riportato. Sono limiti, non sviste. */
+   Quello che questo script NON vede: il testo dentro le immagini, e
+   l'opacità applicata dai componenti — .terr-mark disegna al 50%, e lì il
+   contrasto vero è metà di quello riportato. Sono limiti, non sviste.
+
+   I gradienti si misurano invece agli ESTREMI, e quale sia il peggiore
+   dipende dal token, non dal gradiente: il fondo è un radial fra --glow e
+   --peat, e per il testo chiaro il caso brutto è --peat (il più vicino),
+   ma per un MEZZOTONO come --edge-ui è --glow, che gli sta accanto in
+   luminanza. Fino al 28 lug 2026 qui c'era scritto che l'estremo peggiore
+   è --peat e basta: vero per le righe di testo che allora erano le sole a
+   guardare il fondo, falso appena ci si è affacciato un bordo. */
 
 import { readFileSync } from "node:fs";
 
@@ -101,6 +107,16 @@ const COPPIE = [
      che stanno bassi per scelta — una griglia marcata è rumore. */
   ["--edge-ui",        "--surface",     3,   "bordo dei componenti sul pannello"],
   ["--edge-ui",        "--peat-sunk",   3,   "bordo dei campi sul fondo incassato"],
+  /* La terza superficie, arrivata il 28 lug 2026 col resto dei bordi di
+     componente: la TELA. Ci galleggiano sopra #ctx-menu, #qs-results e
+     #battle-bar (app.css) e ci sta sopra .campaign (globals.css), e lì il
+     contorno è l'unica cosa che li stacca da quello che c'è sotto — un
+     <dialog> no, e infatti resta su --edge: ha un ::backdrop che scurisce
+     tutto il resto. Le due righe sono i due estremi del gradiente e servono
+     entrambe: il tabellone di combattimento si apre a 12px dall'angolo in
+     alto a sinistra, cioè nel punto più illuminato della tela. */
+  ["--edge-ui",        "--peat",        3,   "bordo dei livelli che galleggiano sulla tela"],
+  ["--edge-ui",        "--glow",        3,   "…nell'angolo illuminato della tela"],
   ["--track",          "--peat",        3,   "strada sulla mappa"],
   ["--tunnel",         "--peat",        3,   "tunnel sulla mappa"],
   ["--dg-trap",        "--peat",        3,   "trappola sulla mappa"],

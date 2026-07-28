@@ -388,7 +388,9 @@ body {
   align-items: center;
   gap: 0.5rem 1rem;
   padding: 0.75rem 0.9rem;
-  border: 1px solid var(--edge-soft);
+  /* --edge-ui e non --edge-soft: la riga È la campagna su cui si clicca, e il
+     bordo dice dove finisce. Era il separatore decorativo, a 1,20–1,56:1. */
+  border: 1px solid var(--edge-ui);
   border-radius: var(--r-md);
   background: color-mix(in srgb, var(--surface) 45%, transparent);
   transition: border-color 160ms var(--ease), background 160ms var(--ease);

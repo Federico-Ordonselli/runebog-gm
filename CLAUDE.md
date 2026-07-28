@@ -469,11 +469,28 @@ in nessun altro posto.
   separatori **decorativi** (righe fra sezioni, cornici) e stanno bassi apposta,
   perché una griglia marcata è rumore; `--edge-ui` è il contorno di un
   **componente** — campi, tendine, bottoni — dove il bordo dice dove finisce la
-  cosa su cui si clicca, e WCAG 1.4.11 gli chiede 3:1. Va misurato su **entrambe**
-  le superfici su cui compare: il pannello (i bottoni) e il fondo incassato (gli
-  input). Nell'app l'alias è `--line-ui`; il verificatore controlla `--edge-ui` e
-  **non** `--edge`, che la norma non copre. Fino al 26 lug 2026 era un token solo,
-  quello decorativo, e i campi erano bordati a 1,3:1 in undici temi su dodici.
+  cosa su cui si clicca, e WCAG 1.4.11 gli chiede 3:1. Va misurato su **tutte**
+  le superfici su cui compare: il pannello (i bottoni), il fondo incassato (gli
+  input) e la **tela** (i livelli che ci galleggiano sopra). Nell'app l'alias è
+  `--line-ui`; il verificatore controlla `--edge-ui` e **non** `--edge`, che la
+  norma non copre. Fino al 26 lug 2026 era un token solo, quello decorativo, e i
+  campi erano bordati a 1,3:1 in undici temi su dodici; la correzione di quel
+  giorno si fermò a campi e bottoni, e il 28 lug ha coperto gli altri ~17 punti
+  (`.pal-item`, `.ep-chip`, `.check-item`, `.pcard`, `.foe-card`, `.q-row`,
+  `.child`, `kbd`, `#qs-kbd`, `#ctx-menu`, `#qs-results`, `#srd-results`,
+  `.hp-btn`, `#battle-bar`, `.foe-ro`, `.only-dm`, più `.campaign` nel sito).
+  - **A decidere è il ruolo, non il selettore**: `--line-ui` se il bordo
+    delimita una cosa che si opera, oppure un livello che **galleggia** e non ha
+    altro che lo stacchi da ciò che sta sotto; `--line` se separa due zone della
+    stessa superficie (bordo della topbar, `.detail-actions`, `.share-field`,
+    `#ctx-menu hr`). I `<dialog>` sono l'eccezione che dice la regola e restano
+    su `--line`: hanno un `::backdrop` che scurisce tutto il resto, quindi a
+    staccarli è il riempimento e non il contorno.
+  - Un bordo ha **due adiacenze** e ne basta una a 3:1, che è ciò che la norma
+    chiede: `#srd-results` è a 2,7:1 contro il proprio riempimento (`--panel-2`)
+    e regge sul pannello che ha sotto. Per questo `--edge-ui`/`--surface-hi`
+    **non** è in `COPPIE`: sarebbe una severità inventata, e l'elenco vuole
+    coppie trovate nel CSS.
 - Un tema che non ridichiara un token **eredita quello di `:root`**, cioè di
   Torbiera — non il proprio omologo. Gilda ha un `--edge` che passerebbe da sé,
   ma senza dichiarare anche `--edge-ui` si prendeva quello verde di Torbiera e
@@ -487,7 +504,17 @@ in nessun altro posto.
   a 3:1 senza che nessuno lo noti. Il rovescio: `COPPIE` è **scritto a mano**,
   quindi lo script misura ciò che qualcuno si è ricordato di dichiarare. Un
   guasto fuori da quell'elenco passa con 12/12 verdi (28 lug 2026: l'anello di
-  focus, sotto soglia in cinque temi, con lo script pulito).
+  focus, sotto soglia in cinque temi, con lo script pulito; e i ~17 bordi di
+  componente rimasti su `--edge`, che nessuna coppia guardava).
+- **Un gradiente si misura agli estremi, e quale sia il peggiore lo decide il
+  token**: il fondo è un radial fra `--glow` e `--peat`, e per il testo chiaro
+  il caso brutto è `--peat`, il più vicino. Per un **mezzotono** come
+  `--edge-ui` è l'opposto — è `--glow` a stargli accanto in luminanza, e infatti
+  Torbiera, Cripta e Brace passavano su `--peat` (3,34–3,45) e cadevano sul glow
+  (2,85–2,96) **proprio dove `#battle-bar` si apre**, a 12px dall'angolo in alto
+  a sinistra. Fino al 28 lug 2026 l'intestazione dello script dichiarava che
+  l'estremo peggiore è `--peat` e basta: vero finché a guardare il fondo era
+  solo del testo, falso appena ci si è affacciato un bordo.
 - **L'anello di focus è l'accento PIENO** (`--moss`, nell'app `--fen`), mai
   `--moss-deep`: quella è la variante scura per riempimenti e barre, e come
   *contorno* stava a 1,94:1 su Sottosuolo. Le coppie che lo reggono sono quelle
