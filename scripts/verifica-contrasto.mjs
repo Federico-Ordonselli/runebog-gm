@@ -134,6 +134,24 @@ const COPPIE = [
      regge su queste soglie — vedi il commento in themes.css e #detail-fab. */
   ["--moss-deep",      "--peat-sunk",   3,   "barra PF sul fondo incassato"],
   ["--moss-deep",      "--surface",     3,   "spunta e maniglia sul pannello"],
+  /* Le altre due fasce della barra PF (app.css .hp-bar i.mid, i.low): il
+     mostro ferito e quello grave, più il PG sotto il 30%. Arrivano il 29 lug
+     2026 insieme all'unificazione delle due barre, e la storia è quella che
+     questo elenco racconta a ogni riga — erano un colore scritto in uno
+     `style` inline da mostri.js, cioè invisibile a un grep sul CSS, e per
+     questo nessuno le aveva mai dichiarate. Passavano sull'incavo (minimo
+     3,95:1) e NON passavano sulla vecchia pista `--edge` dei mostri: l'oro
+     2,93 su Pergamena, il rosso 1,96 su Gilda. A pochi PF il riempimento
+     spariva dentro la pista, che è l'unico momento in cui quella barra
+     serve.
+     Quel che qui NON c'è, e per scelta: --peat-sunk su --surface, cioè la
+     pista contro il pannello. Sta a 1,03–1,28:1 in tutti e dodici i temi ed
+     è giusto — una barra PF è un incavo, quello che si vede è il
+     riempimento, e il numero è scritto nei campi accanto. Metterla qui
+     vorrebbe dire inventare una severità e riprogettare le due barre per
+     soddisfarla. */
+  ["--lantern",        "--peat-sunk",   3,   "barra PF: la fascia del ferito"],
+  ["--ember",          "--peat-sunk",   3,   "barra PF: la fascia del grave"],
   ["--track",          "--peat",        3,   "strada sulla mappa"],
   ["--tunnel",         "--peat",        3,   "tunnel sulla mappa"],
   ["--dg-trap",        "--peat",        3,   "trappola sulla mappa"],

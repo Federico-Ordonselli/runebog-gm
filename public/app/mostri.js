@@ -11,10 +11,17 @@ import { renderCanvas } from "./mappa.js";
 const ABILITIES = [["str","FOR"],["dex","DES"],["con","COS"],["int","INT"],["wis","SAG"],["cha","CAR"]];
 const abMod = v => { const m = Math.floor(((+v||10)-10)/2); return (m>=0?"+":"")+m; };
 
-// Token, non hex fissi: i vecchi valori di Torbiera sulla carta di Pergamena
-// scendevano a 1.5:1 e la barra spariva. La soglia resta accompagnata dal
-// numero PF accanto: il colore non è mai l'unica informazione.
-const hpColor = pct => pct>50 ? "var(--fen)" : pct>25 ? "var(--gold)" : "var(--ember)";
+/* La fascia di PF è una CLASSE e non un colore: i colori dei temi stanno nel
+   CSS (`.hp-bar i.mid`, `.low`), e questa funzione era l'eccezione — uno
+   `style` inline, cioè un colore che nessun grep sul CSS trova e che quindi
+   nessuna coppia di `temi:contrasto` guardava. Lo si è pagato: sulla vecchia
+   pista `--line` il riempimento stava sotto 3:1 in sei casi su dodici temi per
+   tre fasce, e a pochi PF la barra spariva dentro la propria pista.
+   Le soglie (25/50%) restano qui, che è il posto giusto: sono la regola del
+   mostro, e i PG ne hanno una loro (30%, in giocatori.js) — due regole, non
+   due copie. Accanto alla barra ci sono comunque i campi hp/hpMax: il colore
+   non è mai l'unica informazione. */
+const hpFascia = pct => pct>50 ? "" : pct>25 ? "mid" : "low";
 
 export function newFoe(name="Nemico", hp=10){ return {id:uid(), name, hp, hpMax:hp}; }
 function ensureMon(n){
@@ -72,9 +79,9 @@ function renderFoeHP(id, foeId){
   const f = findNode(id)?.monster?.foes.find(x=>x.id===foeId); if(!f) return;
   const wrap = document.querySelector(`[data-foehp="${foeId}"]`); if(!wrap) return;
   const pct = f.hpMax ? Math.round(100*f.hp/f.hpMax) : 0;
-  const col = hpColor(pct);
-  wrap.querySelector(".hpbar-fill").style.transform = `scaleX(${pct/100})`;
-  wrap.querySelector(".hpbar-fill").style.background = col;
+  const barra = wrap.querySelector(".hp-bar i");
+  barra.style.transform = `scaleX(${pct/100})`;
+  barra.className = hpFascia(pct);
   const num = wrap.querySelector(".hp-now"); if(num) num.value = f.hp;
   const g = wrap.closest(".foe-card"); if(g) g.classList.toggle("dead", f.hp<=0);
   // aggiorno anche l'intestazione (vivi / PF totali) senza ridisegnare tutto
@@ -143,7 +150,6 @@ export function rollDice(expr){
 
 function foeCard(nodeId, f){
   const pct = f.hpMax ? Math.round(100*f.hp/f.hpMax) : 0;
-  const col = hpColor(pct);
   return `<div class="foe-card ${f.hp<=0?"dead":""}">
     <div class="foe-top">
       <input class="foe-name" value="${escapeAttr(f.name)}" oninput="editFoe('${nodeId}','${f.id}','name',this.value)" placeholder="Nome">
@@ -151,7 +157,7 @@ function foeCard(nodeId, f){
     </div>
     <div class="foe-hp" data-foehp="${f.id}">
       <button class="btn tiny" onclick="bumpFoeHP('${nodeId}','${f.id}',-1)">−</button>
-      <div class="hpbar"><div class="hpbar-fill" style="transform:scaleX(${pct/100});background:${col}"></div></div>
+      <div class="hp-bar"><i class="${hpFascia(pct)}" style="transform:scaleX(${pct/100})"></i></div>
       <input class="hp-now" type="number" value="${f.hp}" min="0" max="${f.hpMax}"
         onchange="editFoe('${nodeId}','${f.id}','hp',Math.max(0,Math.min(${f.hpMax},parseInt(this.value)||0)))">
       <span class="hp-sep">/</span>

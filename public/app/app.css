@@ -321,10 +321,29 @@
     background:var(--bog-2);font-size:16px;font-weight:700;flex:none;
   }
   .hp-block .hp-btn:hover{border-color:var(--fen-dim)}
+  /* LA barra PF, una ricetta sola per i PG e per i mostri (.foe-hp la usa più
+     bassa e basta). Erano due blocchi a duecento righe di distanza — .hp-bar
+     qui e .hpbar nella scheda del mostro — e sono divergiti come divergono due
+     copie: la pista dei mostri era var(--line), cioè un MEZZOTONO, e il
+     riempimento ci cadeva sotto 3:1 in sei casi su trentasei temi×fasce (l'oro
+     su Pergamena 2,93, il rosso su Gilda 1,96). Il difetto non era la pista
+     invisibile — questa qui lo è ancora di più, 1,03:1 sul pannello, e va bene
+     così: una barra PF è un incavo, quello che si vede è il RIEMPIMENTO, e il
+     numero sta scritto nei campi accanto. Il difetto era che a pochi PF il
+     riempimento spariva dentro la pista, cioè proprio quando serve.
+     Sull'incavo i tre passano in tutti e dodici i temi (minimo 3,95:1), e da
+     oggi tre righe di COPPIE li guardano. */
   .hp-bar{flex:1;height:10px;background:var(--bog-2);border-radius:6px;overflow:hidden;border:1px solid var(--line)}
   /* Il riempimento è largo 100% e si scala con transform: anima sul compositor,
      senza rilayout a ogni tick di PF. La larghezza la decide il JS via scaleX. */
   .hp-bar i{display:block;height:100%;width:100%;background:var(--fen-dim);transform-origin:left;transition:transform .2s,background .2s}
+  /* Le fasce. Stavano in uno `style` inline scritto da mostri.js, cioè fuori da
+     ogni grep sul CSS: è il motivo per cui nessuna coppia di temi:contrasto le
+     guardava, e lo script non le avrebbe mai viste da sé. I colori dei temi
+     stanno nel CSS, tutti, e questa non era un'eccezione ragionata.
+     Le SOGLIE invece restano dove sono (30% per i PG, 25/50% per i mostri):
+     sono due regole di prodotto diverse, non due copie della stessa. */
+  .hp-bar i.mid{background:var(--gold)}
   .hp-bar i.low{background:var(--ember)}
   .hp-num{font-size:13px;min-width:64px;text-align:right;color:var(--ink-dim)}
   /* 52px: a 34 il campo troncava "24" in "2·" — devono starci tre cifre di PF. */
@@ -525,8 +544,10 @@
   .foe-top{display:flex;gap:6px;align-items:center}
   .foe-name{flex:1;font-weight:600}
   .foe-hp{display:flex;align-items:center;gap:5px;margin-top:6px}
-  .hpbar{flex:1;height:9px;border-radius:5px;background:var(--line);overflow:hidden}
-  .hpbar-fill{height:100%;width:100%;border-radius:5px;transform-origin:left;transition:transform .15s,background .15s}
+  /* La barra PF di un nemico è quella dei PG, un pixel più bassa: la scheda del
+     mostro è densa. Solo la taglia, perché solo la taglia è diversa — vedi la
+     ricetta unica su .hp-bar. */
+  .foe-hp .hp-bar{height:9px;border-radius:5px}
   .foe-hp .hp-now,.foe-hp .hp-max{width:46px;text-align:center;padding:3px 4px;font-size:13px}
   .foe-hp .hp-sep{color:var(--ink-dim)}
   .foe-line{display:flex;gap:5px;align-items:center;margin-top:6px}

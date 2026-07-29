@@ -23,16 +23,15 @@ Il 29 lug è chiuso anche **il contenuto che usciva dalla sagoma** (`dentro` in
 `SHAPES`, `contentBox` in `modello.js`): la voce per esteso, con quel che la
 misura ha spostato, sta in "La scala della campagna".
 
+Chiusa lo stesso giorno anche **la barra PF dei mostri**: una ricetta sola per
+le due barre, le fasce spostate dallo `style` inline al CSS e due coppie nuove
+in `COPPIE`. La misura ha spostato il bersaglio — non era la pista contro il
+pannello ma il **riempimento contro la pista**, sotto 3:1 in sei casi su
+trentasei e proprio a pochi PF. Voce per esteso in fondo.
+
 Da qui in avanti, in ordine di consiglio:
 
-1. **La pista della barra PF dei mostri** (`.hpbar`, `app.css` ~519): è
-   `var(--line)` sul pannello, cioè 1,32–4,36:1, sotto 3:1 in dieci temi. Non
-   è un difetto d'accesso — i due campi `hp`/`hpMax` dicono già il numero — ma
-   è un'**incoerenza fra le due barre PF**, e il riempimento dei mostri è
-   deciso in JS con uno `style` inline, quindi `temi:contrasto` non lo vede.
-   Chi la tocca decida prima se quel colore deve restare inline. Voce per
-   esteso in fondo, con la misura.
-2. **L'ETag del polling del tavolo non è mai stato provato contro il database
+1. **L'ETag del polling del tavolo non è mai stato provato contro il database
    vero**: su Neon `dev` non c'è una campagna con `share_token`, e crearne una
    sarebbe scrivere sui dati di qualcun altro. Alla prima apertura di un
    tavolo vero: pannello di rete, un 200 e poi tutti 304, e un 200 a ogni
@@ -1497,7 +1496,8 @@ Dal report UX del 15 lug 2026 (`.impeccable/critique/`, baseline 29/40), in ordi
     `app.html`/`app.css` sono i falsi positivi già classificati nella baseline
     (img del lightbox con src da JS, scala densa da tool, swatch del menu
     contestuale); il `layout-transition` su `.hpbar-fill` ora matcha solo la
-    parola `width:100%`, la transizione è su `transform`.
+    parola `width:100%`, la transizione è su `transform`. (Quella classe non
+    esiste più dal 29 lug 2026: è `.hp-bar i`, unificata con la barra dei PG.)
 
 - [x] **Layout (giro `/impeccable layout`)** — fatto (16 lug 2026), dual-agent
   (assessment strutturale + detector meccanico; il detector era pulito, tutti i
@@ -2423,7 +2423,7 @@ Cosa **resta** da fare, misurato:
     (12 falsi KO: si misurava il riposo credendo di misurare l'acceso — si usa
     l'hover), e con `transition:.15s` leggere subito dà il colore di
     **partenza**, cioè di nuovo il riposo.
-- [ ] **La pista della barra PF dei mostri** (`.hpbar`, `app.css` ~519) è
+- [x] **La pista della barra PF dei mostri** (trovata e chiusa il 29 lug 2026) era
   `background:var(--line)` sul pannello: **1,32–4,36:1**, cioè sotto 3:1 in
   dieci temi. Trovata il 29 lug 2026 cercando col grep gli *altri* usi di
   `--line` come riempimento, dopo i due comandi qui sopra — la lezione dei
@@ -2438,3 +2438,52 @@ Cosa **resta** da fare, misurato:
     più deciso in JS (`hpColor`: `--fen`/`--gold`/`--ember` in uno `style`
     inline), quindi `temi:contrasto` non lo vede e non lo vedrà: chi unifica le
     due barre decida prima se quel colore deve restare inline.
+
+  **Com'è andata, e la misura ha spostato il bersaglio.** La voce guardava la
+  pista contro il pannello. Misurando anche la barra dei PG — quella "giusta",
+  il riferimento da cui copiare — viene fuori che la sua pista sta a
+  **1,03–1,28:1** in tutti e dodici i temi, e il suo bordo a 1,32–4,36 come
+  quella dei mostri. Cioè: **una barra PF non ha una pista visibile e non deve
+  averla**. È un incavo; quello che si vede è il riempimento, e il massimo sta
+  scritto nei due campi accanto. Alzare la pista a 3:1 avrebbe voluto dire
+  riprogettare entrambe le barre per una soglia che nessuno chiede.
+  - **Il difetto vero era un altro, ed era peggiore**: il riempimento sulla
+    pista. La pista dei mostri era `--line`, cioè un **mezzotono**, e le tre
+    fasce ci cadevano sotto 3:1 in **sei casi su trentasei** (dodici temi × tre
+    fasce): l'oro 2,93 su Pergamena e 2,76 su Inchiostro, il rosso 1,96 su
+    Gilda, 2,60 su Segnale, 2,25 su Alto contrasto, il verde 1,67 su Gilda. A
+    pochi PF la barra spariva dentro la propria pista, cioè **proprio quando
+    quella barra serve**. Sull'incavo (`--bog-2`) le tre passano in tutti e
+    dodici i temi, minimo 3,95:1.
+  - **La correzione è l'unificazione**, che era la voce: una ricetta sola
+    (`.hp-bar`), e la scheda del mostro la usa un pixel più bassa perché è
+    densa (`.foe-hp .hp-bar{height:9px}`). Due blocchi CSS a duecento righe di
+    distanza divergono, ed è esattamente quello che era successo. Il verde dei
+    mostri passa da `--fen` a `--fen-dim`, che è la variante che `themes.css`
+    dichiara per i riempimenti e che i PG usavano già.
+  - **Il colore inline era la causa, non un dettaglio** (era la domanda che la
+    voce lasciava aperta): un colore in uno `style` scritto dal JS non lo trova
+    nessun grep sul CSS, quindi nessuno pensa a dichiararlo in `COPPIE`. Ora
+    `hpFascia` torna una **classe** (`mid`/`low`) e i colori stanno in
+    `app.css`, con due righe nuove in `COPPIE` (`--lantern`/`--peat-sunk`,
+    `--ember`/`--peat-sunk`). La seconda copre anche la fascia bassa dei PG,
+    che nessuna riga guardava.
+  - **Le soglie restano diverse** e adesso lo dicono: 30% per i PG, 25/50% per
+    i mostri. Non si sa perché lo siano — sembra accidentale — ma unificarle
+    cambia quando la barra di un PG diventa rossa e gli aggiunge una fascia
+    d'oro, che è una scelta di prodotto e non una correzione. Chi la vuole fare
+    la faccia dicendolo.
+  - **Il limite che resta**, e non lo chiude questo lavoro: `COPPIE` dichiara
+    *quale* coppia misurare, quindi incorpora l'ipotesi che la pista sia
+    `--bog-2`. Chi rimettesse un mezzotono lì avrebbe di nuovo dodici verdi e
+    il difetto sotto. È la stessa limitazione già scritta in CLAUDE.md — quel
+    file è scritto a mano — e il rimedio non è una coppia in più: è che la
+    ricetta della barra ora è una sola, quindi il posto dove sbagliare è uno.
+  - Verificato in Chromium con **22 controlli**: le tre fasce viste tutte
+    scendendo di PF col bottone `−` (che è `renderFoeHP`, il percorso che il
+    rinominare poteva rompere in silenzio), il gruppo di controllo sulla barra
+    dei PG (10px, bordo, contrasto), e la controprova **su Gilda** — su
+    Torbiera il rosso sulla vecchia pista stava a 4,26:1 e una controprova sul
+    tema di default avrebbe detto che il difetto non c'era. Su Gilda il browser
+    conferma i numeri del verificatore al centesimo: 1,96:1 sulla vecchia
+    pista, 7,67:1 sull'incavo.

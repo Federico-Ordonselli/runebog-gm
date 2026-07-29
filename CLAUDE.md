@@ -653,6 +653,24 @@ in nessun altro posto.
   sotto 3:1 in cinque temi (Sottosuolo 1,94): ora ci sono le due righe, e i
   cinque valori sono stati avvicinati al **proprio `--moss`** (9–39%) invece
   che sostituiti — la variante scura deve restare la tinta dell'accento.
+- **Una barra PF è un incavo: quello che si vede è il riempimento** (`.hp-bar`
+  in `app.css`, una ricetta sola per i PG e per i mostri dal 29 lug 2026).
+  La pista sta a 1,03–1,28:1 sul pannello in tutti e dodici i temi e va bene
+  così — il massimo è scritto nei due campi accanto, e alzarla a 3:1 vorrebbe
+  dire riprogettare la barra per una soglia che nessuno chiede. La coppia che
+  conta è il **riempimento contro la pista**, ed è per questo che l'incavo
+  (`--bog-2`) è la pista giusta: era `--line` sui mostri, cioè un mezzotono, e
+  le tre fasce ci cadevano sotto 3:1 in sei casi su trentasei (dodici temi ×
+  tre fasce), cioè la barra spariva a pochi PF.
+  - **I colori delle fasce stanno nel CSS**, non in uno `style` inline scritto
+    dal JS (`hpFascia` in `mostri.js` torna una classe): un colore inline non
+    lo trova nessun grep sul CSS, quindi nessuno lo dichiara in `COPPIE` — ed
+    è letteralmente il motivo per cui quelle tre fasce non erano misurate.
+    Regola generale: un colore che il JS decide è un colore che il
+    verificatore dei temi non vedrà mai.
+  - Le **soglie** invece restano due (30% per i PG, 25/50% per i mostri): sono
+    regole di prodotto diverse, non due copie della stessa, e unificarle
+    cambierebbe quando la barra di un PG diventa rossa.
 - **Sopra un riempimento d'accento non ci va del testo.** Un glifo chiaro su
   `--moss-deep` sta a 2,1–3,8:1 anche nei temi che passano la soglia dei
   riempimenti, perché la soglia del testo è 4,5. I due casi noti sono
