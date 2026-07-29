@@ -367,6 +367,31 @@ allargarla bisognava esportare il JSON e riscriverlo a mano.
   - Il segno interno (meridiano, confine) è `.terr-mark` e **non** `.blk-shape`:
     quella classe porta selezione, focus e alone di "condiviso", e due elementi
     la accenderebbero due volte.
+  - **Una sagoma inscritta ha un dentro più stretto del suo riquadro**
+    (`dentro` in `SHAPES`, `contentBox` in `modello.js`, 29 lug 2026), e tutto
+    ciò che si LEGGE — titolo, anteprima dei figli, conteggio `◦ N`, pallino di
+    stato — si impagina lì. Impaginato sul riquadro sbordava dal contorno (fino
+    a 8 angoli su 16 dell'anteprima, e il titolo di una torre per intero): la
+    bolla si leggeva come se il contenuto le stesse traboccando. È la stessa
+    conoscenza di `disegno` chiesta da un secondo posto, quindi sta nello
+    stesso campo e non in un confronto sul nome dentro `mappa.js`.
+    - I numeri sono **geometria**: ellisse 1/√2 per lato, rombo 1/2. Per la
+      costa non c'è formula e sono **misurati sulla curva** (non sui vertici:
+      fra un punto e l'altro la Catmull-Rom esce e rientra) col rettangolo di
+      area massima, che viene centrato in (0,494, 0,515) — per questo `dentro`
+      sono due numeri e non quattro, e per questo un test impone che
+      `contentBox` esca centrato.
+    - **Le maniglie no**: restano agli angoli del riquadro perché sono comandi,
+      e sul contorno vero di un rombo si prenderebbero peggio. Il pallino di
+      stato invece è informazione e segue il contenuto.
+    - **Muri accesi = sagoma piena**, quindi `contentBox` torna il riquadro
+      intero: `shapeMarkup` in quel caso disegna un rettangolo, e stringere il
+      contenuto per una silhouette che nessuno sta disegnando sarebbe la
+      divergenza che questo campo esiste per evitare.
+    - Il verso in cui si sbaglia è dichiarato da `test/scala/`: ogni sagoma
+      deve dirsi **inscritta o piena**, e una nuova che non ricade in nessuno
+      dei due elenchi fa fallire il test. Il difetto vero non fallisce niente —
+      si vede soltanto guardando una bolla.
 - L'elenco delle forme è in **due posti** — `SHAPES` (`modello.js`) e la whitelist
   del contratto (`formato-campagna.js`) — e `test/scala/` impone che coincidano:
   una forma che l'app disegna ma il validatore non conosce fa rimbalzare con 422

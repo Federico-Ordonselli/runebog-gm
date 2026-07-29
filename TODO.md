@@ -19,33 +19,20 @@ anche nel pannello dettagli (tetto a 40vw). Le voci per esteso stanno in
 "Cosa resta dell'audit", in fondo al file. La sezione regole è completa
 (dieci capitoli più il bestiario).
 
+Il 29 lug è chiuso anche **il contenuto che usciva dalla sagoma** (`dentro` in
+`SHAPES`, `contentBox` in `modello.js`): la voce per esteso, con quel che la
+misura ha spostato, sta in "La scala della campagna".
+
 Da qui in avanti, in ordine di consiglio:
 
-1. **Il contenuto di una bolla esce dalla sua sagoma** (voce per esteso in "La
-   scala della campagna"). Da quando i territori hanno una silhouette
-   *inscritta* nel riquadro — costa, globo, rombo — l'anteprima dei figli, che
-   `miniPreview` impagina ancora sul **riquadro**, sborda dal contorno: la
-   bolla si legge come se il contenuto le stesse traboccando. Misurato con
-   `isPointInFill` sulla sagoma vera: **rombo 8 angoli su 16 fuori**, costa 5,
-   globo 4, cerchio 4.
-   - **La direzione è decisa**: le bolle interne si devono vedere **molto più
-     piccole**, cioè impaginate nel rettangolo **inscritto** nella sagoma.
-     Ellisse 0,707 per lato, rombo 0,5, rettangolo 1; per la costa i fattori
-     vanno **calcolati** dai vertici di `COSTA` (ha dei golfi, quindi non è
-     simmetrica).
-   - Il fattore va in **`SHAPES`**, accanto a `disegno`, e non in un confronto
-     sul nome dentro `mappa.js`: è la regola già scritta lì.
-   - Nello stesso `<g>` sbordano anche **titolo e conteggio `◦ N`**, e vanno
-     corretti insieme — sennò si corregge la metà che si era notata per prima.
-     Le maniglie sono un caso a parte, da decidere dicendolo.
-2. **La pista della barra PF dei mostri** (`.hpbar`, `app.css` ~519): è
+1. **La pista della barra PF dei mostri** (`.hpbar`, `app.css` ~519): è
    `var(--line)` sul pannello, cioè 1,32–4,36:1, sotto 3:1 in dieci temi. Non
    è un difetto d'accesso — i due campi `hp`/`hpMax` dicono già il numero — ma
    è un'**incoerenza fra le due barre PF**, e il riempimento dei mostri è
    deciso in JS con uno `style` inline, quindi `temi:contrasto` non lo vede.
    Chi la tocca decida prima se quel colore deve restare inline. Voce per
    esteso in fondo, con la misura.
-3. **L'ETag del polling del tavolo non è mai stato provato contro il database
+2. **L'ETag del polling del tavolo non è mai stato provato contro il database
    vero**: su Neon `dev` non c'è una campagna con `share_token`, e crearne una
    sarebbe scrivere sui dati di qualcun altro. Alla prima apertura di un
    tavolo vero: pannello di rete, un 200 e poi tutti 304, e un 200 a ogni
@@ -65,8 +52,10 @@ Minori, già annotati al loro posto:
 `nodeBox` dà 30×30 a ogni segnalino ma il disco della pedina ne misura 32, un
 pixel fra centro geometrico e centro disegnato (per questo `markerR` è una
 funzione); il sito non ha condizioni d'uso proprie; la barra della palette è
-lunga 2368px di scroll a 390px di viewport (in "La scala della campagna"); le
-rifiniture della sezione regole in fondo alla sua sezione.
+lunga 2368px di scroll a 390px di viewport (in "La scala della campagna"); un
+titolo lungo sborda in orizzontale da una bolla piccola, che è troncamento del
+testo e non geometria della forma (idem); le rifiniture della sezione regole in
+fondo alla sua sezione.
 
 **Come si riprende una di queste voci** (vale per tutte, ed è il giro che le
 ultime tre hanno seguito): si **rimisura prima di correggere** — due volte su
@@ -1756,8 +1745,8 @@ Cosa **resta** da fare, misurato:
   bolla come un'altra) e un vincolo gerarchico vero sarebbe una gabbia in un
   editor che vive di alberi liberi — ma se un giorno desse fastidio, il posto è
   `shapeOpts` in `pannello.js`.
-- [ ] **Il contenuto di una bolla esce dalla sua sagoma** (29 lug 2026, trovato
-  sul campo su una bolla continente). `miniPreview` (`mappa.js` ~489) impagina
+- [x] **Il contenuto di una bolla esce dalla sua sagoma** (29 lug 2026, trovato
+  sul campo su una bolla continente e chiuso lo stesso giorno). `miniPreview` (`mappa.js` ~489) impaginava
   l'anteprima dei figli nel **riquadro** (`box.w-22` × `box.h-42`, inserti 11 e
   31), ma dal 26 lug la sagoma disegnata è **inscritta** in quel riquadro:
   ellisse, costa, rombo. Tutto ciò che sta negli angoli finisce fuori dal
@@ -1797,6 +1786,47 @@ Cosa **resta** da fare, misurato:
   - La riproduzione è già scritta e si rifà in un minuto: un livello con
     continente, mondo, torre e piazza, quattro figli `quartiere` ciascuna agli
     angoli, e il conteggio degli angoli fuori sagoma con `isPointInFill`.
+
+  **Com'è andata.** `dentro:[larghezza,altezza]` in `SHAPES` accanto a `disegno`
+  e `contentBox` in `modello.js` (il riquadro inscritto, centrato, in frazioni
+  del riquadro della bolla); `mappa.js` ci impagina titolo, anteprima, conteggio
+  e pallino di stato, e `test/scala/` impone che ogni sagoma si dichiari
+  inscritta o piena — una sagoma nuova non ricade in nessuno dei due elenchi e
+  il test fallisce, che è il verso giusto, perché il difetto vero non fa fallire
+  niente. Verificato in Chromium con **33 controlli**: le quattro sagome
+  inscritte a zero angoli fuori, un gruppo di controllo di cinque sagome piene
+  (quartiere, nazione, regione, edificio, più una stanza rimpicciolita) ferme al
+  pixel di prima, e la controprova — fattori rimessi a `[1,1]`, tornano fuori 23
+  angoli. Tre cose che la misura ha spostato rispetto alla voce qui sopra:
+  - **La costa non ha avuto bisogno di un centro suo**, contro quel che questa
+    voce dava per scontato. Il rettangolo di area massima, calcolato sulla
+    **curva** vera (i vertici da soli sono l'approssimazione sbagliata: fra un
+    punto e l'altro la Catmull-Rom esce e rientra), viene centrato in **(0,494,
+    0,515)**, e obbligarlo al centro esatto costa il 5% di area — 0,346 contro
+    0,363. I golfi rendono asimmetrico il contorno, non il suo interno: il campo
+    resta **due numeri** e non quattro. I fattori sono `[0,66, 0,52]`, e sono un
+    massimo e non un margine di prudenza — a `0,68` o a `0,54` il rettangolo è
+    già fuori dalla curva.
+  - **Titolo e conteggio si accavallavano**, e non per colpa delle sagome:
+    senza anteprima il titolo sta al centro e il conteggio in fondo, che su un
+    riquadro basso sono lo stesso posto. Il caso c'era già per ogni bolla
+    ridimensionata sotto i 48px, ma non lo raggiungeva nessuna forma di
+    default; stringendo il riquadro lo raggiunge una torre delle dimensioni sue.
+    Adesso, senza anteprima, i due sono **una coppia impilata** al centro.
+  - **Le maniglie restano agli angoli del riquadro**, che era la decisione da
+    prendere dicendolo: sono comandi, e portarle sul contorno vero di un rombo
+    le rimpicciolisce proprio dove il rombo è più stretto. Che il riquadro non
+    sia il loro bersaglio lo dice già il fatto che sporgono (`link-handle` sta a
+    `cx=box.w`, cioè mezza fuori). Il **pallino di stato** invece è informazione
+    e si è mosso col resto: resta a cavallo dell'angolo com'era — su un
+    rettangolo ne sporge di 1,5px — e il verificatore lo misura contro quella
+    linea di partenza, non contro zero.
+
+  **Resta aperto, e non è delle sagome**: un titolo lungo sborda in orizzontale
+  da una bolla piccola (una torre da 80px non tiene "Torre di Prova"), identico
+  su una stanza rettangolare. Ha a che fare col troncamento del testo, non con
+  la geometria della forma, e va affrontato come tale — misurato: dopo la
+  correzione la torre ha ancora 2 angoli su 4 del titolo fuori, ed è tutto lì.
 
 ## Temi
 

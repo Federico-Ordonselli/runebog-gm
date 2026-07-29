@@ -52,8 +52,24 @@ export const SHAPES = {
   // decidere zona/luogo): il renderer dispaccia su disegno e non sa i nomi.
   // Il colore invece resta UNO solo per tutti e cinque (vedi SHAPE_COLORS): la
   // sagoma non costa token, regge in tutti i temi e si legge in monocromia.
-  mondo:      {label:"Mondo",      w:440, h:300, territorio:true, disegno:"globo"},
-  continente: {label:"Continente", w:380, h:260, territorio:true, disegno:"costa"},
+  //
+  // dentro = [larghezza, altezza] del rettangolo INSCRITTO nella sagoma, in
+  // frazioni del riquadro e centrato su di esso: dove sta il contenuto della
+  // bolla (contentBox qui sotto). Serve solo alle sagome inscritte, cioè quelle
+  // che lasciano vuoti gli angoli del riquadro — senza, titolo, anteprima dei
+  // figli e conteggio restano impaginati sul riquadro e sbordano dal contorno.
+  // È lo stesso campo-invece-di-confronto di `disegno`, per la stessa ragione:
+  // questa è la seconda volta che la sagoma serve a un posto diverso dal
+  // renderer, e la terza sarebbe un `if` sul nome in un terzo file.
+  // I numeri sono GEOMETRIA e non gusto: ellisse 1/√2 per lato (l'area va al
+  // 50%), rombo 1/2 (al 25%). Per la costa non c'è una formula — sono misurati
+  // sulla curva vera con una ricerca del rettangolo di area massima, e il
+  // rettangolo libero esce centrato in (0,494, 0,515), cioè praticamente sul
+  // centro: per questo bastano due numeri e non serve dichiarare anche dove sta.
+  mondo:      {label:"Mondo",      w:440, h:300, territorio:true, disegno:"globo",      dentro:[.707,.707]},
+  continente: {label:"Continente", w:380, h:260, territorio:true, disegno:"costa",      dentro:[.66,.52]},
+  // Nazione e regione disegnano il rettangolo pieno (il confine e il tratteggio
+  // ci corrono sopra), quindi il loro contenuto sta sul riquadro come prima.
   nazione:    {label:"Nazione",    w:320, h:220, territorio:true, disegno:"confine"},
   regione:    {label:"Regione",    w:260, h:180, territorio:true, disegno:"tratteggio"},
   // Il quartiere non ha disegno: è il rettangolo pieno, cioè il capolinea
@@ -63,8 +79,8 @@ export const SHAPES = {
   // walls: true = muri accesi di default, "opt" = muri possibili ma spenti (vedi wallShape)
   edificio: {label:"Edificio",  w:140, h:80,  grid:true, walls:"opt"},
   stanza:   {label:"Stanza",    w:80,  h:80,  grid:true, walls:true},
-  piazza:   {label:"Piazza",    w:110, h:110, circle:true, grid:true},
-  torre:    {label:"Torre",     w:80,  h:80,  diamond:true}
+  piazza:   {label:"Piazza",    w:110, h:110, circle:true, grid:true, dentro:[.707,.707]},
+  torre:    {label:"Torre",     w:80,  h:80,  diamond:true, dentro:[.5,.5]}
 };
 
 /* La scala: che cosa contiene che cosa, dal più largo al più stretto. UNA lista
@@ -166,6 +182,28 @@ export function wallShape(n){
   const w = SHAPES[n.shape || defShape(n)]?.walls;
   if(!w) return false;
   return n.walls == null ? w === true : !!n.walls;   // la scelta del DM batte il default
+}
+
+/* Il riquadro del CONTENUTO di una bolla, in coordinate locali: dove stanno il
+   titolo, l'anteprima dei figli e il conteggio `◦ N`. Per una sagoma piena
+   (rettangolo, e ogni bolla murata, che il rettangolo lo ridiventa) è il
+   riquadro stesso; per una sagoma inscritta è il rettangolo che ci sta dentro,
+   dichiarato da `dentro` in SHAPES.
+
+   Non è una rifinitura: dal 26 lug 2026 mondo, continente, piazza e torre hanno
+   un contorno inscritto nel riquadro, e tutto ciò che stava negli angoli usciva
+   dalla figura — la bolla si leggeva come se il contenuto le stesse traboccando
+   (misurato: fino a 8 angoli su 16 dell'anteprima fuori sagoma, e il titolo di
+   una torre fuori per intero). Il prezzo dichiarato è che il contenuto si vede
+   più piccolo: è la direzione scelta, perché una bolla dentro una bolla è un
+   indizio e non una mappa da leggere. */
+export function contentBox(n, box){
+  // Muri accesi = la sagoma torna un rettangolo pieno (vedi shapeMarkup): il
+  // contenuto riprende il riquadro intero, sennò si stringerebbe per una
+  // silhouette che in quel momento nessuno sta disegnando.
+  const s = wallShape(n) ? null : SHAPES[n.shape || defShape(n)];
+  const [fw, fh] = s?.dentro || [1, 1];
+  return {x: box.w*(1-fw)/2, y: box.h*(1-fh)/2, w: box.w*fw, h: box.h*fh};
 }
 
 /* Il rettangolo su cui corre il muro, in coordinate locali della bolla. */

@@ -15,7 +15,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { repoUrl } from "../critici/_repo.mjs";
 
-const { SHAPES, SCALA, scalaSopra, scalaDentro, shapeType, SHAPE_COLORS, defShape } =
+const { SHAPES, SCALA, scalaSopra, scalaDentro, shapeType, SHAPE_COLORS, defShape, contentBox } =
   await import(repoUrl("public/app/modello.js"));
 const { prepareCampaignDocument, CURRENT_CAMPAIGN_SCHEMA_VERSION } =
   await import(repoUrl("public/app/formato-campagna.js"));
@@ -100,4 +100,45 @@ test("il contratto accetta tutte e sole le forme che l'app disegna", ()=>{
   const esito = prepareCampaignDocument(documento("contea"));
   assert.equal(esito.ok, false);
   assert.equal(esito.error.code, "invalid_shape");
+});
+
+/* Sagome INSCRITTE (lasciano vuoti gli angoli del riquadro) contro sagome PIENE
+   (il rettangolo, che gli angoli li occupa). L'elenco sta qui e non si deduce:
+   una sagoma nuova non ricade in nessuno dei due e questo test fallisce, che è
+   il verso giusto in cui sbagliare — il difetto vero, cioè il contenuto che
+   sborda dal contorno, non fa fallire niente e si vede solo guardando. */
+const INSCRITTE = ["globo", "costa"];
+const PIENE = ["confine", "tratteggio"];
+
+test("ogni sagoma dice se il suo contenuto sta sul riquadro o più dentro", ()=>{
+  for(const [nome, s] of Object.entries(SHAPES)){
+    const inscritta = s.disegno ? INSCRITTE.includes(s.disegno) : !!(s.circle || s.diamond);
+    if(s.disegno)
+      assert.ok(INSCRITTE.includes(s.disegno) || PIENE.includes(s.disegno),
+        `sagoma non classificata: ${nome} disegna "${s.disegno}" — inscritta o piena?`);
+    assert.equal(!!s.dentro, inscritta,
+      inscritta ? `${nome} ha una sagoma inscritta e non dichiara "dentro": titolo, anteprima e conteggio le usciranno dal contorno`
+                : `${nome} è una sagoma piena e dichiara "dentro": il contenuto si stringerebbe per niente`);
+  }
+});
+
+test("il riquadro del contenuto è centrato e non esce mai dal riquadro", ()=>{
+  const box = {w: 200, h: 140};
+  for(const nome of Object.keys(SHAPES)){
+    const c = contentBox({type:"zona", shape:nome}, box);
+    assert.ok(c.w > 0 && c.h > 0, `${nome}: riquadro del contenuto vuoto`);
+    assert.ok(c.w <= box.w && c.h <= box.h, `${nome}: il contenuto è più largo della bolla`);
+    // centrato: è ciò che permette a `dentro` di essere due numeri invece di
+    // quattro (per la costa il rettangolo di area massima esce in 0,494/0,515).
+    assert.ok(Math.abs((c.x + c.w/2) - box.w/2) < 1e-9, `${nome}: contenuto non centrato in x`);
+    assert.ok(Math.abs((c.y + c.h/2) - box.h/2) < 1e-9, `${nome}: contenuto non centrato in y`);
+  }
+  // una sagoma piena non muove niente: è il caso invariato, e vale anche per
+  // una bolla senza `shape`, che ricade su defShape
+  for(const n of [{type:"zona", shape:"quartiere"}, {type:"zona"}, {type:"luogo"}]){
+    const c = contentBox(n, box);
+    assert.deepEqual({x:c.x, y:c.y, w:c.w, h:c.h}, {x:0, y:0, w:200, h:140});
+  }
+  // e una inscritta stringe davvero, sennò il campo non serve a niente
+  assert.ok(contentBox({type:"luogo", shape:"torre"}, box).w < box.w/2 + 1);
 });

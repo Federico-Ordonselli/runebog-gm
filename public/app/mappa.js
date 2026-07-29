@@ -5,7 +5,7 @@
 import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeColor,
          isMarker, defShape, nodeBox, nodeCenter, node, uid, escapeHtml, escapeAttr,
          gridShape, onGrid, snapGrid, snapNode,
-         wallShape, wallBox, wallOpening, wallPlan, WALL,
+         wallShape, wallBox, contentBox, wallOpening, wallPlan, WALL,
          wallSegsOf, wallSegEnds, newWallSeg, stretchWallSeg,
          DOOR_TYPES, doorKind, wallLabel, shapeType, scalaSopra, scalaDentro } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, pathNodes, RO,
@@ -485,19 +485,30 @@ function ariaBlk(c){
   return escapeAttr(s);
 }
 
-/* anteprima in miniatura del contenuto di un blocco (i "collegamenti fatti" visti da fuori) */
-function miniPreview(n, box){
+/* anteprima in miniatura del contenuto di un blocco (i "collegamenti fatti" visti da fuori)
+
+   `dentro` è il riquadro del CONTENUTO (contentBox), non quello della bolla: su
+   una sagoma inscritta i due non coincidono, e impaginare sul secondo faceva
+   uscire l'anteprima dal contorno. Gli 11 di margine e i 20 lasciati in cima al
+   titolo si contano da lì.
+
+   Sotto una certa taglia l'anteprima non esce affatto, e stringendo il riquadro
+   il caso capita più spesso (una torre non ne ha più): va bene, perché a quelle
+   dimensioni una mappa annidata è illeggibile comunque — ma è la ragione per cui
+   il conteggio `◦ N`, che resta l'unico segno di "qui dentro c'è qualcosa", deve
+   stare dentro la sagoma anche lui. */
+function miniPreview(n, dentro){
   const kids = n.children.filter(c=>typeof c.x==="number");
   if(!kids.length) return "";
   let x1=Infinity,y1=Infinity,x2=-Infinity,y2=-Infinity;
   kids.forEach(c=>{ const b=nodeBox(c);
     x1=Math.min(x1,c.x); y1=Math.min(y1,c.y);
     x2=Math.max(x2,c.x+b.w); y2=Math.max(y2,c.y+b.h); });
-  const availW = box.w-22, availH = box.h-42;
+  const availW = dentro.w-22, availH = dentro.h-42;
   if(availW<26 || availH<20) return "";
   const k = Math.min(availW/Math.max(60,x2-x1), availH/Math.max(60,y2-y1));
-  const ox = 11 + (availW-(x2-x1)*k)/2 - x1*k;
-  const oy = 31 + (availH-(y2-y1)*k)/2 - y1*k;
+  const ox = dentro.x + 11 + (availW-(x2-x1)*k)/2 - x1*k;
+  const oy = dentro.y + 31 + (availH-(y2-y1)*k)/2 - y1*k;
   let out = `<g class="mini" pointer-events="none">`;
   for(const e of (n.edges||[])){
     const a = kids.find(c=>c.id===e.a), b = kids.find(c=>c.id===e.b);
@@ -698,13 +709,30 @@ export function renderCanvas(){
     }else{
       const box = nodeBox(c);
       if(c.children.length) ensureLayout(c);
-      const prev = miniPreview(c, box);
+      /* Tutto ciò che si LEGGE sta nel riquadro del contenuto — titolo,
+         anteprima, conteggio, pallino di stato — che su una sagoma inscritta è
+         più stretto del riquadro della bolla. Le due maniglie no, e restano agli
+         angoli: sono comandi, e un comando spostato sul contorno vero di un
+         rombo diventa più difficile da prendere proprio dove il rombo è più
+         piccolo. Il contorno che si vede non è il loro bersaglio, e a dirlo è
+         già il fatto che sporgono (la maniglia dei collegamenti sta a cx=box.w,
+         cioè mezza fuori). */
+      const dentro = contentBox(c, box);
+      const cx = dentro.x + dentro.w/2, cy = dentro.y + dentro.h/2;
+      const prev = miniPreview(c, dentro);
+      /* Senza anteprima titolo e conteggio sono UNA coppia impilata al centro,
+         non un titolo al centro e un conteggio in fondo: su un riquadro basso
+         (una torre ne ha 40px) il fondo cade addosso al titolo. Il caso non
+         nasce oggi — bastava una bolla ridimensionata sotto i 48px — ma con le
+         sagome inscritte lo raggiunge una torre delle dimensioni sue. */
+      const yTitolo = prev ? dentro.y+18 : cy + (c.children.length ? -4 : 5);
+      const yConta  = prev ? dentro.y+dentro.h-8 : cy+12;
       out += `<g class="blk${selCls}${shCls}" data-block="${c.id}" ${a11y} transform="translate(${c.x},${c.y})">
         ${shapeMarkup(c, box, col, aperture.get(c.id))}
         ${prev}
-        <text x="${box.w/2}" y="${prev?18:box.h/2+5}" text-anchor="middle">${escapeHtml(c.title||"")}</text>
-        ${c.children.length?`<text x="${box.w/2}" y="${box.h-8}" text-anchor="middle" style="font-size:10px;fill:var(--ink-dim)">◦ ${c.children.length}</text>`:""}
-        ${c.status?statusDot(box.w-4,4,c.status):""}
+        <text x="${cx}" y="${yTitolo}" text-anchor="middle">${escapeHtml(c.title||"")}</text>
+        ${c.children.length?`<text x="${cx}" y="${yConta}" text-anchor="middle" style="font-size:10px;fill:var(--ink-dim)">◦ ${c.children.length}</text>`:""}
+        ${c.status?statusDot(dentro.x+dentro.w-4,dentro.y+4,c.status):""}
         ${canEditEdges()?`<circle class="link-handle" cx="${box.w}" cy="0" r="9"/>`:""}
         ${c.id===st.selectedId && st.multiSel.size<=1 ? `<rect class="rs-handle" x="${box.w-8}" y="${box.h-8}" width="16" height="16" rx="3"/>`:""}
       </g>`;
