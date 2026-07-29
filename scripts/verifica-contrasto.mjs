@@ -104,8 +104,14 @@ const COPPIE = [
      (app.css .btn, globals.css .btn), i campi sul fondo incassato (app.css
      input/textarea/select, globals.css .input). --edge e --edge-soft NON
      sono qui apposta: sono separatori decorativi, che la norma non copre e
-     che stanno bassi per scelta — una griglia marcata è rumore. */
-  ["--edge-ui",        "--surface",     3,   "bordo dei componenti sul pannello"],
+     che stanno bassi per scelta — una griglia marcata è rumore.
+     Dal 29 lug 2026 queste soglie reggono anche due comandi che di bordo non
+     ne hanno: --edge-ui è il loro RIEMPIMENTO a riposo, perché 1.4.11 chiede
+     3:1 non solo ai contorni ma a ciò che identifica un componente, e per
+     questi due non c'è altro. Sono la striscia di #detail-grip (che tocca
+     pannello E tela: le sue tre superfici sono le tre righe qui sotto) e la
+     ★ spenta di .q-star sul pannello. Chi abbassa queste soglie li spegne. */
+  ["--edge-ui",        "--surface",     3,   "bordo dei componenti sul pannello, e la ★ spenta"],
   ["--edge-ui",        "--peat-sunk",   3,   "bordo dei campi sul fondo incassato"],
   /* La terza superficie, arrivata il 28 lug 2026 col resto dei bordi di
      componente: la TELA. Ci galleggiano sopra #ctx-menu, #qs-results e
@@ -115,7 +121,7 @@ const COPPIE = [
      tutto il resto. Le due righe sono i due estremi del gradiente e servono
      entrambe: il tabellone di combattimento si apre a 12px dall'angolo in
      alto a sinistra, cioè nel punto più illuminato della tela. */
-  ["--edge-ui",        "--peat",        3,   "bordo dei livelli che galleggiano sulla tela"],
+  ["--edge-ui",        "--peat",        3,   "bordo dei livelli che galleggiano sulla tela, e #detail-grip"],
   ["--edge-ui",        "--glow",        3,   "…nell'angolo illuminato della tela"],
   /* Il RIEMPIMENTO d'accento (app.css --fen-dim): la barra PF dei PG sul fondo
      incassato, e sul pannello la spunta delle checklist (accent-color) e la

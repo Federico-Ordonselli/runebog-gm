@@ -13,25 +13,12 @@ d'iniziativa e il polling del tavolo (29 lug), più la fascia d'iniziativa su
 schermo stretto e i bersagli da 44px (29 lug: **erano l'ultimo P2**). Anche i
 **due P3 sono chiusi** (29 lug): il nome dell'immagine di riferimento e il
 riempimento d'accento, che misurandolo si è portato dietro il bottone
-flottante dei dettagli. Quelli che restano sono elencati **con la misura già
-fatta** in "Cosa resta dell'audit", in fondo al file. In ordine di consiglio:
+flottante dei dettagli. Il 29 lug sono chiusi anche i **due comandi che a
+riposo non si vedevano** (la voce 1 di questo elenco: maniglia del pannello e
+★ delle quest). Quelli che restano sono elencati **con la misura già fatta**
+in "Cosa resta dell'audit", in fondo al file. In ordine di consiglio:
 
-1. **Due comandi che a riposo non si vedono**, trovati misurando i bordi il
-   28 lug 2026. `#detail-grip` (`app.css` ~200) ha `background:var(--line)`,
-   cioè 1,37:1 su Torbiera: la maniglia che ridimensiona il pannello dettagli
-   è invisibile finché non ci passi sopra, e il commento accanto pretende 3:1
-   solo dall'**acceso** (`:hover`/`:focus-visible`/`.dragging`, che è già
-   `--fen`). `.q-star` spenta (`app.css` ~642) è `color:var(--line)`, e la
-   stella "non preferita" è un comando che non si legge.
-   - **Non è la stessa correzione dei bordi del 28 lug**: nessuno dei due è un
-     contorno di componente, sono *riempimenti*, e WCAG non li copre — non
-     esiste una soglia che decida al posto nostro. La domanda vera è **quanto
-     forte** debba essere un comando a riposo, che è una scelta di disegno.
-     Va decisa prima di scrivere il CSS, sennò si finisce a inseguire un 3:1
-     che nessuna norma sta chiedendo.
-   - `--edge-lit` esiste già in tutti e dodici i temi ed è il candidato ovvio
-     per "una riga che si vede senza gridare"; va misurato prima di adottarlo.
-2. **La topbar coricata non lascia tela**: a 740×360 la tela della vista DM è
+1. **La topbar coricata non lascia tela**: a 740×360 la tela della vista DM è
    alta **158px** su 360, e la colonna dell'iniziativa ne occupa 134 (l'85%).
    Trovato il 29 lug 2026 dal gruppo di controllo della fascia d'iniziativa —
    quindi la misura c'è già e non va rifatta.
@@ -63,8 +50,9 @@ invarianti critici".
 Minori, già annotati al loro posto:
 `nodeBox` dà 30×30 a ogni segnalino ma il disco della pedina ne misura 32, un
 pixel fra centro geometrico e centro disegnato (per questo `markerR` è una
-funzione); il sito non ha condizioni d'uso proprie; le rifiniture della sezione
-regole in fondo alla sua sezione.
+funzione); il sito non ha condizioni d'uso proprie; la pista della barra PF dei
+mostri (voce in fondo, trovata il 29 lug); le rifiniture della sezione regole in
+fondo alla sua sezione.
 
 ## SRD 5.2.1 in italiano (regole 2024)
 
@@ -2248,4 +2236,63 @@ Cosa **resta** da fare, misurato:
     non direbbe quale delle due è successa. Controprova fatta rimettendo i
     valori vecchi: 32 asserzioni cadono, e Sottosuolo torna a 2,21/1,94/2,12.
   - Lo stato critico `.low` (`--ember`) resta com'era: 4,87–10,42:1 ovunque.
-- Minori: nessuno rimasto di quelli annotati qui.
+- [x] **Due comandi che a riposo non si vedevano** — fatto (29 lug 2026).
+  `#detail-grip` (la maniglia che ridimensiona il pannello dettagli) e la `★`
+  spenta di `.q-star` stavano su `--line`, cioè **1,37:1 su Torbiera**: due
+  comandi che si scoprono solo per caso, uno passandoci sopra col mouse e
+  l'altro sapendo che c'è. Ora sono su `--line-ui`.
+  - **La voce diceva che WCAG non li copre, e si sbagliava.** Non sono bordi,
+    è vero, ma 1.4.11 non parla solo di contorni: chiede 3:1 all'informazione
+    visiva che **identifica un componente**, e per questi due non c'è
+    nient'altro — la maniglia è `role="separator" tabindex="0"` (un window
+    splitter, cioè un widget) e la stella è un `<button>` il cui unico visuale
+    è il glifo. L'eccezione della norma vale per i componenti **inattivi**, e
+    "spento" non è "disabilitato". Quindi la domanda "quanto forte deve essere
+    un comando a riposo" aveva già una risposta, e non era una scelta di gusto.
+  - **`--edge-lit`, il candidato che la voce proponeva, non regge**: sta sotto
+    3:1 in **quattro temi su dodici** contro almeno una delle superfici
+    (Torbiera 1,84–2,15, Brace 1,93–2,18, Cripta 2,10–2,45, Pergamena
+    2,73–3,06), e ha già un mestiere suo — il bordo acceso in hover — quindi
+    ritoccarne i valori avrebbe spostato altro. `--edge-ui` passa ovunque
+    (3,01–4,62): è il token che *per contratto* regge 3:1 su tutte le
+    superfici su cui compare.
+  - **Un riempimento ha una adiacenza sola**, quindi qui non vale lo sconto
+    dei bordi — e la maniglia ne ha due perché sta *fra* pannello e tela, non
+    perché sia un contorno. Le tre superfici (`--surface`, `--peat`, `--glow`)
+    erano **già** tutte in `COPPIE` dal 28 lug: nessuna riga nuova, solo i
+    commenti che ora dicono chi dipende da quelle soglie — la stessa cosa
+    fatta per l'anello di focus, e per la stessa ragione (chi le abbassa
+    spegne anche questi due).
+  - Lo **stato** della stella non passa dal colore: le principali stanno in una
+    sezione loro ("★ Quest principali"), quindi ★/☆ sarebbe un terzo modo di
+    dire una cosa già detta due volte — e il precedente di `.ini-tipo` dice che
+    pieno/vuoto è comunque un canale solo, il peso.
+  - Verifica in Chromium, **168 controlli** su tutti e dodici i temi, col colore
+    **calcolato dal browser**: maniglia e stella spenta uguali a `--edge-ui`,
+    i tre rapporti ≥3:1, la stella accesa ancora oro, e due gruppi di controllo
+    — il bordo di `#detail` che corre *accanto* alla maniglia deve restare
+    `--edge` (prova che sono stati spostati i selettori e non il token) e la
+    maniglia in hover deve restare `--fen` (la correzione è a riposo).
+    Controprova rimettendo i vecchi valori: **60 asserzioni cadono** e il
+    browser riporta 1,37:1 su Torbiera, cioè la stessa misura da cui la voce
+    era partita. `npx tsc --noEmit`, 97 test e `temi:contrasto` (12/12) puliti.
+  - Due trappole della verifica, che valgono per le prossime: `.focus()` da
+    script **non** accende `:focus-visible` su un elemento che non è un campo
+    (12 falsi KO: si misurava il riposo credendo di misurare l'acceso — si usa
+    l'hover), e con `transition:.15s` leggere subito dà il colore di
+    **partenza**, cioè di nuovo il riposo.
+- [ ] **La pista della barra PF dei mostri** (`.hpbar`, `app.css` ~519) è
+  `background:var(--line)` sul pannello: **1,32–4,36:1**, cioè sotto 3:1 in
+  dieci temi. Trovata il 29 lug 2026 cercando col grep gli *altri* usi di
+  `--line` come riempimento, dopo i due comandi qui sopra — la lezione dei
+  bersagli da 44px applicata a mano: si misura, non ci si fida dell'elenco.
+  - **Non è lo stesso difetto e per questo non è stata corretta insieme**: la
+    pista non identifica un comando, dice *quanto è lungo il massimo*, e quel
+    numero sta già scritto nei due campi `hp`/`hpMax` accanto alla barra
+    (`foeCard` in `mostri.js`). Nessuna informazione è affidata al solo colore.
+  - Resta un'**incoerenza fra le due barre**, ed è quella la voce: la barra dei
+    PG (`.hp-bar`, giocatori) ha pista `--bog-2` e bordo `--line`, quella dei
+    mostri pista `--line` e nessun bordo. Il riempimento dei mostri è per di
+    più deciso in JS (`hpColor`: `--fen`/`--gold`/`--ember` in uno `style`
+    inline), quindi `temi:contrasto` non lo vede e non lo vedrà: chi unifica le
+    due barre decida prima se quel colore deve restare inline.

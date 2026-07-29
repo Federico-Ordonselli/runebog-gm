@@ -196,10 +196,19 @@
     background:var(--panel);display:flex;flex-direction:column;overflow-y:auto;
   }
   /* La maniglia è larga 5px ma ne intercetta 11 (::before debordante): un bersaglio
-     da 5px si manca, e allargare la striscia visibile ruberebbe spazio al pannello. */
+     da 5px si manca, e allargare la striscia visibile ruberebbe spazio al pannello.
+     A RIPOSO la striscia sta su --line-ui e non su --line, che è un separatore
+     decorativo (1,37:1 su Torbiera: la maniglia era invisibile finché non ci si
+     passava sopra, cioè un comando che si scopre solo per caso). Non è una
+     severità inventata: role="separator" tabindex="0" è un widget, la striscia è
+     la sola cosa che lo identifica, e WCAG 1.4.11 chiede 3:1 all'informazione
+     visiva che identifica un componente — l'eccezione della norma è per i
+     componenti INATTIVI, che non è il caso. Le due adiacenze sono il pannello e
+     la tela, ed è per questo che --edge-ui è il token giusto: le tre coppie che
+     lo misurano (--surface, --peat, --glow) sono esattamente queste. */
   #detail-grip{
     position:relative;flex:none;width:5px;cursor:col-resize;
-    background:var(--line);transition:background .15s;
+    background:var(--line-ui);transition:background .15s;
   }
   #detail-grip::before{content:"";position:absolute;top:0;bottom:0;left:-3px;right:-3px}
   /* Qui l'indicatore di focus È la striscia che si accende (outline:none: un
@@ -639,7 +648,13 @@
     padding:10px 12px;margin-bottom:8px;background:var(--panel)}
   .q-row.done{opacity:.55}
   .q-row.done .q-title{text-decoration:line-through}
-  .q-star{font-size:18px;line-height:1;color:var(--line);padding:2px 4px}
+  /* La ★ spenta è --line-ui per la stessa ragione di #detail-grip: un bottone
+     spento non è un bottone inattivo, e il glifo è la sola cosa che lo
+     identifica. Su --line stava a 1,37:1 sul pannello, cioè un comando che si
+     legge solo se si sa che c'è. Lo STATO invece non si affida al colore: le
+     principali stanno in una sezione loro ("★ Quest principali"), quindi ★ e ☆
+     sarebbero un terzo modo di dire una cosa già detta due volte. */
+  .q-star{font-size:18px;line-height:1;color:var(--line-ui);padding:2px 4px}
   .q-star.on{color:var(--gold)}
   .q-star:hover{color:var(--gold)}
   .q-body{flex:1;min-width:0}

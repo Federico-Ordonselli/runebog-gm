@@ -577,6 +577,19 @@ in nessun altro posto.
     `#ctx-menu hr`). I `<dialog>` sono l'eccezione che dice la regola e restano
     su `--line`: hanno un `::backdrop` che scurisce tutto il resto, quindi a
     staccarli è il riempimento e non il contorno.
+  - **`--edge-ui` non è solo per i bordi**: dal 29 lug 2026 è anche il
+    riempimento **a riposo** di due comandi che di contorno non ne hanno — la
+    striscia di `#detail-grip` e la `★` spenta di `.q-star`. Su `--line`
+    stavano a 1,37:1 (Torbiera), cioè comandi che si scoprono solo per caso.
+    Non è una severità inventata: WCAG 1.4.11 chiede 3:1 all'informazione
+    visiva che **identifica** un componente, non solo ai contorni, e per questi
+    due non c'è altro (la maniglia è `role="separator" tabindex="0"`, cioè un
+    widget). L'eccezione della norma vale per i componenti **inattivi**, e
+    "spento" non è "disabilitato". Un riempimento però ha **una** adiacenza,
+    quindi non vale lo sconto del bordo qui sotto: la maniglia sta fra pannello
+    e tela e le deve reggere entrambe. Nessuna coppia nuova in `COPPIE` — le
+    tre superfici (`--surface`, `--peat`, `--glow`) erano già misurate, e le
+    righe lo **dicono**, com'è già per l'anello di focus.
   - Un bordo ha **due adiacenze** e ne basta una a 3:1, che è ciò che la norma
     chiede: `#srd-results` è a 2,7:1 contro il proprio riempimento (`--panel-2`)
     e regge sul pannello che ha sotto. Per questo `--edge-ui`/`--surface-hi`
