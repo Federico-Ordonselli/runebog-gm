@@ -14,28 +14,16 @@ schermo stretto e i bersagli da 44px (29 lug: **erano l'ultimo P2**). Anche i
 **due P3 sono chiusi** (29 lug): il nome dell'immagine di riferimento e il
 riempimento d'accento, che misurandolo si è portato dietro il bottone
 flottante dei dettagli. Il 29 lug sono chiusi anche i **due comandi che a
-riposo non si vedevano** (la voce 1 di questo elenco: maniglia del pannello e
-★ delle quest). Quelli che restano sono elencati **con la misura già fatta**
-in "Cosa resta dell'audit", in fondo al file. In ordine di consiglio:
+riposo non si vedevano** (maniglia del pannello e ★ delle quest) e il
+**telefono coricato**, che misurandolo si è rivelato un difetto molto più
+grande di quello che la voce descriveva. **L'elenco è vuoto**: quel che resta
+è annotato con la misura già fatta in "Cosa resta dell'audit", in fondo al
+file, e fra i minori qui sotto.
 
-1. **La topbar coricata non lascia tela**: a 740×360 la tela della vista DM è
-   alta **158px** su 360, e la colonna dell'iniziativa ne occupa 134 (l'85%).
-   Trovato il 29 lug 2026 dal gruppo di controllo della fascia d'iniziativa —
-   quindi la misura c'è già e non va rifatta.
-   - **Non è un difetto del tabellone** (216px sono il 29% della larghezza, e
-     lì la fascia sarebbe peggio: coricati la dimensione scarsa è l'altezza).
-     È la topbar: a 740px di larghezza scatta il blocco `@media
-     (max-width:760px)` di `app.css` (~813), che la impagina su **due righe**,
-     e sotto c'è la palette. Due righe più palette mangiano ~202px dei 360.
-   - Il gradino intermedio `@media (max-width:1200px) and (min-width:761px)`
-     **non scatta** a 740px, quindi non c'è nessuna via di mezzo fra desktop e
-     mobile-verticale: il caso coricato oggi non è descritto da nessuna regola.
-   - Il precedente da seguire è la fascia d'iniziativa del 29 lug: la
-     condizione porta l'**orientamento** e non la sola larghezza, perché la
-     dimensione scarsa cambia. Da misurare col **dito emulato** (`hasTouch` in
-     Playwright), sennò `pointer:coarse` non scatta e si misura un telefono che
-     non esiste — e ricordare che i campi a 44px hanno già alzato la topbar di
-     10px su touch.
+Il primo da riprendere, se si vuole un ordine: il **pannello dettagli su un
+telefono coricato** (sotto, fra i minori) — è l'unica cosa che sull'iPhone
+coricato tiene ancora la mappa in un angolo, ed è una scelta di disegno non
+ancora fatta, non un guasto da correggere.
 
 La migrazione `0001_revisione-campagna` è applicata a **entrambi** i branch Neon
 (25 lug 2026: `dev` durante la verifica di P0.2, `production` prima del deploy,
@@ -53,6 +41,17 @@ pixel fra centro geometrico e centro disegnato (per questo `markerR` è una
 funzione); il sito non ha condizioni d'uso proprie; la pista della barra PF dei
 mostri (voce in fondo, trovata il 29 lug); le rifiniture della sezione regole in
 fondo alla sua sezione.
+
+**Il pannello dettagli su un telefono coricato** si prende metà schermo
+(29 lug 2026, misurato a 852×393 col dito): `#detail` è largo 440px fissi, la
+tela ne riceve **407** e il tabellone d'iniziativa — che lì resta la colonna
+da 216px, giustamente — ne copre il 53%. Il foglio dal basso non è la
+risposta: coprirebbe 244px di 393, cioè rifarebbe il difetto verticale appena
+corretto. Le vie sono un tetto in `vw` sotto `max-height:480px` (`max-width:40vw`
+darebbe 341px a 852, tela 511) oppure lasciarlo com'è, visto che sopra i 760px
+la maniglia c'è e il pannello si stringe a mano. **Non è un guasto**: è la
+domanda "su un telefono coricato conta più la mappa o il pannello", e va
+risposta prima di scrivere il CSS.
 
 ## SRD 5.2.1 in italiano (regole 2024)
 
@@ -2175,12 +2174,45 @@ Cosa **resta** da fare, misurato:
   dell'app cresce di **10px** su touch, e la tela della vista DM scende da 448
   a 438 a 360×740. È il prezzo dichiarato di bersagli tacchabili, non un
   guasto, ma va ricordato prima di aggiungere altre righe alla topbar.
-- **Il telefono coricato ha una tela alta 158px** (740×360: topbar su due righe
-  più la palette), e la colonna dell'iniziativa ne occupa 134 — l'**85%**.
-  Trovato dal gruppo di controllo del lavoro sulla fascia, il 29 lug 2026. Non
-  è un difetto della barra (la fascia lì sarebbe peggio, e 216px sono il 29%
-  della larghezza): è la **topbar** che coricata non lascia tela. Da guardare
-  insieme ai gradini di `max-width:1200px`, che coricati non scattano.
+- [x] **Il telefono coricato non lasciava tela** — fatto (29 lug 2026), e la
+  misura ha cambiato di grado il difetto. La voce parlava di 740×360, dove la
+  tela è alta 180px su 360 (il 50%: topbar 61 + briciole 45 + palette 74).
+  Ma **un telefono coricato non è largo 740: è largo 852** (iPhone 14 Pro;
+  15/16 arrivano a 932), cioè **sopra** la soglia mobile di 760px — e lì la
+  palette può andare a capo e si prende **425px** su uno schermo alto 393.
+  Misurata col dito, la tela usciva alta **ZERO**: non "poca mappa", nessuna
+  mappa. Il 740×360 della voce era il caso mite, l'unico in cui la
+  compattazione mobile almeno scatta.
+  - **La condizione è l'ALTEZZA** (`@media (max-height:480px)`), non
+    l'orientamento come nella fascia d'iniziativa: lì il difetto era la
+    larghezza di un pannello, qui è quanto verticale mangia il cromo, e a
+    dirlo è l'altezza della finestra — che copre anche una finestra da
+    scrivania schiacciata, dove il difetto è identico. 480px sta sopra ogni
+    telefono coricato (430 il più alto) e sotto ogni tablet (768 l'iPad):
+    in mezzo non c'è niente da rompere.
+  - Il blocco fa tre cose: topbar su **una** riga (i figli visibili sommano
+    648px, quindi ci stanno da 740 in su; il gradino 761–1200 forza l'a-capo
+    con uno pseudo-elemento a `flex-basis:100%`, e va disfatto), palette a
+    **una riga sola scorrevole** (la ricetta di ≤760px — è questa LA
+    correzione), padding di topbar e briciole tagliati. Nessun *comando*
+    rimpicciolito: i 44px col dito restano, ed è una delle asserzioni.
+  - **Il pannello dettagli resta di fianco** e non diventa un foglio dal
+    basso: su uno schermo alto 393 un foglio al 62% ne coprirebbe 244, cioè
+    rifarebbe il difetto appena corretto. Coricati lo spazio sta in
+    orizzontale. Quanto debba essere largo è però una domanda aperta, ed è la
+    voce fra i minori in cima al file.
+  - Dopo: a 852×393 la tela passa da **0 a 239px** (61% dello schermo) e il
+    cromo da 587 a 154; a 740×360 la tela da 180 a 204 (50% → 57%), cioè la
+    stessa quota che ha il telefono in piedi (62%).
+  - Verifica in Chromium, **36 controlli** col dito emulato su tre telefoni
+    coricati (740×360, 852×393, 932×430) più il **tavolo**, e tre gruppi di
+    controllo che devono restare identici — telefono in piedi, scrivania e
+    iPad — misurati sull'**impronta** (il padding calcolato dice se il blocco
+    ha morso; l'altezza no, che cambia con la finestra). Fra le asserzioni:
+    nessun bersaglio del cromo sotto i 44px, e la pagina che non scorre in
+    orizzontale. Controprova disattivando il blocco: a 852×393 la verifica
+    **non parte nemmeno**, perché `#plan-svg` è alto 0 e Playwright lo dà per
+    invisibile — che è il modo più chiaro in cui il difetto poteva dirsi.
 - [x] **`alt="riferimento"` su un'immagine che ha il titolo a disposizione** —
   fatto (29 lug 2026), e la voce era scritta sul posto sbagliato: quella
   miniatura sta **dentro un `<button aria-label="Ingrandisci l'immagine">`**, e

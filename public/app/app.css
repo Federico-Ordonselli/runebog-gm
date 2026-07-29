@@ -889,6 +889,62 @@
     .btn.tiny{padding:5px 9px}
   }
 
+  /* ---------- schermo BASSO: il telefono coricato ----------
+     Tutte le soglie qui sopra guardano la larghezza, e un telefono coricato è
+     LARGO: iPhone 14 Pro 852x393, 15/16 fino a 932x430. Sopra i 760 non scatta
+     niente di mobile, quindi quello schermo alto 393 riceve il layout da
+     scrivania — e la palette, che lì può andare a capo, si prende 425px:
+     misurato col dito, la tela usciva alta ZERO. Non è "poca mappa": la mappa
+     non c'era. A 740x360 (dove la compattazione mobile almeno scatta) il conto
+     era meno grave e più subdolo: cromo 180px su 360, cioè metà schermo.
+
+     La condizione è l'ALTEZZA e non l'orientamento, al contrario della fascia
+     d'iniziativa qui sotto: lì il difetto era la larghezza di un pannello, qui
+     è quanto verticale mangia il cromo, e a dirlo è l'altezza della finestra —
+     che copre anche una finestra da scrivania schiacciata, dove il difetto è
+     identico. 480px è sopra ogni telefono coricato (430 il più alto) e sotto
+     ogni tablet (768 l'iPad): non c'è niente in mezzo da rompere.
+
+     Il pannello dettagli resta di FIANCO e non diventa un foglio dal basso:
+     su uno schermo alto 393 un foglio al 62% ne coprirebbe 244, cioè
+     rifarebbe il difetto che questo blocco corregge. Coricati lo spazio sta
+     in orizzontale, ed è lì che va messo il pannello. */
+  @media (max-height:480px){
+    /* La topbar torna a UNA riga: i figli visibili sommano 648px, quindi ci
+       stanno da 740 in su. Non si forza `nowrap` — in una finestra bassa E
+       stretta due righe sono la degradazione giusta, non un traboccamento. */
+    body{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+    main{flex:1;min-height:0;height:auto}
+    #topbar{flex-wrap:wrap;gap:6px;padding:4px 10px}
+    /* Il gradino 761–1200 forza l'a-capo con uno pseudo-elemento a basis 100%:
+       qui la seconda riga costa il 15% dello schermo e va disfatta. */
+    #topbar::after{content:none}
+    #topbar h1{font-size:16px}
+    #topbar h1 small{display:none}
+    #camp-wrap{margin-left:0}
+    #campaign-select{max-width:120px}
+    /* Le stesse azioni rare che passano al menu ⋯ sotto i 1400px, più annulla e
+       rifai: col dito quelli compaiono sopra i 760, e qui sono due bersagli da
+       44px su una riga che deve restare una. Nel ⋯ ci sono già. */
+    #theme-wrap, #keys-btn,
+    #topbar > .btn.dm-only,
+    #camp-wrap .btn.tiny,
+    #undo-btn, #redo-btn{display:none}
+    /* L'ordine torna quello a una riga: sotto i 760 tab e stato sono spinti a
+       capo con `order`, e senza questo resterebbero in coda alla ricerca. */
+    nav.tabs{order:0;margin-left:0}
+    #savestate{order:0;font-size:11px}
+    .tabs button{padding:6px 10px;font-size:13px}
+    #quick-search{width:110px}
+    #crumbs{padding:4px 12px}
+    /* Una riga sola scorrevole: è la ricetta di ≤760px, e qui è LA correzione —
+       una palette che va a capo su uno schermo basso non lascia tela. */
+    #plan-toolbar{overflow-x:auto;flex-wrap:nowrap;padding:6px 10px;scrollbar-width:none}
+    #plan-toolbar::-webkit-scrollbar{display:none}
+    .pal-item{flex:none}
+    #plan-hint{display:none}
+  }
+
   /* ---------- il tabellone d'iniziativa cambia asse (schermo stretto) ----------
      Su desktop è una colonna che galleggia a sinistra e si consulta di sbieco.
      A 360px quella stessa colonna misura 216px su 360 di tela — il 60% della

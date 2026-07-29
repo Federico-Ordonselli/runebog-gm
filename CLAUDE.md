@@ -1252,6 +1252,21 @@ Non negoziabili; se tocchi queste aree, mantienili:
   colonna** però non è un link in linea: `.srd-nomi` (fino a 331 voci, il
   bestiario) stava a 24,6px di passo, cioè sopra il minimo di 24 per meno di un
   pixel, e la sua regola sta in `srd.css` accanto all'elenco.
+- **"Mobile" è una soglia di LARGHEZZA, e un telefono coricato è largo**
+  (`@media (max-height:480px)` in `app.css`, 29 lug 2026). Tutti i gradini
+  dell'editor guardano `max-width`, e il più basso è 760px: un iPhone 14 Pro
+  coricato è **852×393**, quindi prendeva il layout da scrivania su uno
+  schermo alto 393 — la palette andava a capo, si prendeva 425px e la tela
+  usciva alta **zero**. Chi tocca quei gradini misuri sempre anche coricato,
+  col dito emulato.
+  - La condizione è l'**altezza** e non l'orientamento (che è invece quella
+    giusta per la fascia d'iniziativa): lì il difetto era la larghezza di un
+    pannello, qui è quanto verticale mangia il cromo. 480px sta sopra ogni
+    telefono coricato e sotto ogni tablet.
+  - Il blocco taglia **spazio**, mai comandi: i 44px restano, e la palette
+    diventa una riga sola scorrevole invece di rimpicciolirsi. Il pannello
+    dettagli resta **di fianco** e non diventa un foglio dal basso — su 393px
+    d'altezza un foglio al 62% rifarebbe il difetto che il blocco corregge.
 - **Il salvataggio è ritardato di 700 ms** (`save()` in `stato.js`, per non
   scrivere a ogni battitura) e a chiudere quella finestra è il `pagehide`
   registrato da `initStato`. Serve perché dall'editor si esce con un clic: il
