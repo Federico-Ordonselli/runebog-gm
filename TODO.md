@@ -32,34 +32,10 @@ La migrazione `0001_revisione-campagna` è applicata a **entrambi** i branch Neo
 col branch di backup `backup-pre-revision` creato prima): niente blocca il push.
 Le prove manuali post-deploy sono in "Sincronizzazione cloud".
 
-**Da estrarre: la fixture delle verifiche in Chromium** (deciso il 29 lug 2026,
-da fare). Ogni verifica visiva dell'app si scrive da capo, e la parte cara non
-sono le asserzioni — quelle sono usa-e-getta per definizione, perché ogni volta
-si guarda un'altra cosa — ma le ~40 righe che **costruiscono una campagna
-valida e la seminano**. Quelle sì che si ripetono identiche, e ricostruirle
-costa più del resto messo insieme. Va in `test/browser/campagna-di-prova.mjs`,
-FUORI da `test/`: `npm test` è `node --test` puro e gira in CI a ogni push,
-mentre questo vuole `playwright-core`, un binario Chromium e un dev server in
-ascolto — messo lì romperebbe `npm test` per tutti. Quel che serve sapere, così
-non si riparte dall'indagine:
-
-- **Standalone (vista DM)**: si semina `localStorage` con `gm-campaigns-v1`
-  (indice, voci `{id, name, updatedAt}`), `gm-current-campaign` e
-  `gm-campaign-<id>` (il documento). Il tema è `runebog-theme`. Attenzione al
-  profilo vergine: `gm-current-campaign` la scrive solo il primo cambio di
-  campagna, quindi l'id va letto con fallback sull'indice.
-- **Tavolo (sola lettura)**: si inietta `window.__table = {token, name, state}`
-  in un `addInitScript`, e `state` conviene produrlo con la proiezione VERA —
-  `import { projectForPlayers } from "src/lib/share.ts"`, che Node spoglia dei
-  tipi — sennò si prova la resa di uno stato che il server non produrrebbe mai.
-- **Forzare un giro di polling** senza aspettare i 5 s: `window.dispatchEvent(new
-  Event("visibilitychange"))`, che è il listener che `initTavolo` registra già.
-- Il browser è quello della cache Playwright (`~/.cache/ms-playwright/
-  chromium-1228/...`), non Chrome di sistema: vedi il quirk noto dell'ambiente.
-- Il documento minimo che serve quasi sempre: radice `zona` con `shared:true`,
-  una bolla `luogo` con `shape:"edificio"`, e — per il combattimento — un figlio
-  `encounter` con `monster.foes[]` più `root.battle = {round, turn, order[]}`,
-  dove le voci sono `{id, kind:"pg"|"foe", playerId | nodeId+foeId, init}`.
+**La fixture delle verifiche in Chromium è estratta** (29 lug 2026):
+`test/browser/campagna-di-prova.mjs` costruisce e semina la campagna, e accanto
+c'è l'autoverifica che lo dimostra. La voce per esteso sta in "Test degli
+invarianti critici".
 
 Minori, già annotati al loro posto:
 `nodeBox` dà 30×30 a ogni segnalino ma il disco della pedina ne misura 32, un
@@ -978,6 +954,44 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
   recupero, due schede sulla stessa revisione, tavolo con polling e revoca link.
   Per i browser test, scegliere un runner solo quando c'è una strategia stabile
   per DB e autenticazione di prova.
+
+- [x] **Fixture delle verifiche in Chromium** — fatto (29 lug 2026).
+  `test/browser/campagna-di-prova.mjs`: la campagna si costruisce e si semina di
+  lì, le asserzioni no — quelle restano usa-e-getta, perché ogni verifica guarda
+  un'altra cosa. Cinque cose, che erano le ~40 righe ricopiate ogni volta:
+  `documentoDiProva()` (radice `zona` condivisa, un `luogo`/`edificio` con dentro
+  una `stanza`, e a richiesta encounter, `root.battle`, pedine e muri con una
+  porta), `semeStandalone` (le tre chiavi di `localStorage` più il tema),
+  `semeTavolo` (il ponte `window.__table`), `serviTavolo` (la rotta del polling
+  senza database) e `apriBrowser`/`attendiServer`.
+  - **Gli id sono deterministici** (`locanda`, `pg1`, `ini-nemico2`), al
+    contrario di `uid()`: un'asserzione deve poter nominare la bolla che guarda
+    senza prima ripescarla dal DOM.
+  - **Il documento passa dal contratto vero** (`prepareCampaignDocument`) e la
+    proiezione del tavolo è `projectForPlayers` importata da `share.ts`, non una
+    copia scritta a mano. Una fixture invecchia in silenzio: il giorno che il
+    contratto stringe un campo, seminata a mano continuerebbe a disegnare
+    qualcosa di plausibile mentre il server risponde 422.
+  - **`serviTavolo` esiste perché il `visibilitychange` da solo non basta**:
+    senza un server dietro il polling scrive "Offline" dopo cinque secondi. Lo
+    stub tiene l'ETag = `revision` come la rotta vera, quindi si prova anche il
+    304 e il caso "revisione avanzata, documento identico"; conta i giri
+    (`{scaricati, invariati}`), che dal DOM non si vedono — un tavolo aggiornato
+    e uno che riscarica dodici volte al minuto si disegnano uguali.
+  - **Il numero di build di Chromium non è scritto a mano**: si prende il più
+    recente dalla cache di Playwright, sennò la fixture muore al primo
+    aggiornamento con un errore che parla di un file mancante e non del perché.
+    `playwright-core` si cerca prima fra i moduli e poi nella cache di npx: non è
+    una dipendenza del progetto, e trascinare un browser nel lockfile per una
+    verifica manuale è caro.
+  - **Sta fuori da `npm test`** (che elenca le cartelle una per una): quello è
+    `node --test` puro e gira in CI, questo vuole un binario e un dev server.
+  - Verificato: `node test/browser/verifica-fixture.mjs` 13/13 con `npm run dev`
+    acceso (bolla e id sulla tela, titolo dall'indice, quattro voci d'iniziativa
+    coi riferimenti risolti, porta disegnata, tema applicato; al tavolo `.ro`,
+    nessuna nota DM nella proiezione, note giocatori presenti, encounter non
+    condiviso assente, polling forzato che ridipinge, giro successivo a 304).
+    `tsc` e `npm test` (97/97) invariati.
 
 ## Mappe in scala
 

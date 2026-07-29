@@ -47,6 +47,22 @@ PR, con `DATABASE_URL` fittizio: il client Neon viene creato all'import di
 `src/db/index.ts`, quindi il build richiede la variabile anche se nessuna pagina statica
 interroga il database.
 
+**La verifica a mano ha una fixture** (`test/browser/campagna-di-prova.mjs`, 29 lug
+2026): costruisce una campagna valida e la semina, che è la parte che si ripeteva
+identica a ogni giro — le asserzioni no, quelle restano usa-e-getta perché ogni
+verifica guarda un'altra cosa. `documentoDiProva` (id **deterministici**, così
+un'asserzione può nominare la bolla che guarda) passa dal contratto vero e
+`semeTavolo` produce lo stato con `projectForPlayers` di `share.ts`: una fixture
+che si costruisce la sua idea di documento valido invecchia in silenzio e prova
+la resa di qualcosa che il server non manderebbe mai. `serviTavolo` risponde al
+polling senza database (ETag = `revision`, come la rotta) perché il ponte da
+solo lascia il tavolo "Offline" dopo cinque secondi. Si prova da sé con
+`node test/browser/verifica-fixture.mjs`, con `npm run dev` acceso.
+`test/browser/` **sta fuori da `npm test`**, che elenca le cartelle una per una:
+lì dentro girerebbero `playwright-core`, un binario Chromium e un dev server, e
+in CI romperebbe il typecheck-test-build di ogni push. Chi allarga quel glob
+deve saperlo.
+
 **Schema DB**: migrazioni SQL versionate in `drizzle/` (baseline `0000_iniziale`,
 lug 2026). Flusso: modifica `src/db/schema.ts` → `npm run db:generate` (committa il
 file SQL generato) → `npm run db:migrate`. MAI `drizzle-kit push`: su questo schema
