@@ -493,6 +493,27 @@ body {
   border-radius: 4px;
 }
 
+/* Bersagli da 44px col dito (29 lug 2026).
+   L'editor aveva questa regola da tempo (public/app/app.css) e il sito NON ne
+   aveva nessuna: è lo stesso modo in cui le due metà si allontanano già per
+   prefers-reduced-motion — i colori hanno una sorgente unica in themes.css, le
+   regole d'uso no, e vanno dichiarate due volte apposta.
+   Su POINTER e non su larghezza, come di là: un tablet in orizzontale è largo
+   come un laptop e si tocca col dito.
+   .input passa già (0,65rem di spaziatura interna lo portano a 44); qui restano
+   i comandi compatti, misurati a 360px: .btn--sm nelle righe di lista (~26px),
+   .tab a 42 — due pixel sotto, che è il modo più fastidioso di sbagliare — e
+   .linkbtn a 23, che è "Password dimenticata?" ed "Elimina il mio account".
+   I link dentro la prosa restano come sono, e non è una dimenticanza: WCAG
+   2.5.8 esenta i link in linea in una frase, e dare 44px d'altezza ai rimandi
+   dell'SRD spezzerebbe l'interlinea delle pagine che esistono per essere
+   lette. Gli elenchi di nomi sono un caso diverso e stanno in srd.css. */
+@media (pointer: coarse) {
+  .btn { min-height: 44px; min-width: 44px; }
+  .tab { min-height: 44px; }
+  .linkbtn { min-height: 44px; display: inline-flex; align-items: center; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     transition-duration: 0.01ms !important;

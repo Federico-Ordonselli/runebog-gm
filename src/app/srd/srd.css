@@ -263,6 +263,17 @@ a.srd-capitoli__link:hover .srd-capitoli__titolo { color: var(--wisp-lit); }
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
   gap: 0.35rem 1rem;
 }
+/* Col dito questi elenchi sono la sola eccezione ai link di prosa (vedi il
+   commento in globals.css): un nome qui NON è in linea in una frase, è una voce
+   d'indice in colonna, e l'esenzione WCAG 2.5.8 per i link in linea non lo
+   copre. Misurato a 360px: 19px d'altezza e 5,6 di scarto, cioè 24,6px da un
+   nome al successivo — sopra il minimo di 24 per meno di un pixel, su un elenco
+   che ne conta 331 (il bestiario) uno sotto l'altro.
+   Cresce il BERSAGLIO, non il testo: il link diventa alto 44 e il nome resta
+   della sua taglia, che è ciò che tiene insieme l'indice e la prosa accanto. */
+@media (pointer: coarse) {
+  .srd-nomi a { display: inline-flex; align-items: center; min-height: 44px; }
+}
 
 /* In fondo a una pagina di livello: i dieci livelli, per saltare senza tornare
    all'indice. Il livello corrente resta scritto ma non è un link. */

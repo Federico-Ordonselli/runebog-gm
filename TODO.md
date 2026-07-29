@@ -9,23 +9,23 @@ consiglio, non di vincolo. Le voci per esteso stanno nelle sezioni sotto.
 La sezione regole è completa (dieci capitoli più il bestiario). Quello che
 resta viene dall'**audit del 28 lug 2026** (16/20): i tre P1 sono chiusi, e dei
 P2 sono chiusi i bordi di componente (28 lug), i due canali del tabellone
-d'iniziativa e il polling del tavolo (29 lug). Quelli che restano sono elencati
-**con la misura già fatta** in "Cosa resta dell'audit", in fondo al file. In
-ordine di consiglio:
+d'iniziativa e il polling del tavolo (29 lug), più la fascia d'iniziativa su
+schermo stretto e i bersagli da 44px (29 lug: **erano l'ultimo P2**). Quelli
+che restano sono elencati **con la misura già fatta** in "Cosa resta
+dell'audit", in fondo al file. In ordine di consiglio:
 
-1. **`#battle-bar` a 216px** senza variante mobile, e i bersagli sotto i 44px
-   che la regola `pointer:coarse` non copre (fra cui i risultati di Ctrl+K).
-   Il 29 lug la barra ha perso altri 15px di colonna del nome per far posto al
-   glifo PG/nemico: nella vista DM il nome sta in 83px e ne chiederebbe ~126,
-   quindi qui c'è una misura in più di quando la voce è stata scritta.
-2. I P3: `alt="riferimento"`, `.hp-bar i` sotto soglia in due temi.
-3. **Trovati misurando i bordi il 28 lug**, e sono controlli che al rest non
+1. I P3: `alt="riferimento"`, `.hp-bar i` sotto soglia in due temi.
+2. **Trovati misurando i bordi il 28 lug**, e sono controlli che al rest non
    si vedono: `#detail-grip` a riposo è `--line` (1,37:1 su Torbiera), cioè la
    maniglia che ridimensiona il pannello è invisibile finché non ci passi
    sopra; `.q-star` spenta è `--line`, e la stella "non preferita" è un
    comando che non si legge. Nessuno dei due è un bordo — sono riempimenti —
    e in entrambi i casi la domanda vera è **quanto forte** debba essere un
    comando a riposo, che è una scelta di disegno e non una soglia.
+3. **La topbar coricata non lascia tela**: a 740×360 la tela è alta 158px
+   (topbar su due righe più la palette), trovato il 29 lug dal gruppo di
+   controllo della fascia. I gradini di `max-width:1200px` coricati non
+   scattano.
 
 La migrazione `0001_revisione-campagna` è applicata a **entrambi** i branch Neon
 (25 lug 2026: `dev` durante la verifica di P0.2, `production` prima del deploy,
@@ -2068,18 +2068,108 @@ Cosa **resta** da fare, misurato:
     qualcun altro. Da fare alla prima apertura di un tavolo vero: aprire il
     tavolo dal dialogo di condivisione e guardare il pannello di rete —
     ci si aspetta un 200 e poi tutti 304, e un 200 a ogni salvataggio del DM.
-- **`#battle-bar` è fisso a 216px** e non ha variante sotto i 760px: su un
-  telefono da 360 copre il 60% della tela, proprio durante uno scontro. Dentro
-  quei 216px la riga d'iniziativa è misurata (29 lug 2026): 3px di striscia,
-  9 di glifo, 38 di iniziativa, 33 del 🎲 e 24 di spazi, cioè **83px al nome**
-  contro i ~126 che ne chiede uno da tavolo. Al tavolo il 🎲 non c'è e ne
-  restano 122, quindi il caso stretto è la vista DM — dove però il nome intero
-  sta anche altrove. Allargare la barra è questo lavoro, non quello del glifo.
-- **Bersagli sotto i 44px non coperti** dalla regola `pointer:coarse`:
-  `#qs-results button` e `#srd-results button` (~33px, e sono l'esito di
-  Ctrl+K), `.q-star` (~26px), `.swatch` (26px), `details.field > summary`;
-  `.btn--sm` del sito (~26–30px). `globals.css` non ha nessuna regola
-  `pointer:coarse`.
+- [x] **`#battle-bar` fisso a 216px senza variante mobile** — fatto (29 lug
+  2026). La voce diceva "copre il 60% della tela". Rimisurato **col dito
+  emulato** — che è il punto: senza `hasTouch` la media query `pointer:coarse`
+  non scatta e si misura un telefono che non esiste — a 360×740 la barra sta
+  216×424 su una tela di 360×448, cioè il 60% della larghezza e il **95%
+  dell'altezza**. Non è un tabellone che galleggia sopra la mappa: è un
+  pannello che la nasconde, e proprio durante uno scontro.
+  - **La regola d'accessibilità aggravava il difetto**: `pointer:coarse` porta
+    il 🎲 da 33 a 44px, e la colonna del nome scende da 83 (misura del 29 lug,
+    fatta col mouse) a **72**. Chi misura su desktop questo non lo vede.
+  - **Cambia l'asse, non la larghezza**: nessuna larghezza è quella giusta a
+    360px, quindi su schermo stretto la barra diventa una **fascia larga
+    quanto la tela**, che paga in altezza — l'unica delle due dimensioni
+    limitabile senza troncare niente. Dopo: 96% di larghezza ma **54%
+    dell'altezza** nella vista DM e **31%** al tavolo, e il nome passa da 72px
+    a 194 (250 al tavolo), cioè per la prima volta sopra i ~126 che ne chiede
+    uno da tavolo. Il tetto lo tengono `.ini-list` (112px: due voci in vista
+    DM, quattro al tavolo, e la terza tagliata a metà dice che si scorre) e
+    `.ini-actions` su una riga sola scorrevole — la ricetta di `#plan-toolbar`,
+    che costa 44px invece dei 94 di due righe da 44.
+  - **La condizione è `(orientation:portrait)` e non la sola larghezza.** Un
+    telefono coricato è ~740×360, quindi rientrerebbe in `max-width:760px`, ma
+    lì la colonna da 216px è il **29%** della larghezza — nessun difetto da
+    correggere — mentre la fascia mangerebbe l'altezza, che coricati è la
+    dimensione scarsa. La regola vale dove il difetto è misurato.
+  - Verifica in Chromium, **22 controlli**: vista DM e tavolo a 360×740 col
+    dito, più **due gruppi di controllo** — lo stesso telefono coricato e il
+    desktop, dove la colonna deve restare a 216px e la lista senza tetto. Le
+    asserzioni guardano anche che la lista *scorra* invece di troncare
+    (`scrollHeight > clientHeight`) e che il turno corrente non finisca sotto
+    il tetto appena si apre lo scontro.
+- [x] **Bersagli sotto i 44px non coperti da `pointer:coarse`** — fatto (29 lug
+  2026). L'elenco scritto a mano è stato **rimisurato con una sonda** che
+  enumera tutto ciò che è interattivo e visibile sotto i 44px, invece di
+  fidarsi della lista: quella era ferma al giorno in cui è stata scritta.
+  - **La falla più larga non era in elenco: i campi.** La regola cresceva per
+    classe (`.btn`, `.icon-btn`, `.hp-btn`, `.pal-item`) e non nominava affatto
+    `input`, `select` e `textarea`, che si toccano esattamente come un bottone
+    — `#campaign-select` stava a 120×29, `#quick-search` a 110×34. Ora
+    `input:not([type=checkbox]), select, textarea{min-height:44px}`; le caselle
+    di spunta restano a 24, che è l'eccezione già dichiarata due righe sopra, e
+    il `:not()` serve a non ribaltarla.
+  - **`input.ini-num` a 38×24 era il bersaglio più piccolo dell'app**, e non
+    era in elenco: è il numero che si corregge più spesso durante uno scontro.
+    Portato a 44×44 — nella fascia il costo è nullo (il nome ha ~200px), nella
+    colonna sono 6px di nome in meno. Dopo la correzione la barra **non ha più
+    nessun bersaglio sotto soglia** su un telefono.
+  - Fatti anche quelli in elenco: `.swatch` (26→44, i sette campioni vanno a
+    capo su due righe e il foglio mobile ci sta), `.q-star`, `details.field >
+    summary` (17px: è il comando che apre metà pannello), `#qs-results button`
+    e `#srd-results button`.
+  - **Il sito non aveva NESSUNA regola `pointer:coarse`**, ed è lo stesso modo
+    in cui le due metà si allontanano per `prefers-reduced-motion`: i colori
+    hanno una sorgente unica (`themes.css`), le regole d'uso no e vanno
+    dichiarate due volte. Aggiunte in `globals.css` per `.btn` (copre
+    `.btn--sm`), `.tab` (era a 42 — due pixel sotto, il modo più fastidioso di
+    sbagliare) e `.linkbtn` (23px: "Password dimenticata?", "Elimina il mio
+    account"). `.input` passava già.
+  - **Trovato dalla sonda e più serio di tutto l'elenco**: gli indici
+    `.srd-nomi` sono link alti 19px con 5,6 di scarto, cioè **24,6px da un nome
+    al successivo** — sopra il minimo WCAG 2.5.8 di 24 per meno di un pixel, su
+    un elenco che ne conta 331 (il bestiario) uno sotto l'altro a 360px. Ora il
+    passo è 49,9. Cresce il **bersaglio** e non il testo: il link diventa alto
+    44 e il nome resta della sua taglia.
+  - **I link dentro la prosa restano come sono, ed è una decisione**: WCAG
+    2.5.8 esenta i link in linea in una frase, e dare 44px d'altezza ai rimandi
+    dell'SRD spezzerebbe l'interlinea delle pagine che esistono per essere
+    lette. Un elenco di nomi in colonna non è un link in linea, e infatti è
+    l'unica eccezione — sta in `srd.css`, accanto a `.srd-nomi`.
+  - Verifica in Chromium, **20 controlli** a 360px col dito su app e sito, col
+    **gruppo di controllo su desktop**. Lì il confronto non può essere "sta
+    sotto i 44px" — il rem di questo sito scala con la *larghezza*, quindi a
+    1280px una `.tab` è alta 52 di suo — e a dire se la regola ha morso è la
+    sua **impronta**, il `min-height` calcolato, che vale 44px solo dove la
+    media query scatta (col mouse esce `auto`/`0px`). Più l'asserzione che un
+    link di prosa **non** sia cresciuto, che è l'eccezione detta sopra.
+- [x] **La ricerca rapida (Ctrl+K) era rotta** — fatto (29 lug 2026), e non è
+  una voce dell'audit: è saltata fuori verificando i bersagli qui sopra.
+  `ricerca.js` usava `nodeColor(n)` senza importarlo, quindi la funzione
+  lanciava `ReferenceError` sulla **prima bolla incontrata** — cioè in
+  qualunque campagna che non sia vuota. Il menu restava chiuso, che dal di
+  fuori è **indistinguibile da "nessun risultato"**: nessun avviso, nessuno
+  stato d'errore, solo una ricerca che non trova mai niente.
+  - Si è visto solo perché una regola da 44px era stata scritta su
+    `#qs-results button`, e per misurarla bisognava che quei bottoni
+    esistessero. Una regola su un selettore mai disegnato è indistinguibile da
+    una regola che non serve — per questo la verifica **asserisce prima che i
+    risultati si siano aperti**, e poi li misura.
+  - Da qui una lezione per le verifiche a mano: guardare la **console**, non
+    solo il DOM. Un `pageerror` dentro un gestore lascia l'interfaccia in uno
+    stato plausibile, e nessuna asserzione sul DOM lo distingue da un caso
+    legittimo.
+- **Effetto collaterale da tenere presente**: coi campi a 44px la topbar
+  dell'app cresce di **10px** su touch, e la tela della vista DM scende da 448
+  a 438 a 360×740. È il prezzo dichiarato di bersagli tacchabili, non un
+  guasto, ma va ricordato prima di aggiungere altre righe alla topbar.
+- **Il telefono coricato ha una tela alta 158px** (740×360: topbar su due righe
+  più la palette), e la colonna dell'iniziativa ne occupa 134 — l'**85%**.
+  Trovato dal gruppo di controllo del lavoro sulla fascia, il 29 lug 2026. Non
+  è un difetto della barra (la fascia lì sarebbe peggio, e 216px sono il 29%
+  della larghezza): è la **topbar** che coricata non lascia tela. Da guardare
+  insieme ai gradini di `max-width:1200px`, che coricati non scattano.
 - Minori: `alt="riferimento"` su un'immagine che ha `n.name` a disposizione;
   `.hp-bar i` (barra PF dei PG) a 2,87:1 su Notturno e 2,21:1 su Sottosuolo —
   lo stato critico `.low` resta leggibile ovunque.

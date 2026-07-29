@@ -775,6 +775,35 @@
     .pal-item{min-height:44px}
     .child-list .child{padding:11px 10px}
     .check-item input[type=checkbox]{width:24px;height:24px}
+
+    /* I comandi che l'elenco qui sopra non nominava, misurati a 360px col dito
+       (29 lug 2026). La regola cresceva per classe — .btn, .icon-btn, .hp-btn —
+       e ogni comando che non porta una di quelle classi nasceva sotto soglia
+       senza che nessuno se ne accorgesse: sono tutti bottoni veri, e nessuno
+       era coperto.
+
+       I CAMPI erano la falla più larga: la regola non nominava affatto input,
+       select e textarea, che si toccano esattamente come un bottone. Le
+       caselle di spunta restano a 24 — sono l'eccezione dichiarata due righe
+       sopra, quindi il :not() qui serve a non ribaltarla. */
+    input:not([type=checkbox]), select, textarea{min-height:44px}
+    /* Il campo dell'iniziativa stava a 38x24 dentro il tabellone: è il numero
+       che si corregge più spesso durante uno scontro, ed era il bersaglio più
+       piccolo dell'app. Nella fascia il costo è di 6px su ~200, nella
+       colonna sono 6px di nome in meno. */
+    input.ini-num{min-width:44px}
+    /* La stella "principale" del diario e i campioni di colore del pannello:
+       26px l'una. I sette campioni vanno a capo su due righe e il pannello ci
+       sta — su mobile è un foglio largo quanto lo schermo. */
+    .q-star{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0}
+    .swatch{width:44px;height:44px}
+    /* Il titolo di una sezione richiudibile è alto 17px: è il comando che apre
+       metà pannello, ed è quello che si tocca di più a mano. */
+    details.field > summary{min-height:44px;display:flex;align-items:center}
+    /* L'esito di Ctrl+K e della ricerca SRD: righe da ~33px. Col dito la
+       scorciatoia non c'è, ma il campo di ricerca sì — e quei risultati sono
+       il solo modo di raggiungere una bolla per nome. */
+    #qs-results button, #srd-results button{min-height:44px}
   }
 
   /* ---------- mobile: elementi base (nascosti su desktop) ---------- */
@@ -838,6 +867,45 @@
     /* liste e pannelli con più aria per i pollici */
     .btn{padding:8px 12px}
     .btn.tiny{padding:5px 9px}
+  }
+
+  /* ---------- il tabellone d'iniziativa cambia asse (schermo stretto) ----------
+     Su desktop è una colonna che galleggia a sinistra e si consulta di sbieco.
+     A 360px quella stessa colonna misura 216px su 360 di tela — il 60% della
+     larghezza — e nella vista DM il 95% dell'ALTEZZA (misurato col dito
+     emulato, otto voci: 424px su 448). Non è più un tabellone che galleggia
+     sopra la mappa: è un pannello che la nasconde, e proprio durante uno
+     scontro, cioè quando la mappa serve. Il dito peggiora le cose invece di
+     migliorarle: pointer:coarse porta il 🎲 da 33 a 44px e la colonna del nome
+     scende a 72, contro i ~126 che un nome da tavolo chiede.
+     Nessuna larghezza è quella giusta a 360px, quindi qui cambia l'ASSE: la
+     fascia è larga quanto la tela e paga in altezza, che è l'unica delle due
+     dimensioni limitabile senza troncare niente (il tetto sulla lista, qui
+     sotto). Misurato dopo: 96% di larghezza ma 54% di altezza nella vista DM e
+     31% al tavolo, e il nome passa da 72px a 194 (250 al tavolo).
+
+     ORIENTAMENTO e non sola larghezza: un telefono coricato è ~740×360, quindi
+     rientra in max-width:760px, ma lì la colonna da 216px è il 29% della
+     larghezza — nessun difetto da correggere — mentre la fascia mangerebbe
+     l'altezza, che coricati è la dimensione scarsa. La regola vale dove il
+     difetto è misurato. */
+  @media (max-width:760px) and (orientation:portrait){
+    /* Il tetto resta (era calc(100% - 24px) coi 12px d'inserto): senza, una
+       battaglia con molte voci sfonda la tela invece di scorrere dentro di sé. */
+    #battle-bar{left:8px;right:8px;top:8px;width:auto;max-height:calc(100% - 16px)}
+    /* Due voci nella vista DM (le righe sono alte 50px: il 🎲 è un bersaglio da
+       44), quattro al tavolo dove i comandi non ci sono — e la terza tagliata a
+       metà dice che si scorre. Non è una rinuncia: durante uno scontro le voci
+       che si guardano sono chi tocca e chi viene dopo, il resto dell'ordine è
+       consultazione. */
+    .ini-list{max-height:112px;overflow-y:auto}
+    /* Tira iniziativa, Metti in campo i PG e Chiudi sono comandi della
+       BATTAGLIA, non del turno: si usano una volta per scontro. Su una riga
+       sola che scorre — la ricetta di #plan-toolbar — costano 44px invece dei
+       94 che prendevano andando a capo su due righe da 44. */
+    .ini-actions{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+    .ini-actions::-webkit-scrollbar{display:none}
+    .ini-actions .btn{flex:none}
   }
 
   /* ---------- movimento ridotto ----------

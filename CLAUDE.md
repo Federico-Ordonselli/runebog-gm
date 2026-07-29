@@ -265,8 +265,28 @@ e `DG_SCALE` in `dungeon.js` la importano.
     riga: un lettore di schermo annuncerebbe "rombo nero", che non è
     l'informazione, e il lato va sentito prima del nome.
   - Costa 15px alla colonna del nome (98 → 83px nella vista DM, dove il 🎲
-    occupa il fondo; al tavolo restano 122px). Da lì il `title` sul nome. Il
-    tetto vero è `#battle-bar` a 216px fissi, che è una voce sua in `TODO.md`.
+    occupa il fondo; al tavolo restano 122px). Da lì il `title` sul nome.
+  - **Su schermo stretto e in piedi il tabellone cambia asse** (29 lug 2026):
+    non è più una colonna da 216px che galleggia a sinistra ma una **fascia
+    larga quanto la tela**. A 360px quella colonna era il 60% della larghezza e
+    il 95% dell'altezza nella vista DM — un pannello che nasconde la mappa,
+    proprio durante uno scontro — e col dito peggiorava invece di migliorare,
+    perché `pointer:coarse` porta il 🎲 a 44px e il nome scende a 72. Nessuna
+    larghezza è quella giusta a 360px: la fascia paga in **altezza**, che è
+    l'unica delle due dimensioni limitabile senza troncare niente (54% in vista
+    DM, 31% al tavolo, e il nome sale a 194/250px).
+    - Il tetto è su `.ini-list` (112px: **due voci** in vista DM, quattro al
+      tavolo) e non sulla barra: durante uno scontro le voci che si guardano
+      sono chi tocca e chi viene dopo, il resto dell'ordine è consultazione. La
+      terza riga tagliata a metà è ciò che dice che si scorre.
+    - `.ini-actions` va su **una riga sola scorrevole** (la ricetta di
+      `#plan-toolbar`): tira, metti in campo e chiudi sono comandi della
+      battaglia, non del turno, e su due righe da 44 costavano 94px.
+    - La condizione è `(max-width:760px) and (orientation:portrait)`, e
+      l'orientamento non è di contorno: un telefono **coricato** è ~740×360,
+      quindi rientrerebbe nella sola larghezza, ma lì la colonna è il 29% —
+      nessun difetto — e la fascia mangerebbe l'altezza, che coricati è la
+      dimensione scarsa.
   - Una voce la cui fonte non c'è più **non dichiara un lato**: prima prendeva
     `foe` per esclusione e si disegnava rossa, cioè annunciava un nemico dove
     c'è un buco. Tiene però un `.ini-tipo` vuoto, sennò la sua riga rientra e la
@@ -1160,6 +1180,24 @@ Non negoziabili; se tocchi queste aree, mantienili:
   sale dal fondo su mobile). Vale per ogni regola d'uso, non solo per questa: i
   *colori* hanno una sorgente unica (`themes.css`), le *regole* no, ed è così
   che le due metà si allontanano in silenzio.
+  **`pointer:coarse` era lo stesso caso e si era già allontanato** (corretto il
+  29 lug 2026): l'editor aveva i bersagli da 44px da tempo, il sito **nessuna**
+  regola. Ora `globals.css` ne ha una per `.btn`, `.tab` e `.linkbtn`.
+- **I bersagli da 44px si dichiarano per RUOLO, non per classe.** La regola
+  dell'editor cresceva elencando classi (`.btn`, `.icon-btn`, `.hp-btn`,
+  `.pal-item`), quindi ogni comando che non ne portava una nasceva sotto soglia
+  in silenzio — e la falla più larga erano i **campi**, che non erano nominati
+  affatto: `input:not([type=checkbox]), select, textarea` è la riga che
+  mancava (`#campaign-select` stava a 120×29, `input.ini-num` a 38×24). Le
+  caselle di spunta restano a 24 ed è un'eccezione dichiarata: il `:not()`
+  serve a non ribaltarla. Chi aggiunge un comando **misuri col dito emulato**
+  (`hasTouch` in Playwright): senza, `pointer:coarse` non scatta e si misura un
+  telefono che non esiste.
+  L'eccezione vera sono i **link dentro la prosa**, che WCAG 2.5.8 esenta e che
+  a 44px spezzerebbero l'interlinea delle pagine SRD. Un **elenco di nomi in
+  colonna** però non è un link in linea: `.srd-nomi` (fino a 331 voci, il
+  bestiario) stava a 24,6px di passo, cioè sopra il minimo di 24 per meno di un
+  pixel, e la sua regola sta in `srd.css` accanto all'elenco.
 - **Il salvataggio è ritardato di 700 ms** (`save()` in `stato.js`, per non
   scrivere a ogni battitura) e a chiudere quella finestra è il `pagehide`
   registrato da `initStato`. Serve perché dall'editor si esce con un clic: il
