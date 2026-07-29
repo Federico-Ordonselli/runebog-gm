@@ -37,6 +37,25 @@ export function secToggle(el){
    scheda e deve vedere che è arrivata. */
 export function secShow(key){ openSecs.add(key); }
 
+/* Il nome di un'immagine di riferimento sta in un posto solo, perché i posti
+   che lo dicono sono tre: l'alt della miniatura, l'etichetta del bottone che
+   la ingrandisce e l'alt dell'immagine dentro il lightbox.
+
+   Attenzione a quale dei tre viene letto davvero: la miniatura sta DENTRO un
+   <button>, e un aria-label sul bottone copre il contenuto — l'alt della
+   miniatura non viene annunciato. Correggere il solo alt, come diceva la voce
+   dell'audit, non avrebbe cambiato niente all'ascolto: a portare il nome
+   dev'essere l'etichetta del bottone. L'alt resta comunque descrittivo perché
+   è ciò che si legge quando l'immagine non carica (una campagna importata con
+   un base64 troncato), e lì il bottone è vuoto. */
+const nomeImmagine = n => `Immagine di riferimento di ${n.title || "(senza nome)"}`;
+function imgZoomMarkup(n){
+  return `<button class="img-zoom" onclick="openLightbox('${n.id}')"
+      aria-label="Ingrandisci: ${escapeHtml(nomeImmagine(n))}">
+      <img id="detail-img" src="${n.img}" alt="${escapeHtml(nomeImmagine(n))}">
+    </button>`;
+}
+
 /* Il pannello del tavolo. È una funzione a parte, e non un renderDetail() pieno di
    `if(RO)`: quello che i giocatori vedono deve poter essere letto tutto insieme, in
    venti righe, senza inseguire condizioni sparse dentro duecento. */
@@ -66,9 +85,7 @@ function renderTableDetail(aside){
       <div class="ro-text">${escapeHtml(n.notes)}</div></div>` : ""}
 
     ${n.img ? `<div class="field"><label>Immagine</label>
-      <button class="img-zoom" onclick="openLightbox('${n.id}')" aria-label="Ingrandisci l'immagine">
-        <img id="detail-img" src="${n.img}" alt="riferimento">
-      </button>
+      ${imgZoomMarkup(n)}
     </div>` : ""}
 
     ${c ? `<div class="field"><label>Combattimento</label>
@@ -336,9 +353,7 @@ function renderDetailCore(){
 
     <details class="field" data-sec="img" ontoggle="secToggle(this)"${secOpen("img", !!n.img)}>
       <summary>Mappa / immagine di riferimento</summary>
-      ${n.img ? `<button class="img-zoom" onclick="openLightbox('${n.id}')" aria-label="Ingrandisci l'immagine">
-        <img id="detail-img" src="${n.img}" alt="riferimento">
-      </button>` : ""}
+      ${n.img ? imgZoomMarkup(n) : ""}
       <div class="img-actions" style="margin-top:8px">
         <button class="btn" onclick="pickImage('${n.id}')">${n.img?"Sostituisci":"Carica"} immagine</button>
         ${n.img?`<button class="btn danger" onclick="editNode('${n.id}','img',null)">Rimuovi</button>`:""}
@@ -467,7 +482,12 @@ export function compressImage(dataUrl, cb){
 }
 export function openLightbox(id){
   const n = findNode(id); if(!n||!n.img) return;
-  document.getElementById("lightbox-img").src = n.img;
+  const img = document.getElementById("lightbox-img");
+  img.src = n.img;
+  /* Qui l'alt viene letto per davvero: nel dialogo l'immagine non sta dentro
+     nessun bottone che la rinomini. Si scrive come proprietà e non nel markup,
+     quindi non c'è niente da escapare. */
+  img.alt = nomeImmagine(n);
   /* showModal() e non una classe: è la chiamata che accende Escape, la trappola
      del focus e il ritorno del focus al bottone che l'ha aperto. Il src si
      scrive PRIMA, sennò il dialogo si apre su un'immagine vuota. */

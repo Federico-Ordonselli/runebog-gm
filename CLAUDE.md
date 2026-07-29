@@ -1188,6 +1188,16 @@ Non negoziabili; se tocchi queste aree, mantienili:
   un `onclick`, che non prende il focus — e una volta aperto non si chiudeva più
   da tastiera. Il trigger va reso un `<button>`, sennò il modale è a posto e
   irraggiungibile.
+- **Un `aria-label` sul bottone copre l'`alt` dell'immagine che contiene**
+  (29 lug 2026): la miniatura di riferimento nel pannello sta dentro il bottone
+  che apre il lightbox, quindi il suo `alt` non viene annunciato — a nominare
+  la bolla dev'essere l'etichetta del bottone. L'`alt` conta comunque in due
+  casi, ed è il motivo per cui `nomeImmagine` (`pannello.js`) lo scrive in tre
+  punti: nel lightbox l'immagine non sta in nessun bottone, e nel pannello è
+  ciò che si legge quando l'immagine non carica (un base64 troncato da un
+  import), dove un `alt=""` lascerebbe un bottone vuoto. Regola generale:
+  correggere un `alt` che nessuno legge è un diff che sembra una correzione
+  d'accessibilità e non cambia una parola di ciò che si sente.
 - **`prefers-reduced-motion` va dichiarato DUE volte**: `src/app/globals.css`
   per il sito e `public/app/app.css` per l'editor. `app.html` carica soltanto
   `themes.css` e `app.css`, quindi la regola del sito non lo raggiunge — e

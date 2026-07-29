@@ -14,7 +14,7 @@ schermo stretto e i bersagli da 44px (29 lug: **erano l'ultimo P2**). Quelli
 che restano sono elencati **con la misura già fatta** in "Cosa resta
 dell'audit", in fondo al file. In ordine di consiglio:
 
-1. I P3: `alt="riferimento"`, `.hp-bar i` sotto soglia in due temi.
+1. Il P3 rimasto: `.hp-bar i` sotto soglia in due temi.
 2. **Trovati misurando i bordi il 28 lug**, e sono controlli che al rest non
    si vedono: `#detail-grip` a riposo è `--line` (1,37:1 su Torbiera), cioè la
    maniglia che ridimensiona il pannello è invisibile finché non ci passi
@@ -2170,6 +2170,21 @@ Cosa **resta** da fare, misurato:
   è un difetto della barra (la fascia lì sarebbe peggio, e 216px sono il 29%
   della larghezza): è la **topbar** che coricata non lascia tela. Da guardare
   insieme ai gradini di `max-width:1200px`, che coricati non scattano.
-- Minori: `alt="riferimento"` su un'immagine che ha `n.name` a disposizione;
-  `.hp-bar i` (barra PF dei PG) a 2,87:1 su Notturno e 2,21:1 su Sottosuolo —
-  lo stato critico `.low` resta leggibile ovunque.
+- [x] **`alt="riferimento"` su un'immagine che ha il titolo a disposizione** —
+  fatto (29 lug 2026), e la voce era scritta sul posto sbagliato: quella
+  miniatura sta **dentro un `<button aria-label="Ingrandisci l'immagine">`**, e
+  un `aria-label` copre il contenuto dell'elemento. L'`alt` non veniva
+  annunciato affatto — correggere il solo `alt` avrebbe prodotto un diff che
+  sembra una correzione d'accessibilità e non cambia una parola di ciò che si
+  sente.
+  - A portare il nome è l'**etichetta del bottone** ("Ingrandisci: Immagine di
+    riferimento di Locanda della Biscia"). L'`alt` resta comunque descrittivo,
+    per due ragioni diverse: nel **lightbox** l'immagine non sta in nessun
+    bottone e lì viene letto per davvero, e nel pannello è ciò che si vede
+    quando l'immagine non carica (un base64 troncato da un import), dove un
+    `alt=""` lascerebbe un bottone vuoto.
+  - I tre punti sono **uno solo** (`imgZoomMarkup` + `nomeImmagine` in
+    `pannello.js`): il markup era ricopiato in `renderDetail` e
+    `renderTableDetail`, e un nome che va detto in tre posti si scrive in uno.
+- Minori: `.hp-bar i` (barra PF dei PG) a 2,87:1 su Notturno e 2,21:1 su
+  Sottosuolo — lo stato critico `.low` resta leggibile ovunque.
