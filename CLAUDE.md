@@ -116,6 +116,36 @@ comparire prima, nemmeno dentro un commento HTML.
 
 `/tavolo/[token]` è la variante in sola lettura per i giocatori (vedi Sicurezza).
 
+**Il polling del tavolo è condizionale** (`GET /api/tavolo/[token]`, `pollTable` in
+`tavolo.js`, 29 lug 2026): ogni 5 secondi, per ogni giocatore seduto. Finché la
+risposta è stata sempre un 200 col documento dentro, quel ritmo si pagava **tre**
+volte — la proiezione ricostruita da capo sul server, il documento intero sul filo
+(una campagna vicina al tetto di 4 MB fa 44 MB al minuto per giocatore), e due
+`JSON.stringify` sul telefono di chi gioca — e quasi sempre per niente, perché fra
+una battuta e l'altra il DM non scrive.
+
+- **L'ETag è `revision`, non un hash del corpo.** Il contatore è già il modo in cui
+  questo repo dice "la copia da cui parti è ancora quella corrente", ed è
+  incrementato **dentro** la query che scrive `data`; un hash vorrebbe proiettare
+  tutto per poterlo calcolare, cioè risparmierebbe la rete e non il server. Le
+  rotte di condivisione toccano solo `shareToken`: a un link rigenerato risponde
+  il 404, che è la risposta giusta.
+- **Il verso in cui si sbaglia è dichiarato**: la revisione cambia anche quando il
+  DM ha scritto qualcosa che al tavolo non arriva (una nota sua), e allora esce un
+  200 con un documento identico — lo spreco resta, e a coprirlo è il confronto che
+  il client fa già. Il contrario, una revisione ferma su un documento cambiato, non
+  può capitare: sarebbe l'unico guasto che si vede come un tavolo che smette di
+  aggiornarsi.
+- Nel client il **304 va gestito prima di `!res.ok`**, che con `ok` falso lo
+  leggerebbe come rete caduta e scriverebbe "Offline" a un tavolo che sta benissimo.
+  L'`If-None-Match` lo mette il codice e non la cache HTTP, perché la risposta resta
+  `private, no-store`: il link è segreto e non deve fermarsi da nessuna parte —
+  motivo per cui non c'è nemmeno una copia intermedia che possa rispondere al posto
+  del server.
+- Il ponte iniettato porta `{token, name, state}` e **non** la revisione, quindi il
+  primo giro scarica comunque: una volta per apertura, quando il browser sta già
+  facendo tutto il resto.
+
 **Revisione, cache offline e conflitti** (`campaign.revision`, `public/app/sync-cloud.js`,
 il blocco cloud di `stato.js`): `revision` è un contatore monotono e ogni PATCH dichiara
 la `baseRevision` da cui parte. **La condizione sta dentro l'UPDATE**, insieme a quella

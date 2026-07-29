@@ -96,22 +96,49 @@ export function initTavolo(){
   if(!RO) return;
   const POLL_MS = 5000;
   let pollBusy = false;
+  /* L'ETag dell'ultima risposta ricevuta (è `revision`, vedi la rotta). Il ponte
+     iniettato da /tavolo/[token] porta {token, name, state} e non la revisione,
+     quindi il primo giro scarica comunque: una volta per apertura, quando il
+     browser sta già facendo tutto il resto. */
+  let etag = null;
   async function pollTable(){
     if(pollBusy || document.hidden) return;        // a scheda chiusa non si consuma banda
     pollBusy = true;
     const el = document.getElementById("savestate");
     try{
-      const res = await fetch(`/api/tavolo/${TABLE.token}`, {cache:"no-store"});
+      /* `cache:"no-store"` tiene il browser fuori dai giochi — il link è segreto e
+         la risposta non deve restare da nessuna parte — quindi l'If-None-Match lo
+         mette il codice, non la cache HTTP. È anche il motivo per cui questo giro
+         è affidabile: non c'è una copia intermedia che possa rispondere al posto
+         del server. */
+      const res = await fetch(`/api/tavolo/${TABLE.token}`,
+        {cache:"no-store", headers: etag ? {"If-None-Match": etag} : {}});
       if(res.status===404){
         el.textContent = "Il DM ha chiuso il tavolo";
         el.style.color = "var(--gold)";
         clearInterval(pollTimer);
         return;
       }
+      /* 304: il DM non ha scritto, e finisce qui. Niente corpo da scaricare,
+         niente da analizzare, niente da confrontare — che è il caso di quasi
+         tutti i giri, perché fra una battuta e l'altra il DM non tocca niente.
+         Va prima del ramo !res.ok, che con `ok` falso per un 304 lo tratterebbe
+         come una rete caduta. */
+      if(res.status===304){
+        el.textContent = "Aggiornato ✓";
+        el.style.color = "var(--ink-dim)";
+        return;
+      }
       if(!res.ok) throw new Error(res.status);
+      etag = res.headers.get("ETag") || null;
       const fresh = await res.json();
-      // Ridisegno solo se qualcosa è cambiato davvero: altrimenti ogni 5 secondi
-      // perderei la selezione e farei sfarfallare la mappa sotto le mani dei giocatori.
+      /* Si arriva qui solo se la revisione è cambiata, cioè se il DM ha salvato.
+         Non basta a ridisegnare: può aver scritto una nota sua, che al tavolo non
+         arriva, e allora il documento proiettato è identico a quello che si ha
+         già — ridisegnare perderebbe la selezione e farebbe sfarfallare la mappa
+         sotto le mani dei giocatori per niente. La domanda "è cambiato qualcosa
+         che i giocatori VEDONO?" la sa rispondere solo il confronto, e ora la si
+         paga quando è successo qualcosa invece che dodici volte al minuto. */
       if(JSON.stringify(fresh.state) !== JSON.stringify(st.state)){
         st.state = fresh.state;
         if(!findNode(st.path[st.path.length-1])) st.path = [st.state.root.id];   // il DM ha ri-nascosto dove eravamo

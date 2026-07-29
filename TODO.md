@@ -8,19 +8,18 @@ consiglio, non di vincolo. Le voci per esteso stanno nelle sezioni sotto.
 
 La sezione regole è completa (dieci capitoli più il bestiario). Quello che
 resta viene dall'**audit del 28 lug 2026** (16/20): i tre P1 sono chiusi, e dei
-P2 sono chiusi i bordi di componente (28 lug) e i due canali del tabellone
-d'iniziativa (29 lug). Quelli che restano sono elencati **con la misura già
-fatta** in "Cosa resta dell'audit", in fondo al file. In ordine di consiglio:
+P2 sono chiusi i bordi di componente (28 lug), i due canali del tabellone
+d'iniziativa e il polling del tavolo (29 lug). Quelli che restano sono elencati
+**con la misura già fatta** in "Cosa resta dell'audit", in fondo al file. In
+ordine di consiglio:
 
-1. **`JSON.stringify` dell'intero stato ogni 5 s** al tavolo: la risposta porta
-   già `updatedAt`, è una riga.
-2. **`#battle-bar` a 216px** senza variante mobile, e i bersagli sotto i 44px
+1. **`#battle-bar` a 216px** senza variante mobile, e i bersagli sotto i 44px
    che la regola `pointer:coarse` non copre (fra cui i risultati di Ctrl+K).
    Il 29 lug la barra ha perso altri 15px di colonna del nome per far posto al
    glifo PG/nemico: nella vista DM il nome sta in 83px e ne chiederebbe ~126,
    quindi qui c'è una misura in più di quando la voce è stata scritta.
-3. I P3: `alt="riferimento"`, `.hp-bar i` sotto soglia in due temi.
-4. **Trovati misurando i bordi il 28 lug**, e sono controlli che al rest non
+2. I P3: `alt="riferimento"`, `.hp-bar i` sotto soglia in due temi.
+3. **Trovati misurando i bordi il 28 lug**, e sono controlli che al rest non
    si vedono: `#detail-grip` a riposo è `--line` (1,37:1 su Torbiera), cioè la
    maniglia che ridimensiona il pannello è invisibile finché non ci passi
    sopra; `.q-star` spenta è `--line`, e la stella "non preferita" è un
@@ -1984,11 +1983,48 @@ Cosa **resta** da fare, misurato:
     (nessun bottone nelle righe, 4 voci su 5, i due glifi distinti) a 390px.
     Quattro scatti (Torbiera, Brace, Pergamena, Alto contrasto), console pulita,
     `npx tsc --noEmit`, 97 test e `npm run temi:contrasto` (12/12) puliti.
-- **`JSON.stringify` dell'intero stato ogni 5 s** al tavolo (`tavolo.js`, il
-  confronto in `pollTable`). Due serializzazioni complete del documento — con le
-  immagini in base64 dentro, tetto 4 MB — sul telefono dei giocatori. La
-  risposta porta **già** `updatedAt` (`src/app/api/tavolo/[token]/route.ts`):
-  confrontare quello e ricadere sullo `stringify` solo quando cambia.
+- [x] **Il polling del tavolo ogni 5 s costava tre volte** — fatto (29 lug 2026).
+  La voce diceva "due `JSON.stringify` sul telefono dei giocatori, confronta
+  `updatedAt` e ricadi sullo stringify solo quando cambia: è una riga". La riga
+  è stata scritta, poi **misurata**, e la misura ha spostato il lavoro.
+  - **Il `JSON.stringify` era la metà piccola.** Misurato in Chromium su
+    documenti costruiti come una campagna vera (molti valori piccoli, non una
+    stringa unica: è lì che V8 spende): 0,43 ms per confronto a 0,96 MB,
+    0,92 ms a 1,96 MB, **4,17 ms a 3,69 MB** — cioè 50 ms al minuto sul caso
+    peggiore, su desktop. Fastidioso, non grave. Nello stesso ciclo però il
+    telefono **riscarica il documento intero**: quella campagna da 3,69 MB fa
+    **44 MB al minuto per giocatore**, e il server ri-valida e ri-proietta
+    l'albero a ogni richiesta di ognuno. Il gate su `updatedAt` non toccava
+    niente di tutto questo.
+  - **La correzione è una richiesta condizionale**, che copre tutte e tre le
+    voci di spesa: `ETag: "r<revision>"` sulla rotta, `If-None-Match` dal
+    client, e un **304 senza corpo** quando il DM non ha scritto. La rotta esce
+    prima di `prepareCampaignDocument`/`projectForPlayers`, quindi il
+    risparmio è anche del server.
+  - **L'ETag è `revision` e non un hash del corpo**: il contatore è già la
+    risposta a "la copia da cui parti è quella corrente?", ed è incrementato
+    dentro la query che scrive `data`. Un hash vorrebbe proiettare tutto per
+    calcolarlo, cioè risparmierebbe la rete e non il server.
+  - Il gate su `updatedAt` è stato **tolto**: con il 304 non sarebbe mai vero
+    (arrivare al corpo vuol già dire che la revisione è cambiata), cioè codice
+    morto che sembra una difesa. Il confronto sullo `stringify` invece resta,
+    e ora si paga solo quando il DM ha salvato: serve per il caso in cui abbia
+    scritto una nota sua, che al tavolo non arriva e non deve ridisegnare.
+  - Verifica: **16 controlli** in Chromium sul codice vero (fetch intercettata,
+    non funzioni sostituite), con un finto server che tiene una revisione e
+    risponde 304 come la rotta — l'`If-None-Match` che parte, il 304 che costa
+    zero serializzazioni e non diventa "Offline", il 200 che passa ancora dal
+    confronto, la nota invisibile che non ridisegna, la bolla rivelata che sì.
+    Più un **gruppo di controllo**: disattivando la modifica i due giri fermi
+    tornano a costare 2 serializzazioni ciascuno, cioè la prova misura davvero
+    qualcosa. Il passaggio dell'`ETag` e del 304 attraverso Next è stato provato
+    con una rotta usa-e-getta (200 con l'ETag, 304 con `If-None-Match` giusto,
+    200 con quello sbagliato), poi rimossa.
+  - **Non verificato contro il database vero**: su Neon `dev` non c'è una
+    campagna con `share_token`, e crearne una è una scrittura sui dati di
+    qualcun altro. Da fare alla prima apertura di un tavolo vero: aprire il
+    tavolo dal dialogo di condivisione e guardare il pannello di rete —
+    ci si aspetta un 200 e poi tutti 304, e un 200 a ogni salvataggio del DM.
 - **`#battle-bar` è fisso a 216px** e non ha variante sotto i 760px: su un
   telefono da 360 copre il 60% della tela, proprio durante uno scontro. Dentro
   quei 216px la riga d'iniziativa è misurata (29 lug 2026): 3px di striscia,
