@@ -48,7 +48,25 @@
   --parchment-dim:  #9aa69d;
   --parchment-mute: #7f8b82;
 
-  /* Accento primario (+ stato acceso e variante scura per barre e riempimenti) */
+  /* Accento primario (+ stato acceso e variante scura per barre e riempimenti).
+
+     --moss-deep è un RIEMPIMENTO, e un riempimento ha una sola adiacenza:
+     quello che ci sta dietro. Sono tre superfici — la barra PF dei PG sul
+     fondo incassato, la spunta e la maniglia di collegamento sul pannello —
+     e la più severa è il pannello, che è la più chiara delle tre. WCAG
+     1.4.11 chiede 3:1, e il 29 lug 2026 stava sotto in cinque temi (peggiore
+     Sottosuolo 1,94:1): erano stati scelti guardandoli su un fondo, dove il
+     contrasto c'è, e nessuna riga di COPPIE guardava questo token.
+     I cinque valori ritoccati si sono avvicinati al proprio --moss quanto
+     bastava — dal 9% di Taverna al 39% di Sottosuolo, che partiva più scuro
+     di tutti — non a un colore nuovo: la variante scura deve restare la
+     stessa tinta dell'accento.
+
+     Quello che --moss-deep NON deve reggere è il testo: un glifo chiaro
+     sopra ci sta a 2,8–3,8:1 anche nei temi che passano. Per questo il
+     bottone flottante dei dettagli (app.css #detail-fab, ✎ su fondo pieno) è
+     su --moss come .btn.primary, non qui — è la stessa correzione, e in
+     entrambi i casi il segnale è che sopra il riempimento ci va del testo. */
   --moss:        #8fd4a8;
   --moss-lit:    #a2e0b8;
   --moss-deep:   #4d7a5f;
@@ -274,7 +292,7 @@
 
   --moss:        #00d2ff;
   --moss-lit:    #6ee2ff;
-  --moss-deep:   #00647a;
+  --moss-deep:   #00718a;
 
   /* Il primario è già ciano: i collegamenti virano al menta, sennò due
      ruoli diversi sarebbero due sfumature dello stesso azzurro. */
@@ -329,7 +347,7 @@
 
   --moss:        #ff6b00;
   --moss-lit:    #ff9142;
-  --moss-deep:   #9c4a06;
+  --moss-deep:   #b35205;
 
   --wisp:        #7dd3fc;
   --wisp-lit:    #bae6fd;
@@ -428,7 +446,7 @@
 
   --moss:        #ffd166;
   --moss-lit:    #ffe0a3;
-  --moss-deep:   #8a6410;
+  --moss-deep:   #9a731c;
 
   --wisp:        #66d9a0;
   --wisp-lit:    #93e8bd;
@@ -527,7 +545,7 @@
 
   --moss:        #bd82fa;
   --moss-lit:    #d3aafc;
-  --moss-deep:   #6b21a8;
+  --moss-deep:   #8b47c8;
 
   --wisp:        #22c55e;
   --wisp-lit:    #4ade80;
@@ -574,7 +592,7 @@
 
   --moss:        #d97706;
   --moss-lit:    #f0a01a;
-  --moss-deep:   #92590a;
+  --moss-deep:   #985c0a;
 
   --wisp:        #6ee7b7;
   --wisp-lit:    #a7f3d0;

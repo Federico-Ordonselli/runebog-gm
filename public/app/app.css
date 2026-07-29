@@ -858,7 +858,12 @@
       display:flex;align-items:center;justify-content:center;
       position:absolute;right:14px;bottom:14px;z-index:20;
       width:48px;height:48px;border-radius:50%;
-      background:var(--fen-dim);color:var(--bog);font-size:20px;
+      /* Accento PIENO, come .btn.primary e per la stessa ragione: sopra c'è
+         del testo (la ✎), e su --fen-dim ci stava a 2,8–3,8:1 in nove temi.
+         Questo è il bottone principale della vista mobile — su un telefono è
+         il solo modo di aprire il pannello — ed era rimasto indietro quando
+         la CTA del pannello era già passata a --fen. */
+      background:var(--fen);color:var(--bog);font-size:20px;
       box-shadow:0 6px 18px rgba(0,0,0,.5);
     }
 

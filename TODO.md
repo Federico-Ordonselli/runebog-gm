@@ -10,22 +10,45 @@ La sezione regole è completa (dieci capitoli più il bestiario). Quello che
 resta viene dall'**audit del 28 lug 2026** (16/20): i tre P1 sono chiusi, e dei
 P2 sono chiusi i bordi di componente (28 lug), i due canali del tabellone
 d'iniziativa e il polling del tavolo (29 lug), più la fascia d'iniziativa su
-schermo stretto e i bersagli da 44px (29 lug: **erano l'ultimo P2**). Quelli
-che restano sono elencati **con la misura già fatta** in "Cosa resta
-dell'audit", in fondo al file. In ordine di consiglio:
+schermo stretto e i bersagli da 44px (29 lug: **erano l'ultimo P2**). Anche i
+**due P3 sono chiusi** (29 lug): il nome dell'immagine di riferimento e il
+riempimento d'accento, che misurandolo si è portato dietro il bottone
+flottante dei dettagli. Quelli che restano sono elencati **con la misura già
+fatta** in "Cosa resta dell'audit", in fondo al file. In ordine di consiglio:
 
-1. Il P3 rimasto: `.hp-bar i` sotto soglia in due temi.
-2. **Trovati misurando i bordi il 28 lug**, e sono controlli che al rest non
-   si vedono: `#detail-grip` a riposo è `--line` (1,37:1 su Torbiera), cioè la
-   maniglia che ridimensiona il pannello è invisibile finché non ci passi
-   sopra; `.q-star` spenta è `--line`, e la stella "non preferita" è un
-   comando che non si legge. Nessuno dei due è un bordo — sono riempimenti —
-   e in entrambi i casi la domanda vera è **quanto forte** debba essere un
-   comando a riposo, che è una scelta di disegno e non una soglia.
-3. **La topbar coricata non lascia tela**: a 740×360 la tela è alta 158px
-   (topbar su due righe più la palette), trovato il 29 lug dal gruppo di
-   controllo della fascia. I gradini di `max-width:1200px` coricati non
-   scattano.
+1. **Due comandi che a riposo non si vedono**, trovati misurando i bordi il
+   28 lug 2026. `#detail-grip` (`app.css` ~200) ha `background:var(--line)`,
+   cioè 1,37:1 su Torbiera: la maniglia che ridimensiona il pannello dettagli
+   è invisibile finché non ci passi sopra, e il commento accanto pretende 3:1
+   solo dall'**acceso** (`:hover`/`:focus-visible`/`.dragging`, che è già
+   `--fen`). `.q-star` spenta (`app.css` ~642) è `color:var(--line)`, e la
+   stella "non preferita" è un comando che non si legge.
+   - **Non è la stessa correzione dei bordi del 28 lug**: nessuno dei due è un
+     contorno di componente, sono *riempimenti*, e WCAG non li copre — non
+     esiste una soglia che decida al posto nostro. La domanda vera è **quanto
+     forte** debba essere un comando a riposo, che è una scelta di disegno.
+     Va decisa prima di scrivere il CSS, sennò si finisce a inseguire un 3:1
+     che nessuna norma sta chiedendo.
+   - `--edge-lit` esiste già in tutti e dodici i temi ed è il candidato ovvio
+     per "una riga che si vede senza gridare"; va misurato prima di adottarlo.
+2. **La topbar coricata non lascia tela**: a 740×360 la tela della vista DM è
+   alta **158px** su 360, e la colonna dell'iniziativa ne occupa 134 (l'85%).
+   Trovato il 29 lug 2026 dal gruppo di controllo della fascia d'iniziativa —
+   quindi la misura c'è già e non va rifatta.
+   - **Non è un difetto del tabellone** (216px sono il 29% della larghezza, e
+     lì la fascia sarebbe peggio: coricati la dimensione scarsa è l'altezza).
+     È la topbar: a 740px di larghezza scatta il blocco `@media
+     (max-width:760px)` di `app.css` (~813), che la impagina su **due righe**,
+     e sotto c'è la palette. Due righe più palette mangiano ~202px dei 360.
+   - Il gradino intermedio `@media (max-width:1200px) and (min-width:761px)`
+     **non scatta** a 740px, quindi non c'è nessuna via di mezzo fra desktop e
+     mobile-verticale: il caso coricato oggi non è descritto da nessuna regola.
+   - Il precedente da seguire è la fascia d'iniziativa del 29 lug: la
+     condizione porta l'**orientamento** e non la sola larghezza, perché la
+     dimensione scarsa cambia. Da misurare col **dito emulato** (`hasTouch` in
+     Playwright), sennò `pointer:coarse` non scatta e si misura un telefono che
+     non esiste — e ricordare che i campi a 44px hanno già alzato la topbar di
+     10px su touch.
 
 La migrazione `0001_revisione-campagna` è applicata a **entrambi** i branch Neon
 (25 lug 2026: `dev` durante la verifica di P0.2, `production` prima del deploy,
@@ -2186,5 +2209,43 @@ Cosa **resta** da fare, misurato:
   - I tre punti sono **uno solo** (`imgZoomMarkup` + `nomeImmagine` in
     `pannello.js`): il markup era ricopiato in `renderDetail` e
     `renderTableDetail`, e un nome che va detto in tre posti si scrive in uno.
-- Minori: `.hp-bar i` (barra PF dei PG) a 2,87:1 su Notturno e 2,21:1 su
-  Sottosuolo — lo stato critico `.low` resta leggibile ovunque.
+- [x] **`.hp-bar i` sotto soglia in due temi** — fatto (29 lug 2026), e la
+  misura ha allargato la voce da due temi a cinque e da un selettore a quattro.
+  Il difetto non è della barra: è che **`--moss-deep` come riempimento non era
+  misurato da nessuna coppia**. Compariva in `COPPIE` solo di riflesso, e i suoi
+  valori erano stati scelti guardandoli su un fondo scuro, dove il contrasto c'è.
+  - **Un riempimento ha UNA adiacenza** — ciò che ci sta dietro — quindi non
+    vale lo sconto dichiarato per i bordi il 28 lug ("ne basta una delle due").
+    Le superfici sono tre (barra PF sul fondo incassato, spunta della checklist
+    e maniglia di collegamento sul pannello) e la severa è il **pannello**, la
+    più chiara: lì stavano a 2,57 (Notturno), 2,54 (Gilda), 2,48 (Segnale),
+    **1,94 (Sottosuolo)** e 2,90 (Taverna).
+  - Ritoccati quei cinque `--moss-deep` avvicinandoli al **proprio `--moss`**,
+    dal 9% di Taverna al 39% di Sottosuolo, che partiva più scuro di tutti: la
+    variante scura deve restare la stessa tinta dell'accento, non diventare un
+    colore nuovo. Ora 3,07–3,09 sul pannello e 3,45–3,95 sul fondo incassato.
+    Gli altri sette non sono stati toccati — passavano, e il valore giusto è
+    quello che passa.
+  - **Due coppie nuove in `COPPIE`**, che è la metà che impedisce il ritorno:
+    `--moss-deep`/`--peat-sunk` e `--moss-deep`/`--surface`. Senza, il prossimo
+    tema nasce di nuovo con la barra invisibile e lo script dice 12/12.
+  - **Trovato di conseguenza, e più grave**: `#detail-fab` — il bottone
+    flottante che su telefono è l'**unico** modo di aprire il pannello dettagli
+    — aveva la ✎ (testo, soglia 4,5:1) su `--fen-dim`, cioè a 2,12–3,82:1 in
+    **nove temi su dodici**, il peggiore Sottosuolo a 2,12. È esattamente la
+    correzione già fatta per `.btn.primary` ("su --fen-dim il testo scendeva
+    sotto 4,5:1"), rimasta indietro su un bottone che sta in una media query
+    mobile e che chi misura da desktop non vede nemmeno. Ora è su `--fen`:
+    5,15–14,98:1 il glifo, 5,06–14,98:1 il bottone sulla tela.
+  - Verifica in Chromium, **131 controlli**, tutti col colore **calcolato dal
+    browser** e non letto da `themes.css` — leggere il CSS avrebbe ridato il
+    numero che ha già dato `temi:contrasto`, senza provare che il selettore
+    prende quel token. Dodici temi × (barra, spunta, glifo, bottone sulla tela)
+    più i gruppi di controllo: che su desktop il FAB resti nascosto, e
+    soprattutto che le **due correzioni siano di verso opposto** — sulla barra è
+    cambiato il *token* (il selettore legge ancora `--moss-deep`), sul FAB il
+    *selettore* (il token è `--moss`). Senza quelle due righe una verifica verde
+    non direbbe quale delle due è successa. Controprova fatta rimettendo i
+    valori vecchi: 32 asserzioni cadono, e Sottosuolo torna a 2,21/1,94/2,12.
+  - Lo stato critico `.low` (`--ember`) resta com'era: 4,87–10,42:1 ovunque.
+- Minori: nessuno rimasto di quelli annotati qui.

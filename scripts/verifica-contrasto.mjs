@@ -117,6 +117,17 @@ const COPPIE = [
      alto a sinistra, cioè nel punto più illuminato della tela. */
   ["--edge-ui",        "--peat",        3,   "bordo dei livelli che galleggiano sulla tela"],
   ["--edge-ui",        "--glow",        3,   "…nell'angolo illuminato della tela"],
+  /* Il RIEMPIMENTO d'accento (app.css --fen-dim): la barra PF dei PG sul fondo
+     incassato, e sul pannello la spunta delle checklist (accent-color) e la
+     maniglia di collegamento in hover. Un riempimento ha una sola adiacenza —
+     ciò che ci sta dietro — quindi qui non vale lo sconto dei bordi, e la riga
+     severa è quella sul pannello, la più chiara delle due superfici. Erano
+     sotto 3:1 in cinque temi (Sottosuolo 1,94) e nessuna riga di questo elenco
+     le guardava: --moss-deep compariva solo come contorno in hover, dove non
+     porta informazione. Il testo sopra un riempimento è un'altra cosa e non si
+     regge su queste soglie — vedi il commento in themes.css e #detail-fab. */
+  ["--moss-deep",      "--peat-sunk",   3,   "barra PF sul fondo incassato"],
+  ["--moss-deep",      "--surface",     3,   "spunta e maniglia sul pannello"],
   ["--track",          "--peat",        3,   "strada sulla mappa"],
   ["--tunnel",         "--peat",        3,   "tunnel sulla mappa"],
   ["--dg-trap",        "--peat",        3,   "trappola sulla mappa"],

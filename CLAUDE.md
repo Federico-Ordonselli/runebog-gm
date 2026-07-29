@@ -606,6 +606,22 @@ in nessun altro posto.
   a sinistra. Fino al 28 lug 2026 l'intestazione dello script dichiarava che
   l'estremo peggiore è `--peat` e basta: vero finché a guardare il fondo era
   solo del testo, falso appena ci si è affacciato un bordo.
+- **`--moss-deep` è un riempimento, e un riempimento ha UNA adiacenza**: ciò
+  che ci sta dietro. Non vale quindi lo sconto dei bordi ("ne basta una delle
+  due"), e le superfici sono tre — la barra PF (`.hp-bar i`, sul fondo
+  incassato), la spunta della checklist (`accent-color`) e la maniglia di
+  collegamento, entrambe sul pannello. La severa è il **pannello**, la più
+  chiara. Fino al 29 lug 2026 nessuna riga di `COPPIE` lo guardava e stava
+  sotto 3:1 in cinque temi (Sottosuolo 1,94): ora ci sono le due righe, e i
+  cinque valori sono stati avvicinati al **proprio `--moss`** (9–39%) invece
+  che sostituiti — la variante scura deve restare la tinta dell'accento.
+- **Sopra un riempimento d'accento non ci va del testo.** Un glifo chiaro su
+  `--moss-deep` sta a 2,1–3,8:1 anche nei temi che passano la soglia dei
+  riempimenti, perché la soglia del testo è 4,5. I due casi noti sono
+  `.btn.primary` e `#detail-fab` (il bottone flottante che su telefono è
+  l'unico modo di aprire il pannello dettagli, corretto il 29 lug 2026): stanno
+  entrambi su `--moss` pieno. Il FAB è il promemoria che una regola dentro una
+  media query mobile non si vede misurando da desktop.
 - **L'anello di focus è l'accento PIENO** (`--moss`, nell'app `--fen`), mai
   `--moss-deep`: quella è la variante scura per riempimenti e barre, e come
   *contorno* stava a 1,94:1 su Sottosuolo. Le coppie che lo reggono sono quelle
