@@ -3,7 +3,11 @@
    il dialog "?". Ordine dei risultati: prima i titoli (il match più forte),
    poi le note con snippet, poi il resto; il click naviga alla vista giusta. */
 
-import { TYPES, escapeHtml } from "./modello.js";
+/* nodeColor va IMPORTATO anche se sembra un dettaglio: è l'unico posto che
+   decide il colore di una bolla, e senza l'import questo modulo lanciava
+   "nodeColor is not defined" sulla prima bolla incontrata — con la ricerca che
+   restava chiusa, cioè indistinguibile da "nessun risultato". */
+import { TYPES, escapeHtml, nodeColor } from "./modello.js";
 import { st, RO } from "./stato.js";
 import { goToNode } from "./mappa.js";
 import { showView } from "./viste.js";
