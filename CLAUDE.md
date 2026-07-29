@@ -1266,7 +1266,11 @@ Non negoziabili; se tocchi queste aree, mantienili:
   - Il blocco taglia **spazio**, mai comandi: i 44px restano, e la palette
     diventa una riga sola scorrevole invece di rimpicciolirsi. Il pannello
     dettagli resta **di fianco** e non diventa un foglio dal basso — su 393px
-    d'altezza un foglio al 62% rifarebbe il difetto che il blocco corregge.
+    d'altezza un foglio al 62% rifarebbe il difetto che il blocco corregge —
+    ma il suo tetto scende da 60vw a **40vw**, perché 440px fissi su 852 sono
+    metà schermo. Quel tetto vale solo da 761px in su (`min-width` nella
+    condizione): sotto, il pannello *è* il foglio dal basso e un tetto in vw
+    lo ridurrebbe a una colonna in un angolo.
 - **Il salvataggio è ritardato di 700 ms** (`save()` in `stato.js`, per non
   scrivere a ogni battitura) e a chiudere quella finestra è il `pagehide`
   registrato da `initStato`. Serve perché dall'editor si esce con un clic: il

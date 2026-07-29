@@ -20,10 +20,9 @@ grande di quello che la voce descriveva. **L'elenco è vuoto**: quel che resta
 è annotato con la misura già fatta in "Cosa resta dell'audit", in fondo al
 file, e fra i minori qui sotto.
 
-Il primo da riprendere, se si vuole un ordine: il **pannello dettagli su un
-telefono coricato** (sotto, fra i minori) — è l'unica cosa che sull'iPhone
-coricato tiene ancora la mappa in un angolo, ed è una scelta di disegno non
-ancora fatta, non un guasto da correggere.
+Il **pannello dettagli su un telefono coricato** era l'ultima voce aperta di
+quel lavoro ed è chiusa (29 lug): tetto a 40vw, la voce per esteso sta con le
+altre in fondo.
 
 La migrazione `0001_revisione-campagna` è applicata a **entrambi** i branch Neon
 (25 lug 2026: `dev` durante la verifica di P0.2, `production` prima del deploy,
@@ -41,17 +40,6 @@ pixel fra centro geometrico e centro disegnato (per questo `markerR` è una
 funzione); il sito non ha condizioni d'uso proprie; la pista della barra PF dei
 mostri (voce in fondo, trovata il 29 lug); le rifiniture della sezione regole in
 fondo alla sua sezione.
-
-**Il pannello dettagli su un telefono coricato** si prende metà schermo
-(29 lug 2026, misurato a 852×393 col dito): `#detail` è largo 440px fissi, la
-tela ne riceve **407** e il tabellone d'iniziativa — che lì resta la colonna
-da 216px, giustamente — ne copre il 53%. Il foglio dal basso non è la
-risposta: coprirebbe 244px di 393, cioè rifarebbe il difetto verticale appena
-corretto. Le vie sono un tetto in `vw` sotto `max-height:480px` (`max-width:40vw`
-darebbe 341px a 852, tela 511) oppure lasciarlo com'è, visto che sopra i 760px
-la maniglia c'è e il pannello si stringe a mano. **Non è un guasto**: è la
-domanda "su un telefono coricato conta più la mappa o il pannello", e va
-risposta prima di scrivere il CSS.
 
 ## SRD 5.2.1 in italiano (regole 2024)
 
@@ -2199,12 +2187,25 @@ Cosa **resta** da fare, misurato:
   - **Il pannello dettagli resta di fianco** e non diventa un foglio dal
     basso: su uno schermo alto 393 un foglio al 62% ne coprirebbe 244, cioè
     rifarebbe il difetto appena corretto. Coricati lo spazio sta in
-    orizzontale. Quanto debba essere largo è però una domanda aperta, ed è la
-    voce fra i minori in cima al file.
+    orizzontale — ma **quanto**: 440px fissi su 852 sono metà schermo, la tela
+    ne riceveva 407 e il tabellone d'iniziativa (la colonna da 216px, che lì è
+    la forma giusta) ne copriva il 53%. Restava una fessura di mappa fra i
+    due. Il tetto scende da 60vw a **40vw** e la tela passa a 506px (60% della
+    larghezza), col tabellone al 43%; a 932×430 sono 554 e il 39%.
+    - È la stessa difesa già scritta accanto a `--detail-w` — la larghezza
+      ricordata da un monitor grande non deve mangiare la tela di uno schermo
+      piccolo — applicata dove il monitor grande non c'entra: il pannello lì
+      è largo 440 perché *nasce* così.
+    - Resta un **tetto e non una larghezza imposta**: sopra i 760px la
+      maniglia c'è, quindi il DM può ancora stringerlo (e un'asserzione
+      guarda che ci sia). `min-width:761px` nella condizione non è
+      decorativo: sotto, il pannello *è* il foglio dal basso
+      (`max-width:none`) e un tetto in vw lo ridurrebbe a una colonna in un
+      angolo — il controllo a 360×740 verifica proprio che non sia sceso lì.
   - Dopo: a 852×393 la tela passa da **0 a 239px** (61% dello schermo) e il
     cromo da 587 a 154; a 740×360 la tela da 180 a 204 (50% → 57%), cioè la
     stessa quota che ha il telefono in piedi (62%).
-  - Verifica in Chromium, **36 controlli** col dito emulato su tre telefoni
+  - Verifica in Chromium, **48 controlli** col dito emulato su tre telefoni
     coricati (740×360, 852×393, 932×430) più il **tavolo**, e tre gruppi di
     controllo che devono restare identici — telefono in piedi, scrivania e
     iPad — misurati sull'**impronta** (il padding calcolato dice se il blocco

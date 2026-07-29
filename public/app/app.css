@@ -944,6 +944,19 @@
     .pal-item{flex:none}
     #plan-hint{display:none}
   }
+  /* Il pannello è largo 440px fissi, e su un telefono coricato quelli sono
+     METÀ schermo: a 852x393 la tela ne riceveva 407 e il tabellone
+     d'iniziativa — la colonna da 216px, che coricati è la forma giusta — ne
+     copriva il 53%. Restava una fessura di mappa fra i due. Il tetto scende
+     da 60vw a 40vw (341px a 852, tela 511), che è la stessa difesa già
+     scritta accanto a `--detail-w`: la larghezza ricordata da un monitor
+     grande non deve mangiare la tela di uno schermo piccolo.
+     `min-width:761px` non è decorativo: sotto i 760 il pannello NON è più di
+     fianco ma un foglio dal basso largo quanto lo schermo (`max-width:none`),
+     e un tetto in vw lo ridurrebbe a una colonna in un angolo. */
+  @media (max-height:480px) and (min-width:761px){
+    #detail{max-width:40vw}
+  }
 
   /* ---------- il tabellone d'iniziativa cambia asse (schermo stretto) ----------
      Su desktop è una colonna che galleggia a sinistra e si consulta di sbieco.
