@@ -32,6 +32,35 @@ La migrazione `0001_revisione-campagna` è applicata a **entrambi** i branch Neo
 col branch di backup `backup-pre-revision` creato prima): niente blocca il push.
 Le prove manuali post-deploy sono in "Sincronizzazione cloud".
 
+**Da estrarre: la fixture delle verifiche in Chromium** (deciso il 29 lug 2026,
+da fare). Ogni verifica visiva dell'app si scrive da capo, e la parte cara non
+sono le asserzioni — quelle sono usa-e-getta per definizione, perché ogni volta
+si guarda un'altra cosa — ma le ~40 righe che **costruiscono una campagna
+valida e la seminano**. Quelle sì che si ripetono identiche, e ricostruirle
+costa più del resto messo insieme. Va in `test/browser/campagna-di-prova.mjs`,
+FUORI da `test/`: `npm test` è `node --test` puro e gira in CI a ogni push,
+mentre questo vuole `playwright-core`, un binario Chromium e un dev server in
+ascolto — messo lì romperebbe `npm test` per tutti. Quel che serve sapere, così
+non si riparte dall'indagine:
+
+- **Standalone (vista DM)**: si semina `localStorage` con `gm-campaigns-v1`
+  (indice, voci `{id, name, updatedAt}`), `gm-current-campaign` e
+  `gm-campaign-<id>` (il documento). Il tema è `runebog-theme`. Attenzione al
+  profilo vergine: `gm-current-campaign` la scrive solo il primo cambio di
+  campagna, quindi l'id va letto con fallback sull'indice.
+- **Tavolo (sola lettura)**: si inietta `window.__table = {token, name, state}`
+  in un `addInitScript`, e `state` conviene produrlo con la proiezione VERA —
+  `import { projectForPlayers } from "src/lib/share.ts"`, che Node spoglia dei
+  tipi — sennò si prova la resa di uno stato che il server non produrrebbe mai.
+- **Forzare un giro di polling** senza aspettare i 5 s: `window.dispatchEvent(new
+  Event("visibilitychange"))`, che è il listener che `initTavolo` registra già.
+- Il browser è quello della cache Playwright (`~/.cache/ms-playwright/
+  chromium-1228/...`), non Chrome di sistema: vedi il quirk noto dell'ambiente.
+- Il documento minimo che serve quasi sempre: radice `zona` con `shared:true`,
+  una bolla `luogo` con `shape:"edificio"`, e — per il combattimento — un figlio
+  `encounter` con `monster.foes[]` più `root.battle = {round, turn, order[]}`,
+  dove le voci sono `{id, kind:"pg"|"foe", playerId | nodeId+foeId, init}`.
+
 Minori, già annotati al loro posto:
 `nodeBox` dà 30×30 a ogni segnalino ma il disco della pedina ne misura 32, un
 pixel fra centro geometrico e centro disegnato (per questo `markerR` è una
