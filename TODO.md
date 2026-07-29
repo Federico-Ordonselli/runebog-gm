@@ -6,23 +6,50 @@ Scritti per essere ripresi **a freddo**: ognuno dice dove si tocca e quale
 ostacolo è già stato misurato, così non si rifà l'indagine. L'ordine è di
 consiglio, non di vincolo. Le voci per esteso stanno nelle sezioni sotto.
 
-La sezione regole è completa (dieci capitoli più il bestiario). Quello che
-resta viene dall'**audit del 28 lug 2026** (16/20): i tre P1 sono chiusi, e dei
-P2 sono chiusi i bordi di componente (28 lug), i due canali del tabellone
-d'iniziativa e il polling del tavolo (29 lug), più la fascia d'iniziativa su
-schermo stretto e i bersagli da 44px (29 lug: **erano l'ultimo P2**). Anche i
-**due P3 sono chiusi** (29 lug): il nome dell'immagine di riferimento e il
-riempimento d'accento, che misurandolo si è portato dietro il bottone
-flottante dei dettagli. Il 29 lug sono chiusi anche i **due comandi che a
-riposo non si vedevano** (maniglia del pannello e ★ delle quest) e il
-**telefono coricato**, che misurandolo si è rivelato un difetto molto più
-grande di quello che la voce descriveva. **L'elenco è vuoto**: quel che resta
-è annotato con la misura già fatta in "Cosa resta dell'audit", in fondo al
-file, e fra i minori qui sotto.
+**L'audit del 28 lug 2026 (16/20) è chiuso per intero**: i tre P1, tutti i P2
+(bordi di componente il 28 lug; i due canali del tabellone d'iniziativa, il
+polling del tavolo, la fascia d'iniziativa e i bersagli da 44px il 29) e i due
+P3 (il nome dell'immagine di riferimento e il riempimento d'accento, che si è
+portato dietro il bottone flottante). Il 29 lug sono chiuse anche le due code
+che restavano in questo elenco: i **due comandi che a riposo non si vedevano**
+(maniglia del pannello e ★ delle quest) e il **telefono coricato**, dove la
+misura ha rivelato un difetto molto più grande di quello che la voce
+descriveva — sopra i 760px di larghezza la tela usciva alta zero — poi chiuso
+anche nel pannello dettagli (tetto a 40vw). Le voci per esteso stanno in
+"Cosa resta dell'audit", in fondo al file. La sezione regole è completa
+(dieci capitoli più il bestiario).
 
-Il **pannello dettagli su un telefono coricato** era l'ultima voce aperta di
-quel lavoro ed è chiusa (29 lug): tetto a 40vw, la voce per esteso sta con le
-altre in fondo.
+Da qui in avanti, in ordine di consiglio:
+
+1. **Il contenuto di una bolla esce dalla sua sagoma** (voce per esteso in "La
+   scala della campagna"). Da quando i territori hanno una silhouette
+   *inscritta* nel riquadro — costa, globo, rombo — l'anteprima dei figli, che
+   `miniPreview` impagina ancora sul **riquadro**, sborda dal contorno: la
+   bolla si legge come se il contenuto le stesse traboccando. Misurato con
+   `isPointInFill` sulla sagoma vera: **rombo 8 angoli su 16 fuori**, costa 5,
+   globo 4, cerchio 4.
+   - **La direzione è decisa**: le bolle interne si devono vedere **molto più
+     piccole**, cioè impaginate nel rettangolo **inscritto** nella sagoma.
+     Ellisse 0,707 per lato, rombo 0,5, rettangolo 1; per la costa i fattori
+     vanno **calcolati** dai vertici di `COSTA` (ha dei golfi, quindi non è
+     simmetrica).
+   - Il fattore va in **`SHAPES`**, accanto a `disegno`, e non in un confronto
+     sul nome dentro `mappa.js`: è la regola già scritta lì.
+   - Nello stesso `<g>` sbordano anche **titolo e conteggio `◦ N`**, e vanno
+     corretti insieme — sennò si corregge la metà che si era notata per prima.
+     Le maniglie sono un caso a parte, da decidere dicendolo.
+2. **La pista della barra PF dei mostri** (`.hpbar`, `app.css` ~519): è
+   `var(--line)` sul pannello, cioè 1,32–4,36:1, sotto 3:1 in dieci temi. Non
+   è un difetto d'accesso — i due campi `hp`/`hpMax` dicono già il numero — ma
+   è un'**incoerenza fra le due barre PF**, e il riempimento dei mostri è
+   deciso in JS con uno `style` inline, quindi `temi:contrasto` non lo vede.
+   Chi la tocca decida prima se quel colore deve restare inline. Voce per
+   esteso in fondo, con la misura.
+3. **L'ETag del polling del tavolo non è mai stato provato contro il database
+   vero**: su Neon `dev` non c'è una campagna con `share_token`, e crearne una
+   sarebbe scrivere sui dati di qualcun altro. Alla prima apertura di un
+   tavolo vero: pannello di rete, un 200 e poi tutti 304, e un 200 a ogni
+   salvataggio del DM.
 
 La migrazione `0001_revisione-campagna` è applicata a **entrambi** i branch Neon
 (25 lug 2026: `dev` durante la verifica di P0.2, `production` prima del deploy,
@@ -37,9 +64,20 @@ invarianti critici".
 Minori, già annotati al loro posto:
 `nodeBox` dà 30×30 a ogni segnalino ma il disco della pedina ne misura 32, un
 pixel fra centro geometrico e centro disegnato (per questo `markerR` è una
-funzione); il sito non ha condizioni d'uso proprie; la pista della barra PF dei
-mostri (voce in fondo, trovata il 29 lug); le rifiniture della sezione regole in
-fondo alla sua sezione.
+funzione); il sito non ha condizioni d'uso proprie; la barra della palette è
+lunga 2368px di scroll a 390px di viewport (in "La scala della campagna"); le
+rifiniture della sezione regole in fondo alla sua sezione.
+
+**Come si riprende una di queste voci** (vale per tutte, ed è il giro che le
+ultime tre hanno seguito): si **rimisura prima di correggere** — due volte su
+tre la misura ha spostato il lavoro, e una volta ha detto che la voce si
+sbagliava; le verifiche in Chromium si scrivono nello scratchpad partendo da
+`test/browser/campagna-di-prova.mjs` e si buttano, tenendo nel TODO solo il
+numero di controlli e cosa provavano; ogni verifica porta un **gruppo di
+controllo** (dove il cambiamento NON deve arrivare) e una **controprova**
+(rimettere il valore vecchio e guardare cadere le asserzioni), sennò un verde
+non dice quale delle due cose è successa. Col dito si misura con `hasTouch`,
+sennò `pointer:coarse` non scatta.
 
 ## SRD 5.2.1 in italiano (regole 2024)
 
@@ -1718,6 +1756,47 @@ Cosa **resta** da fare, misurato:
   bolla come un'altra) e un vincolo gerarchico vero sarebbe una gabbia in un
   editor che vive di alberi liberi — ma se un giorno desse fastidio, il posto è
   `shapeOpts` in `pannello.js`.
+- [ ] **Il contenuto di una bolla esce dalla sua sagoma** (29 lug 2026, trovato
+  sul campo su una bolla continente). `miniPreview` (`mappa.js` ~489) impagina
+  l'anteprima dei figli nel **riquadro** (`box.w-22` × `box.h-42`, inserti 11 e
+  31), ma dal 26 lug la sagoma disegnata è **inscritta** in quel riquadro:
+  ellisse, costa, rombo. Tutto ciò che sta negli angoli finisce fuori dal
+  contorno, e la bolla si legge come se il suo contenuto le stesse traboccando.
+  - **Misurato** chiedendo al browser `isPointInFill` sulla sagoma vera (non su
+    una mia approssimazione), quattro figli per bolla, sedici angoli ciascuna:
+    **torre/rombo 8 angoli su 16 fuori**, continente/costa 5, mondo/globo 4,
+    piazza/cerchio 4. Il rombo è il caso limite — i quattro rettangoli stanno
+    quasi tutti fuori dalla figura.
+  - **La direzione decisa** (Federico, 29 lug): le bolle interne si devono
+    vedere **molto più piccole**, cioè l'anteprima va impaginata nel rettangolo
+    **inscritto** nella sagoma e non nel riquadro. I fattori sono geometria e
+    non gusto: ellisse 1/√2 ≈ 0,707 per lato (area al 50%), rombo 0,5 (area al
+    25%), rettangolo 1 (quartiere, nazione, regione: non cambia niente). Per la
+    **costa** vanno ricavati dai vertici di `COSTA` — è l'unica sagoma con dei
+    golfi, quindi il rettangolo inscritto non è simmetrico e va calcolato, non
+    stimato a occhio.
+  - **Il fattore sta in `SHAPES`, non in un confronto sul nome dentro il
+    renderer**: è la regola già scritta accanto a `disegno` ("il renderer
+    dispaccia su `disegno` e non sa i nomi"), e questa è la seconda volta che
+    la stessa conoscenza serve a due posti diversi. Un campo accanto a
+    `disegno` (per esempio `dentro:[fw,fh]`) lo tiene in uno.
+  - **Non è solo l'anteprima**: nello stesso `<g>` stanno il **titolo** (y=18,
+    sopra il bordo superiore della curva e del rombo — nello scatto "Torre di
+    Prova" galleggia fuori dalla figura), il conteggio `◦ N` (y=`box.h-8`) e le
+    due maniglie (`link-handle` a `(box.w,0)`, `rs-handle` a
+    `(box.w-8,box.h-8)`), tutti posati sul riquadro. Titolo e conteggio vanno
+    corretti insieme, sennò si corregge la metà che si è notata per prima. Le
+    maniglie sono un caso a parte e forse vanno lasciate dove sono: sono
+    comandi, e un comando sul contorno vero di un rombo è più difficile da
+    prendere che uno all'angolo del riquadro. Da decidere, dicendolo.
+  - **Effetto collaterale da tenere**: `miniPreview` esce vuota sotto
+    26×20px di spazio disponibile, quindi rimpicciolendo l'area più bolle
+    ricadranno sul solo `◦ N` — che va bene (una mappa annidata a quella taglia
+    è illeggibile comunque), ma allora quel conteggio deve stare **dentro** la
+    sagoma, che oggi non è garantito.
+  - La riproduzione è già scritta e si rifà in un minuto: un livello con
+    continente, mondo, torre e piazza, quattro figli `quartiere` ciascuna agli
+    angoli, e il conteggio degli angoli fuori sagoma con `isPointInFill`.
 
 ## Temi
 
