@@ -163,9 +163,13 @@ Con i free tier di Vercel e Neon il costo resta zero fino a traffico significati
 
 ## Dati e licenze
 
-Il **codice** di questo progetto è rilasciato sotto licenza **MIT** (vedi [LICENSE](LICENSE)).
+Il **codice** di questo progetto è rilasciato sotto **PolyForm Noncommercial 1.0.0** (vedi [LICENSE](LICENSE)): puoi usarlo, modificarlo e ridistribuirlo liberamente per **qualunque scopo non commerciale** — uso personale, il tuo gruppo di gioco, studio, ricerca, associazioni ed enti pubblici. Non puoi usarlo per scopi commerciali: né rivenderlo, né offrirlo come servizio a pagamento, né usarlo dentro un prodotto da cui ricavi denaro. Se ti serve un uso commerciale, [chiedimelo](mailto:fede.ordons@gmail.com): la licenza non lo concede, ma io posso.
 
-I **dati dei mostri** NON sono coperti dalla MIT e restano sotto la loro licenza originale: le statistiche provengono dal **System Reference Document 5.2.1** di Wizards of the Coast, rilasciato sotto licenza **Creative Commons Attribution 4.0 (CC-BY-4.0)**. L'attribuzione richiesta è visibile in ogni scheda mostro. Se riusi questo progetto, la MIT ti copre per il codice ma devi mantenere l'attribuzione CC-BY per i dati SRD. I dati strutturati derivano dal progetto open source Open5e. Nomi e descrizioni dei mostri sono in inglese (Wizards ha pubblicato la SRD italiana solo in PDF, non come dati); tutti i campi restano modificabili a mano.
+Non è una licenza open source secondo la definizione OSI, ed è una scelta: il codice resta leggibile, forkabile e migliorabile da chiunque, ma non è materiale gratuito da cui costruire un business.
+
+**Fino al 29 luglio 2026 il codice era sotto licenza MIT**, e quella concessione resta valida per le versioni distribuite fino a quel giorno: chi le ha prese continua ad averle a quelle condizioni. Il cambio vale dalle versioni successive.
+
+I **contenuti SRD** NON sono coperti da questa licenza e restano sotto la loro: regole, tabelle e schede dei mostri provengono dal **System Reference Document 5.2.1** di Wizards of the Coast, rilasciato sotto **Creative Commons Attribution 4.0 (CC-BY-4.0)**. La CC-BY **permette anche l'uso commerciale** di quel materiale e questo repository non lo restringe — la clausola non commerciale riguarda il mio codice, non l'SRD. L'attribuzione richiesta è resa in fondo a ogni pagina delle regole e in ogni scheda mostro, e va mantenuta. Il testo italiano è estratto dal PDF ufficiale con gli script in `scripts/` (`estrai-srd-mostri.mjs`, `estrai-srd-regole.mjs`): nomi e descrizioni sono **in italiano**, e tutti i campi restano modificabili a mano.
 
 Alcune creature iconiche (Beholder, Mind Flayer) e nomi propri (Tiamat, Strahd) non fanno parte della SRD per scelta dell'editore e vanno ricreate a mano se servono.
 

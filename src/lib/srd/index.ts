@@ -8,8 +8,11 @@
  *  HTML: le pagine lo rendono con elementi React veri, così non c'è nessuna
  *  stringa di markup da dare a dangerouslySetInnerHTML.
  *
- *  I contenuti sono CC-BY-4.0, non MIT: l'attribuzione (ATTRIBUZIONE_SRD, resa
- *  in fondo a ogni pagina del capitolo) è una condizione della licenza. */
+ *  I contenuti sono CC-BY-4.0 e NON seguono la licenza del codice (CODE_LICENSE
+ *  in site.ts): l'attribuzione (ATTRIBUZIONE_SRD, resa in fondo a ogni pagina
+ *  del capitolo) è una condizione della licenza. Le due vanno anche in versi
+ *  opposti — la CC-BY permette l'uso commerciale, la licenza del codice no —
+ *  quindi qui non si eredita niente dall'una all'altra. */
 
 /* L'unico capitolo importato staticamente: due chilobyte, e ne esce
    l'attribuzione che ogni pagina della sezione deve rendere. Gli altri passano

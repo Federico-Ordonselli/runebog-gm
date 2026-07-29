@@ -1,5 +1,5 @@
 import { caricaInformazioniLegali } from "@/lib/srd";
-import { REPO_URL } from "@/lib/site";
+import { CODE_LICENSE, REPO_URL } from "@/lib/site";
 import { Attribuzione } from "../attribuzione";
 import { Blocchi, collegaIndirizzi } from "../blocchi";
 import "../srd.css";
@@ -39,14 +39,20 @@ export default async function InformazioniLegaliPage() {
             diversi: dirlo prima del testo costa due righe e toglie l'equivoco.
             La nota è nostra e si vede che lo è — il testo dell'SRD comincia
             sotto, e nessuno deve poterli confondere. */}
+        {/* Le due licenze vanno in versi opposti e la differenza va detta, non
+            lasciata dedurre: la CC-BY dell’SRD permette anche l’uso
+            commerciale, la licenza del codice no. Chi arriva qui sta proprio
+            cercando di capire cosa gli è concesso. */}
         <p className="muted small srd-nota">
           Il testo qui sotto è la pagina 1 del System Reference Document 5.2.1,
           riprodotta integralmente: sono i termini che regolano il regolamento
           pubblicato in questa sezione. Riguardano i contenuti dell’SRD — regole,
           tabelle, schede dei mostri — e non il software di Runebog GM, che è{" "}
           <a href={REPO_URL} className="link" rel="noreferrer">
-            distribuito con licenza MIT
-          </a>.
+            distribuito con licenza {CODE_LICENSE}
+          </a>
+          : quella dell’SRD consente anche l’uso commerciale, quella del codice
+          no.
         </p>
 
         <Blocchi blocchi={doc.blocchi} rimandi={collegaIndirizzi} />

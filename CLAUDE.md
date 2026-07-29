@@ -1125,8 +1125,23 @@ Non negoziabili; se tocchi queste aree, mantienili:
 - **Password**: scrypt della stdlib con `maxmem` esplicito (`src/lib/password.ts`);
   token di reset monouso, scadenza 1h, nel DB solo lo SHA-256; la richiesta di reset
   risponde sempre allo stesso modo, che l'account esista o no.
-- I dati SRD dei mostri sono **CC-BY-4.0** (non MIT): l'attribuzione nelle schede
-  mostro va mantenuta.
+- **Due licenze, e vanno in versi opposti** (29 lug 2026). Il **codice** è
+  `PolyForm Noncommercial 1.0.0` — vieta l'uso commerciale — e prima di quella
+  data era MIT: quella concessione resta valida per le versioni già
+  distribuite, quindi il `LICENSE` lo dichiara invece di far finta di niente.
+  I **contenuti SRD** (schede mostro, capitoli, informazioni legali) sono
+  **CC-BY-4.0**, che l'uso commerciale invece lo *permette*, e questo repo non
+  lo restringe: l'attribuzione va mantenuta ed è una condizione della licenza,
+  non una cortesia.
+  - Il nome della licenza del codice, come va scritto agli utenti, sta in
+    `CODE_LICENSE` (`src/lib/site.ts`) e **non** nelle pagine: una pagina che
+    ne dichiara una diversa da `LICENSE` non è un refuso, è una concessione
+    pubblica che nessuno voleva dare.
+  - Il testo della licenza in `LICENSE` è **identico byte per byte** a quello
+    ufficiale di PolyForm: la nota d'ambito (il codice sì, l'SRD no) sta fuori
+    dal testo e dichiara di starne fuori. Vale la regola già scritta per
+    l'attribuzione SRD — il testo di una licenza si prende dalla fonte, non si
+    ricopia, perché lì una parola diversa è un problema legale e non un refuso.
 
 ## Trappole note
 
