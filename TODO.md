@@ -37,6 +37,14 @@ Da qui in avanti, in ordine di consiglio:
    tavolo vero: pannello di rete, un 200 e poi tutti 304, e un 200 a ogni
    salvataggio del DM.
 
+2. **Le immagini fuori dal JSON** — l'indagine è fatta (30 lug 2026, sezione
+   sua): scioglie insieme il tetto di 4 MB della PATCH e la quota di
+   `localStorage`, e alleggerisce ogni apertura dell'editor, che oggi
+   riscarica le immagini a ogni giro e non può metterle in cache. Non è
+   urgente e i cinque confini da decidere prima stanno lì — il primo, «l'export
+   smette di essere autosufficiente», decide lo schema e va risolto prima di
+   scrivere una riga.
+
 La migrazione `0001_revisione-campagna` è applicata a **entrambi** i branch Neon
 (25 lug 2026: `dev` durante la verifica di P0.2, `production` prima del deploy,
 col branch di backup `backup-pre-revision` creato prima): niente blocca il push.
@@ -936,7 +944,80 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
     4 MB può far fallire la scrittura della cache (quota ~5 MB per origine) e
     l'app lo dichiara ("Solo in memoria — usa Esporta"), ma vuol dire che proprio
     le campagne più pesanti sono quelle senza rete di recupero. Le immagini fuori
-    dal JSON risolverebbero entrambi i limiti insieme.
+    dal JSON risolverebbero entrambi i limiti insieme — voce sua qui sotto.
+
+## Immagini fuori dal JSON
+
+- [ ] **Le immagini in base64 pesano su tutto ciò che il documento attraversa**
+  — indagine del 30 lug 2026, nessuna riga toccata. Era un inciso di mezza riga
+  nella sezione qui sopra; questa è la misura, perché il primo passo onesto è
+  sapere quanto costa davvero, non scrivere lo schema.
+
+  **Dove stanno oggi**: `n.img` e `n.bg.img`, prodotte da `compressImage`
+  (`pannello.js:470-482`, gemella in `mappa.js` per lo sfondo) che ridimensiona
+  a 1400px per lato e ricodifica in JPEG 0,82. Il documento le contiene, quindi
+  le porta in ogni posto in cui va.
+
+  **I due tetti che si toccano**, entrambi letti dal codice:
+  - `documentBytes` è 4 MiB − 4096 e `imageBytes` è 3,75 MiB
+    (`formato-campagna.js:28-29`): **una sola immagine può prendersi il 96% del
+    documento**, e il resto della campagna sta in quel che avanza.
+  - La quota di `localStorage` è ~5 MB per origine. Quando `writeCloudCache`
+    (`sync-cloud.js:89`) viene rifiutata, l'app lo dichiara ("Solo in memoria —
+    usa Esporta", `stato.js:566,652,673,687`): sono proprio le campagne più
+    pesanti a restare senza rete di recupero.
+  - Il codice lo aveva già previsto: `src/app/api/campaigns/[id]/route.ts:8`
+    dice «immagini enormi → storage esterno in v2».
+
+  **Cosa ha aggiunto la misura**, e sono due cose:
+  - **Quante immagini ci stiano in una campagna non è prevedibile.** Il base64
+    costa un +33% esatto (aritmetica, non stima), ma il peso di un JPEG dipende
+    dal contenuto: ai parametri di `compressImage` un riquadro piatto fa 15 KB
+    in base64, un gradiente 38 KB e del rumore pieno 1,55 MB — cioè **da 264
+    immagini a due** dentro lo stesso tetto. Misurato con `sharp` su contenuti
+    sintetici, che **non è l'encoder di Chrome**: dice l'ordine di grandezza e
+    soprattutto la dispersione, non il numero dell'app. Il numero vero si prende
+    in Chromium passando una mappa vera per `compressImage`, ed è la prima cosa
+    da fare se questa voce si apre.
+  - **Il costo peggiore non è il salvataggio: è l'apertura.** `/play/[id]`
+    inietta il documento intero dentro l'HTML e risponde `private, no-store`
+    (`src/app/play/[id]/route.ts:33`), per una ragione che resta valida — una
+    copia in cache rimetterebbe in circolo una revisione già superata. Quindi le
+    immagini viaggiano a **ogni** apertura dell'editor e non possono stare in
+    nessuna cache, mai. Al tavolo invece il caso è già mitigato dall'ETag del
+    29 lug: ripartono solo quando il DM ha salvato.
+
+  **I cinque confini da decidere PRIMA di scrivere una riga.** Il primo non è un
+  dettaglio di implementazione: è la domanda che decide lo schema.
+  1. **L'export smette di essere autosufficiente.** Oggi il JSON esportato
+     contiene le immagini, quindi è portabile, ri-importabile ovunque e regge
+     anche standalone su `localStorage`. Con le immagini fuori, o l'export porta
+     URL (che scadono, o vogliono un'autenticazione che un file non ha) oppure
+     le re-incorpora al momento dell'export — e allora è l'import a dover
+     saperle ricaricare. Le due strade danno due formati diversi.
+  2. **`safeUrl` accetta già `https://`** (`modello.js:450-455`, `share.ts:100`,
+     e la whitelist del contratto a `formato-campagna.js:312`, che deve restare
+     almeno stretta quanto le altre due): un URL esterno non è un campo nuovo e
+     il modello lo regge già. Quel che cambia è che il documento comincia a
+     **puntare** a una risorsa invece di contenerla, cioè un riferimento che si
+     può rompere — e finora in questo repo i riferimenti si risolvono sul
+     server per costruzione.
+  3. **Chi cancella.** Oggi l'immagine se ne va col JSON. Fuori, una bolla
+     eliminata, un `undo` e una campagna cancellata vogliono una politica
+     esplicita, e quella sbagliata butta un'immagine che uno snapshot di undo
+     sta ancora referenziando.
+  4. **L'autorizzazione al tavolo.** Un'immagine condivisa dev'essere leggibile
+     da chi ha il link segreto e da nessun altro; una non condivisa non
+     dev'essere raggiungibile affatto. Oggi a filtrare basta
+     `projectForPlayers`, perché il dato fuori dal documento non esiste.
+  5. **Dove.** Vercel Blob è la scelta nativa (il sito è già su Vercel) e
+     supporta blob privati, ma è la prima dipendenza di storage oltre a Neon e
+     ha un costo. Da decidere insieme al punto 1, non dopo.
+
+  **Non è urgente**: nessuno ha segnalato di aver sbattuto contro i 4 MB, e la
+  lettura tollerante non ha niente da temere. Vale come lavoro il giorno in cui
+  una campagna vera si avvicina al tetto — ed è l'unica voce rimasta che tolga
+  un limite invece di rifinire.
 
 ## Formato del documento campagna
 
