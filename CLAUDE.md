@@ -516,9 +516,12 @@ ogni bolla già disegnata). Il campo `n.walls` è la scelta esplicita del DM e b
 il default. Il muro corre **dentro** la forma (`WALL_INSET`), sennò coprirebbe il
 contorno di `.blk-shape`, che porta la selezione e l'alone di "condiviso".
 
-**Strumenti temporanei della mappa** (`public/app/strumenti/`): righello e simili
-(aree d'effetto, percorso, coordinate, mirino — solo il righello è implementato).
-Sono **temporanei**: disegnano su una tela a parte e non toccano mai la campagna.
+**Strumenti temporanei della mappa** (`public/app/strumenti/`): oggi il **righello**
+(R) e le **aree d'effetto** (A, quattro footprint scelti coi tasti 1–4) — l'elenco
+installato è `TOOLS` in `strumenti/index.js` e non questa riga. Restano da scrivere
+percorso a waypoint, coordinate (vorrebbe un `hoverMove` nel contratto, che oggi non
+c'è) e mirino. Sono **temporanei**: disegnano su una tela a parte e non toccano mai
+la campagna.
 - **Due SVG, non uno.** `#plan-tools-svg` sta sopra `#plan-svg` in `app.html` e
   non viene **mai** riscritto: `renderCanvas()` rifà `plan-svg.innerHTML` a ogni
   disegno, compreso il polling del tavolo, quindi un overlay dentro la tela
