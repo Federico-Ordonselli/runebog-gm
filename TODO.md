@@ -712,6 +712,34 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
       (82 KB): vorrebbe una route handler che cerca lato server, cioè la prima
       cosa dinamica di tutta la sezione. Da fare solo se qualcuno la chiede
       davvero — al tavolo si cerca un nome, non una frase.
+    - **A destra della prosa restano 178px sempre vuoti** (misurato il 30 lug
+      2026, nessuna riga toccata). `.srd-testo` si ferma a 34rem dentro una
+      colonna `minmax(0, 1fr)`, quindi lo scarto non dipende dallo schermo: è
+      178px a **qualunque** larghezza da 1280px in su, più il margine fuori dal
+      contenitore (32px a 1366, 69 a 1440, 309 a 1920). Non è un difetto — la
+      misura di lettura è voluta e `srd.css:4-6` la dichiara — ma è lo spazio
+      che c'è, se un domani serve: note a margine, i rimandi «Vedi anche»
+      portati fuori dalla prosa, un sommario della sola sezione corrente.
+      Tre cose che la misura ha già deciso, per non rifare l'indagine:
+      - **Il vuoto è a destra e basta.** A sinistra c'è l'indice sticky da
+        15rem (`.srd-corpo`, `srd.css:22`), che quello spazio se l'è già
+        preso: a 1440px fuori dal contenitore restano 69px per lato, dove non
+        ci sta niente. Qualunque cosa a sinistra vuol dire spostare l'indice o
+        stringere la prosa, cioè disfare la misura di lettura per fare posto a
+        qualcosa che si legge meno di quella.
+      - **Il rem scala con la larghezza**, quindi il contenitore si ferma a
+        62rem × 21px = 1302px e non cresce più: da 1920px in su il vuoto
+        aumenta **fuori** e non dentro. Una colonna nuova va quindi agganciata
+        al contenitore, non al viewport, sennò sotto i 1600px non ha dove
+        stare.
+      - **Non ci vanno banner pubblicitari**, e non è una questione di gusto:
+        `/privacy` afferma testualmente «non c'è pubblicità», e
+        `src/lib/site.ts:9` dice che perfino il widget Ko-fi è stato scartato
+        per non caricare script di terzi «contraddicendo quanto promette
+        /privacy». Il giorno che si cambia idea, quella frase va riscritta
+        **nello stesso commit** — è la stessa classe di problema per cui
+        esiste `CODE_LICENSE`: una pagina che afferma una cosa che il sito non
+        fa più non è un refuso, è una promessa rotta.
   - [x] **Registro delle ancore, ricerca trasversale e rimandi come link** —
     fatto (21 lug 2026). Due rifiniture aperte chiedevano la stessa cosa che non
     esisteva: sapere, dato un titolo, **su quale pagina** è finito. Non è
