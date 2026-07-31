@@ -35,13 +35,32 @@ const NO_STORE = { "Cache-Control": "private, no-store" };
  * documento cambiato — non può capitare, ed è l'unico caso che si vedrebbe come
  * un tavolo che smette di aggiornarsi.
  */
+
+/**
+ * Il confronto di `If-None-Match` è **debole**, cioè ignora il prefisso `W/` e
+ * accetta l'elenco separato da virgole. Non è generosità: è ciò che la norma
+ * chiede (RFC 9110 §13.1.2, "weak comparison"), e chiunque stia in mezzo ha il
+ * permesso di indebolire un ETag forte. Un `===` sulla stringa intera legge
+ * `W/"r5"` come diverso da `"r5"`, quindi risponde 200 per sempre: il polling
+ * torna a scaricare tutto e nessuno se ne accorge, perché il tavolo funziona.
+ * È l'unico guasto di questa rotta che non si vede.
+ *
+ * Misurato il 31 lug 2026 (`/themes.css` in produzione, con e senza brotli):
+ * oggi l'edge di Vercel l'ETag lo lascia identico, quindi il caso non capita —
+ * il confronto debole non serve a riparare qualcosa, serve a non dipendere da
+ * quella misura. Qui costa niente: l'ETag *è* la revisione, e "stessa revisione
+ * indebolita" vuol dire comunque stessa revisione.
+ */
+const stessaRevisione = (inviato: string | null, etag: string) =>
+  !!inviato && inviato.split(",").some(v => v.trim().replace(/^W\//, "") === etag);
+
 export async function GET(req: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const [row] = await db.select().from(campaigns).where(eq(campaigns.shareToken, token));
   if (!row) return NextResponse.json({ error: "not found" }, { status: 404 });
 
   const etag = `"r${row.revision}"`;
-  if (req.headers.get("if-none-match") === etag)
+  if (stessaRevisione(req.headers.get("if-none-match"), etag))
     return new Response(null, { status: 304, headers: { ...NO_STORE, ETag: etag } });
 
   // Tollerante in lettura, come /tavolo/[token]: la normalizzazione è un

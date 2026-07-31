@@ -255,6 +255,12 @@ export function semeTavolo(dove, {documento = documentoDiProva(), token = "token
  *
  * Serve perché una pagina seminata con `semeTavolo` da sola scrive "Offline"
  * dopo cinque secondi: il ponte c'è, il server dietro no.
+ *
+ * L'ETag si scrive nel formato della rotta (`"r5"`, virgolette comprese) e non
+ * come numero nudo: al client non cambia niente — rimanda indietro quello che
+ * ha ricevuto, qualunque cosa sia — ma una fixture che dice "come nella rotta
+ * vera" e ne emette un'altra è la deriva silenziosa che questo file esiste per
+ * non avere. Verificato contro il database vero il 31 lug 2026.
  */
 export async function serviTavolo(dove, {documento = documentoDiProva(), revisione = 1} = {}) {
   let stato = projectForPlayers(documento);
@@ -264,16 +270,17 @@ export async function serviTavolo(dove, {documento = documentoDiProva(), revisio
      non si vede — un tavolo aggiornato e un tavolo che riscarica dodici volte
      al minuto si disegnano uguali. */
   const giri = {scaricati: 0, invariati: 0};
+  const etag = () => `"r${rev}"`;
   await dove.route("**/api/tavolo/*", route => {
     const inviato = route.request().headers()["if-none-match"];
-    if (inviato === String(rev)) {
+    if (inviato === etag()) {
       giri.invariati++;
-      return route.fulfill({status: 304, headers: {ETag: String(rev)}});
+      return route.fulfill({status: 304, headers: {ETag: etag()}});
     }
     giri.scaricati++;
     route.fulfill({
       status: 200,
-      headers: {ETag: String(rev), "Content-Type": "application/json", "Cache-Control": "private, no-store"},
+      headers: {ETag: etag(), "Content-Type": "application/json", "Cache-Control": "private, no-store"},
       body: JSON.stringify({state: stato}),
     });
   });

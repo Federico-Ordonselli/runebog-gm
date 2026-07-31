@@ -146,6 +146,15 @@ una battuta e l'altra il DM non scrive.
   tutto per poterlo calcolare, cioè risparmierebbe la rete e non il server. Le
   rotte di condivisione toccano solo `shareToken`: a un link rigenerato risponde
   il 404, che è la risposta giusta.
+- **Il confronto di `If-None-Match` è debole** (`stessaRevisione` nella rotta):
+  ignora il prefisso `W/` e accetta l'elenco separato da virgole, che è quanto
+  chiede RFC 9110 §13.1.2 — chiunque stia in mezzo ha il permesso di indebolire
+  un ETag forte, e un `===` sulla stringa intera leggerebbe `W/"r5"` come diverso
+  da `"r5"`, cioè risponderebbe 200 per sempre. È l'unico guasto di questa rotta
+  che **non si vede**: il tavolo continua a funzionare e riscarica tutto.
+  Misurato il 31 lug 2026: l'edge di Vercel l'ETag lo lascia identico anche
+  comprimendo in brotli, quindi il confronto debole non ripara niente — serve a
+  non dipendere da quella misura.
 - **Il verso in cui si sbaglia è dichiarato**: la revisione cambia anche quando il
   DM ha scritto qualcosa che al tavolo non arriva (una nota sua), e allora esce un
   200 con un documento identico — lo spreco resta, e a coprirlo è il confronto che

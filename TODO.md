@@ -29,15 +29,19 @@ in `COPPIE`. La misura ha spostato il bersaglio — non era la pista contro il
 pannello ma il **riempimento contro la pista**, sotto 3:1 in sei casi su
 trentasei e proprio a pochi PF. Voce per esteso in fondo.
 
+Il 31 lug è chiuso anche **l'ETag del polling del tavolo**, che era il primo di
+questo elenco e sembrava bloccato: l'ostacolo annotato ("crearne una sarebbe
+scrivere sui dati di qualcun altro") si scioglie con un **branch Neon
+usa-e-getta**, che di `dev` è una copia isolata. 15/15 contro il database vero,
+e la verifica ha trovato per strada due cose che nessuna prova a mano avrebbe
+visto: l'ETag della fixture in un formato diverso da quello della rotta, e il
+confronto di `If-None-Match` fatto con `===` invece che debole — l'unico guasto
+di quella rotta che non si vede, perché il tavolo funziona lo stesso. Voci per
+esteso in "Sincronizzazione cloud".
+
 Da qui in avanti, in ordine di consiglio:
 
-1. **L'ETag del polling del tavolo non è mai stato provato contro il database
-   vero**: su Neon `dev` non c'è una campagna con `share_token`, e crearne una
-   sarebbe scrivere sui dati di qualcun altro. Alla prima apertura di un
-   tavolo vero: pannello di rete, un 200 e poi tutti 304, e un 200 a ogni
-   salvataggio del DM.
-
-2. **Le immagini fuori dal JSON** — l'indagine è fatta (30 lug 2026, sezione
+1. **Le immagini fuori dal JSON** — l'indagine è fatta (30 lug 2026, sezione
    sua): scioglie insieme il tetto di 4 MB della PATCH e la quota di
    `localStorage`, e alleggerisce ogni apertura dell'editor, che oggi
    riscarica le immagini a ogni giro e non può metterle in cache. Non è
@@ -74,6 +78,16 @@ controllo** (dove il cambiamento NON deve arrivare) e una **controprova**
 (rimettere il valore vecchio e guardare cadere le asserzioni), sennò un verde
 non dice quale delle due cose è successa. Col dito si misura con `hasTouch`,
 sennò `pointer:coarse` non scatta.
+
+**E se la voce dice "serve il database vero"**: si fa un **branch Neon
+usa-e-getta** da `dev` (con `expiresAt`, così si cancella da sé), ci si semina
+quel che serve e si punta lì il `DATABASE_URL` di `npm run dev` — Next non
+sovrascrive una variabile già in `process.env`. È una copia isolata: scrivere,
+ruotare un token o rifare una riga non tocca nessun dato di nessuno, e cade
+l'ostacolo che teneva ferme queste voci. Vale ancora per le due che restano —
+l'atomicità del 409 con due schede e il 422 con una sessione vera — e la
+migrazione **non** va applicata al branch di prova, che se l'è già portata
+dietro da `dev`.
 
 ## SRD 5.2.1 in italiano (regole 2024)
 
@@ -1110,7 +1124,10 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
     stub tiene l'ETag = `revision` come la rotta vera, quindi si prova anche il
     304 e il caso "revisione avanzata, documento identico"; conta i giri
     (`{scaricati, invariati}`), che dal DOM non si vedono — un tavolo aggiornato
-    e uno che riscarica dodici volte al minuto si disegnano uguali.
+    e uno che riscarica dodici volte al minuto si disegnano uguali. Dal 31 lug
+    2026 lo scrive anche nel **formato** della rotta (`"r1"`, virgolette
+    comprese) e non come numero nudo: al client non cambia niente, ma "come la
+    rotta vera" o è vero o non va scritto.
   - **Il numero di build di Chromium non è scritto a mano**: si prende il più
     recente dalla cache di Playwright, sennò la fixture muore al primo
     aggiornamento con un errore che parla di un file mancante e non del perché.
@@ -2279,11 +2296,53 @@ Cosa **resta** da fare, misurato:
     qualcosa. Il passaggio dell'`ETag` e del 304 attraverso Next è stato provato
     con una rotta usa-e-getta (200 con l'ETag, 304 con `If-None-Match` giusto,
     200 con quello sbagliato), poi rimossa.
-  - **Non verificato contro il database vero**: su Neon `dev` non c'è una
-    campagna con `share_token`, e crearne una è una scrittura sui dati di
-    qualcun altro. Da fare alla prima apertura di un tavolo vero: aprire il
-    tavolo dal dialogo di condivisione e guardare il pannello di rete —
-    ci si aspetta un 200 e poi tutti 304, e un 200 a ogni salvataggio del DM.
+  - **Verificato contro il database vero** (31 lug 2026, 15/15). L'ostacolo
+    annotato — «crearne una è una scrittura sui dati di qualcun altro» — non
+    era l'ostacolo giusto: su Neon un **branch usa-e-getta** è una copia
+    isolata di `dev`, quindi la campagna con `share_token` si semina lì e non
+    tocca niente. `npm run dev` col `DATABASE_URL` del branch, il tavolo
+    aperto in Chromium, e le risposte contate dal `page.on("response")`.
+    - Quel che si è visto: **tre giri, `200 304 304`**, ETag `"r1"` forte;
+      il DM salva (`data` nuovo e `revision+1`) e arriva un 200 con `"r2"` e
+      la tela ridisegnata; il giro dopo torna 304 sulla revisione nuova; una
+      revisione toccata **senza** cambiare il documento dà il 200 dichiarato
+      e il confronto del client evita il ridisegno; il token ruotato dà 404 e
+      il tavolo scrive "Il DM ha chiuso il tavolo".
+    - **I giri sono tre e non quattro**, e dice una cosa: il caricamento
+      della pagina non fa nessuna fetch — il ponte è già nell'HTML — quindi
+      il primo 200 È il primo colpo di polling, non un doppione.
+    - **Controprova**: rimessa la rotta com'era prima del 29 lug (senza il
+      ramo 304) cadono **esattamente le due asserzioni sui 304** e le altre
+      tredici restano verdi. È il verso giusto: le tredici sono il gruppo di
+      controllo, non stavano misurando l'ETag.
+    - La verifica va scritta **idempotente**: al primo giro passava, al
+      secondo no — la revisione era rimasta dove l'aveva lasciata e il
+      documento era già quello riscritto, cioè misurava sé stessa. Ora si
+      riporta la riga alla base prima di guardarla.
+    - Trovato per strada e corretto: `serviTavolo` nella fixture emetteva
+      l'ETag come **numero nudo** (`1`) mentre la rotta scrive `"r1"`. Al
+      client non cambia niente (rimanda indietro quel che riceve), ma una
+      fixture che dichiara "come nella rotta vera" e ne emette un'altra è la
+      deriva che quel file esiste per non avere.
+    - Trovato per strada e corretto: **il confronto di `If-None-Match` era
+      forte**, e RFC 9110 §13.1.2 lo vuole debole. Vedi la voce qui sotto.
+- [x] **`If-None-Match` confrontato con `===`** — fatto (31 lug 2026), scoperto
+  dalla verifica qui sopra. Un ETag forte chiunque stia in mezzo ha il permesso
+  di indebolirlo, e `W/"r5" === "r5"` è falso: la rotta avrebbe risposto 200 per
+  sempre, il polling sarebbe tornato a scaricare tutto e **nessuno se ne sarebbe
+  accorto**, perché il tavolo funziona lo stesso. È l'unico guasto di quella
+  rotta che non si vede.
+  - **Prima di correggere, misurato**: `/themes.css` in produzione con e senza
+    brotli torna lo **stesso** ETag, quindi l'edge di Vercel non indebolisce
+    niente e il caso oggi non capita. Il confronto debole (`stessaRevisione`)
+    non ripara un guasto: toglie la dipendenza da quella misura, e costa niente
+    perché l'ETag *è* la revisione — "stessa revisione indebolita" resta stessa
+    revisione.
+  - Provato con curl: forte identico → 304, `W/` → 304, dentro un elenco
+    separato da virgole → 304; revisione diversa, header vuoto e spazzatura →
+    200. Il jolly `*` resta un 200 ed è voluto: nessun client lo manda in un
+    polling, e farlo rispondere 304 vorrebbe dire chiudere un giro senza corpo
+    a chi il documento non l'ha mai ricevuto.
 - [x] **`#battle-bar` fisso a 216px senza variante mobile** — fatto (29 lug
   2026). La voce diceva "copre il 60% della tela". Rimisurato **col dito
   emulato** — che è il punto: senza `hasTouch` la media query `pointer:coarse`
