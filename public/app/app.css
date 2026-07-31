@@ -393,6 +393,9 @@
   html.ro .pal-title,
   html.ro .pal-item,
   html.ro .pal-sep{display:none}
+  /* Al tavolo la palette non c'è: senza questo il suo contenitore resta, e su
+     telefono `flex:1 0 100%` gli fa occupare una riga vuota sopra i comandi. */
+  html.ro #pal-scroll{display:none}
   html.ro #plan-toolbar{justify-content:flex-end}
 
   .only-dm{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);
@@ -420,6 +423,12 @@
     user-select:none; -webkit-user-select:none;
   }
   #plan-toolbar{display:flex;gap:8px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  /* I due contenitori della barra NON esistono su scrivania: display:contents
+     li scioglie, quindi pastiglie e bottoni restano figli diretti di
+     #plan-toolbar e vanno a capo tutti insieme come hanno sempre fatto.
+     Servono solo al telefono, dove diventano due strisce che scorrono
+     separatamente (vedi la media query a max-width:760px). */
+  #pal-scroll, #plan-cmds{display:contents}
   .pal-title{font-size:12px;color:var(--ink-dim);letter-spacing:.06em;text-transform:uppercase}
   .pal-sep{flex:1}
   /* 7px 10px = la ricetta chip dei menu (#ctx-menu, #qs-results) */
@@ -867,10 +876,37 @@
     .tabs button{padding:6px 10px;font-size:13px}
     #quick-search{width:110px}
 
-    /* palette scorrevole in orizzontale */
-    #plan-toolbar{overflow-x:auto;flex-wrap:nowrap;padding:8px 10px;scrollbar-width:none}
-    #plan-toolbar::-webkit-scrollbar{display:none}
-    .pal-item{flex:none}
+    /* DUE strisce, non una. La palette è roba da posare e i comandi agiscono
+       sulla vista: mescolarli in un unico scorrimento metteva Adatta, righello,
+       aree d'effetto e ⚔ Combattimento oltre il 1890° pixel di una barra larga
+       390 — cioè cinque schermate di palette per accendere il combattimento, e
+       per quattro di loro non esiste un'altra via su telefono (F, R e A sono
+       tasti, e un telefono non ne ha). Costa una riga in verticale: è la stessa
+       scelta della fascia d'iniziativa, dove l'altezza è l'unica delle due
+       dimensioni che si può limitare senza troncare niente. */
+    #plan-toolbar{flex-wrap:wrap;padding:8px 10px;row-gap:6px}
+    #pal-scroll, #plan-cmds{
+      display:flex;align-items:center;gap:8px;flex:1 0 100%;
+      overflow-x:auto;scrollbar-width:none;
+    }
+    #pal-scroll::-webkit-scrollbar, #plan-cmds::-webkit-scrollbar{display:none}
+    /* Niente si restringe. `.pal-item` aveva già `flex:none`, i bottoni no:
+       dentro un contenitore che non va a capo venivano schiacciati fino a
+       `min-width:44px` e la loro etichetta finiva FUORI dal bordo — bersaglio
+       da 44px, scritta da 100, e toccare la parola "Combattimento" non faceva
+       niente. È il rovescio della regola dei 44px: lì il bersaglio era troppo
+       piccolo, qui è più piccolo di quel che si vede. */
+    .pal-item, #plan-cmds .btn, #map-tools .btn{flex:none}
+    #map-tools{flex:none}
+    /* ＋ e － se ne vanno, e sono gli unici due comandi che si possono togliere:
+       lo zoom su un touch si fa a pizzico (planDrag mode "pinch", mappa.js), e
+       con la rotella dove c'è un mouse. Duplicavano un gesto nativo prendendosi
+       104px dei 604 della striscia — cioè lo spazio che serviva agli altri, che
+       un gesto equivalente non ce l'hanno. Chi resta si vede tutto o quasi. */
+    #plan-cmds .btn.zoom{display:none}
+    /* Lo spaziatore separava palette e comandi su una riga sola: ora a
+       separarli è la riga, e da flex item si prenderebbe tutto lo spazio. */
+    .pal-sep{display:none}
     #plan-hint{display:none}
     #plan-wrap *{-webkit-touch-callout:none}
 
@@ -958,11 +994,22 @@
     .tabs button{padding:6px 10px;font-size:13px}
     #quick-search{width:110px}
     #crumbs{padding:4px 12px}
-    /* Una riga sola scorrevole: è la ricetta di ≤760px, e qui è LA correzione —
-       una palette che va a capo su uno schermo basso non lascia tela. */
-    #plan-toolbar{overflow-x:auto;flex-wrap:nowrap;padding:6px 10px;scrollbar-width:none}
-    #plan-toolbar::-webkit-scrollbar{display:none}
-    .pal-item{flex:none}
+    /* Righe scorrevoli invece di una barra che va a capo: è la ricetta di
+       ≤760px, e qui è LA correzione — una palette che va a capo su uno schermo
+       basso non lascia tela. Le righe però sono DUE, palette e comandi, per la
+       stessa ragione di ≤760px: mescolarli mette ⚔ Combattimento in fondo a
+       tutto. La seconda riga costa verticale su uno schermo che ne ha poco, ed
+       è coerente con la regola di questo blocco — «taglia spazio, mai
+       comandi»: un comando irraggiungibile è tagliato, non risparmiato. */
+    #plan-toolbar{flex-wrap:wrap;padding:6px 10px;row-gap:4px}
+    #pal-scroll, #plan-cmds{
+      display:flex;align-items:center;gap:8px;flex:1 0 100%;
+      overflow-x:auto;scrollbar-width:none;
+    }
+    #pal-scroll::-webkit-scrollbar, #plan-cmds::-webkit-scrollbar{display:none}
+    .pal-item, #plan-cmds .btn, #map-tools .btn, #map-tools{flex:none}
+    #plan-cmds .btn.zoom{display:none}   /* si fa a pizzico, vedi ≤760px */
+    .pal-sep{display:none}
     #plan-hint{display:none}
   }
   /* Il pannello è largo 440px fissi, e su un telefono coricato quelli sono

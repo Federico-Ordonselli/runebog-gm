@@ -105,6 +105,14 @@
              Le forme e i colori vengono da SHAPES/SHAPE_COLORS in modello.js —
              qui vanno tenuti allineati a mano, ma la palette del livello vuoto
              (emptyNodeMarkup in mappa.js) li genera da lì. -->
+        <!-- Due contenitori e non uno: la palette è roba da POSARE, i comandi
+             qui sotto agiscono sulla vista e sulla sessione. Su scrivania la
+             distinzione non serve (ci sta tutto e la barra va a capo da sé) e
+             infatti lì sono `display:contents`, cioè non esistono; su telefono
+             sono due strisce che scorrono separatamente, sennò per arrivare a
+             ⚔ Combattimento si scorrono cinque schermate di palette. Stessa
+             ragione di `.ini-actions` nel tabellone d'iniziativa. -->
+        <div id="pal-scroll">
         <span class="pal-title">Territorio:</span>
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"mondo"}'><svg width="20" height="18" aria-hidden="true"><circle cx="9" cy="9" r="7.5" fill="none" style="stroke:var(--fen)" stroke-width="2"/><ellipse cx="9" cy="9" rx="3" ry="7.5" fill="none" style="stroke:var(--fen)" stroke-width="1.5"/></svg>Mondo</div>
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"continente"}'><svg width="22" height="18" aria-hidden="true"><path transform="translate(2,2)" d="M18.0,7.0C18.0,8.0 16.5,9.1 15.7,10.0C14.9,11.0 14.3,12.0 13.2,12.6C12.1,13.3 10.3,14.1 9.0,14.0C7.7,13.9 6.6,12.5 5.4,11.8C4.2,11.2 2.5,11.1 1.6,10.3C0.7,9.5 -0.1,8.1 0.0,7.0C0.1,5.9 1.2,4.7 2.1,3.9C3.1,3.1 4.3,2.9 5.5,2.3C6.6,1.6 7.7,0.1 9.0,0.0C10.3,-0.1 12.0,0.8 13.1,1.4C14.2,2.1 14.7,3.1 15.6,4.1C16.4,5.0 18.0,6.0 18.0,7.0Z" fill="none" style="stroke:var(--fen)" stroke-width="2"/></svg>Continente</div>
@@ -130,9 +138,12 @@
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"marker":"png"}'><span class="type-badge" style="background:var(--viola)"></span>PNG</div>
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"marker":"nota"}'><span class="type-badge" style="background:var(--grigio)"></span>Nota</div>
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"marker":"token"}'><span class="type-badge" style="background:var(--ink)"></span>Token</div>
+        </div><!-- /#pal-scroll -->
         <span class="pal-sep"></span>
-        <button class="btn" onclick="planZoom(1.25)">＋</button>
-        <button class="btn" onclick="planZoom(0.8)">－</button>
+        <div id="plan-cmds">
+        <!-- .zoom: su telefono spariscono, perché lì lo zoom si fa a pizzico -->
+        <button class="btn zoom" onclick="planZoom(1.25)">＋</button>
+        <button class="btn zoom" onclick="planZoom(0.8)">－</button>
         <button class="btn dm-only" onclick="arrangeGrid()" title="Dispone le bolle in griglia allineata">Ordina</button>
         <button class="btn" onclick="planFit(true)">Adatta</button>
         <!-- Ancora unica degli strumenti temporanei della mappa (righello e simili):
@@ -142,6 +153,7 @@
         <span id="map-tools" aria-label="Strumenti della mappa"></span>
         <button class="btn dm-only" id="battle-btn" onclick="toggleBattle()"
           title="Griglia rigida (1 quadretto = 1,5 m), pedine e ordine d'iniziativa su questo livello">⚔ Combattimento</button>
+        </div><!-- /#plan-cmds -->
       </div>
       <div id="plan-wrap">
         <svg id="plan-svg" xmlns="http://www.w3.org/2000/svg"></svg>

@@ -62,11 +62,10 @@ invarianti critici".
 Minori, già annotati al loro posto:
 `nodeBox` dà 30×30 a ogni segnalino ma il disco della pedina ne misura 32, un
 pixel fra centro geometrico e centro disegnato (per questo `markerR` è una
-funzione); il sito non ha condizioni d'uso proprie; **su telefono Adatta,
-Righello, Aree d'effetto e Combattimento stanno oltre il 1890° pixel di una
-barra larga 390 e non hanno un altro ingresso** (in "La scala della campagna",
-rimisurato il 31 lug: il difetto non è la palette lunga, sono i comandi che ne
-condividono lo scorrimento); un
+funzione); il sito non ha condizioni d'uso proprie; la palette su telefono si
+vede al 16% (2 voci su 16) — i **comandi** invece sono usciti dal suo
+scorrimento il 31 lug ed è la parte che era rotta davvero, vedi "La scala della
+campagna"; un
 titolo lungo sborda in orizzontale da una bolla piccola, che è troncamento del
 testo e non geometria della forma (idem); le rifiniture della sezione regole in
 fondo alla sua sezione.
@@ -1918,9 +1917,9 @@ possibilità di salire **sopra** la radice, che si fissava alla creazione.
 
 Cosa **resta** da fare, misurato:
 
-- **La barra della palette su telefono** — rimisurata il 31 lug 2026, col dito
-  emulato, e **la misura ha spostato il difetto**: non è la palette a essere
-  lunga, sono i **comandi a condividere il suo scorrimento**.
+- [x] **La barra della palette su telefono** — rimisurata e **fatta** il 31 lug
+  2026, col dito emulato, e **la misura ha spostato il difetto**: non è la
+  palette a essere lunga, sono i **comandi a condividere il suo scorrimento**.
   - I numeri, a 390×844: `#plan-toolbar` è largo 390px su **2368px** di
     contenuto, cioè se ne vede il **16%** — non "metà", come diceva questa voce
     — e le voci raggiungibili senza scorrere sono **2 su 16** (Mondo e
@@ -1954,9 +1953,55 @@ Cosa **resta** da fare, misurato:
     battaglia, non del turno". Costa un contenitore in `app.html` attorno alla
     sola palette, quindi non è CSS puro e va guardata su scrivania, dove oggi
     tutto va a capo insieme in tre righe.
-  - Da decidere quale, prima di scrivere: le due cose (comandi fuori, e poi
-    eventualmente palette per gruppi) sono indipendenti e la prima è quella che
-    toglie un difetto funzionale invece di accorciare uno scorrimento.
+  - **Fatta la separazione** (`#pal-scroll` e `#plan-cmds` in `app.html`, le due
+    media query in `app.css`). Su scrivania i due contenitori sono
+    `display:contents`, cioè **non esistono**: pastiglie e bottoni restano figli
+    diretti di `#plan-toolbar` e vanno a capo tutti insieme come prima. Su
+    telefono diventano due strisce che scorrono per conto loro.
+    - **Un difetto peggiore trovato disegnando la correzione**: `.pal-item`
+      aveva `flex:none`, i **bottoni no**, quindi dentro un contenitore che non
+      va a capo venivano schiacciati fino a `min-width:44px` e l'etichetta
+      finiva **fuori** dal bordo — bersaglio da 44px, scritta da ~100, e
+      toccare la parola "Combattimento" non faceva niente. È il rovescio della
+      regola dei 44px: lì il bersaglio è troppo piccolo, qui è più piccolo di
+      quel che si vede. Il conto dei 2368px era quindi già coi bottoni
+      compressi: a decomprimerli la striscia si allungava ancora.
+    - **＋ e － spariscono su telefono** (`.btn.zoom`), e sono gli unici due che
+      si potevano togliere: lo zoom su un touch si fa a pizzico (`planDrag`
+      mode `"pinch"`, `mappa.js:1054`) e con la rotella dove c'è un mouse.
+      Duplicavano un gesto nativo prendendosi 104px dei 604 della striscia,
+      cioè lo spazio che serviva a chi un gesto equivalente non ce l'ha.
+    - **Al tavolo il contenitore della palette sparisce** (`html.ro
+      #pal-scroll`): lì le pastiglie sono già nascoste una per una, e senza
+      quella riga il contenitore vuoto si prendeva una riga da `flex:1 0 100%`.
+      Misurato: barra 61px e tela 631px al tavolo, contro 111/577 in vista DM.
+    - **Il bersaglio non è "tutti i comandi visibili"**: sette non stanno in
+      390px senza rimpicciolirli, e rimpicciolirli è il difetto di partenza. È
+      "tutti a **una** passata di dito", e i numeri sono questi:
+
+      | | prima | dopo |
+      |---|---|---|
+      | dov'è ⚔ Combattimento | pixel **2266** di 2368 | pixel **370** di 500 |
+      | larghezza da scorrere per i comandi | 6,1 schermate | **1,4** (1,0 coricato) |
+      | comandi visibili senza scorrere | 0 su 7 | **4 su 5** (3 a 375px) |
+      | etichette fuori dal loro bersaglio | 3 | **0** |
+      | barra / tela a 390×844 | 74 / 614px | 111 / 577px |
+
+    - **Costa 37px di tela**, ed è la stessa scelta della fascia d'iniziativa:
+      l'altezza è l'unica delle due dimensioni limitabile senza troncare niente.
+      Vale anche nel blocco `max-height:480px`, che dichiara «taglia spazio, mai
+      comandi» — un comando irraggiungibile è tagliato, non risparmiato.
+    - **Verifica** (scratchpad, buttata): 18 controlli su quattro schermi, con
+      la **scrivania come gruppo di controllo** — barra 183px e tela 619px
+      identiche prima e dopo, verificato con `git stash` e ricontrollato dopo il
+      `pop`. Più `npx tsc --noEmit`, `npm test` (99) e l'autoverifica della
+      fixture (13/13).
+  - **Resta la palette**, che è indipendente: 16% visibile, 2 voci su 16. Le tre
+    strade sopra restano valide, e "un gruppo per volta" (516px, 1,3 schermate)
+    è l'unica che cambia ordine di grandezza. Due opzioni scartate e perché, per
+    non riproporle: **icone senza parole** rompe cinque segnalini che hanno per
+    icona un quadratino colorato, e **riordinare con `order` in CSS** sfasa
+    l'ordine visivo da quello del DOM, cioè da quello di lettura e di Tab.
 - **Le icone della palette in `app.html` restano scritte a mano** e vanno
   allineate a occhio a `silhouetteForma`: sono markup statico, non generato.
   Oggi combaciano (la costa è il `path` generato dalla funzione stessa per un

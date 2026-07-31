@@ -1302,6 +1302,30 @@ Non negoziabili; se tocchi queste aree, mantienili:
   serve a non ribaltarla. Chi aggiunge un comando **misuri col dito emulato**
   (`hasTouch` in Playwright): senza, `pointer:coarse` non scatta e si misura un
   telefono che non esiste.
+  - **Il rovescio della regola: un bersaglio più piccolo di quel che si vede**
+    (31 lug 2026). In una striscia che non va a capo i figli si restringono per
+    difetto, e un bottone schiacciato a `min-width:44px` tiene la sua etichetta
+    **fuori** dal bordo: 44px di bersaglio sotto ~100px di scritta, cioè toccare
+    la parola non fa niente. `.pal-item` aveva `flex:none`, i bottoni della
+    barra no. Chi mette un comando dentro un contenitore `flex-wrap:nowrap` gli
+    dia `flex:none`, sennò i 44px sono veri e inutili.
+- **La barra della mappa sono DUE strisce su telefono** (`#pal-scroll` e
+  `#plan-cmds` in `app.html`, 31 lug 2026): la palette è roba da **posare**, i
+  comandi (Ordina, Adatta, righello, aree d'effetto, ⚔ Combattimento) agiscono
+  su vista e sessione. Mescolati in un unico scorrimento, ⚔ Combattimento
+  stava al **pixel 2266** di una barra larga 390 — cinque schermate di palette —
+  e per quattro di quei comandi su telefono non esiste un'altra via, perché le
+  loro alternative sono i tasti F, R e A. Ora sono a 1,4 schermate.
+  - Su scrivania i due contenitori sono **`display:contents`**, cioè non
+    esistono: i figli restano diretti e la barra va a capo come sempre. È il
+    modo di aggiungere una struttura che serve a un solo gradino senza toccare
+    gli altri — verificato che altezza e tela restino identiche.
+  - `＋` e `－` **spariscono su telefono** (`.btn.zoom`): lo zoom si fa a
+    pizzico (`planDrag` mode `"pinch"`) e con la rotella. Sono gli unici due
+    comandi con un gesto equivalente, quindi gli unici togliibili.
+  - Al tavolo `#pal-scroll` va nascosto a parte (`html.ro`): le pastiglie sono
+    già nascoste una per una, ma il contenitore vuoto si prende comunque la sua
+    riga da `flex:1 0 100%`.
   L'eccezione vera sono i **link dentro la prosa**, che WCAG 2.5.8 esenta e che
   a 44px spezzerebbero l'interlinea delle pagine SRD. Un **elenco di nomi in
   colonna** però non è un link in linea: `.srd-nomi` (fino a 331 voci, il
