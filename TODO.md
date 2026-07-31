@@ -990,9 +990,30 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
     in base64, un gradiente 38 KB e del rumore pieno 1,55 MB — cioè **da 264
     immagini a due** dentro lo stesso tetto. Misurato con `sharp` su contenuti
     sintetici, che **non è l'encoder di Chrome**: dice l'ordine di grandezza e
-    soprattutto la dispersione, non il numero dell'app. Il numero vero si prende
-    in Chromium passando una mappa vera per `compressImage`, ed è la prima cosa
-    da fare se questa voce si apre.
+    soprattutto la dispersione, non il numero dell'app.
+  - **Rifatta in Chromium** (31 lug 2026), chiamando `compressImage` di
+    `pannello.js` — la funzione spedita, l'encoder vero — su tre immagini da
+    2400px che coprono le famiglie di contenuto vere: una mappa disegnata
+    (regioni piatte e linee), una battlemap su pergamena (le stesse regioni più
+    una texture su tutta la superficie), uno scan a dettaglio fitto.
+
+    | famiglia | in base64 | ne stanno nel documento |
+    |---|---|---|
+    | mappa disegnata | 153 KB | 26 |
+    | battlemap su pergamena | **607 KB** | **6** |
+    | scan / fotografia | 931 KB | 4 |
+
+    Tre cose che la misura col solo `sharp` non poteva dire:
+    - **Chrome codifica più pesante di sharp**: −2% sul piatto ma **+16/+18%**
+      su tutto ciò che ha texture. I numeri del 30 lug **sottostimavano** il
+      caso normale, che è appunto quello con la texture.
+    - **La dispersione vera è ×7, non ×132.** Fra due contenuti *plausibili* si
+      passa da 26 immagini a 4; il ×132 veniva dagli estremi sintetici (un
+      riquadro a tinta unita e del rumore puro), che nessuno carica.
+    - **Il caso normale è ~6 immagini**, e questo cambia la riga "non è urgente"
+      qui sotto: il tetto non lo si tocca solo per sbaglio: lo si tocca con
+      **sei battlemap**, che è una campagna piccola. La riga resta perché
+      nessuno l'ha segnalato, non perché il tetto sia lontano.
   - **Il costo peggiore non è il salvataggio: è l'apertura.** `/play/[id]`
     inietta il documento intero dentro l'HTML e risponde `private, no-store`
     (`src/app/play/[id]/route.ts:33`), per una ragione che resta valida — una
@@ -1003,12 +1024,25 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
 
   **I cinque confini da decidere PRIMA di scrivere una riga.** Il primo non è un
   dettaglio di implementazione: è la domanda che decide lo schema.
-  1. **L'export smette di essere autosufficiente.** Oggi il JSON esportato
-     contiene le immagini, quindi è portabile, ri-importabile ovunque e regge
-     anche standalone su `localStorage`. Con le immagini fuori, o l'export porta
-     URL (che scadono, o vogliono un'autenticazione che un file non ha) oppure
-     le re-incorpora al momento dell'export — e allora è l'import a dover
-     saperle ricaricare. Le due strade danno due formati diversi.
+  1. ~~**L'export smette di essere autosufficiente.**~~ **Deciso il 31 lug
+     2026: l'export resta autosufficiente**, cioè le immagini si
+     **re-incorporano in base64 al momento dell'esporta**. Un file di campagna
+     continua ad aprirsi ovunque — su un altro computer, standalone, fra un
+     anno — e questa è la proprietà che non si baratta: un export che rimanda a
+     un server è un backup che scade, e un backup che scade non è un backup.
+     Cosa ne discende, e va tenuto:
+     - **La forma del documento esportato non cambia**, quindi nemmeno il suo
+       `schemaVersion`: quel che cambia è dove le immagini stanno **a riposo**
+       (nel JSONB e in `localStorage`), non cosa c'è nel file. Un lettore di
+       oggi apre un export di domani.
+     - **L'esporta diventa un'operazione di rete**, e prima non lo era: deve
+       riscaricare ogni immagine per rimetterla dentro. Vuole quindi un suo
+       stato di avanzamento e un suo modo di fallire — offline, oppure
+       un'immagine che non c'è più — e "fallire" qui non può voler dire
+       scrivere un file a cui mancano delle figure senza dirlo.
+     - **L'import deve accettare entrambe le forme** (`data:` e `https://`),
+       che è già vero per `safeUrl` ma non per chi le legge: un import con URL
+       è quel che si ottiene copiando il JSONB a mano, e non deve rompersi.
   2. **`safeUrl` accetta già `https://`** (`modello.js:450-455`, `share.ts:100`,
      e la whitelist del contratto a `formato-campagna.js:312`, che deve restare
      almeno stretta quanto le altre due): un URL esterno non è un campo nuovo e
@@ -1028,10 +1062,13 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
      supporta blob privati, ma è la prima dipendenza di storage oltre a Neon e
      ha un costo. Da decidere insieme al punto 1, non dopo.
 
-  **Non è urgente**: nessuno ha segnalato di aver sbattuto contro i 4 MB, e la
-  lettura tollerante non ha niente da temere. Vale come lavoro il giorno in cui
-  una campagna vera si avvicina al tetto — ed è l'unica voce rimasta che tolga
-  un limite invece di rifinire.
+  **Non è urgente, ma il tetto è più vicino di così**: nessuno ha segnalato di
+  aver sbattuto contro i 4 MB e la lettura tollerante non ha niente da temere,
+  però la misura in Chromium dice che a riempire il documento bastano **sei
+  battlemap** — non "una campagna enorme". Restano da decidere i confini 3, 4 e
+  5 (chi cancella, l'autorizzazione al tavolo, dove si tiene il blob); il primo
+  è deciso e i suoi effetti stanno lì sopra. È l'unica voce rimasta che tolga un
+  limite invece di rifinire.
 
 ## Formato del documento campagna
 
