@@ -5,7 +5,20 @@ import { and, eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { campaignErrorMessage, prepareCampaignDocument } from "@/lib/formato-campagna";
 
-const MAX_BYTES = 4 * 1024 * 1024; // limite body Vercel ~4.5MB: immagini enormi → storage esterno in v2
+/* Il tetto del corpo della PATCH. Nasceva dal limite di Vercel (~4,5 MB sui
+   corpi delle richieste), che nel frattempo è stato alzato a 100 MB: **non è
+   più imposto da fuori**, è una scelta di questo repo e va difesa come tale —
+   il documento passa da Neon, da localStorage (~5 MB per origine) e da un
+   parse, e nessuno dei tre gradisce un salto di due ordini di grandezza.
+   Chi un domani volesse alzarlo parta di lì e non dal limite della piattaforma.
+
+   Vale in SALITA. In discesa non c'è nessun controllo, in nessuna rotta di
+   lettura: a tenere sotto controllo il traffico è solo il fatto che sopra
+   questa soglia non ci si scrive. È un'implicazione, non una regola — e si
+   scioglie il giorno che le immagini escono dal JSON, perché allora un
+   documento minuscolo potrà puntare a decine di MB di figure (vedi "Immagini
+   fuori dal JSON" in TODO.md). */
+const MAX_BYTES = 4 * 1024 * 1024;
 
 // Lo stato di una campagna non va in nessuna cache condivisa: è privato, e una
 // copia stantia riletta dal browser rimetterebbe in circolo una revisione vecchia.

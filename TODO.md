@@ -980,8 +980,32 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
     (`sync-cloud.js:89`) viene rifiutata, l'app lo dichiara ("Solo in memoria —
     usa Esporta", `stato.js:566,652,673,687`): sono proprio le campagne più
     pesanti a restare senza rete di recupero.
-  - Il codice lo aveva già previsto: `src/app/api/campaigns/[id]/route.ts:8`
-    dice «immagini enormi → storage esterno in v2».
+  - Il codice lo aveva già previsto: `src/app/api/campaigns/[id]/route.ts`
+    diceva «immagini enormi → storage esterno in v2».
+
+  **I tetti stanno tutti in SALITA** (verificato il 31 lug 2026): `MAX_BYTES`
+  nella PATCH, `requestBytes`, `documentBytes` e `imageBytes` mordono sulla
+  scrittura o su cosa si conserva. **In discesa non c'è nessun controllo** —
+  né `GET /api/tavolo/[token]`, né `/tavolo/[token]`, né `/play/[id]` guardano
+  quanto stanno spedendo: servono quel che trovano nella riga.
+  - A tenere sotto controllo il traffico è solo il fatto che **sopra i 4 MB non
+    ci si scrive**, quindi sopra i 4 MB non ci si legge. È un'implicazione, non
+    una regola, e questo lavoro **la scioglie**: un documento da 48 KB potrà
+    puntare a quaranta figure da 600 KB, cioè 24 MB per apertura, passando la
+    validazione senza fatica. Il limite non va spostato, va **sostituito** — e
+    la sostituzione non è un numero più grande sul documento: è che le immagini
+    diventano risorse a sé, quindi memorizzabili in cache e scaricate una volta
+    invece che a ogni apertura. È il guadagno vero, e **il confine 4 può
+    mangiarselo**: se le immagini condivise finiscono dietro un'autorizzazione
+    tornano non memorizzabili, e si è pagato lo schema senza incassare niente.
+  - **I 4 MB non sono più imposti da Vercel.** Il commento accanto a
+    `MAX_BYTES` li spiegava col limite della piattaforma sui corpi delle
+    richieste (~4,5 MB), che nel frattempo è stato alzato a 100 MB: sono una
+    scelta di questo repo — Neon, i ~5 MB per origine di `localStorage`, il
+    tempo di parse — e vanno difesi come tale. Corretto il 31 lug 2026, perché
+    chi un domani discute quel numero deve partire dal motivo giusto. Il limite
+    sul lato **risposta** non è stato verificato: la documentazione non lo
+    restituisce, e non lo si dichiara per sentito dire.
 
   **Cosa ha aggiunto la misura**, e sono due cose:
   - **Quante immagini ci stiano in una campagna non è prevedibile.** Il base64
