@@ -62,8 +62,11 @@ invarianti critici".
 Minori, già annotati al loro posto:
 `nodeBox` dà 30×30 a ogni segnalino ma il disco della pedina ne misura 32, un
 pixel fra centro geometrico e centro disegnato (per questo `markerR` è una
-funzione); il sito non ha condizioni d'uso proprie; la barra della palette è
-lunga 2368px di scroll a 390px di viewport (in "La scala della campagna"); un
+funzione); il sito non ha condizioni d'uso proprie; **su telefono Adatta,
+Righello, Aree d'effetto e Combattimento stanno oltre il 1890° pixel di una
+barra larga 390 e non hanno un altro ingresso** (in "La scala della campagna",
+rimisurato il 31 lug: il difetto non è la palette lunga, sono i comandi che ne
+condividono lo scorrimento); un
 titolo lungo sborda in orizzontale da una bolla piccola, che è troncamento del
 testo e non geometria della forma (idem); le rifiniture della sezione regole in
 fondo alla sua sezione.
@@ -1915,12 +1918,45 @@ possibilità di salire **sopra** la radice, che si fissava alla creazione.
 
 Cosa **resta** da fare, misurato:
 
-- **La barra della palette è più larga di prima**: 2368px di `scrollWidth` a
-  390px di viewport (erano ~1900). Il problema è preesistente e dichiarato in
-  `mappa.js` (sotto i 760px la scrollbar è nascosta, quindi metà palette è
-  invisibile), ma cinque territori l'hanno peggiorato di circa un quarto. Le
-  mitigazioni ci sono già — la palette del livello vuoto e il "tocca e poi
-  posa" — ma su telefono la barra andrebbe ripensata, non allungata ancora.
+- **La barra della palette su telefono** — rimisurata il 31 lug 2026, col dito
+  emulato, e **la misura ha spostato il difetto**: non è la palette a essere
+  lunga, sono i **comandi a condividere il suo scorrimento**.
+  - I numeri, a 390×844: `#plan-toolbar` è largo 390px su **2368px** di
+    contenuto, cioè se ne vede il **16%** — non "metà", come diceva questa voce
+    — e le voci raggiungibili senza scorrere sono **2 su 16** (Mondo e
+    Continente; la terza, Nazione, è tagliata a metà dal bordo). A 375px è
+    identico; coricato a 852×393 si sale al 21%, 3 su 16. Su scrivania la barra
+    va a capo e si vede tutta, quindi il difetto è solo del telefono.
+  - **Quel che c'è oltre il 1890° pixel non è palette**: `＋`, `－`, Ordina,
+    Adatta, il righello, le aree d'effetto e ⚔ Combattimento. Sono comandi
+    della vista e della sessione, non forme da posare, e stanno **in fondo** a
+    una striscia da sei schermate.
+  - **Quattro di quei comandi non hanno un secondo ingresso su telefono.**
+    `arrangeGrid` sta anche nel menu contestuale (`menu.js:131`) e lo zoom si
+    fa a pinza, ma **Adatta, Righello, Aree d'effetto e Combattimento** vivono
+    solo lì: le loro altre vie sono scorciatoie da tastiera (F, R, A), che su
+    un telefono non esistono. Cioè oggi la modalità combattimento, su un
+    telefono, si raggiunge solo scorrendo cinque schermate di palette.
+  - **Le tre strade, col loro costo misurato** (a 390px):
+    - *Togliere le parole dalle pastiglie*: 2368 → 1607px, dal 16% al 24%.
+      **Da scartare**, e non per il guadagno scarso: cinque segnalini (Quest,
+      Encounter, PNG, Nota, Token) hanno per icona un quadratino colorato, e
+      senza la parola resterebbero distinti dal **solo colore** — esattamente
+      la regola dei due canali che il tabellone d'iniziativa segue.
+    - *Due righe scorrevoli*: ~1184px, 3,0 schermate. Dimezza e basta.
+    - *Un gruppo per volta* (i quattro `pal-title` esistono già e su scrivania
+      sono già come la barra si legge): il gruppo più largo è Territorio con
+      **516px, 1,3 schermate**. È il solo che cambia ordine di grandezza.
+  - **La strada più corta però non è nessuna delle tre**: separare i comandi
+    dalla palette. Sono sei elementi, ci stanno tutti su una riga da 390px, e
+    la palette può continuare a scorrere per conto suo — è la stessa ricetta di
+    `.ini-actions`, dove "tira, metti in campo e chiudi sono comandi della
+    battaglia, non del turno". Costa un contenitore in `app.html` attorno alla
+    sola palette, quindi non è CSS puro e va guardata su scrivania, dove oggi
+    tutto va a capo insieme in tre righe.
+  - Da decidere quale, prima di scrivere: le due cose (comandi fuori, e poi
+    eventualmente palette per gruppi) sono indipendenti e la prima è quella che
+    toglie un difetto funzionale invece di accorciare uno scorrimento.
 - **Le icone della palette in `app.html` restano scritte a mano** e vanno
   allineate a occhio a `silhouetteForma`: sono markup statico, non generato.
   Oggi combaciano (la costa è il `path` generato dalla funzione stessa per un
