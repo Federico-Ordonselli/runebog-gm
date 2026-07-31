@@ -29,25 +29,72 @@ in `COPPIE`. La misura ha spostato il bersaglio — non era la pista contro il
 pannello ma il **riempimento contro la pista**, sotto 3:1 in sei casi su
 trentasei e proprio a pochi PF. Voce per esteso in fondo.
 
-Il 31 lug è chiuso anche **l'ETag del polling del tavolo**, che era il primo di
-questo elenco e sembrava bloccato: l'ostacolo annotato ("crearne una sarebbe
-scrivere sui dati di qualcun altro") si scioglie con un **branch Neon
-usa-e-getta**, che di `dev` è una copia isolata. 15/15 contro il database vero,
-e la verifica ha trovato per strada due cose che nessuna prova a mano avrebbe
-visto: l'ETag della fixture in un formato diverso da quello della rotta, e il
-confronto di `If-None-Match` fatto con `===` invece che debole — l'unico guasto
-di quella rotta che non si vede, perché il tavolo funziona lo stesso. Voci per
-esteso in "Sincronizzazione cloud".
+### Il 31 luglio 2026, in breve
+
+Tutto spinto su `main` (`9822310` → `c7b47f7`, quindi **pubblicato su
+runebog.app**), con `npx tsc --noEmit`, `npm test` (99) e `npm run build`
+puliti. Nessuna migrazione: lo schema non è stato toccato. Tre cose chiuse e
+due decise.
+
+- **L'ETag del polling del tavolo**, che era il primo di questo elenco e
+  sembrava bloccato: l'ostacolo annotato ("crearne una sarebbe scrivere sui
+  dati di qualcun altro") si scioglie con un **branch Neon usa-e-getta**, che
+  di `dev` è una copia isolata — la ricetta sta qui sotto, in "Come si
+  riprende una di queste voci", e vale per le altre due verifiche che
+  aspettano un database. 15/15 contro il database vero, e per strada sono
+  saltati fuori due difetti che nessuna prova a mano avrebbe visto: l'ETag
+  della fixture in un formato diverso da quello della rotta, e il confronto di
+  `If-None-Match` fatto con `===` invece che debole — **l'unico guasto di
+  quella rotta che non si vede**, perché il tavolo funziona lo stesso. Voci
+  per esteso in "Sincronizzazione cloud".
+- **I comandi della mappa fuori dallo scorrimento della palette**: su telefono
+  ⚔ Combattimento stava al pixel 2266 di una barra larga 390, e per quattro di
+  quei comandi non esiste un'altra via (le loro alternative sono i tasti F, R
+  e A). Anche qui la misura ha spostato il difetto — la voce parlava della
+  palette — e ha scoperto il caso peggiore: bottoni schiacciati a 44px con
+  l'etichetta **fuori** dal bersaglio. Voce per esteso in "La scala della
+  campagna".
+- **Le immagini rimisurate con l'encoder vero** (Chromium, non `sharp`): il
+  caso normale è ~6 battlemap per documento, non "una campagna enorme", e
+  Chrome codifica il 16–18% più pesante di `sharp` su tutto ciò che ha texture.
+- **Deciso: l'export resta autosufficiente** — le immagini si re-incorporano
+  in base64 all'esporta. È il primo dei cinque confini, quello che decideva lo
+  schema. Le tre conseguenze da tenere stanno nella voce.
+- **Deciso (misurato): i 4 MB non li impone più Vercel.** Restano una scelta
+  di questo repo, e valgono **solo in salita**.
+
+**Cosa aspetta una decisione tua**, e nessuna delle due blocca l'altra:
+1. I **confini 3, 4 e 5** delle immagini fuori dal JSON — chi cancella
+   un'immagine orfana, come si autorizza al tavolo, dove si tiene il blob. Il
+   quarto è quello che può mangiarsi il guadagno: immagini condivise dietro
+   un'autorizzazione tornano non memorizzabili in cache.
+2. La **palette** vera e propria: 16% visibile, 2 voci su 16. Tre strade con
+   il costo misurato nella voce, e due scartate con la ragione scritta, per
+   non riproporle.
+
+**Lasciato indietro di proposito**: il branch Neon `verifica-etag-tavolo`
+(`br-cool-pond-asg6ropd`), che scade da sé il 1º ago 2026 a mezzogiorno.
 
 Da qui in avanti, in ordine di consiglio:
 
-1. **Le immagini fuori dal JSON** — l'indagine è fatta (30 lug 2026, sezione
-   sua): scioglie insieme il tetto di 4 MB della PATCH e la quota di
-   `localStorage`, e alleggerisce ogni apertura dell'editor, che oggi
-   riscarica le immagini a ogni giro e non può metterle in cache. Non è
-   urgente e i cinque confini da decidere prima stanno lì — il primo, «l'export
-   smette di essere autosufficiente», decide lo schema e va risolto prima di
-   scrivere una riga.
+1. **Le immagini fuori dal JSON** — l'indagine è fatta (30 lug, rimisurata il
+   31, sezione sua): scioglie insieme il tetto di 4 MB della PATCH e la quota
+   di `localStorage`, e alleggerisce ogni apertura dell'editor, che oggi
+   riscarica le immagini a ogni giro e non può metterle in cache. **Il primo
+   confine è deciso** (l'export resta autosufficiente) e con lui lo schema:
+   restano il 3, il 4 e il 5. Il tetto è più vicino di quanto dicesse la voce —
+   ~6 battlemap riempiono un documento.
+
+2. **La palette su telefono** (in "La scala della campagna"): 16% visibile, 2
+   voci su 16. I comandi sono già usciti dal suo scorrimento il 31 lug, che era
+   la parte rotta davvero; questa è la parte che resta, e vuole una scelta fra
+   le tre strade misurate.
+
+3. **Due verifiche che ora si possono fare**, perché l'ostacolo era il database
+   e il branch usa-e-getta lo toglie (vedi "Come si riprende una di queste
+   voci"): l'**atomicità del 409** con due schede, e il **422** con una
+   sessione vera. Stanno in "Sincronizzazione cloud" e in "Formato del
+   documento campagna".
 
 La migrazione `0001_revisione-campagna` è applicata a **entrambi** i branch Neon
 (25 lug 2026: `dev` durante la verifica di P0.2, `production` prima del deploy,
@@ -62,13 +109,10 @@ invarianti critici".
 Minori, già annotati al loro posto:
 `nodeBox` dà 30×30 a ogni segnalino ma il disco della pedina ne misura 32, un
 pixel fra centro geometrico e centro disegnato (per questo `markerR` è una
-funzione); il sito non ha condizioni d'uso proprie; la palette su telefono si
-vede al 16% (2 voci su 16) — i **comandi** invece sono usciti dal suo
-scorrimento il 31 lug ed è la parte che era rotta davvero, vedi "La scala della
-campagna"; un
-titolo lungo sborda in orizzontale da una bolla piccola, che è troncamento del
-testo e non geometria della forma (idem); le rifiniture della sezione regole in
-fondo alla sua sezione.
+funzione); il sito non ha condizioni d'uso proprie; un titolo lungo sborda in
+orizzontale da una bolla piccola, che è troncamento del testo e non geometria
+della forma (in "La scala della campagna"); le rifiniture della sezione regole
+in fondo alla sua sezione.
 
 **Come si riprende una di queste voci** (vale per tutte, ed è il giro che le
 ultime tre hanno seguito): si **rimisura prima di correggere** — due volte su
