@@ -58,6 +58,8 @@ la resa di qualcosa che il server non manderebbe mai. `serviTavolo` risponde al
 polling senza database (ETag = `revision`, come la rotta) perché il ponte da
 solo lascia il tavolo "Offline" dopo cinque secondi. Si prova da sé con
 `node test/browser/verifica-fixture.mjs`, con `npm run dev` acceso.
+Accanto c'è `verifica-offline.mjs` (2 ago 2026), che invece vuole `npm run start`
+su un build di produzione — la ragione sta nella sezione "La copia offline".
 `test/browser/` **sta fuori da `npm test`**, che elenca le cartelle una per una:
 lì dentro girerebbero `playwright-core`, un binario Chromium e un dev server, e
 in CI romperebbe il typecheck-test-build di ogni push. Chi allarga quel glob
@@ -577,6 +579,64 @@ JSON — che viaggia tra export, cloud e tavolo, mentre queste dipendono dallo s
 si ha davanti. Entrambe sono gestite in `main.js`; la larghezza è la variabile CSS
 `--detail-w` su `:root`, così il clamp in `vw` resta al CSS, che segue i resize della
 finestra.
+
+**La copia offline** (`/sw.js`, 2 ago 2026): l'app offline lo era già — `/app.html`
+senza `window.__cloud` non fa una richiesta di rete dopo il caricamento, lo stato sta
+su `localStorage` e non c'è build né framework. Mancava solo che il browser tenesse
+i file. Un **service worker**, quindi, e non un pacchetto da scaricare: `main.js` è
+`type="module"` e da `file://` l'origine è opaca, cioè gli import ES cadono per CORS —
+un HTML scaricato si aprirebbe bianco, e farlo funzionare vorrebbe dire un bundler,
+cioè quel build che questo repo non ha di proposito (le versioni standalone sono
+state ritirate perché erano una seconda copia del sorgente).
+
+- **Il worker è generato, non scritto a mano.** `src/app/sw.js/route.ts` è
+  `force-static` — stesso mestiere e stesso trucco di rotta (il punto nel nome) di
+  `/srd/ancore.json`, quindi in produzione è un asset. Il corpo sta in
+  `src/lib/offline/sw-sorgente.js`, leggibile e diffabile; la rotta gli antepone solo
+  il `MANIFESTO`. Il motivo è tutto lì: in `public/` **non c'è build hashing**, quindi
+  una lista di file scritta a mano e una versione da alzare a mano restano indietro
+  **in silenzio** — l'utente inchiodato all'editor di tre deploy fa senza un modo di
+  accorgersene. La lista si legge dal disco, le pagine SRD si ricavano da
+  `tutteLeAncore()` (lo stesso registro della ricerca, che esiste proprio perché
+  quella mappa la decidono i divisori) e le due versioni sono **hash del contenuto**.
+- **Due livelli, e la differenza non è tecnica ma di costo.** L'editor (32 file,
+  225 KB gzip) si precarica **da sé** all'apertura di `/app.html`: chi è lì quei
+  file li ha appena scaricati tutti, quindi non aggiunge byte — un bottone lì sarebbe
+  un comando per riparare qualcosa che nasce storto. Le 61 pagine dell'SRD sono
+  1,3 MB e si **chiedono**, dal bottone in fondo a `/srd` che porta la misura scritta
+  sopra. Depositi separati: toccare `mappa.js` non deve far riscaricare il glossario.
+- **Solo in standalone** (`public/app/offline.js`): `/play/[id]` e `/tavolo/[token]`
+  servono questo stesso `app.html` con lo stato iniettato dentro l'HTML, e non
+  registrano niente. Installare da un link condiviso lascerebbe un worker sul telefono
+  di un giocatore per una cache che non lo riguarda.
+- **Invariante: `/play`, `/tavolo` e `/api` non entrano mai in cache** (`fuoriDallaCache`).
+  Lì non si risponde e non si ripiega: si lascia proprio fare al browser. Una copia di
+  `/play/[id]` è lo snapshot di una revisione vecchia servito come fresco; il tavolo è
+  per contratto `private, no-store`, un link segreto che non deve fermarsi da nessuna
+  parte; `/api` ha già il suo ETag su `revision`, e un secondo strato di cache è il
+  modo di farlo mentire. **Il verso in cui si sbaglia è dichiarato**: offline che non
+  funziona è un fastidio, offline che funziona con dati vecchi è una perdita silenziosa.
+- **Solo le navigazioni** entrano nel deposito delle regole (`req.mode === "navigate"`):
+  le pagine SRD sono Next, quindi lo stesso indirizzo viene chiesto anche come payload
+  RSC dal prefetch di un link, e servire un RSC dove il browser aspetta un documento è
+  una pagina bianca.
+- **L'aggiornamento delle regole si migra, non si azzera**, e la guardia è doppia. La
+  copia superata si butta **solo dopo** che la nuova è arrivata, sennò un deploy preso
+  con la rete che cade lascia il DM senza regole — cioè nella situazione per cui le
+  aveva scaricate. E la lettura passa da `caches.match` **senza nome**, che attraversa
+  tutti i depositi: leggendo solo dal corrente, quella regola avrebbe protetto dei byte
+  che nessuno legge. Il rovescio è dichiarato — senza rete si leggono regole di una
+  versione precedente, che per un testo fermo come l'SRD è meglio di un errore.
+- Si prova con `node test/browser/verifica-offline.mjs` e **`npm run start`, non
+  `npm run dev`**: in dev le pagine SRD si compilano su richiesta e scaricarne 61 va in
+  timeout, e `/sw.js` sarebbe una funzione invece dell'asset che si vuole provare. La
+  verifica finge un deploy cambiando l'**URL** dello script: `unregister()` +
+  `register()` con un client ancora controllato resuscita la registrazione invece di
+  installarne una nuova, l'`activate` non gira e la prova passerebbe guardando il
+  lavoro di prima.
+- Fuori restano login, campagne cloud, `/dungeon` (React con chunk hashati: precaricarlo
+  vorrebbe enumerare l'output del build) e i chunk di Next — le pagine SRD sono prosa
+  resa dal server e si leggono senza idratazione, ma la ricerca su `/srd` offline no.
 
 **Temi** (dodici, lug 2026): `public/themes.css` è la sorgente unica dei token
 colore, letta sia dal sito (link in `layout.tsx`) sia da `app.html`. I nomi sono

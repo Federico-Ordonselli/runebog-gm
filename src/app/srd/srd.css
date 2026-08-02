@@ -368,3 +368,18 @@ a.srd-cerca__esito:hover .srd-cerca__testo { color: var(--wisp-lit); }
 /* Nell'elenco completo il grado di sfida segue il nome: non va a capo da solo,
    sennò una colonna stretta lo stacca dalla creatura a cui appartiene. */
 .srd-mostri__gs { white-space: nowrap; }
+
+/* La riga «tieni le regole senza rete» in fondo all'indice. Sta su --edge e non
+   su --edge-ui: separa due zone della stessa superficie (l'elenco dei capitoli
+   dall'attribuzione), non delimita una cosa su cui si clicca — il bottone che
+   contiene il suo bordo ce l'ha già. Vedi la regola in CLAUDE.md: a decidere è
+   il ruolo, non il selettore. */
+.srd-offline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.6rem;
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--edge);
+}

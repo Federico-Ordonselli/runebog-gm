@@ -2,6 +2,7 @@ import { CAPITOLI } from "@/lib/srd";
 import { tuttiIMostri } from "@/lib/srd/mostri";
 import { Attribuzione } from "./attribuzione";
 import { CercaNelleRegole } from "./cerca";
+import { OffLineRegole } from "./offline-regole";
 import "./srd.css";
 
 export const metadata = {
@@ -80,6 +81,12 @@ export default function SrdPage() {
           </ul>
         </>
       )}
+
+      {/* Sotto l'elenco e non sotto la ricerca: è un servizio sulla sezione, non
+          un modo di consultarla, e sopra ruberebbe il posto alla cosa per cui
+          si è arrivati qui. Chi scorre fino in fondo l'ha già letto tutto —
+          cioè è esattamente chi può volersela portare al tavolo. */}
+      <OffLineRegole />
 
       <Attribuzione />
     </main>

@@ -6,6 +6,14 @@ Scritti per essere ripresi **a freddo**: ognuno dice dove si tocca e quale
 ostacolo è già stato misurato, così non si rifà l'indagine. L'ordine è di
 consiglio, non di vincolo. Le voci per esteso stanno nelle sezioni sotto.
 
+**Aperto adesso: la copia offline** (2 ago 2026). Il grosso è fatto, verificato
+e committato sul branch **`copia-offline`** (`9195128`), **non spinto**: `main`
+pubblica su runebog.app, quindi il push si chiede. Vedi "Il 2 agosto 2026, in
+breve" qui sotto per le **tre lacune già misurate**, in ordine di valore: (1) offline `runebog.app` non si apre, perché la copia sta su
+`/app.html` e la home vuole il database; (2) la ricerca su `/srd` regge solo
+finché il browser non sfratta i chunk di Next; (3) manca il manifesto per
+installarla a schermo intero, che è il caso d'uso vero — un tablet al tavolo.
+
 **L'audit del 28 lug 2026 (16/20) è chiuso per intero**: i tre P1, tutti i P2
 (bordi di componente il 28 lug; i due canali del tabellone d'iniziativa, il
 polling del tavolo, la fascia d'iniziativa e i bersagli da 44px il 29) e i due
@@ -28,6 +36,85 @@ le due barre, le fasce spostate dallo `style` inline al CSS e due coppie nuove
 in `COPPIE`. La misura ha spostato il bersaglio — non era la pista contro il
 pannello ma il **riempimento contro la pista**, sotto 3:1 in sei casi su
 trentasei e proprio a pochi PF. Voce per esteso in fondo.
+
+### Il 2 agosto 2026, in breve
+
+**La copia offline.** `npx tsc --noEmit`, `npm test` (99), `npm run build` e
+`npm run temi:contrasto` puliti; `node test/browser/verifica-offline.mjs` 19/19.
+Nessuna migrazione. Il ragionamento per esteso sta in CLAUDE.md, "La copia
+offline"; qui restano le cose che la misura ha spostato.
+
+> **Stato al 2 ago 2026: committato sul branch `copia-offline` (`9195128`), non
+> spinto.** Nuovi: `src/app/sw.js/route.ts`, `src/lib/offline/sw-sorgente.js`,
+> `public/app/offline.js`, `src/app/srd/offline-regole.tsx`,
+> `test/browser/verifica-offline.mjs`. Modificati: `public/app/main.js` (chiama
+> `initOffline` per ultimo), `public/app/menu.js` (la riga di stato nel menu ⋯),
+> `src/app/srd/page.tsx` e `src/app/srd/srd.css` (il bottone in fondo a /srd),
+> più CLAUDE.md e questo file.
+>
+> **La verifica vuole `npm run build && npm run start`, non `npm run dev`** — in
+> dev le pagine SRD si compilano su richiesta e scaricarne 61 va in timeout, e
+> `/sw.js` sarebbe una funzione invece dell'asset che si vuole provare. È la
+> trappola che costa mezz'ora se non la si sa.
+
+- **Il lavoro era molto meno di quanto sembrasse**: l'app offline lo era già —
+  `/app.html` in standalone non fa una richiesta di rete dopo il caricamento —
+  e mancava solo che il browser tenesse i file. Misurato: **225 KB gzip**
+  l'editor intero (32 file), **1,3 MB** le 61 pagine SRD.
+- **Il pacchetto da scaricare è stato provato e scartato**, e non per gusto: i
+  moduli ES da `file://` cadono per CORS (origine opaca), quindi un HTML
+  scaricato si apre bianco. Servirebbe un bundler, cioè il build che qui non
+  c'è.
+- **Due difetti trovati dalla prova, nessuno dei due visibile a occhio.**
+  «Le **0** pagine delle regole sono sul dispositivo»: `pagine` usciva solo
+  insieme a un deposito che ancora non esisteva, cioè mai prima di doverlo
+  scrivere — si vede una volta sola, la prima. E soprattutto: la copia vecchia
+  delle regole **sopravviveva senza essere letta**, perché la lettura andava al
+  solo deposito corrente. La guardia "non buttare finché la nuova non è
+  arrivata" proteggeva dei byte, non il DM. Corretto con `caches.match` senza
+  nome.
+- **Un deploy non si finge con `unregister()` + `register()`**: con un client
+  ancora controllato quella coppia resuscita la registrazione, l'`activate` non
+  gira e la verifica passa guardando il lavoro di prima (misurato: il deposito
+  dell'editor cancellato a mano non veniva mai ricreato). Si cambia l'**URL**
+  dello script.
+- **Resta fuori**: `/dungeon` (chunk hashati: precaricarlo vorrebbe enumerare
+  l'output del build) e l'installazione a schermo intero. Le tre lacune misurate
+  il 2 ago hanno una voce per esteso qui sotto.
+- **Da tenere d'occhio**: in offline puro `localStorage` è l'unica copia della
+  campagna, e con le immagini in base64 il tetto dei ~5 MB si sente prima del
+  limite di 4 MB del cloud.
+
+#### Le tre lacune della copia offline (misurate il 2 ago 2026)
+
+In ordine di valore. Tutte e tre misurate con `npm run start` e la rete
+staccata, quindi non c'è indagine da rifare.
+
+1. **La porta d'ingresso non c'è.** Chi ha `runebog.app` nei preferiti — o lo
+   digita — offline prende `ERR_INTERNET_DISCONNECTED`: `/` è la home del sito,
+   che vuole auth e database, e l'editor sta su `/app.html`. Cioè la copia
+   offline funziona solo per chi conosce l'indirizzo interno, che è il modo più
+   sciocco di sprecare un lavoro già fatto. Da fare: una pagina di ripiego
+   **cached** per le navigazioni fallite, che dica cosa c'è offline e porti a
+   `/app.html`. **Non** un redirect silenzioso: offline `/app.html` è lo
+   standalone su `localStorage`, cioè un'altra cosa dalle campagne cloud che quel
+   DM si aspetta di trovare — scambiarle senza dirlo sarebbe la perdita
+   silenziosa che tutto il resto di questo lavoro evita.
+2. **La ricerca su `/srd` muore quando il browser sfratta i chunk.** Misurato:
+   a cache HTTP calda si idrata e trova; svuotata la sola cache HTTP (Cache
+   Storage intatta, `Network.clearBrowserCache` via CDP) la pagina si legge
+   ancora — è prosa resa dal server — ma la ricerca dà **0 risultati**. Regge
+   quindi per fortuna e non per costruzione, che è il difetto peggiore perché
+   passa ogni prova. Da fare: `cache-first` a runtime su `/_next/static/*`
+   dentro il livello regole. Si può fare **solo a runtime e non nel manifesto**:
+   la rotta `/sw.js` gira *durante* il build e i chunk delle altre pagine non
+   esistono ancora. A runtime non c'è disallineamento di versione — quei nomi
+   sono hash del contenuto, quindi l'HTML in cache cita esattamente i chunk che
+   si sono presi.
+3. **L'installazione a schermo intero**: `manifest.webmanifest` più icone PNG
+   (oggi c'è solo `src/app/icon.svg`). È il passo che rende vero il caso d'uso —
+   un tablet al tavolo, in una cantina — invece di una scheda di browser con la
+   barra dell'indirizzo. Nessun ostacolo misurato: è lavoro dritto.
 
 ### Il 31 luglio 2026, in breve
 

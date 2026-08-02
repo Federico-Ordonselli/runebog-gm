@@ -7,6 +7,7 @@ import { st, currentNode, newCampaign, askDeleteCampaign, doUndo, doRedo, RO,
          selectNode, selectWall } from "./stato.js";
 import { openKeys } from "./viste.js";
 import { GRUPPI, TEMA_DEFAULT, temiDelGruppo } from "./temi.js";
+import { etichettaOffline } from "./offline.js";
 import { exportJSON } from "./esporta.js";
 import { childOf, enterNode, duplicateSelected, addSpatialChild, arrangeGrid,
          planPointXY, renderCanvas, wallOf, setWallDoor, deleteWallSeg } from "./mappa.js";
@@ -184,6 +185,14 @@ export function openTopbarMenu(ev){
       {id:"newc", label:"Nuova campagna", run:newCampaign},
       {id:"delc", label:"Elimina campagna…", danger:true, run:askDeleteCampaign});
   }
+  /* In fondo, e come `head`: è stato, non comando. La copia offline si installa
+     da sé (offline.js) — qui si dice soltanto che c'è, perché una funzione che
+     nessuno ha chiesto e nessuno vede è indistinguibile dal non averla. Non è
+     una voce premibile perché non c'è niente da premere, e un bottone che non
+     fa niente è peggio del silenzio. Se il browser non regge i service worker
+     l'etichetta è null e la riga non compare. */
+  const offline = etichettaOffline();
+  if(offline) items.push("---", {head: offline});
   const r = ev.currentTarget.getBoundingClientRect();
   openCtx(items, r.left, r.bottom + 6);
 }

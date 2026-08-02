@@ -15,6 +15,7 @@ import { initChecklist } from "./checklist.js";
 import { initEsporta } from "./esporta.js";
 import { initDungeon } from "./dungeon.js";
 import { initTavolo } from "./tavolo.js";
+import { initOffline } from "./offline.js";
 import { GRUPPI, TEMA_DEFAULT, temaValido, temiDelGruppo } from "./temi.js";
 
 /* --- temi: scelti qui, ricordati, e validi anche sul sito (stessa chiave) --- */
@@ -179,6 +180,11 @@ if(window.__cloud){
 // In standalone il save() d'avvio resta utile: inizializza la persistenza.
 if(!window.__cloud) save();
 renderMap();
+
+/* Per ultimo, e di proposito: la copia offline è roba della prossima apertura,
+   non di questa. Registrarla prima del primo disegno metterebbe una richiesta
+   di rete in mezzo all'avvio per un beneficio che si vede domani. */
+initOffline();
 
 // per l'onchange inline del selettore tema
 Object.assign(window, { setTheme });
