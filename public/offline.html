@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Senza rete — Runebog GM</title>
+
+<!-- La porta d'ingresso di chi è offline.
+     Il service worker serve questa pagina quando una navigazione fallisce e
+     l'indirizzo chiesto non è fra quelli tenuti (vedi `ripiego` in
+     src/lib/offline/sw-sorgente.js). Il caso vero: runebog.app nei preferiti,
+     digitato in cantina — `/` è la home del sito, che vuole auth e database,
+     mentre la copia offline sta su /app.html. Senza questa pagina la copia
+     offline funzionava solo per chi conosce l'indirizzo interno.
+
+     NON è un redirect: offline /app.html è lo standalone su localStorage, cioè
+     un'altra cosa dalle campagne cloud che quel DM si aspetta di trovare.
+     Scambiarle senza dirlo sarebbe la perdita silenziosa che tutto il resto
+     della copia offline evita — qui si dice cosa c'è e si lascia scegliere.
+
+     La vede solo chi ha già una copia offline — il worker si registra da
+     /app.html o dal bottone delle regole, non dalle pagine del sito — ed è
+     giusto così: è una pagina che dice "ecco cosa hai qui", e a chi non ha
+     niente non avrebbe niente da dire.
+
+     Sta in public/ e non è una rotta Next, per due motivi che vanno insieme: il
+     manifesto legge public/ per intero, quindi si precarica da sé; e non tira
+     dentro un solo chunk di /_next/static, che offline è proprio ciò che può
+     mancare. Una pagina di ripiego che si apre senza stili non ripiega. -->
+<link rel="stylesheet" href="/themes.css">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<script>
+  // Prima del disegno, o si vede un lampo del tema sbagliato: stessa riga di
+  // app.html e di layout.tsx, stessa chiave.
+  try{ var t = localStorage.getItem("runebog-theme");
+       if(t && t !== "torbiera") document.documentElement.dataset.theme = t; }catch(e){}
+</script>
+<style>
+  /* Foglio suo e non app.css: quello sono 4000 righe per l'editor, e qui
+     servono un titolo, due paragrafi e due bottoni. I colori invece vengono da
+     themes.css come ovunque — un tema si scrive in un posto solo. */
+  body{
+    margin:0; min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+    background:radial-gradient(120% 100% at 50% 0%, var(--glow), var(--peat));
+    color:var(--parchment);
+    font:16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main{ max-width:34rem; width:100%; }
+  h1{ font-size:1.5rem; margin:0 0 .6rem; }
+  p{ margin:0 0 1rem; color:var(--parchment-dim); }
+  p.forte{ color:var(--parchment); }
+  ul{ margin:0 0 1.4rem; padding-left:1.2rem; color:var(--parchment-dim); }
+  li{ margin-bottom:.4rem; }
+  .azioni{ display:flex; flex-wrap:wrap; gap:.6rem; }
+  /* 44px di bersaglio: la regola vale anche qui, ed è una pagina che si legge
+     quasi sempre su un telefono. */
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center;
+    min-height:44px; padding:0 1.1rem;
+    border:1px solid var(--edge-ui); border-radius:8px;
+    background:var(--surface); color:var(--parchment);
+    font:inherit; text-decoration:none; cursor:pointer;
+  }
+  .btn.primario{
+    background:var(--moss); border-color:var(--moss);
+    color:var(--peat); font-weight:600;
+  }
+  .btn:hover{ background:var(--surface-hov); }
+  .btn.primario:hover{ background:var(--moss-hov); }
+  .btn:focus-visible{ outline:2px solid var(--moss); outline-offset:2px; }
+  [hidden]{ display:none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Senza rete</h1>
+  <p class="forte">Runebog non riesce a raggiungere il sito, ma una parte è sul dispositivo.</p>
+
+  <ul>
+    <li>
+      <strong>L'editor delle mappe</strong> funziona per intero, sulle campagne
+      salvate <em>su questo dispositivo</em>. Le campagne nel cloud e la
+      condivisione col tavolo tornano quando torna la rete.
+    </li>
+    <li id="riga-regole" hidden>
+      <strong>Le regole SRD</strong> le hai tenute: si consultano anche da qui.
+    </li>
+  </ul>
+
+  <div class="azioni">
+    <a class="btn primario" href="/app.html">Apri l'editor</a>
+    <a class="btn" id="link-regole" href="/srd" hidden>Le regole</a>
+    <button class="btn" type="button" onclick="location.reload()">Riprova</button>
+  </div>
+</main>
+
+<script>
+  /* Le regole si annunciano solo se ci sono davvero. Un link che porta di nuovo
+     qui è peggio di un link che non c'è — e il conto è a portata: /srd è la
+     prima voce del deposito delle regole.
+
+     `ignoreVary` non è prudenza: le pagine di Next rispondono con un `Vary`
+     (RSC e compagni), quindi un match che lo rispetta non trova mai niente. È
+     la stessa ragione per cui il worker lo passa a ogni `match`. */
+  if ("caches" in window) {
+    caches.match("/srd", { ignoreVary: true }).then(function (r) {
+      if (!r) return;
+      document.getElementById("riga-regole").hidden = false;
+      document.getElementById("link-regole").hidden = false;
+    }).catch(function () {});
+  }
+</script>
+</body>
+</html>

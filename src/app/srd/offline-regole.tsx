@@ -5,9 +5,11 @@ import { useCallback, useEffect, useState } from "react";
 /* «Tieni le regole anche senza rete»: il secondo livello della copia offline.
  *
  * L'editor si precarica da sé (public/app/offline.js) perché costa zero — chi è
- * su /app.html quei file li ha appena scaricati. Queste 60 pagine costano 1,3
- * MB, che sulla connessione di un telefono non si prendono senza chiedere: da
- * qui la differenza fra i due livelli, che non è tecnica ma di costo.
+ * su /app.html quei file li ha appena scaricati. Queste 61 pagine costano 1,38
+ * MB, più 149 KB di chunk perché la ricerca funzioni anche qui (misurato il 2
+ * ago 2026, trasferito): 1,5 MB che sulla connessione di un telefono non si
+ * prendono senza chiedere — da qui la differenza fra i due livelli, che non è
+ * tecnica ma di costo.
  *
  * Per la stessa ragione la misura sta SUL bottone e non in una nota sotto: una
  * domanda a cui si può rispondere è una domanda che dice quanto costa.
@@ -98,7 +100,7 @@ export function OffLineRegole() {
           >
             {stato === "in-corso"
               ? "Scarico le regole…"
-              : "Tieni le regole senza rete — 1,3 MB"}
+              : "Tieni le regole senza rete — 1,5 MB"}
           </button>{" "}
           <span className="muted small">
             {stato === "errore"

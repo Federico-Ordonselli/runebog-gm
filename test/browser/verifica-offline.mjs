@@ -12,13 +12,18 @@
  * Come `verifica-fixture.mjs`: sta fuori da `npm test`, che elenca le cartelle
  * una per una. Qui girano playwright-core, un Chromium e un server.
  *
- * Le tre cose che guarda sono quelle che a occhio non si vedono:
+ * Le cose che guarda sono quelle che a occhio non si vedono:
  *   1. l'editor regge davvero senza rete (e i moduli ES hanno girato);
  *   2. gli invarianti di sicurezza — /play, /tavolo e /api non entrano MAI in
  *      cache, nemmeno dopo essere passati;
  *   3. l'aggiornamento, che è l'unico percorso che nessun clic incontra: un
  *      deploy nuovo mentre l'utente ha già le regole scaricate, e lo stesso
- *      deploy con la rete che cade a metà.
+ *      deploy con la rete che cade a metà;
+ *   4. la RICERCA senza rete, e va provata svuotando la sola cache HTTP: a
+ *      cache calda funziona anche quando è rotta, ed è così che fino al 2 ago
+ *      2026 passava per fortuna;
+ *   5. la porta d'ingresso: chi digita runebog.app offline deve trovare una
+ *      pagina che dice cosa c'è, non l'errore del browser.
  */
 
 import { apriBrowser, attendiServer, BASE } from "./campagna-di-prova.mjs";
@@ -68,7 +73,7 @@ try {
   await attendi(pag, (d) => d.some((n) => n.startsWith("runebog-app-")));
   const primi = await depositi(pag);
   controlla(primi.some((n) => n.startsWith("runebog-app-")), "deposito dell'editor: " + primi.join(", "));
-  controlla(!primi.some((n) => n.startsWith("runebog-regole-")), "le regole NON si scaricano da sé: 1,3 MB si chiedono");
+  controlla(!primi.some((n) => n.startsWith("runebog-regole-")), "le regole NON si scaricano da sé: 1,5 MB si chiedono");
   controlla((await voci(pag, "runebog-app-")) > 25, `precaricati ${await voci(pag, "runebog-app-")} file`);
 
   console.log("\n2. Senza rete");
@@ -120,9 +125,60 @@ try {
   }
   /* Il controspecchio: la copia è quella dichiarata e non di più. Senza questo,
      un service worker che ripiegasse su qualcosa farebbe passare i controlli
-     sopra senza aver davvero salvato niente di preciso. */
-  const fuori = await srd.goto(BASE + "/dungeon", { waitUntil: "domcontentloaded" }).catch(() => null);
-  controlla(!fuori || fuori.status() !== 200, "/dungeon resta irraggiungibile offline: nessun falso positivo");
+     sopra senza aver davvero salvato niente di preciso. Da quando c'è la pagina
+     di ripiego non basta più guardare lo stato — /dungeon offline risponde 200,
+     ma con la pagina che dice "sei senza rete": la domanda è se il generatore
+     c'è, non se c'è una risposta. */
+  await srd.goto(BASE + "/dungeon", { waitUntil: "domcontentloaded" }).catch(() => null);
+  const dungeon = await srd.evaluate(() => document.body.innerText);
+  controlla(
+    !/seme|Genera/i.test(dungeon) && /senza rete/i.test(dungeon),
+    "/dungeon offline non c'è: risponde il ripiego, non una copia stantia",
+  );
+  await contesto.setOffline(false);
+
+  console.log("\n5b. La porta d'ingresso: runebog.app senza rete");
+  await contesto.setOffline(true);
+  const home = await srd.goto(BASE + "/", { waitUntil: "domcontentloaded" }).catch(() => null);
+  controlla(home?.status() === 200, "la home risponde invece di ERR_INTERNET_DISCONNECTED");
+  const ripiego = await srd.evaluate(() => ({
+    testo: document.body.innerText,
+    editor: !!document.querySelector('a[href="/app.html"]'),
+    /* Le regole ci sono (scaricate al punto 4), quindi il link va annunciato:
+       la pagina lo tiene nascosto finché non ne trova la copia, ed è quella
+       riga che qui si sta provando. */
+    regole: !!document.querySelector('#link-regole:not([hidden])'),
+  }));
+  controlla(/senza rete/i.test(ripiego.testo), "e dice cosa è successo: " + ripiego.testo.split("\n")[0]);
+  controlla(ripiego.editor, "porta all'editor, senza scambiarlo per le campagne cloud");
+  controlla(ripiego.regole, "e annuncia le regole solo perché ci sono davvero");
+
+  /* L'invariante visto dall'altro lato: /play e /tavolo non ricevono NEMMENO un
+     ripiego. Lì la regola è "si lascia fare al browser", e una riga sola da
+     tenere a mente vale più di due. */
+  const play = await srd.goto(BASE + "/play/id-inventato", { waitUntil: "domcontentloaded" }).catch(() => null);
+  controlla(!play, "/play resta al browser: nessun ripiego, nessuna copia");
+  await contesto.setOffline(false);
+
+  console.log("\n5c. La ricerca senza rete, a cache HTTP svuotata");
+  /* Il punto di tutto il controllo è "svuotata": i chunk di Next stavano nella
+     cache HTTP, che il browser sfratta quando gli pare, e a cache calda la
+     ricerca funziona anche quando è rotta. Si svuota via CDP, lasciando intatta
+     la Cache Storage — cioè si toglie la fortuna e si tiene la costruzione. */
+  const cdp = await contesto.newCDPSession(srd);
+  await cdp.send("Network.clearBrowserCache");
+  await cdp.detach();
+  await contesto.setOffline(true);
+  await srd.goto(BASE + "/srd", { waitUntil: "domcontentloaded" });
+  const campo = srd.locator(".srd-cerca__campo");
+  await campo.waitFor({ timeout: 15000 });
+  await campo.fill("afferrato");
+  let esiti = 0;
+  for (let i = 0; i < 40 && !esiti; i++) {
+    esiti = await srd.locator(".srd-cerca__esito").count();
+    if (!esiti) await srd.waitForTimeout(250);
+  }
+  controlla(esiti > 0, `la ricerca trova senza rete: "afferrato" → ${esiti}`);
   await contesto.setOffline(false);
 
   console.log("\n6. Un deploy nuovo mentre le regole sono già scaricate");
@@ -158,6 +214,30 @@ try {
   await contesto.setOffline(true);
   const superstite = await srd.goto(BASE + "/srd/talenti", { waitUntil: "domcontentloaded" }).catch(() => null);
   controlla(superstite?.status() === 200, "e si legge ancora: la guardia protegge il DM, non dei byte");
+  await contesto.setOffline(false);
+
+  console.log("\n8. Il manifesto: installabile da entrambe le porte");
+  /* Un percorso d'icona sbagliato non fa fallire niente — semplicemente il
+     prompt d'installazione non compare, e non c'è modo di accorgersene se non
+     provando a installare. Chrome i difetti li elenca, quindi glieli si chiede.
+     Da tutt'e due le pagine, perché il <link rel="manifest"> arriva da due
+     posti diversi: su /app.html è scritto a mano, sul sito lo mette Next. */
+  for (const dove of ["/app.html", "/"]) {
+    const p = await contesto.newPage();
+    await p.goto(BASE + dove, { waitUntil: "domcontentloaded" });
+    const cdp = await contesto.newCDPSession(p);
+    const m = await cdp.send("Page.getAppManifest");
+    const icone = await Promise.all(
+      (m.data ? JSON.parse(m.data).icons : []).map(async (i) =>
+        (await contesto.request.get(BASE + i.src)).status(),
+      ),
+    );
+    controlla(
+      !!m.url && !m.errors.length && icone.length >= 3 && icone.every((s) => s === 200),
+      `${dove}: manifesto senza difetti, ${icone.length} icone servite`,
+    );
+    await p.close();
+  }
 } catch (e) {
   console.log("  KO  eccezione:", e.message.split("\n")[0]);
   ko++;

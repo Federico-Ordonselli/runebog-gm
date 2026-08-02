@@ -3,10 +3,10 @@
  * Il service worker vero è generato (`/sw.js`, vedi src/app/sw.js/route.ts).
  * Qui c'è solo la registrazione e l'etichetta di stato che il menu ⋯ mostra.
  *
- * Perché senza chiedere: chi è su /app.html quei 24 file li ha appena scaricati
+ * Perché senza chiedere: chi è su /app.html quei 38 file li ha appena scaricati
  * tutti: precaricarli non aggiunge byte, chiede al browser di non buttarli.
  * Un bottone "usa offline" qui sarebbe un comando per riparare qualcosa che
- * nasce storto. Le regole SRD sono l'altro caso — 1,3 MB, che si chiedono — e
+ * nasce storto. Le regole SRD sono l'altro caso — 1,5 MB, che si chiedono — e
  * infatti quelle hanno un comando, ma sta su /srd.
  *
  * Perché SOLO in standalone: /play/[id] e /tavolo/[token] servono questo stesso

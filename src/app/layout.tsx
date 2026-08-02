@@ -3,6 +3,13 @@ import "./globals.css";
 export const metadata = {
   title: "Runebog GM — Diario del GM",
   description: "Mappe gerarchiche, quest, encounter e schede mostro per le tue campagne.",
+  /* Il <link rel="manifest"> lo mette Next da sé, visto src/app/manifest.ts;
+     l'icona di iOS no — quella la genera solo da un file `apple-icon.*` dentro
+     app/, e le nostre stanno in public/icone/ perché di lì se le prende anche
+     la copia offline. In app.html gli stessi tre tag sono scritti a mano: lì
+     Next non passa. */
+  icons: { apple: "/icone/runebog-180.png" },
+  appleWebApp: { capable: true, title: "Runebog", statusBarStyle: "black" as const },
 };
 
 // Il tema scelto nell'app vale anche qui: stesso dominio, stessa chiave.

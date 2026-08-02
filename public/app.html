@@ -15,6 +15,21 @@
 <!-- Stessa icona del sito: src/app/icon.svg, che Next serve su /icon.svg.
      Senza questo link il browser chiede /favicon.ico e prende un 404. -->
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
+
+<!-- L'app installabile. Il manifesto lo genera il sito (src/app/manifest.ts) e
+     Next lo aggiunge da sé alle SUE pagine: qui no, perché app.html è un file
+     statico servito da public/. Senza questa riga l'editor non è installabile,
+     cioè proprio la pagina per cui installare ha un senso.
+     iOS il manifesto non lo legge affatto: l'icona della schermata iniziale e
+     lo schermo intero li prende solo dai tre tag qui sotto. La barra di stato
+     nera è intonata a Torbiera e stonata sui temi chiari — stesso rovescio già
+     dichiarato per i colori del manifesto, e stesso motivo: sono file statici,
+     il tema sta in localStorage. -->
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icone/runebog-180.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <!-- Il tag script qui sotto è anche l'ancora dell'iniezione server: /play/[id] e
      /tavolo/[token] inseriscono window.__cloud / window.__table subito prima,
      cercando la prima apertura di tag script senza attributi. ATTENZIONE: quella

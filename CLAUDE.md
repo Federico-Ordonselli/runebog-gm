@@ -599,18 +599,75 @@ state ritirate perché erano una seconda copia del sorgente).
   accorgersene. La lista si legge dal disco, le pagine SRD si ricavano da
   `tutteLeAncore()` (lo stesso registro della ricerca, che esiste proprio perché
   quella mappa la decidono i divisori) e le due versioni sono **hash del contenuto**.
-- **Due livelli, e la differenza non è tecnica ma di costo.** L'editor (32 file,
+- **Due livelli, e la differenza non è tecnica ma di costo.** L'editor (38 file,
   225 KB gzip) si precarica **da sé** all'apertura di `/app.html`: chi è lì quei
   file li ha appena scaricati tutti, quindi non aggiunge byte — un bottone lì sarebbe
   un comando per riparare qualcosa che nasce storto. Le 61 pagine dell'SRD sono
-  1,3 MB e si **chiedono**, dal bottone in fondo a `/srd` che porta la misura scritta
+  1,38 MB e si **chiedono**, dal bottone in fondo a `/srd` che porta la misura scritta
   sopra. Depositi separati: toccare `mappa.js` non deve far riscaricare il glossario.
 - **Solo in standalone** (`public/app/offline.js`): `/play/[id]` e `/tavolo/[token]`
   servono questo stesso `app.html` con lo stato iniettato dentro l'HTML, e non
   registrano niente. Installare da un link condiviso lascerebbe un worker sul telefono
   di un giocatore per una cache che non lo riguarda.
+- **La porta d'ingresso è una pagina, non un redirect** (`public/offline.html`,
+  `ripiegando` nel worker, 2 ago 2026). Chi ha `runebog.app` nei preferiti offline
+  prendeva `ERR_INTERNET_DISCONNECTED`: `/` è la home del sito, che vuole auth e
+  database, mentre la copia sta su `/app.html` — cioè il lavoro funzionava solo per
+  chi conosce l'indirizzo interno. Ora ogni navigazione che **cade** (solo un errore
+  di rete: un 404 è una risposta del sito, e coprirla sarebbe una diagnosi sbagliata)
+  riceve quella pagina, che dice cosa c'è sul dispositivo e porta all'editor.
+  - **Non** un redirect: offline `/app.html` è lo standalone su `localStorage`,
+    un'altra cosa dalle campagne cloud che quel DM si aspetta di trovare, e
+    scambiarle senza dirlo sarebbe la perdita silenziosa che tutto il resto evita.
+  - Sta in `public/` e non è una rotta Next per due motivi che vanno insieme: il
+    manifesto legge `public/` per intero, quindi si precarica da sé; e non tira
+    dentro un solo chunk di `/_next/static`, che offline è proprio ciò che può
+    mancare. Una pagina di ripiego che si apre senza stili non ripiega.
+  - Il link alle regole compare solo se le regole ci sono (`caches.match("/srd")`,
+    con `ignoreVary` perché le pagine di Next rispondono con un `Vary`): un link
+    che riporta qui è peggio di un link che non c'è.
+  - La vede solo chi ha già una copia offline — il worker si registra da
+    `/app.html` o dal bottone delle regole, mai dalle pagine del sito — ed è
+    coerente: a chi non ha niente non avrebbe niente da dire.
+  - Si passa **`ev.request` così com'è** a `fetch`: una navigazione ha
+    `redirect:"manual"`, quindi un 3xx torna opaqueredirect e il salto lo fa il
+    browser. Ricostruendo la richiesta si perde quel modo e rispondere a una
+    navigazione con una risposta già seguita è un errore di rete — cioè la home di
+    ogni utente loggato, che qui fa `redirect` verso l'ultima campagna.
+- **I chunk di Next stanno nel deposito delle regole** (`chunkDiNext`,
+  `iChunkDellaRicerca`, 2 ago 2026). Le pagine SRD sono prosa resa dal server e si
+  leggono senza idratazione, ma la ricerca su `/srd` è un componente client: senza i
+  suoi chunk il campo c'è e non trova niente. Fino a questa data reggeva per
+  **fortuna** — quei file stavano nella cache HTTP, che il browser sfratta quando
+  vuole (misurato svuotando la sola cache HTTP: la pagina si legge, la ricerca dà 0
+  risultati). Un difetto che passa ogni prova, perché la prova arriva a cache calda.
+  - Non si possono precaricare dal **manifesto**: `/sw.js` gira *durante* il build e
+    i chunk delle altre pagine non esistono ancora. A runtime non c'è però
+    disallineamento possibile — sono hash del contenuto, quindi una copia in cache è
+    per costruzione la copia giusta e l'HTML salvato cita esattamente quei nomi.
+  - La regola a runtime da sola **non basta**, ed è un problema di ordine: i chunk di
+    `/srd` il browser li ha presi aprendo la pagina, cioè prima che esistesse il
+    deposito in cui scriverli, e non li richiede più. Da lì `iChunkDellaRicerca`, che
+    li rilegge **dall'HTML appena salvato** — solo quelli di `/srd`, dove sta la
+    ricerca — e best-effort, a differenza delle pagine che sono atomiche: un chunk
+    che manca costa la ricerca, non le regole.
+  - Si **scrive** solo se il deposito delle regole esiste già (chi non ha accettato
+    quel costo non paga byte per una ricerca che non ha chiesto) e si **legge** da
+    tutti i depositi, come per le regole. Sono 149 KB sui 1,38 MB delle pagine: il
+    bottone dice 1,5 MB, ed è il totale vero.
+- **Installabile** (`src/app/manifest.ts`, `public/icone/`, 2 ago 2026): è il passo che
+  rende vero il caso d'uso — un tablet al tavolo — invece di una scheda di browser.
+  `start_url` è la **home** e non `/app.html`, per la stessa ragione per cui il ripiego
+  non è un redirect. Le icone sono **generate** da `src/app/icon.svg` con
+  `node scripts/genera-icone.mjs` e non si modificano a mano; la `maskable` è un
+  disegno diverso (sfondo ai bordi, soggetto nel cerchio di sicurezza) e non un
+  ritaglio. `app.html` porta a mano il `<link rel="manifest">` e i tre tag di iOS,
+  che il manifesto non lo legge: lì Next non passa. Colori del manifesto e barra di
+  stato sono quelli di Torbiera e stonano sui temi chiari — rovescio dichiarato, sono
+  file statici e il tema sta in `localStorage`.
 - **Invariante: `/play`, `/tavolo` e `/api` non entrano mai in cache** (`fuoriDallaCache`).
-  Lì non si risponde e non si ripiega: si lascia proprio fare al browser. Una copia di
+  Lì non si risponde e non si ripiega — **nemmeno con la pagina di ripiego**: la regola
+  resta una sola riga da tenere a mente invece di due. Una copia di
   `/play/[id]` è lo snapshot di una revisione vecchia servito come fresco; il tavolo è
   per contratto `private, no-store`, un link segreto che non deve fermarsi da nessuna
   parte; `/api` ha già il suo ETag su `revision`, e un secondo strato di cache è il
@@ -633,10 +690,13 @@ state ritirate perché erano una seconda copia del sorgente).
   verifica finge un deploy cambiando l'**URL** dello script: `unregister()` +
   `register()` con un client ancora controllato resuscita la registrazione invece di
   installarne una nuova, l'`activate` non gira e la prova passerebbe guardando il
-  lavoro di prima.
-- Fuori restano login, campagne cloud, `/dungeon` (React con chunk hashati: precaricarlo
-  vorrebbe enumerare l'output del build) e i chunk di Next — le pagine SRD sono prosa
-  resa dal server e si leggono senza idratazione, ma la ricerca su `/srd` offline no.
+  lavoro di prima. La ricerca invece va provata **a cache HTTP svuotata**
+  (`Network.clearBrowserCache` via CDP, Cache Storage intatta): a cache calda
+  funziona anche quando è rotta, ed è così che il difetto è passato inosservato.
+- Fuori restano login, campagne cloud e `/dungeon` (React con chunk hashati:
+  precaricarlo vorrebbe enumerare l'output del build). Offline quei tre indirizzi
+  rispondono comunque, con la pagina di ripiego: la verifica lo controlla guardando
+  il **contenuto** e non lo stato, sennò un 200 basterebbe a farla passare.
 
 **Temi** (dodici, lug 2026): `public/themes.css` è la sorgente unica dei token
 colore, letta sia dal sito (link in `layout.tsx`) sia da `app.html`. I nomi sono
