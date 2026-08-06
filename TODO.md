@@ -75,7 +75,16 @@ cose gratis** — le immagini **in Neon**, in una tabella loro, servite da
 - **Con essi cade l'ultima decisione in sospeso del backlog**, e non resta niente
   da provvedere. Voce per esteso in "Immagini fuori dal JSON".
 
-**E il primo passo è fatto**: `drizzle/0002_immagini-fuori-dal-json.sql`
+**E i primi due passi sono fatti.** La **rotta** `/immagini/[chiave]` è in piedi
+e provata contro il database vero (9 casi, compresi i tre condizionali e il MIME
+ostile), `IMMAGINE_LOCALE` è **una regola sola** condivisa dai tre posti che
+decidono cosa è un riferimento sicuro, e il confronto debole di `If-None-Match`
+si è spostato in `src/lib/etag.ts` ora che ha due chiamanti. È saltata fuori
+un'esposizione che nessuno dei cinque confini nominava — il `Content-Type` lo
+decide una riga di database, quindi va controllato **in uscita** — e sta nella
+voce.
+
+**Il primo passo**: `drizzle/0002_immagini-fuori-dal-json.sql`
 (tabella `campaign_image`), applicata a **entrambi** i branch Neon col backup di
 produzione prima (`backup-pre-immagini`). Le due cascate — utente e campagna —
 sono state **provate** su un branch usa-e-getta, non dedotte dal vincolo.
@@ -1484,8 +1493,15 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
     tutta insieme, con un test in `test/critici/` che provi al negativo che
     `/immagini/../qualcos'altro` e un `//evil.example` non passino.
 
-  **Consigliata la seconda**: il prezzo è un test da scrivere una volta, il
-  prezzo della prima è un dominio scritto dentro ogni riga del JSONB.
+  **Scelta la seconda** (6 ago 2026): il prezzo è un test da scrivere una volta,
+  il prezzo della prima sarebbe un dominio scritto dentro ogni riga del JSONB.
+  `IMMAGINE_LOCALE` (`^/immagini/[A-Za-z0-9_-]{1,64}$`) è **esportata dal
+  contratto e importata** da `modello.js` e da `share.ts`: dei tre elenchi di
+  `safeUrl` questa riga non è ricopiata, ed è l'unica su cui client e server non
+  possono permettersi di divergere senza che il DM si veda rimbalzare con 422
+  una campagna legittima. `..`, `//altro.host`, query e frammenti cadono **per
+  costruzione** — nessuno dei loro caratteri sta nella classe — invece che per
+  un controllo in più che qualcuno può dimenticare.
 
   ### [x] Il primo passo: la migrazione (6 ago 2026)
 
@@ -1520,6 +1536,51 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
       contata in una query separata.
   - **Nessun dato è stato toccato**: produzione aveva 9 campagne prima e dopo,
     e la tabella nasce vuota su tutt'e due i branch.
+
+  ### [x] Il secondo passo: la rotta (6 ago 2026)
+
+  `src/app/immagini/[chiave]/route.ts`, più `IMMAGINE_LOCALE` nelle tre
+  whitelist e `src/lib/etag.ts`. `npx tsc --noEmit`, `npm test` (**104**, +5) e
+  `npm run build` puliti; la rotta esce dinamica, com'è giusto.
+
+  - **Provata contro il database vero** (branch usa-e-getta, righe seminate a
+    mano), 9 casi: 200 con `immutable`+ETag+CSP+`nosniff`; **304** sul
+    condizionale forte, su quello **indebolito** (`W/"…"`) e nell'elenco
+    separato da virgole; 200 su un ETag diverso; **404** su MIME ostile, chiave
+    inesistente (con `no-store`), chiave fuori forma e risalita del percorso.
+  - **Una difesa nuova, per un'esposizione nuova**: il `Content-Type` lo decide
+    una riga di database, quindi si controlla **in uscita** contro i tipi del
+    contratto — una riga che dicesse `text/html` farebbe di questa rotta una XSS
+    nell'origine del sito. Provato con una riga ostile in tabella: 404. Finché
+    le immagini erano `data:` dentro il documento il caso non poteva esistere; è
+    nato con l'averle messe su un URL nostro, ed è la prima conseguenza di
+    questo lavoro che non stava in nessuno dei cinque confini.
+    - Insieme: `default-src 'none'; sandbox` e `nosniff`, perché fra i tipi
+      ammessi c'è `image/svg+xml` — inerte dentro un `<img>`, un documento che
+      esegue script se **navigato**. La difesa sta nella rotta e non nel togliere
+      l'SVG dal contratto, che è un problema di un'altra scala.
+  - **`src/lib/etag.ts`**: il confronto debole di `If-None-Match` aveva un
+    chiamante, ora ne ha due, e una regola che si sbaglia in silenzio non si
+    ricopia. Il commento sul perché (RFC 9110 §13.1.2, e la misura del 31 lug
+    sull'edge di Vercel) si è spostato lì.
+  - **Il service worker non va toccato**, verificato leggendolo: `/immagini/…`
+    non è nel manifesto, non è `/_next/static/` e un `<img>` non è
+    `mode: "navigate"`, quindi il worker la lascia passare e risponde la cache
+    HTTP — che con `immutable` è esattamente il comportamento voluto. Metterle
+    anche in Cache Storage resta un passo a sé, quando si vorrà una copia
+    offline con le figure.
+  - **Controprova** del test: allargata `IMMAGINE_LOCALE` a `^/immagini/.+$`,
+    tre test cadono (la regex, il contratto e la proiezione del tavolo);
+    rimessa stretta, 104/104.
+
+  **Cosa resta** (nessuna decisione, solo costruzione): il caricamento in
+  `compressImage` — le due gemelle in `pannello.js` e `mappa.js` — che deve
+  diventare un'operazione di rete e quindi avere un suo modo di fallire;
+  l'esporta che re-incorpora in base64, con avanzamento, e che **non** deve
+  scrivere un file a cui mancano figure senza dirlo; la migrazione dei documenti
+  già esistenti, che oggi hanno le immagini in `data:` e vanno lasciati
+  funzionare (la lettura è tollerante: le due forme convivono per contratto);
+  e lo spazzino degli orfani col periodo di grazia.
 
 ## Formato del documento campagna
 

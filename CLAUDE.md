@@ -91,11 +91,46 @@ memorizzabile in cache per sempre.
   scollegata, quindi non si cancella mai in sincrono con un gesto. Lo spazzino
   segna, cancella a un passaggio successivo e **riazzera se l'immagine torna
   referenziata** — cioè quando qualcuno preme Ctrl+Z.
-- **Un URL relativo oggi NON passa**: `safeUrl` (`modello.js`, `share.ts`) e
-  `validateImage` (`formato-campagna.js`) pretendono `data:image/` o
-  `https?://`, quindi un `/immagini/…` esce `invalid_image_type`, cioè 422 al
-  salvataggio. I tre elenchi si toccano insieme, con un test al negativo in
-  `test/critici/`.
+- **`IMMAGINE_LOCALE` è UNA regola sola** (esportata da `formato-campagna.js`,
+  importata da `modello.js` e da `share.ts`): `^/immagini/[A-Za-z0-9_-]{1,64}$`
+  è la sola forma di URL **relativo** che entra in un documento. È l'unico
+  pezzo dei tre elenchi di `safeUrl` che non è ricopiato, e non è un'eccezione
+  gratuita: se client e server divergessero su questa forma, il DM si vedrebbe
+  rimbalzare con 422 una campagna legittima. `..`, `//altro.host`, query e
+  frammenti cadono **per costruzione** — nessuno dei loro caratteri sta nella
+  classe. Test al negativo in `test/critici/immagine-locale.test.mjs`, che
+  guarda sia la regex sia i tre percorsi che la applicano.
+- **`modello.js` ha ora UN import** (`IMMAGINE_LOCALE`), dopo essere stato senza
+  per tutta la sua vita. Il contratto non importa niente, quindi la chiusura
+  transitiva resta un modulo e non ci sono cicli — ma non è la porta per farne
+  entrare altri.
+
+**La rotta delle immagini** (`src/app/immagini/[chiave]/route.ts`, 6 ago 2026):
+
+- **Non controlla la sessione, ed è l'unica rotta che tocca una campagna a non
+  farlo.** Il segreto è l'URL, come per `/tavolo/[token]`; l'indirizzo di
+  un'immagine non condivisa non lascia mai il server perché `projectForPlayers`
+  ricostruisce la proiezione campo per campo. **Da qui in avanti quel filtro
+  decide anche chi può leggere un file**, non solo cosa si vede sulla tela.
+- **Sta fuori da `/api` di proposito**: l'invariante esclude `/play`, `/tavolo`
+  e `/api` dalla cache perché quelle risposte invecchiano, e una chiave
+  immutabile no. Verificato che il service worker la lasci passare da sé — non è
+  nel manifesto, non è `/_next/static/` e un `<img>` non è `mode: "navigate"` —
+  quindi risponde la cache HTTP, che con `immutable` è esattamente il
+  comportamento voluto.
+- **Il MIME si controlla in USCITA**, non solo al caricamento: il
+  `Content-Type` lo decide una riga di database, e una riga che dicesse
+  `text/html` farebbe di questa rotta una XSS nell'origine del sito. Finché le
+  immagini erano `data:` dentro il documento l'esposizione non esisteva: è nata
+  con l'averle messe su un URL nostro. Provato con una riga ostile in tabella:
+  404.
+- **`default-src 'none'; sandbox` più `nosniff`**, perché fra i tipi ammessi c'è
+  `image/svg+xml`: dentro un `<img>` un SVG è inerte, **navigato direttamente**
+  è un documento e può eseguire script. La difesa sta qui e non nel togliere
+  l'SVG dal contratto, che è un problema di un'altra scala.
+- L'ETag è la **chiave** (stessa logica per cui quello del tavolo è la
+  revisione) e il confronto di `If-None-Match` passa da `src/lib/etag.ts`, che
+  ora ha due chiamanti: una regola che si sbaglia in silenzio non si ricopia.
 
 ## Architettura: due mondi, un JSON
 
@@ -1385,6 +1420,13 @@ Non negoziabili; se tocchi queste aree, mantienili:
   va applicato a un id **e** a ogni riferimento che lo punta (edge.a/b, playerId,
   foe.\*, order.\*), sennò i lookup `x.id===ref` si disallineano.
 - **Ogni route API verifica** che la campagna appartenga all'utente autenticato.
+  Le **due eccezioni sono dichiarate** e valgono entrambe per lo stesso motivo —
+  il segreto è l'URL, non la sessione: `/tavolo/[token]` (col suo
+  `GET /api/tavolo/[token]`) e `/immagini/[chiave]`. Fuori da queste due, una
+  rotta che legge una campagna senza controllare la proprietà è un difetto. Chi
+  ne aggiunge una terza sappia che ne sta scrivendo una: il link segreto è un
+  modello di autorizzazione, e ogni URL che lo adotta va difeso da chi lo
+  distribuisce, non dal server.
 - **Password**: scrypt della stdlib con `maxmem` esplicito (`src/lib/password.ts`);
   token di reset monouso, scadenza 1h, nel DB solo lo SHA-256; la richiesta di reset
   risponde sempre allo stesso modo, che l'account esista o no.

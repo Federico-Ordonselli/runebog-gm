@@ -316,11 +316,27 @@ function validateOptionalNumber(value, path, options){
    validità come permesso di stampare. I tre elenchi si toccano insieme. */
 const FUORI_DALL_ATTRIBUTO = /[\s"'<>`]/;
 
+/* Un'immagine può anche stare su una risorsa NOSTRA, servita da
+   `/immagini/[chiave]` (le immagini fuori dal JSON, 6 ago 2026). È l'unica
+   forma di URL relativo ammessa, ed è ancorata alle due estremità con una
+   classe strettissima: `..`, `//altro.host` e un `?query` non hanno nemmeno un
+   carattere che questa classe accetti, quindi cadono **per costruzione** e non
+   per un controllo in più che qualcuno può dimenticare.
+
+   È ESPORTATA perché i tre posti che decidono cosa è un riferimento a immagine
+   sicuro — qui, `safeUrl` in `modello.js` e `safeUrl` in `share.ts` — su questa
+   regola ne condividono ora una sola. Restano tre elenchi da toccare insieme
+   per il resto, ma questa è una riga in meno che può restare indietro in
+   silenzio: se il client accettasse un URL che il server rifiuta, il DM si
+   vedrebbe rimbalzare con 422 una campagna legittima. */
+export const IMMAGINE_LOCALE = /^\/immagini\/[A-Za-z0-9_-]{1,64}$/;
+
 function validateImage(value, path){
   if(value === null || value === undefined) return null;
   if(typeof value !== "string") return bad("invalid_image", "L'immagine deve essere una stringa o null", path);
   if(FUORI_DALL_ATTRIBUTO.test(value))
     return bad("invalid_image", "L'immagine contiene caratteri non ammessi in un attributo", path);
+  if(IMMAGINE_LOCALE.test(value)) return null;      // una figura servita da noi: la chiave è già tutto
   if(/^https?:\/\//i.test(value)){
     return value.length <= 4096 ? null : bad("image_url_too_long", "URL immagine troppo lungo", path);
   }

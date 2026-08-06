@@ -23,7 +23,7 @@ import { randomBytes } from "crypto";
 // Direttamente dal sorgente .js, non dal wrapper "./formato-campagna": questo
 // modulo è importato anche dai test puri sotto Node, dove il type stripping
 // non risolve gli import senza estensione.
-import { CURRENT_CAMPAIGN_SCHEMA_VERSION } from "../../public/app/formato-campagna.js";
+import { CURRENT_CAMPAIGN_SCHEMA_VERSION, IMMAGINE_LOCALE } from "../../public/app/formato-campagna.js";
 
 type Node = Record<string, any>;
 
@@ -99,6 +99,10 @@ const safeColor = (v: unknown) =>
   /^#[0-9a-f]{3,8}$/i.test(String(v)) ? String(v) : null;
 function safeUrl(v: unknown) {
   const s = String(v ?? "");
+  // Una figura servita da noi (/immagini/[chiave]): regola CONDIVISA col
+  // contratto e con modello.js, non ricopiata — è la forma di URL su cui i tre
+  // posti non possono permettersi di divergere.
+  if (IMMAGINE_LOCALE.test(s)) return s;
   if (!/^(data:image\/|https?:\/\/)/i.test(s)) return null;   // niente javascript: e parenti
   if (/[\s"'<>`]/.test(s)) return null;                       // niente uscite dall'attributo
   return s;
