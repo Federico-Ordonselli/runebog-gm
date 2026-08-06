@@ -203,6 +203,18 @@ export function downloadRecoveryBackup(payload, documentRef = document){
  * stato senza dirlo. "Esporta entrambe" apposta NON chiude: mette al sicuro le
  * due versioni, ma la scelta resta da fare.
  */
+const TITOLO_NEL_DIALOGO = 60;
+
+/** Il titolo di una campagna come si legge in una didascalia. Una copia
+ *  recuperata può venire da qualunque parte, quindi qui non si dà per scontato
+ *  né che `root` esista né che il titolo sia una stringa: il dialogo di
+ *  recupero è proprio il posto in cui si aprono i documenti storti. */
+function nomeCampagna(state){
+  const t = typeof state?.root?.title === "string" ? state.root.title.trim() : "";
+  if(!t) return "«senza titolo»";
+  return `«${t.length > TITOLO_NEL_DIALOGO ? t.slice(0, TITOLO_NEL_DIALOGO) + "…" : t}»`;
+}
+
 export function openCloudRecoveryDialog({
   kind,
   campaignId,
@@ -233,12 +245,22 @@ export function openCloudRecoveryDialog({
     ? "Questa campagna è stata modificata anche altrove. Scegli quale versione continuare: nessuna delle due verrà sovrascritta senza conferma."
     : "Esiste una copia salvata soltanto su questo dispositivo. Il cloud non è cambiato da quando è stata creata.";
 
+  /* Il TITOLO accanto alla data, e non è una rifinitura: il testo del caso
+     `legacy` dice «controlla il titolo prima di recuperarla», e fino al 6 ago
+     2026 il dialogo un titolo non lo mostrava — l'unico modo di controllarlo
+     era recuperare la copia, cioè fare esattamente la cosa di cui si è
+     incerti. È la riga che rende eseguibile l'istruzione che c'era già.
+     Nel conflitto i due titoli sono spesso uguali, ed è giusto vederli lo
+     stesso: «sono la stessa campagna» è a sua volta la risposta a una
+     domanda che lì ci si fa. Il taglio a 60 caratteri è perché `titleChars`
+     ne ammette 500 e questa riga è una didascalia, non il documento. */
   const meta = documentRef.createElement("p");
   meta.className = "hint-sm";
   const localDate = new Date(localCache.savedAt).toLocaleString("it-IT");
   const serverDate = server.updatedAt
     ? new Date(server.updatedAt).toLocaleString("it-IT") : "data sconosciuta";
-  meta.textContent = `Copia locale: ${localDate} · Cloud: ${serverDate}`;
+  meta.textContent = `Copia locale: ${nomeCampagna(localCache.state)} · ${localDate}`
+                   + ` — Cloud: ${nomeCampagna(server.state)} · ${serverDate}`;
 
   const actions = documentRef.createElement("div");
   actions.className = "d-actions cloud-recovery-actions";

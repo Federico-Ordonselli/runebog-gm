@@ -205,6 +205,19 @@ senza ridipendere dalla rete che ha appena fallito.
   chiude — mette al sicuro le due versioni senza scegliere. Mentre aspetta, `cloudPaused`
   ferma il salvataggio: anche in `undo()`, che chiama `doSave()` per conto suo e
   riscriverebbe la copia che il dialogo sta proponendo di recuperare.
+  **Il dialogo mostra i due TITOLI accanto alle due date** (`nomeCampagna`): il
+  testo del caso `legacy` dice «controlla il titolo prima di recuperarla», e
+  fino al 6 ago 2026 un titolo non lo mostrava — l'unico modo di controllarlo
+  era recuperare la copia, cioè fare la cosa di cui si è incerti. Regola
+  generale: un dialogo che chiede di **confrontare** deve avere accanto le due
+  cose da confrontare, sennò l'istruzione non è eseguibile.
+- **L'atomicità si prova con N richieste concorrenti, non con due schede.** A
+  mano due PATCH non partono mai davvero insieme, quindi un "leggi-poi-scrivi"
+  passerebbe il giro delle due schede: misurato il 6 ago 2026 — otto PATCH dalla
+  stessa base danno **una** 200 e sette 409, mentre la stessa route riscritta
+  leggi-poi-scrivi ne fa passare **sei**, con la revisione a 6. Chi tocca quel
+  `where` rifaccia quella corsa. Serve un DB vero: la ricetta (branch Neon
+  usa-e-getta) sta in `TODO.md`.
 - `main.js` **non** salva all'avvio in cloud: creerebbe una revisione a ogni apertura,
   e ogni altra scheda si troverebbe in conflitto senza aver toccato niente.
 - Il modulo non importa `stato.js`: stato, `store` e callback arrivano da fuori, ed è

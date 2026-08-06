@@ -6,11 +6,17 @@ Scritti per essere ripresi **a freddo**: ognuno dice dove si tocca e quale
 ostacolo è già stato misurato, così non si rifà l'indagine. L'ordine è di
 consiglio, non di vincolo. Le voci per esteso stanno nelle sezioni sotto.
 
-**Aperto adesso: la copia offline** (2 ago 2026). **Finita**, comprese le tre
-lacune che il primo giro aveva lasciato aperte: la porta d'ingresso senza rete,
-la ricerca che reggeva per fortuna e l'installazione a schermo intero. Tutto sul
-branch **`copia-offline`**, **non spinto**: `main` pubblica su runebog.app,
-quindi il push si chiede. Vedi "Il 2 agosto 2026, in breve" qui sotto.
+**Chiusa: la copia offline** (2 ago 2026), comprese le tre lacune che il primo
+giro aveva lasciato aperte: la porta d'ingresso senza rete, la ricerca che
+reggeva per fortuna e l'installazione a schermo intero. I due commit
+(`14cdc41`, `4280c90`) sono su **`main` e spinti**, quindi **pubblicati su
+runebog.app**. Vedi "Il 2 agosto 2026, in breve" qui sotto.
+
+**Chiuse: le due verifiche che aspettavano un database** (6 ago 2026),
+l'atomicità del 409 e il 422 con una sessione vera. Erano ferme dal 24 e dal 25
+luglio con lo stesso ostacolo, e il branch Neon usa-e-getta lo toglie. 39/39, un
+difetto trovato e corretto per strada, e **una riga di questo file che diceva
+una cosa falsa**. Vedi "Il 6 agosto 2026, in breve" qui sotto.
 
 **L'audit del 28 lug 2026 (16/20) è chiuso per intero**: i tre P1, tutti i P2
 (bordi di componente il 28 lug; i due canali del tabellone d'iniziativa, il
@@ -35,6 +41,59 @@ in `COPPIE`. La misura ha spostato il bersaglio — non era la pista contro il
 pannello ma il **riempimento contro la pista**, sotto 3:1 in sei casi su
 trentasei e proprio a pochi PF. Voce per esteso in fondo.
 
+### Il 6 agosto 2026, in breve
+
+**Le due verifiche che aspettavano un database.** `npx tsc --noEmit`,
+`npm test` (99), `npm run build` e `npm run temi:contrasto` puliti,
+l'autoverifica della fixture 13/13. Nessuna migrazione. La verifica è
+usa-e-getta (scratchpad, buttata): **39 controlli** su un branch Neon
+`verifica-409-422` creato da `dev` con `expiresAt`, con `npm run dev` puntato
+lì, un account registrato dal form vero e sei campagne cloud.
+
+- **Il 409 con due schede, e tutte e tre le azioni.** «Esporta entrambe» non
+  chiude e non sceglie (il backup contiene entrambe le versioni); «Conserva
+  cloud» non fa avanzare la revisione e rimarca la copia locale come
+  sincronizzata; «Recupera locale» ribasa e riscrive. Con il dialogo aperto una
+  modifica ulteriore **non parte** (`cloudPaused`): provato aspettando 2,5 s e
+  rileggendo il server.
+  - **Questo file diceva una cosa falsa**, ed è la misura ad averlo detto: la
+    voce chiedeva che «la versione di A resti intatta qualunque delle tre azioni
+    si scelga». Con «Recupera locale» la versione di A **viene sovrascritta** —
+    è tutto il senso di quell'azione, ed è esplicita perché l'utente ha appena
+    guardato l'altra versione. Le azioni che lasciano il server intatto sono
+    due, non tre. La frase giusta è che **nessuna delle tre sovrascrive in
+    silenzio**.
+- **La corsa vera, che due schede non sanno riprodurre**: otto PATCH
+  concorrenti dalla stessa `baseRevision` → **una** 200, **sette** 409, e la
+  revisione avanza di uno solo. Con la **controprova**: riscritta la PATCH come
+  "leggi-poi-scrivi" (la forma che quel `where` esiste per evitare), le stesse
+  otto richieste danno **sei 200** e la revisione salta a 6, cioè cinque
+  sovrascritture silenziose. È il controllo che un giro con due schede non può
+  dare, perché a mano le due PATCH non partono mai davvero insieme.
+- **Il 422 con la sessione vera**: un titolo di 501 caratteri esce come
+  «Non sincronizzato: Massimo 500 caratteri ($.root.title) · copia locale
+  conservata», la cache locale contiene davvero il documento rifiutato ed è
+  marcata `pending`, il server non si muove. **Controprova**: a 500 caratteri lo
+  stesso salvataggio passa e la revisione avanza — il rifiuto viene dalla
+  lunghezza, non da un percorso di salvataggio rotto.
+- **Provato anche il resto di quell'elenco**: offline + scheda chiusa +
+  riapertura (esce il dialogo del **recupero**, non del conflitto, e il lavoro
+  arriva nel cloud); la copia locale di una campagna **non** viene proposta per
+  un'altra; una modifica fatta **durante** la PATCH con la rete rallentata a
+  2,5 s produce due scritture sequenziali e non si perde.
+- **Il difetto trovato per strada, e nessuno l'avrebbe visto a occhio**
+  (`sync-cloud.js`): il dialogo della cache `legacy` dice «**controlla il
+  titolo** prima di recuperarla», e un titolo non lo mostrava — l'unico modo di
+  controllarlo era recuperare la copia, cioè fare esattamente la cosa di cui si
+  è incerti. Ora la didascalia porta i due titoli accanto alle due date. È il
+  caso che questo file segnalava come «vale la pena guardarlo con un account
+  vero prima di dormirci sopra»: guardato, ed era rotto.
+- **Due trappole dell'ambiente, per chi rifà il giro**: dopo la registrazione la
+  scheda resta quella di prima finché non si **ricarica** (il server action fa
+  `signIn` + `redirect`, il cookie c'è ma in dev l'RSC no), e le campagne di
+  prova conviene crearle da `POST /api/campaigns` invece che dal bottone, sennò
+  si sta provando il comportamento di Next e non quello che interessa.
+
 ### Il 2 agosto 2026, in breve
 
 **La copia offline.** `npx tsc --noEmit`, `npm test` (99), `npm run build` e
@@ -42,7 +101,8 @@ trentasei e proprio a pochi PF. Voce per esteso in fondo.
 Nessuna migrazione. Il ragionamento per esteso sta in CLAUDE.md, "La copia
 offline"; qui restano le cose che la misura ha spostato.
 
-> **Stato al 2 ago 2026: sul branch `copia-offline`, non spinto.** Primo giro
+> **Stato: su `main`, spinto** (il branch `copia-offline` è stato integrato e
+> non esiste più). Primo giro
 > (`14cdc41`) — nuovi: `src/app/sw.js/route.ts`, `src/lib/offline/sw-sorgente.js`,
 > `public/app/offline.js`, `src/app/srd/offline-regole.tsx`,
 > `test/browser/verifica-offline.mjs`. Modificati: `public/app/main.js` (chiama
@@ -176,8 +236,10 @@ due decise.
    il costo misurato nella voce, e due scartate con la ragione scritta, per
    non riproporle.
 
-**Lasciato indietro di proposito**: il branch Neon `verifica-etag-tavolo`
-(`br-cool-pond-asg6ropd`), che scade da sé il 1º ago 2026 a mezzogiorno.
+**I branch Neon usa-e-getta si cancellano da sé, ed è misurato**:
+`verifica-etag-tavolo` non c'era più il 6 ago, com'era scritto. Quello del 6 ago
+è `verifica-409-422` (`br-red-fog-asbwruss`, da `dev`), che scade il 7 ago a
+mezzogiorno.
 
 Da qui in avanti, in ordine di consiglio:
 
@@ -194,11 +256,9 @@ Da qui in avanti, in ordine di consiglio:
    la parte rotta davvero; questa è la parte che resta, e vuole una scelta fra
    le tre strade misurate.
 
-3. **Due verifiche che ora si possono fare**, perché l'ostacolo era il database
-   e il branch usa-e-getta lo toglie (vedi "Come si riprende una di queste
-   voci"): l'**atomicità del 409** con due schede, e il **422** con una
-   sessione vera. Stanno in "Sincronizzazione cloud" e in "Formato del
-   documento campagna".
+~~3. Due verifiche che ora si possono fare~~ — **fatte il 6 ago 2026**, 39/39,
+con un difetto corretto per strada. Restano quindi **due sole voci**, e sono
+entrambe ferme su una decisione tua, non su un ostacolo tecnico.
 
 La migrazione `0001_revisione-campagna` è applicata a **entrambi** i branch Neon
 (25 lug 2026: `dev` durante la verifica di P0.2, `production` prima del deploy,
@@ -234,10 +294,19 @@ usa-e-getta** da `dev` (con `expiresAt`, così si cancella da sé), ci si semina
 quel che serve e si punta lì il `DATABASE_URL` di `npm run dev` — Next non
 sovrascrive una variabile già in `process.env`. È una copia isolata: scrivere,
 ruotare un token o rifare una riga non tocca nessun dato di nessuno, e cade
-l'ostacolo che teneva ferme queste voci. Vale ancora per le due che restano —
-l'atomicità del 409 con due schede e il 422 con una sessione vera — e la
-migrazione **non** va applicata al branch di prova, che se l'è già portata
-dietro da `dev`.
+l'ostacolo che teneva ferme queste voci. La migrazione **non** va applicata al
+branch di prova, che se l'è già portata dietro da `dev`. La ricetta ha ormai
+tolto di mezzo **tre** voci ferme (l'ETag del tavolo il 31 lug, l'atomicità del
+409 e il 422 il 6 ago): quando una voce dice «servirebbe un DB di prova», quello
+non è più un ostacolo ma un giro di quindici minuti.
+
+**E la sessione vera si registra dal form**, non si semina a mano: `signUpAction`
+fa `signIn` e `redirect`, quindi il cookie c'è ma in dev la scheda va
+**ricaricata** prima di vedersi loggata — senza il reload si sta guardando la
+pagina di prima e sembra che la registrazione non sia passata. Le campagne di
+prova si creano poi da `POST /api/campaigns`, che è la rotta vera: il bottone
+della home passa da un server action con `redirect()`, e guardare l'URL
+proverebbe il comportamento di Next invece di quello che interessa.
 
 ## SRD 5.2.1 in italiano (regole 2024)
 
@@ -1089,21 +1158,49 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
     del 15 lug 2026 è esattamente questo. Ordine: backup → migrazione su
     entrambi → deploy → smoke test. Un rollback del solo codice è innocuo, la
     colonna in più non dà fastidio: **non toglierla** durante un'emergenza.
-  - **L'atomicità non ha un test automatico**: servirebbe un DB di prova, che
-    questo repo non ha (i test sono puri per scelta). La prova riproducibile è a
-    mano, e va rifatta se si tocca la route: aprire la stessa campagna in due
-    schede alla stessa revisione, salvare in A, salvare una modifica **diversa**
-    in B → B deve ricevere 409 e il dialogo, e la versione di A deve restare
-    intatta qualunque delle tre azioni si scelga. Le altre prove che i test puri
-    non coprono: offline + chiusura scheda + riapertura (deve comparire "Recupera
-    locale"); due campagne diverse (la cache di A non deve essere proposta per
-    B); modifica **durante** la PATCH con rete rallentata (due aggiornamenti
-    sequenziali, e al reload c'è anche la seconda modifica).
-  - **La cache legacy si vedrà una volta sola per utente**, ed è il momento
-    delicato: chi ha più campagne cloud ha sotto `runebog-gm-v1` l'ultima aperta,
-    quindi aprendone un'altra riceverà il dialogo con dentro il titolo sbagliato.
-    Il testo lo dice, ma vale la pena guardarlo con un account vero prima di
-    dormirci sopra.
+  - [x] **L'atomicità non ha un test automatico** — **verificata il 6 ago 2026**,
+    e resta senza test automatico apposta: servirebbe un DB, e i test di questo
+    repo sono puri per scelta. La prova è però ormai una ricetta di quindici
+    minuti (branch Neon usa-e-getta, `npm run dev` puntato lì, account
+    registrato dal form), e va rifatta se si tocca la route. **39/39 controlli**,
+    con la verifica scritta nello scratchpad e buttata.
+    - Provato tutto l'elenco che stava qui: le due schede e il 409, offline +
+      chiusura + riapertura, la cache di una campagna non proposta per un'altra,
+      la modifica **durante** la PATCH con la rete rallentata a 2,5 s (due
+      scritture sequenziali, la seconda non si perde).
+    - **La frase di questa voce era sbagliata**, e l'ha detto la misura: chiedeva
+      che «la versione di A resti intatta qualunque delle tre azioni si scelga».
+      Con **«Recupera locale» la versione di A viene sovrascritta** — è il senso
+      di quell'azione, ed è esplicita perché l'utente ha appena guardato l'altra
+      versione (`onRecoverLocal` ribasa su `server.revision`). Intatta la lasciano
+      **due** azioni su tre; la proprietà vera, quella che vale per tutte e tre, è
+      che **nessuna sovrascrive in silenzio**.
+    - **Due schede non provano l'atomicità**, e questo è il buco che la voce non
+      vedeva: a mano le due PATCH non partono mai davvero insieme, quindi anche
+      un "leggi-poi-scrivi" passerebbe il giro. Il controllo che conta sono **N
+      PATCH concorrenti dalla stessa base**: otto → una 200, sette 409, revisione
+      +1. **Controprova** (riscritta la PATCH come leggi-poi-scrivi e poi
+      revertita): **sei 200 su otto** e la revisione a 6, cioè cinque
+      sovrascritture silenziose. Chi tocca quel `where` rifaccia questa, non le
+      due schede.
+  - [x] **La cache legacy si vedrà una volta sola per utente** — guardata con un
+    account vero il 6 ago 2026, **ed era rotta**. Chi ha più campagne cloud ha
+    sotto `runebog-gm-v1` l'ultima aperta, quindi aprendone un'altra riceve il
+    dialogo con dentro il titolo sbagliato: il testo lo dice e chiede di
+    «**controllare il titolo** prima di recuperarla», ma il dialogo **un titolo
+    non lo mostrava**. L'unico modo di controllarlo era recuperare la copia,
+    cioè fare esattamente la cosa di cui si è incerti.
+    - Corretto in `sync-cloud.js`: la didascalia porta ora i due titoli accanto
+      alle due date (`nomeCampagna`, taglio a 60 caratteri perché `titleChars`
+      ne ammette 500 e quella riga è una didascalia). Nel conflitto i due titoli
+      sono spesso uguali e si mostrano lo stesso: «sono la stessa campagna» è a
+      sua volta la risposta a una domanda che lì ci si fa.
+    - **È un difetto che nessuna prova a occhio poteva trovare**, perché la
+      cache legacy non ce l'ha nessuna installazione nuova: bisogna seminarla a
+      mano. Verificato che dopo la scelta la vecchia chiave se ne va davvero e
+      non ricompare sulla campagna successiva.
+    - Il resto della voce resta vero: si vede **una volta sola per utente**, e il
+      dialogo non spedisce mai quella copia da sé.
   - **Il tetto di localStorage non è quello della PATCH**: una campagna vicina ai
     4 MB può far fallire la scrittura della cache (quota ~5 MB per origine) e
     l'app lo dichiara ("Solo in memoria — usa Esporta"), ma vuol dire che proprio
@@ -1270,12 +1367,20 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
 
   **Resta da fare:**
 
-  - **La prova del 422 con una sessione vera** non è automatizzata (niente DB di
-    prova, e il login serve una sessione JWT): a mano, da una campagna cloud
-    aperta, forzare un documento invalido (es. via devtools) e verificare che il
-    salvataggio mostri "Non sincronizzato: <motivo> · copia locale conservata" e
-    che la copia locale resti. Il percorso è coperto dai test puri del contratto
-    e dal codice sottile della route, ma l'ultimo miglio non è stato guardato.
+  - [x] **La prova del 422 con una sessione vera** — **fatta il 6 ago 2026**,
+    dentro la verifica delle 39 (branch Neon usa-e-getta, account registrato dal
+    form vero). Resta non automatizzata apposta: vuole un DB e una sessione JWT,
+    e i test di questo repo sono puri per scelta.
+    - Il documento invalido è un titolo di **501 caratteri** (`titleChars` è
+      500), forzato sullo stato dell'editor. Esce
+      «Non sincronizzato: **Massimo 500 caratteri ($.root.title)** · copia locale
+      conservata»: il **motivo col percorso**, che è l'unica indicazione su cosa
+      correggere.
+    - **La copia locale c'è ed è quella giusta**: contiene davvero il documento
+      rifiutato ed è marcata `pending`, non sincronizzata. Il server non si
+      muove — né revisione né titolo.
+    - **Controprova**: a 500 caratteri lo stesso salvataggio passa e la revisione
+      avanza. Senza, un verde direbbe solo che qualcosa non ha salvato.
   - **Le campagne v0 nel JSONB restano v0 finché qualcuno non le risalva**: la
     lettura è tollerante apposta, quindi non c'è fretta — ma finché esistono,
     `share.ts` deve continuare a leggere `tokenColor` e le route del tavolo a
