@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, primaryKey, integer, jsonb, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, primaryKey, integer, jsonb, uuid, index, customType } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
 
 /* ---- tabelle standard Auth.js ---- */
@@ -61,3 +61,55 @@ export const campaigns = pgTable("campaign", {
   revision: integer("revision").notNull().default(0),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
 });
+
+/* ---- le immagini, fuori dal JSON della campagna (6 ago 2026) ----
+ *
+ * Finora stavano DENTRO `campaign.data`, in base64, quindi il documento se le
+ * portava addosso ovunque andasse: nella PATCH, in `localStorage`, e dentro
+ * l'HTML di ogni apertura di `/play/[id]`, che risponde `private, no-store` e
+ * non può metterle in cache. Misurato il 31 lug 2026: sei battlemap riempiono
+ * il tetto di 4 MB del documento.
+ *
+ * Restano in Neon e non in un deposito esterno perché **ci sono già**: qui non
+ * si aggiunge un byte allo storage, semmai se ne toglie — il +33% del base64
+ * in `bytea` non si paga. Il guadagno non è mai venuto da dove stanno i byte,
+ * ma dal documento che smette di portarseli e dall'URL immutabile, cioè
+ * memorizzabile in cache per sempre (vedi la rotta `/immagini/[chiave]`, che
+ * sta fuori da `/api` apposta: l'invariante della copia offline esclude
+ * `/play`, `/tavolo` e `/api` perché quelle risposte invecchiano, e una chiave
+ * immutabile no).
+ */
+const bytea = customType<{ data: Buffer; notNull: true; default: false }>({
+  dataType() { return "bytea"; },
+});
+
+export const campaignImages = pgTable("campaign_image", {
+  /* La chiave è CASUALE, non un hash del contenuto. Il content-addressing
+     deduplicherebbe, ma farebbe condividere lo stesso oggetto fra due utenti,
+     e allora cancellare torna a essere un conteggio di riferimenti — cioè il
+     confine "chi cancella" riaperto dal lato peggiore. Casuale tiene la
+     proprietà 1:1 e rende la cascata qui sotto tutta la politica che serve.
+     Un UUID è già 128 bit non indovinabili e sta dentro `[A-Za-z0-9-]`, che è
+     ciò che la rotta e le tre whitelist di `safeUrl` devono ammettere. */
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  /* L'immagine appartiene a UNA campagna e muore con lei. La riga `user`
+     cascata già sulle campagne per il diritto alla cancellazione (GDPR art.
+     17): con questa seconda cascata un account cancellato non lascia in giro
+     le sue mappe, che è la promessa che `deleteAccountAction` fa. */
+  campaignId: uuid("campaign_id").notNull()
+    .references(() => campaigns.id, { onDelete: "cascade" }),
+  mime: text("mime").notNull(),
+  bytes: bytea("bytes").notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  /* Quando lo spazzino l'ha vista per la prima volta NON referenziata dal
+     documento. Non si cancella un'immagine appena la sua bolla sparisce: gli
+     snapshot di `undo` sono `JSON.stringify` dello stato e continuano a
+     puntarci, quindi buttarla subito romperebbe proprio la funzione che serve
+     a rimediare. Si segna qui, si butta a un passaggio successivo dopo il
+     periodo di grazia, e si RIAZZERA se l'immagine torna referenziata — che è
+     esattamente cosa succede quando qualcuno preme Ctrl+Z. */
+  orphanSince: timestamp("orphan_since", { mode: "date" }),
+}, (t) => [
+  index("campaign_image_campaign_id_idx").on(t.campaignId),   // il diff dello spazzino, per campagna
+  index("campaign_image_orphan_since_idx").on(t.orphanSince), // il passaggio che cancella
+]);

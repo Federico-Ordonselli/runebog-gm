@@ -75,6 +75,14 @@ cose gratis** — le immagini **in Neon**, in una tabella loro, servite da
 - **Con essi cade l'ultima decisione in sospeso del backlog**, e non resta niente
   da provvedere. Voce per esteso in "Immagini fuori dal JSON".
 
+**E il primo passo è fatto**: `drizzle/0002_immagini-fuori-dal-json.sql`
+(tabella `campaign_image`), applicata a **entrambi** i branch Neon col backup di
+produzione prima (`backup-pre-immagini`). Le due cascate — utente e campagna —
+sono state **provate** su un branch usa-e-getta, non dedotte dal vincolo.
+Nessuna riga di codice usa ancora la tabella, quindi il deploy non è vincolato a
+niente e un rollback del solo codice è innocuo: la tabella in più non dà
+fastidio, **non toglierla** durante un'emergenza.
+
 
 
 **Le due verifiche che aspettavano un database.** `npx tsc --noEmit`,
@@ -1451,8 +1459,8 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
   **Tutti e cinque i confini sono decisi** (1 il 31 lug, 3-4-5 il 6 ago), quindi
   da qui in poi non c'è più niente da decidere: c'è da costruire, e **non c'è
   niente da provvedere** — nessun servizio nuovo, nessuna variabile d'ambiente
-  nuova, nessuna spesa. L'ordine: migrazione con la tabella delle immagini
-  (**da applicare a entrambi i branch Neon**, vedi Trappole in `CLAUDE.md`) →
+  nuova, nessuna spesa. L'ordine: ~~migrazione con la tabella delle immagini~~
+  (**fatta il 6 ago 2026**, vedi qui sotto) →
   la rotta `/immagini/[chiave]` con la cache immutabile → il caricamento in
   `compressImage` (le due gemelle, `pannello.js` e `mappa.js`) → l'esporta che
   re-incorpora (con avanzamento e un modo di fallire che non scriva un file a
@@ -1478,6 +1486,40 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
 
   **Consigliata la seconda**: il prezzo è un test da scrivere una volta, il
   prezzo della prima è un dominio scritto dentro ogni riga del JSONB.
+
+  ### [x] Il primo passo: la migrazione (6 ago 2026)
+
+  `drizzle/0002_immagini-fuori-dal-json.sql`, tabella `campaign_image`.
+  **Applicata a ENTRAMBI i branch Neon**, col backup di produzione prima
+  (`backup-pre-immagini`, `br-icy-voice-ass1lhdg`), che è la procedura scritta
+  qui sopra e quella che il guasto del 15 lug 2026 aveva insegnato.
+  `npx tsc --noEmit`, `npm test` (99) e `npm run build` puliti; nessuna riga di
+  codice usa ancora la tabella, quindi il deploy non è vincolato a niente.
+
+  - **La forma**: `id` (chiave casuale, `crypto.randomUUID()`), `campaign_id`
+    con `ON DELETE cascade`, `mime`, `bytes` in **`bytea`**, `created_at` e
+    `orphan_since`. Due indici, uno per parte del lavoro dello spazzino: per
+    campagna (il diff col documento) e per `orphan_since` (il passaggio che
+    cancella).
+  - **`orphan_since` è il periodo di grazia in forma di colonna**: si segna
+    quando lo spazzino vede un'immagine non più referenziata, si cancella a un
+    passaggio successivo, e **si riazzera se torna referenziata** — che è
+    esattamente cosa succede premendo Ctrl+Z. Senza quella colonna la politica
+    "mai cancellare in sincrono" non avrebbe dove stare, e l'undo tornerebbe a
+    poter perdere un'immagine.
+  - **Le due cascate sono state PROVATE, non dedotte da `confdeltype`**, sul
+    branch usa-e-getta: cancellando l'**utente** spariscono campagna e immagine
+    (è la promessa che `deleteAccountAction` fa per il GDPR art. 17);
+    cancellando la **sola campagna** l'immagine se ne va e l'utente resta.
+    Verificato che le due metà della catena `user → campaign → campaign_image`
+    tengono entrambe, perché a reggere la promessa serve la seconda quanto la
+    prima.
+    - Trappola, per chi ripete la prova: mettere `DELETE` e conteggio nella
+      **stessa** istruzione (in una CTE) dà un falso rosso — le CTE leggono lo
+      snapshot d'inizio istruzione, quindi la riga risulta ancora lì. Va
+      contata in una query separata.
+  - **Nessun dato è stato toccato**: produzione aveva 9 campagne prima e dopo,
+    e la tabella nasce vuota su tutt'e due i branch.
 
 ## Formato del documento campagna
 

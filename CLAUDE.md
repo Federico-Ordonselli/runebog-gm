@@ -70,6 +70,32 @@ lug 2026). Flusso: modifica `src/db/schema.ts` → `npm run db:generate` (commit
 file SQL generato) → `npm run db:migrate`. MAI `drizzle-kit push`: su questo schema
 propone di togliere NOT NULL dalle chiavi primarie (errore 42P16) e di troncare la
 tabella `user` — per questo lo script `db:push` è stato rimosso.
+**`db:generate` dà al file un nome a caso** (`0002_black_cable`): va rinominato
+alla convenzione italiana del repo **e va corretto il `tag` in
+`drizzle/meta/_journal.json`**, sennò `db:migrate` cerca un file che non c'è.
+
+**Le immagini stanno in `campaign_image`** (migrazione `0002`, 6 ago 2026), non
+in un deposito esterno: **ci sono sempre state**, in base64 dentro
+`campaign.data`, quindi una tabella loro non aggiunge un byte — semmai ne toglie,
+perché il +33% del base64 in `bytea` non si paga. Il guadagno non viene da dove
+stanno i byte ma dal documento che smette di portarseli e dall'URL immutabile,
+memorizzabile in cache per sempre.
+- La chiave è **casuale, non un hash del contenuto**: il content-addressing
+  farebbe condividere un oggetto fra due utenti, e cancellare tornerebbe a
+  essere un conteggio di riferimenti.
+- `ON DELETE cascade` su `campaign_id` **è** tutta la politica di cancellazione
+  per il caso normale, e regge la promessa di `deleteAccountAction` (GDPR art.
+  17) attraverso la catena `user → campaign → campaign_image`.
+- **`orphan_since` è il periodo di grazia**: gli snapshot di `undo` sono
+  `JSON.stringify` dello stato e continuano a puntare a un'immagine appena
+  scollegata, quindi non si cancella mai in sincrono con un gesto. Lo spazzino
+  segna, cancella a un passaggio successivo e **riazzera se l'immagine torna
+  referenziata** — cioè quando qualcuno preme Ctrl+Z.
+- **Un URL relativo oggi NON passa**: `safeUrl` (`modello.js`, `share.ts`) e
+  `validateImage` (`formato-campagna.js`) pretendono `data:image/` o
+  `https?://`, quindi un `/immagini/…` esce `invalid_image_type`, cioè 422 al
+  salvataggio. I tre elenchi si toccano insieme, con un test al negativo in
+  `test/critici/`.
 
 ## Architettura: due mondi, un JSON
 
@@ -1531,4 +1557,15 @@ Non negoziabili; se tocchi queste aree, mantienili:
   `npm run db:migrate` applica solo al branch del `DATABASE_URL` corrente: **ogni
   migrazione va applicata a entrambi**, sennò si ripete il guasto del 15 lug 2026
   (colonna `share_token` solo su dev, produzione rotta con errore 42703). Entrambi i
-  branch hanno il baseline nel registro migrazioni.
+  branch hanno il baseline nel registro migrazioni. La ricetta, seguita per la
+  `0001` e per la `0002`: **backup di produzione come branch Neon** → migrazione
+  su entrambi → deploy → smoke test. Un rollback del solo codice è innocuo, e
+  la colonna (o la tabella) in più non dà fastidio: **non toglierla** durante
+  un'emergenza.
+- **Una cascata si prova, non si deduce dal vincolo.** `confdeltype='c'` dice
+  che la regola c'è, non che la catena regge fino in fondo — e qui la catena è
+  lunga due (`user → campaign → campaign_image`). Si prova su un **branch
+  usa-e-getta**, dove scrivere e cancellare non tocca dati di nessuno.
+  Trappola: `DELETE` e conteggio nella **stessa** istruzione (in una CTE) danno
+  un falso rosso, perché le CTE leggono lo snapshot d'inizio istruzione e la
+  riga risulta ancora lì. Va contata in una query separata.
