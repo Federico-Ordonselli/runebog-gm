@@ -422,6 +422,26 @@ allargarla bisognava esportare il JSON e riscriverlo a mano.
   il salvataggio di una campagna legittima, e il DM lo scopre dopo averla
   costruita. La palette in `app.html` va allineata a mano; quella del livello
   vuoto (`emptyNodeMarkup`) si genera da `SHAPES`.
+- **La palette si porta sul gruppo che serve al livello** (`allineaPalette` in
+  `mappa.js`, chiamata in fondo a `renderMap`, 6 ago 2026). La barra va da
+  Territorio a Segnalini, cioè dalla scala più larga alla più stretta: giusto
+  per leggerla, e il rovescio esatto di quanto si usano le cose — un mondo si
+  fonda una volta, le pedine si posano tutta la sera. Su telefono la striscia è
+  1872px su 370 visibili, e Segnalini stava a **3,6 schermate** proprio nella
+  stanza dove si gioca. Adesso al cambio di livello scorre da sé; non toglie e
+  non nasconde niente, quindi sbagliare bersaglio costa una passata di dito.
+  - **A quale gruppo appartiene una forma non è scritto nel JS**: si chiede alla
+    palette, che lo dichiara già col `.pal-title` che precede le sue pastiglie.
+    Un secondo elenco si disallineerebbe in silenzio, e "la barra scorre nel
+    posto sbagliato" non fa fallire niente. Stessa ragione di `emptyNodeMarkup`.
+  - L'eccezione dichiarata è la **stanza**: `scalaDentro("stanza")` torna ancora
+    "stanza", ma lì dentro non nasce un'altra stanza — si disegna il pavimento
+    (Pianta), e con `n.battle` acceso si posano le pedine (Segnalini). Il
+    secondo è il caso che conta: durante uno scontro la palette non si scorre.
+  - Si allinea **solo al cambio di livello** (chiave `id + battle`): `renderMap`
+    gira a ogni selezione, e senza la guardia la barra scorrerebbe sotto il dito
+    di chi la sta scorrendo a mano. Su scrivania `#pal-scroll` è
+    `display:contents`, quindi `clientWidth` è 0 e la funzione esce subito.
 
 **Chi sta sulla maglia, e come** (`onGrid`/`snapNode` in `modello.js`, l'unico
 posto che lo decide). Ci si sta in due modi, perché sono due cose diverse:

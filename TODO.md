@@ -43,6 +43,24 @@ trentasei e proprio a pochi PF. Voce per esteso in fondo.
 
 ### Il 6 agosto 2026, in breve
 
+**La palette si porta dove serve.** Seconda parte della giornata, ed è di nuovo
+la rimisura ad aver spostato il difetto: i numeri di questa voce (2368px, 16%)
+erano quelli di prima che i comandi uscissero dallo scorrimento. Rifatti col
+dito a 390×844: **1872px su 370 visibili (20%), 5,1 schermate, 2 voci su 16** —
+ma soprattutto Territorio a 0 e **Segnalini a 3,6 schermate**, cioè la barra è
+ordinata al rovescio di quanto si usano le cose. Ora `allineaPalette`
+(`mappa.js`) la porta da sé sul gruppo del livello: **zero** passate di dito
+dove prima ne servivano 3,6. 15/15, con la scrivania come gruppo di controllo.
+Voce per esteso in "La scala della campagna".
+
+**Decisi i tre confini che restavano sulle immagini fuori dal JSON**: mai
+cancellare in sincrono (l'undo referenzia ancora ciò che è stato appena
+cancellato), URL non indovinabile invece dell'autorizzazione (sennò si perde la
+cache, che è il guadagno vero), Vercel Blob. Con essi cade l'ultima decisione in
+sospeso del backlog. Voce per esteso in "Immagini fuori dal JSON".
+
+
+
 **Le due verifiche che aspettavano un database.** `npx tsc --noEmit`,
 `npm test` (99), `npm run build` e `npm run temi:contrasto` puliti,
 l'autoverifica della fixture 13/13. Nessuna migrazione. La verifica è
@@ -227,14 +245,11 @@ due decise.
 - **Deciso (misurato): i 4 MB non li impone più Vercel.** Restano una scelta
   di questo repo, e valgono **solo in salita**.
 
-**Cosa aspetta una decisione tua**, e nessuna delle due blocca l'altra:
-1. I **confini 3, 4 e 5** delle immagini fuori dal JSON — chi cancella
-   un'immagine orfana, come si autorizza al tavolo, dove si tiene il blob. Il
-   quarto è quello che può mangiarsi il guadagno: immagini condivise dietro
-   un'autorizzazione tornano non memorizzabili in cache.
-2. La **palette** vera e propria: 16% visibile, 2 voci su 16. Tre strade con
-   il costo misurato nella voce, e due scartate con la ragione scritta, per
-   non riproporle.
+~~**Cosa aspetta una decisione tua**~~ — **niente, dal 6 ago 2026.** I confini
+3, 4 e 5 delle immagini sono decisi (mai cancellare in sincrono; URL non
+indovinabile; Vercel Blob) e la palette è **fatta**. Da qui in avanti non c'è
+più una scelta da portare: c'è da costruire, e l'unico passo che chiede te è
+**provvedere lo store Vercel Blob**, che è una voce di spesa.
 
 **I branch Neon usa-e-getta si cancellano da sé, ed è misurato**:
 `verifica-etag-tavolo` non c'era più il 6 ago, com'era scritto. Quello del 6 ago
@@ -244,17 +259,20 @@ mezzogiorno.
 Da qui in avanti, in ordine di consiglio:
 
 1. **Le immagini fuori dal JSON** — l'indagine è fatta (30 lug, rimisurata il
-   31, sezione sua): scioglie insieme il tetto di 4 MB della PATCH e la quota
-   di `localStorage`, e alleggerisce ogni apertura dell'editor, che oggi
-   riscarica le immagini a ogni giro e non può metterle in cache. **Il primo
-   confine è deciso** (l'export resta autosufficiente) e con lui lo schema:
-   restano il 3, il 4 e il 5. Il tetto è più vicino di quanto dicesse la voce —
-   ~6 battlemap riempiono un documento.
+   31, sezione sua) e **tutti e cinque i confini sono decisi** (il 1 il 31 lug,
+   il 3, 4 e 5 il 6 ago): non resta niente da decidere, resta da costruire.
+   Scioglie il tetto di 4 MB della PATCH e alleggerisce ogni apertura
+   dell'editor, che oggi riscarica le immagini a ogni giro e non può metterle in
+   cache; la quota di `localStorage` invece **non** si scioglie in standalone,
+   dove le immagini restano per forza in base64. Il tetto è più vicino di quanto
+   dicesse la voce — ~6 battlemap riempiono un documento. **Il primo passo non è
+   codice**: provvedere lo store Vercel Blob, unica voce di spesa del lavoro.
 
-2. **La palette su telefono** (in "La scala della campagna"): 16% visibile, 2
-   voci su 16. I comandi sono già usciti dal suo scorrimento il 31 lug, che era
-   la parte rotta davvero; questa è la parte che resta, e vuole una scelta fra
-   le tre strade misurate.
+~~2. La palette su telefono~~ — **fatta il 6 ago 2026**, e la rimisura ha di
+nuovo spostato il difetto: non era la lunghezza della striscia ma il suo
+**ordine**, che va dalla scala più larga alla più stretta, cioè al rovescio di
+quanto si usano le cose. Ora la barra si porta da sé sul gruppo che serve al
+livello. Voce per esteso in "La scala della campagna".
 
 ~~3. Due verifiche che ora si possono fare~~ — **fatte il 6 ago 2026**, 39/39,
 con un difetto corretto per strada. Restano quindi **due sole voci**, e sono
@@ -1321,25 +1339,77 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
      **puntare** a una risorsa invece di contenerla, cioè un riferimento che si
      può rompere — e finora in questo repo i riferimenti si risolvono sul
      server per costruzione.
-  3. **Chi cancella.** Oggi l'immagine se ne va col JSON. Fuori, una bolla
-     eliminata, un `undo` e una campagna cancellata vogliono una politica
-     esplicita, e quella sbagliata butta un'immagine che uno snapshot di undo
-     sta ancora referenziando.
-  4. **L'autorizzazione al tavolo.** Un'immagine condivisa dev'essere leggibile
-     da chi ha il link segreto e da nessun altro; una non condivisa non
-     dev'essere raggiungibile affatto. Oggi a filtrare basta
-     `projectForPlayers`, perché il dato fuori dal documento non esiste.
-  5. **Dove.** Vercel Blob è la scelta nativa (il sito è già su Vercel) e
-     supporta blob privati, ma è la prima dipendenza di storage oltre a Neon e
-     ha un costo. Da decidere insieme al punto 1, non dopo.
+  3. ~~**Chi cancella.**~~ **Deciso il 6 ago 2026: mai in sincrono con un gesto
+     dell'utente.** Gli snapshot di `undo` sono `JSON.stringify` dello stato,
+     quindi uno snapshot di dieci minuti fa **referenzia ancora** l'immagine di
+     una bolla appena cancellata: buttarla all'istante rompe l'annulla, cioè
+     proprio la funzione che esiste per rimediare. Due regole sole:
+     - la **campagna cancellata** porta via i suoi blob. La riga `user` ha già
+       `ON DELETE CASCADE` per il diritto alla cancellazione (GDPR art. 17): i
+       blob devono seguirla, sennò un account cancellato lascia in giro le sue
+       mappe, che è la promessa che `deleteAccountAction` fa.
+     - gli **orfani** si spazzano con un **periodo di grazia** — confronto fra
+       ciò che il documento referenzia e ciò che è depositato, e si butta solo
+       quel che è orfano da più di N giorni, con N largamente sopra una sessione
+       di editing. Così l'undo non può romperlo.
+     - **Il rovescio, ed è vero**: finché lo spazzino non c'è, gli orfani si
+       accumulano **senza tetto**. Oggi quel tetto lo dà il documento; togliendo
+       le immagini dal documento lo si toglie anche a quello, e chi risostituisce
+       la stessa battlemap venti volte lascia venti blob da 600 KB.
+  4. ~~**L'autorizzazione al tavolo.**~~ **Deciso il 6 ago 2026: URL non
+     indovinabile, pubblico e memorizzabile in cache.** È il confine che poteva
+     mangiarsi tutto il guadagno — dietro un'autorizzazione le immagini tornano
+     non memorizzabili, e il guadagno vero non è un documento più piccolo ma una
+     figura scaricata **una volta** invece che a ogni apertura dell'editor.
+     - È **il modello di fiducia che questo repo ha già scelto**:
+       `/tavolo/[token]` è un link segreto, non un'area autenticata. Chiedere
+       alle immagini una difesa più forte di quella del tavolo che le contiene
+       non protegge niente.
+     - L'URL di un'immagine **non condivisa non lascia mai il server**:
+       `projectForPlayers` costruisce la proiezione campo per campo, quindi ai
+       giocatori arriva l'indirizzo solo di ciò che è `shared === true`. Il
+       filtro esiste già e non cambia — ma da quel giorno **è anche il filtro
+       che decide chi può leggere un file**, non solo cosa si vede sulla tela.
+     - **Il rovescio, dichiarato**: un URL uscito al tavolo **resta valido anche
+       dopo che si rigenera il link di condivisione**. Oggi ruotare `shareToken`
+       chiude fuori tutti di colpo; con le immagini fuori chiuderebbe fuori
+       tutti tranne chi si è salvato l'indirizzo di una figura. Renderle
+       revocabili vorrebbe dire ri-chiavare ogni URL del documento a ogni
+       rotazione — caro, e per un valore che non pareggia il prezzo.
+  5. ~~**Dove.**~~ **Deciso il 6 ago 2026: Vercel Blob.** Il sito è già su
+     Vercel, supporta blob sia pubblici sia privati (quindi non chiude la porta
+     se un domani il confine 4 si rivedesse), ed è la scelta nativa. È però la
+     **prima dipendenza di storage oltre a Neon** e ha un costo: è l'unica parte
+     di questo lavoro che aggiunge una voce di spesa, e va provvista prima che
+     si possa scrivere una riga.
+
+  **Una conseguenza che nessuno dei cinque confini nominava**: se le immagini
+  escono dal JSON, **le due metà del prodotto divergono**. In cloud stanno
+  fuori; in **standalone** — dove non c'è nessun server a cui caricarle —
+  restano per forza in base64. Non è un problema (il confine 1 impone già che
+  l'import accetti entrambe le forme, e la lettura è tollerante), ma vuol dire
+  che `compressImage` avrà due destinazioni e soprattutto che **la quota di
+  `localStorage` non si scioglie per chi lavora offline**. Questa sezione oggi
+  dice che il lavoro risolve "entrambi i limiti insieme": per lo standalone è
+  falso, e con la copia offline del 2 agosto lo standalone non è più il caso
+  marginale che era.
 
   **Non è urgente, ma il tetto è più vicino di così**: nessuno ha segnalato di
   aver sbattuto contro i 4 MB e la lettura tollerante non ha niente da temere,
   però la misura in Chromium dice che a riempire il documento bastano **sei
-  battlemap** — non "una campagna enorme". Restano da decidere i confini 3, 4 e
-  5 (chi cancella, l'autorizzazione al tavolo, dove si tiene il blob); il primo
-  è deciso e i suoi effetti stanno lì sopra. È l'unica voce rimasta che tolga un
+  battlemap** — non "una campagna enorme". È l'unica voce rimasta che tolga un
   limite invece di rifinire.
+
+  **Tutti e cinque i confini sono decisi** (1 il 31 lug, 3-4-5 il 6 ago), quindi
+  da qui in poi non c'è più niente da decidere: c'è da costruire. **Il primo
+  passo non è codice**: `Vercel Blob` va provvisto sul progetto, ed è l'unica
+  voce di spesa di tutto il lavoro. Da lì l'ordine è
+  `BLOB_READ_WRITE_TOKEN` in `.env` e su Vercel → il caricamento in
+  `compressImage` (le due gemelle, `pannello.js` e `mappa.js`) → l'esporta che
+  re-incorpora (con avanzamento e un modo di fallire che non scrive un file a
+  cui mancano figure) → la cancellazione a cascata → lo spazzino con il periodo
+  di grazia. `safeUrl` e la whitelist del contratto **non si toccano**: accettano
+  già `https://` tutti e tre.
 
 ## Formato del documento campagna
 
@@ -2249,12 +2319,62 @@ Cosa **resta** da fare, misurato:
       identiche prima e dopo, verificato con `git stash` e ricontrollato dopo il
       `pop`. Più `npx tsc --noEmit`, `npm test` (99) e l'autoverifica della
       fixture (13/13).
-  - **Resta la palette**, che è indipendente: 16% visibile, 2 voci su 16. Le tre
-    strade sopra restano valide, e "un gruppo per volta" (516px, 1,3 schermate)
-    è l'unica che cambia ordine di grandezza. Due opzioni scartate e perché, per
-    non riproporle: **icone senza parole** rompe cinque segnalini che hanno per
-    icona un quadratino colorato, e **riordinare con `order` in CSS** sfasa
-    l'ordine visivo da quello del DOM, cioè da quello di lettura e di Tab.
+  - [x] **Resta la palette** — **fatta il 6 ago 2026**, e come sempre la
+    rimisura ha spostato il bersaglio. I numeri di questa voce (2368px, 16%)
+    erano quelli di **prima** che i comandi uscissero dallo scorrimento:
+    rifatti a 390×844 col dito, la striscia è **1872px su 370 visibili (20%)**,
+    5,1 schermate, 2 voci su 16.
+    - **Il difetto non era la lunghezza, era l'ordine.** La barra va da
+      Territorio a Segnalini, cioè dalla scala più larga alla più stretta —
+      giusto per leggerla, e il rovescio esatto di quanto si usano le cose. Un
+      mondo si fonda una volta; le pedine si posano tutta la sera. Misurato:
+      Territorio è a **0**, Luoghi a 655, Pianta a 1100 e **Segnalini a 1348px,
+      3,6 schermate** — il gruppo che serve nella stanza dove si gioca era il
+      più lontano di tutti. Nessuna delle tre strade misurate guardava lì.
+    - **La correzione non toglie e non nasconde niente**: al cambio di livello
+      la palette **scorre da sé** sul gruppo che lì dentro serve
+      (`allineaPalette` in `mappa.js`, chiamata in fondo a `renderMap`). Niente
+      comando in più — l'app sapeva già cosa nasce dove (`formaImplicita`,
+      `scalaDentro`) — e sbagliare bersaglio costa una passata di dito, non un
+      errore: è la ragione per cui questa strada batte "un gruppo per volta",
+      dove una mappatura sbagliata **nasconde** quel che serve.
+    - **A quale gruppo appartiene una forma non è scritto nel JS**: si chiede
+      alla palette, che lo dichiara già col `.pal-title` che precede le sue
+      pastiglie. Un secondo elenco si sarebbe disallineato in silenzio, e il
+      difetto — la barra che scorre nel posto sbagliato — non fa fallire niente.
+      È la stessa ragione per cui `emptyNodeMarkup` si genera da `SHAPES`.
+    - **L'unica risposta che la scala non sa dare è la stanza**, e lì sta
+      l'eccezione dichiarata: `scalaDentro("stanza")` torna ancora "stanza", ma
+      dentro una stanza non nasce un'altra stanza — si disegna il pavimento
+      (Pianta), e **a scontro acceso** si posano le pedine (Segnalini). Il
+      secondo caso è il più importante di tutti: durante un combattimento la
+      palette non si scorre. Lo dice `n.battle`, che è già il modo in cui questo
+      repo dice "qui si sta giocando", quindi non è uno stato nuovo.
+    - Guardia: la barra si allinea **solo al cambio di livello** (chiave
+      `id + battle`), sennò `renderMap` — che gira a ogni selezione — la
+      farebbe scorrere sotto il dito di chi la sta scorrendo a mano.
+
+      | | prima | dopo |
+      |---|---|---|
+      | per posare una pedina in una stanza | 1348px, **3,6 schermate** | **0** |
+      | per posare un muro in una stanza | 1100px, 3,0 schermate | **0** |
+      | per posare un edificio in un quartiere | 655px, 1,8 schermate | **0** |
+      | voci del gruppo giusto senza scorrere | 0 | **2–3** |
+
+    - **Quel che NON cambia, e va detto**: la striscia è ancora lunga 1872px e
+      se ne vede sempre il 20%. Cambia **quale** 20% ti trovi davanti. Se un
+      giorno servisse anche accorciarla, le due strade misurate restano valide —
+      due righe scorrevoli (~1184px) o un gruppo per volta (516px) — e queste
+      due sono scartate con la ragione scritta, per non riproporle: **icone
+      senza parole** rompe cinque segnalini che hanno per icona un quadratino
+      colorato, e **riordinare con `order` in CSS** sfasa l'ordine visivo da
+      quello del DOM, cioè da quello di lettura e di Tab.
+    - **Verifica** (scratchpad, buttata): 15 controlli su quattro contesti, con
+      la **scrivania come gruppo di controllo** (`display:contents`, barra 183px
+      e tela 619px identiche, niente scorre) e il **tavolo** (console pulita,
+      palette nascosta). **Controprova**: un ridisegno sullo stesso livello non
+      disfa uno scorrimento fatto a mano, e due livelli dello stesso gruppo non
+      muovono la barra — sennò un verde direbbe solo «qualcosa scorre».
 - **Le icone della palette in `app.html` restano scritte a mano** e vanno
   allineate a occhio a `silhouetteForma`: sono markup statico, non generato.
   Oggi combaciano (la costa è il `path` generato dalla funzione stessa per un
