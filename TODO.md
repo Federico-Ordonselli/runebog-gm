@@ -56,8 +56,24 @@ Voce per esteso in "La scala della campagna".
 **Decisi i tre confini che restavano sulle immagini fuori dal JSON**: mai
 cancellare in sincrono (l'undo referenzia ancora ciò che è stato appena
 cancellato), URL non indovinabile invece dell'autorizzazione (sennò si perde la
-cache, che è il guadagno vero), Vercel Blob. Con essi cade l'ultima decisione in
-sospeso del backlog. Voce per esteso in "Immagini fuori dal JSON".
+cache, che è il guadagno vero) e — dopo il vincolo posto lo stesso giorno, **solo
+cose gratis** — le immagini **in Neon**, in una tabella loro, servite da
+`/immagini/[chiave]`. Vercel Blob era stato consigliato ed è ritirato.
+
+- **La domanda "dove" era mal posta**, e per questo la risposta sembrava
+  costare: le immagini **sono già in Neon oggi**, in base64 dentro
+  `campaign.data`. Una tabella loro non aggiunge un byte allo storage — semmai
+  ne toglie, perché il +33% del base64 in `bytea` non si paga (quanto se ne
+  recuperi davvero non è misurato: il JSONB passa da TOAST).
+- **Il guadagno non dipendeva mai da dove stanno i byte**: dipende dal fatto che
+  il documento smetta di portarsele addosso e che l'immagine abbia un URL
+  **immutabile**, quindi memorizzabile in cache per sempre. Tutte e due si hanno
+  senza dipendenze nuove.
+- Fuori da `/api` di proposito, così la copia offline potrà un domani tenerle:
+  l'invariante esclude `/play`, `/tavolo` e `/api` perché quelle risposte
+  **invecchiano**, e un'immagine a chiave immutabile no.
+- **Con essi cade l'ultima decisione in sospeso del backlog**, e non resta niente
+  da provvedere. Voce per esteso in "Immagini fuori dal JSON".
 
 
 
@@ -247,9 +263,10 @@ due decise.
 
 ~~**Cosa aspetta una decisione tua**~~ — **niente, dal 6 ago 2026.** I confini
 3, 4 e 5 delle immagini sono decisi (mai cancellare in sincrono; URL non
-indovinabile; Vercel Blob) e la palette è **fatta**. Da qui in avanti non c'è
-più una scelta da portare: c'è da costruire, e l'unico passo che chiede te è
-**provvedere lo store Vercel Blob**, che è una voce di spesa.
+indovinabile; le immagini in Neon, servite da `/immagini/[chiave]`) e la palette
+è **fatta**. Da qui in avanti c'è solo da costruire, e non c'è **niente da
+provvedere**: nessun servizio nuovo, nessuna variabile d'ambiente, nessuna
+spesa. Vincolo posto quel giorno e da tenere: **solo cose gratis.**
 
 **I branch Neon usa-e-getta si cancellano da sé, ed è misurato**:
 `verifica-etag-tavolo` non c'era più il 6 ago, com'era scritto. Quello del 6 ago
@@ -265,8 +282,9 @@ Da qui in avanti, in ordine di consiglio:
    dell'editor, che oggi riscarica le immagini a ogni giro e non può metterle in
    cache; la quota di `localStorage` invece **non** si scioglie in standalone,
    dove le immagini restano per forza in base64. Il tetto è più vicino di quanto
-   dicesse la voce — ~6 battlemap riempiono un documento. **Il primo passo non è
-   codice**: provvedere lo store Vercel Blob, unica voce di spesa del lavoro.
+   dicesse la voce — ~6 battlemap riempiono un documento. Le immagini restano
+   **in Neon** (dove già stanno, in base64 dentro il JSONB): niente da
+   provvedere, si parte dalla migrazione.
 
 ~~2. La palette su telefono~~ — **fatta il 6 ago 2026**, e la rimisura ha di
 nuovo spostato il difetto: non era la lunghezza della striscia ma il suo
@@ -1376,12 +1394,42 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
        tutti tranne chi si è salvato l'indirizzo di una figura. Renderle
        revocabili vorrebbe dire ri-chiavare ogni URL del documento a ogni
        rotazione — caro, e per un valore che non pareggia il prezzo.
-  5. ~~**Dove.**~~ **Deciso il 6 ago 2026: Vercel Blob.** Il sito è già su
-     Vercel, supporta blob sia pubblici sia privati (quindi non chiude la porta
-     se un domani il confine 4 si rivedesse), ed è la scelta nativa. È però la
-     **prima dipendenza di storage oltre a Neon** e ha un costo: è l'unica parte
-     di questo lavoro che aggiunge una voce di spesa, e va provvista prima che
-     si possa scrivere una riga.
+  5. ~~**Dove.**~~ **Deciso il 6 ago 2026: in Neon, in una tabella sua, servite
+     da una rotta `/immagini/[chiave]`.** Nessuna dipendenza nuova e nessuna
+     voce di spesa — vincolo posto quel giorno: solo cose gratis (Vercel Blob
+     era stato consigliato e **ritirato**, l'organizzazione Neon è sul piano
+     `free`).
+     - **La domanda "dove" era mal posta, e per questo la risposta sembrava
+       costare**: le immagini **sono già in Neon oggi**, in base64 dentro
+       `campaign.data`. Spostarle in una tabella loro non aggiunge un byte allo
+       storage — semmai ne toglie, perché il base64 costa un +33% esatto che in
+       `bytea` non si paga. Quanto se ne recuperi davvero **non è misurato**:
+       il JSONB passa da TOAST, che una parte di quel gonfiore la comprimeva
+       già. Il punto regge comunque nel verso che conta: **non può costare più
+       di adesso.**
+     - **Il guadagno non dipendeva mai da dove stanno i byte**, ma da due cose
+       che questa forma dà entrambe: il documento smette di **portarsele
+       addosso** (PATCH, `localStorage`, e l'HTML di ogni apertura di
+       `/play/[id]`), e l'immagine diventa una risorsa con un URL **immutabile**,
+       quindi `public, max-age=31536000, immutable` e scaricata una volta. È il
+       CDN a servirla dopo il primo giro, non la funzione.
+     - **La chiave è casuale, non un hash del contenuto.** Il content-addressing
+       dedupllicherebbe, ma farebbe condividere lo stesso oggetto fra due utenti,
+       e allora cancellare torna a essere un conteggio di riferimenti — cioè
+       riapre il confine 3 dal lato peggiore. Una chiave casuale tiene la
+       proprietà 1:1 e rende la cascata banale.
+     - **La rotta sta FUORI da `/api`**, ed è una scelta, non un dettaglio:
+       l'invariante della copia offline dice che `/play`, `/tavolo` e `/api` non
+       entrano mai in cache. Lì la ragione è che quelle risposte **invecchiano**;
+       un'immagine a chiave immutabile no, per costruzione. Fuori da `/api` la
+       regola resta una riga sola e si apre la porta a una copia offline che
+       tenga anche le figure — cosa che con un deposito esterno non sarebbe
+       possibile affatto.
+     - **Il rovescio, dichiarato**: ogni miss di cache è un'invocazione di
+       funzione più una lettura di Neon, e il piano free ha ore di compute e
+       autosospensione. Per lo strumento di un DM è niente; se un giorno lo
+       diventasse, la sostituzione è **una rotta sola** da riscrivere, perché il
+       documento contiene già solo URL.
 
   **Una conseguenza che nessuno dei cinque confini nominava**: se le immagini
   escono dal JSON, **le due metà del prodotto divergono**. In cloud stanno
@@ -1401,15 +1449,35 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
   limite invece di rifinire.
 
   **Tutti e cinque i confini sono decisi** (1 il 31 lug, 3-4-5 il 6 ago), quindi
-  da qui in poi non c'è più niente da decidere: c'è da costruire. **Il primo
-  passo non è codice**: `Vercel Blob` va provvisto sul progetto, ed è l'unica
-  voce di spesa di tutto il lavoro. Da lì l'ordine è
-  `BLOB_READ_WRITE_TOKEN` in `.env` e su Vercel → il caricamento in
+  da qui in poi non c'è più niente da decidere: c'è da costruire, e **non c'è
+  niente da provvedere** — nessun servizio nuovo, nessuna variabile d'ambiente
+  nuova, nessuna spesa. L'ordine: migrazione con la tabella delle immagini
+  (**da applicare a entrambi i branch Neon**, vedi Trappole in `CLAUDE.md`) →
+  la rotta `/immagini/[chiave]` con la cache immutabile → il caricamento in
   `compressImage` (le due gemelle, `pannello.js` e `mappa.js`) → l'esporta che
-  re-incorpora (con avanzamento e un modo di fallire che non scrive un file a
-  cui mancano figure) → la cancellazione a cascata → lo spazzino con il periodo
-  di grazia. `safeUrl` e la whitelist del contratto **non si toccano**: accettano
-  già `https://` tutti e tre.
+  re-incorpora (con avanzamento e un modo di fallire che non scriva un file a
+  cui mancano figure) → la cancellazione a cascata → lo spazzino col periodo di
+  grazia.
+
+  **Un URL relativo oggi NON passa**, ed è la cosa che questa decisione porta
+  con sé (verificato il 6 ago 2026 su tutti e tre i posti): `safeUrl`
+  (`modello.js:450`, `share.ts:100`) pretende `data:image/` oppure `https?://`,
+  e `validateImage` nel contratto (`formato-campagna.js:320`) fa lo stesso —
+  un `/immagini/abc` cade nel ramo `data:` ed esce `invalid_image_type`, cioè
+  **422 al salvataggio**. Le due strade:
+  - **URL assoluti** (`https://runebog.app/immagini/…`): zero righe da toccare,
+    ma incolla l'**origine dentro il documento** — su `localhost` e sulle
+    preview le figure verrebbero dalla produzione, e il JSONB porterebbe un
+    nome di dominio che un domani cambia.
+  - **URL relativi**, allargando i tre elenchi con una regola **ancorata e
+    stretta** (`^/immagini/[A-Za-z0-9_-]+$`): il documento resta indipendente
+    dall'origine, che è la proprietà per cui l'export è autosufficiente
+    (confine 1). Costa toccare la tripletta di sicurezza — e quella si tocca
+    tutta insieme, con un test in `test/critici/` che provi al negativo che
+    `/immagini/../qualcos'altro` e un `//evil.example` non passino.
+
+  **Consigliata la seconda**: il prezzo è un test da scrivere una volta, il
+  prezzo della prima è un dominio scritto dentro ogni riga del JSONB.
 
 ## Formato del documento campagna
 
