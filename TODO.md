@@ -1,5 +1,103 @@
 # To-do
 
+## Fix dalla code review del 18 settembre 2026
+
+Avviati i fix: **chiusi entrambi i P1 e implementato il collegamento delle
+pedine ai PG** (18–19 settembre). Restano i P2 elencati sotto. La review ha passato `npm test`, typecheck e build (con
+configurazione database fittizia); le riproduzioni mirate usano il codice reale
+con dipendenze simulate. Non sono stati eseguiti test browser completi né
+verifiche contro database e OAuth reali.
+
+- [x] **P1 — Validare l'import dungeon per impedire XSS.**
+  `public/app/dungeon.js`, `importDungeon` / `dungeonFromExport`, e
+  `public/app/mostri.js`, `newFoe` / `foeCard`: per un mostro non presente
+  nella SRD, `m.hp` arriva senza validazione negli attributi HTML dei PF.
+  Riprodotta l'iniezione nel markup con un valore contenente una chiusura
+  d'attributo e un elemento `img` con `onerror`. Validare tipi e limiti
+  dell'export prima della conversione, verificare il documento risultante
+  prima di inserirlo nello stato e proteggere le interpolazioni HTML.
+  Verifica: file ostile rifiutato senza mutare la campagna o eseguire codice;
+  export legittimo del generatore ancora importabile. Aggiungere una
+  regressione sul percorso di importazione, non solo sul validatore isolato.
+  Implementato il 18 settembre: `dungeon-formato.js` controlla tipi, griglia,
+  quantità e dimensioni prima della conversione; la campagna candidata viene
+  validata interamente su una copia prima dell'inserimento. PF normalizzati
+  anche nella creazione e nel rendering dei nemici (compreso il totale).
+  `test/critici/dungeon-import.test.mjs`: export reale, payload XSS, quantità
+  e geometrie ostili, limite cumulativo e JSON malformato/fuori misura; i
+  rifiuti lasciano stato e salvataggio intatti. Moduli applicativi reali con
+  confini UI simulati; nessuna verifica browser dell'esecuzione di script.
+
+- [x] **P1 — Conservare lo stato della scheda che riceve un conflitto cloud.**
+  `public/app/stato.js`, ramo `409` di `cloudPush`, e
+  `public/app/sync-cloud.js`: la copia locale proposta viene riletta da una
+  chiave `localStorage` condivisa fra schede. L'ACK della scheda A può averla
+  sostituita prima che B gestisca il 409: il dialogo di B propone A come
+  locale e come cloud, perdendo B alla scelta; anche «Esporta entrambe»
+  esporta le versioni sbagliate. Riprodotto con risposte simulate.
+  Costruire il recupero dallo snapshot corrente della scheda e separare le
+  copie pendenti delle diverse schede. Verifica: due schede dello stesso
+  browser, ACK di A prima del 409 di B; controllare contenuto dell'export,
+  recupero di B e conservazione di A, anche dopo chiusura e riapertura.
+  È un caso aggiuntivo rispetto alle verifiche del 6 agosto riportate sotto.
+  Chiuso il 19 settembre: il 409 fotografa lo stato corrente della scheda,
+  incluse le modifiche durante la PATCH e nel debounce. Le copie pendenti
+  hanno chiavi immutabili e indipendenti; l'ACK elimina solo la copia della
+  propria scheda, e la riapertura propone le copie residue una per volta.
+  Restano leggibili le vecchie cache. Il dialogo ferma anche il timer già
+  accodato, e a quota piena si conserva l'ultima copia persistita segnalando
+  che l'ultima modifica è solo in memoria. Il successore viene scritto prima
+  di eliminare il precedente: serve spazio temporaneo per entrambe le copie.
+  Verifiche: `npm test`, `npx tsc --noEmit`, build con database fittizio;
+  `node test/browser/verifica-conflitti-cloud.mjs`, **27 controlli Chromium**,
+  con due pagine nello stesso contesto e API simulate, senza database reale.
+  Coperti export A/B, ultima battuta durante la richiesta, pausa del debounce,
+  entrambe le scelte, chiusura e riapertura in un nuovo contesto con il solo
+  storage persistito, due copie offline e modifica durante l'ACK. Come già
+  chiarito il 6 agosto, «Recupera locale» sostituisce A nel cloud esplicitamente;
+  «Esporta entrambe» e «Conserva cloud» lasciano A sul server.
+
+- [ ] **P2 — Rimappare i riferimenti quando si duplica una zona.**
+  `public/app/mappa.js`, `duplicateSelected`: cambiano gli ID dei nodi e
+  degli archi, ma `foe.nodeId` e i riferimenti in `battle.order` continuano
+  a puntare agli incontri originali. Riprodotto duplicando un contenitore
+  con incontro, pedina e iniziativa. Creare una mappa degli ID per tutta la
+  selezione e aggiornare in un secondo passaggio i riferimenti interni,
+  conservando quelli intenzionalmente esterni (per esempio i PG).
+  Verifica: PF e iniziativa della copia risolvono i mostri copiati e restano
+  corretti dopo la cancellazione dell'originale; coprire anche più nodi
+  selezionati insieme.
+
+- [ ] **P2 — Rendere atomico il consumo dei token di reset password.**
+  `src/lib/reset-token.ts`, `consumeResetToken`: SELECT e DELETE separati
+  permettono a due richieste simultanee di consumare lo stesso token.
+  Usare una sola `DELETE … WHERE … RETURNING`, con controllo della scadenza,
+  e valutare una transazione con l'aggiornamento della password in
+  `src/app/auth-actions.ts`. Verifica contro un database di prova: due
+  richieste concorrenti con lo stesso token, una sola autorizzata; token
+  scaduto o già consumato rifiutato. Rilievo da lettura del codice, non
+  ancora riprodotto su database.
+
+- [x] **P2 — Collegare ai giocatori le pedine create dall'import dungeon.**
+  `public/app/dungeon.js`, ciclo `pcs.forEach`: viene copiato il nome ma
+  manca `tk.playerId = pl.id`. Aggiungere il riferimento usato da
+  `tokenLink` e `placePlayer` in `public/app/battaglia.js`.
+  Verifica: dopo l'import nome e PF seguono la scheda PG; «Metti in campo
+  i PG» riconosce le pedine esistenti e non ne crea duplicati.
+  Implementato insieme al P1: `tk.playerId = pl.id`, con regressione sul
+  documento importato. Il comportamento interattivo PF/«Metti in campo»
+  resta da verificare in browser.
+
+- [ ] **P2 — Invalidare la cache SRD anche quando cambia l'interfaccia.**
+  `src/app/sw.js/route.ts`, `versioneRegole`, e
+  `src/lib/offline/sw-sorgente.js`, `primaLaCache`: l'impronta include dati
+  e URL, ma non componenti, ricerca e stili. Un deploy solo dell'interfaccia
+  può lasciare gli utenti sulla vecchia pagina anche online.
+  Includere le sorgenti pertinenti o un identificatore del relativo build
+  nella versione. Verifica browser su due build: scaricare le regole nella
+  prima, modificare soltanto l'interfaccia nella seconda e controllare che
+  HTML e risorse vengano aggiornati mantenendo il funzionamento offline.
+
 ## Prossimi passi, in ordine
 
 Scritti per essere ripresi **a freddo**: ognuno dice dove si tocca e quale

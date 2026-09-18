@@ -12,6 +12,8 @@ import { st, save, currentNode, RO } from "./stato.js";
 import { enterNode, planFit } from "./mappa.js";
 import { openAlert } from "./viste.js";
 import { newFoe, statblockSRD } from "./mostri.js";
+import { parseDungeonExport } from "./dungeon-formato.js";
+import { prepareCampaignDocument, CAMPAIGN_LIMITS } from "./formato-campagna.js";
 import { NOMI_EN } from "./dungeon-nomi.js";
 
 const DG_SCALE = CELL;   // 1 quadrato del generatore = 1 quadretto della pianta
@@ -91,7 +93,7 @@ function dungeonFromExport(data){
   ].join("\n");
   dg.bg = {img: dungeonBgImage(data.grid), x:0, y:0, w:data.grid.width*S, h:data.grid.height*S, opacity:0.7};
 
-  const idmap = {};          // room-N dell'export -> id del nodo creato
+  const idmap = Object.create(null);          // room-N dell'export -> id del nodo creato
   let entrance = null;
   for(const r of data.rooms){
     const rn = node(`#${r.index} ${r.name}`, "luogo");
@@ -114,7 +116,7 @@ function dungeonFromExport(data){
         // vecchi (pre 19 lug 2026) sono in inglese e passano dalla mappa legacy.
         // Se la scheda SRD esiste, entra lo statblock completo (stessa ricetta
         // del bottone del bestiario); sennò restano i dati grezzi dell'export.
-        const nome = NOMI_EN[m.name] || m.name;
+        const nome = Object.hasOwn(NOMI_EN, m.name) ? NOMI_EN[m.name] : m.name;
         const sch = (window.SRD_MONSTERS||[]).find(s=>s.name===nome);
         const hp = sch ? sch.hp : m.hp;
         const en = node(`${m.count}× ${nome}`, "encounter");
@@ -153,6 +155,7 @@ function dungeonFromExport(data){
     // farebbe collassare tutte sullo stesso disco.
     pcs.forEach((pl,i)=>{
       const tk = node(pl.name.trim(), "token");
+      tk.playerId = pl.id;
       tk.color = NODE_COLORS[i % NODE_COLORS.length];
       const q = snapNode(tk, cx + (i - (pcs.length-1)/2)*CELL - MARKER_R, cy - MARKER_R);
       tk.x = q.x; tk.y = q.y;
@@ -162,19 +165,34 @@ function dungeonFromExport(data){
   return dg;
 }
 
-function importDungeon(text){
+export function importDungeon(text){
   if(RO) return;
-  let data;
-  try{ data = JSON.parse(text); }
-  catch(_){ openAlert("Non è JSON: copia l'export dalla pagina /dungeon (Copia JSON) e riprova."); return; }
-  if(!data || data.generator!=="runebog-dungeon-generator" || !data.grid || !Array.isArray(data.rooms)){
-    openAlert("Questo JSON non viene dal generatore di dungeon (/dungeon del sito).");
+  let dg;
+  try{
+    const data = parseDungeonExport(text);
+    dg = dungeonFromExport(data);
+    // Valida la campagna intera, inclusi profondità e limiti cumulativi,
+    // su una copia: un rifiuto non deve modificare né stato né undo.
+    const candidate = structuredClone(st.state);
+    const parentId = currentNode().id;
+    const stack = [candidate.root];
+    let parent;
+    while(stack.length){
+      const n = stack.pop();
+      if(n.id === parentId){ parent = n; break; }
+      stack.push(...n.children);
+    }
+    if(!parent) throw new Error("Livello corrente non trovato.");
+    parent.children.push(dg);
+    const result = prepareCampaignDocument(candidate);
+    if(!result.ok) throw new Error(result.error.message);
+  }catch(error){
+    openAlert("Dungeon non importato: " + error.message);
     return;
   }
-  const dg = dungeonFromExport(data);
   currentNode().children.push(dg);
   save();
-  enterNode(dg.id);       // dentro subito: si vedono stanze, corridoi e pedine
+  enterNode(dg.id);
   planFit(true);
 }
 
@@ -192,6 +210,9 @@ export async function pasteDungeon(){
 export function initDungeon(){
   document.getElementById("dungeon-file").addEventListener("change", e=>{
     const f = e.target.files[0]; if(!f) return;
+    if(f.size > CAMPAIGN_LIMITS.documentBytes){
+      openAlert("Export dungeon troppo grande."); e.target.value = ""; return;
+    }
     const r = new FileReader();
     r.onload = ()=>{ importDungeon(r.result); e.target.value = ""; };
     r.readAsText(f);

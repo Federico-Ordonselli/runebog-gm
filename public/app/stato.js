@@ -7,9 +7,11 @@ import { uid, node, escapeHtml, sanitizeState, isMarker, snapNode,
 import { openAlert, openConfirm, showView } from "./viste.js";
 import {
   readCloudCache,
-  writeCloudCache,
+  cloudCacheKey,
+  readPendingCloudCaches,
+  writePendingCloudCache,
+  discardCloudCache,
   makePendingCache,
-  makeSyncedCache,
   classifyCloudRecovery,
   reconcileCloudAck,
   openCloudRecoveryDialog,
@@ -36,7 +38,8 @@ const memStore = {};
 export const store = {
   get(k){ try{ return localStorage.getItem(k); }catch(e){ return memStore[k] ?? null; } },
   set(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ memStore[k]=v; return false; } },
-  del(k){ try{ localStorage.removeItem(k); }catch(e){ delete memStore[k]; } }
+  del(k){ delete memStore[k]; try{ localStorage.removeItem(k); }catch(e){} },
+  keys(){ try{ return Object.keys(localStorage); }catch(e){ return Object.keys(memStore); } }
 };
 const SAVE_KEY = "runebog-gm-v1";
 let persistent = true;
@@ -52,7 +55,32 @@ let persistent = true;
    verso il server e verso la cache — è una risposta data al posto suo. */
 let cloudRevision = Number.isSafeInteger(window.__cloud?.revision) ? window.__cloud.revision : 0;
 let cloudPaused = false;
-let bootCloudCache = null;
+let bootCloudCaches = [];
+let ownPendingEntry = null;
+let currentPending = false;
+let recoveringEntry = null;
+
+function persistCloudPending(cache){
+  currentPending = true;
+  const result = writePendingCloudCache(store, cache, ownPendingEntry);
+  ownPendingEntry = result.entry;
+  persistent = result.persistent;
+  // La copia recuperata si elimina solo quando il lavoro è al sicuro nella
+  // nuova copia della scheda. Se manca spazio, resta fino all'ACK del server.
+  if(persistent && recoveringEntry){
+    discardCloudCache(store, recoveringEntry);
+    recoveringEntry = null;
+  }
+  return persistent;
+}
+
+function acknowledgeCloudPending(){
+  discardCloudCache(store, ownPendingEntry);
+  discardCloudCache(store, recoveringEntry);
+  ownPendingEntry = recoveringEntry = null;
+  currentPending = false;
+}
+
 
 /* ==================== lo stato condiviso ====================
    Un solo oggetto mutabile, importato ovunque: i binding ES importati non si
@@ -263,23 +291,21 @@ export function initStato(){
     document.documentElement.classList.add("ro");
   }else if(window.__cloud && window.__cloud.state){
     st.state = window.__cloud.state;              // il sito fornisce lo stato: niente slot locali
-    bootCloudCache = readCloudCache(store, window.__cloud.id);
-    /* La vecchia cache cloud stava sotto SAVE_KEY, una chiave sola per tutte le
-       campagne: non si sa a quale appartiene, quindi non la si spedisce mai da
-       sé. Si propone, dicendo che potrebbe essere di un'altra — l'utente ha il
-       titolo davanti e può decidere, il codice no. */
-    if(!bootCloudCache){
+    bootCloudCaches = readPendingCloudCaches(store, window.__cloud.id);
+    const oldCache = readCloudCache(store, window.__cloud.id);
+    if(oldCache?.status === "pending"){
+      const key = cloudCacheKey(window.__cloud.id);
+      bootCloudCaches.push({key, raw:store.get(key), cache:oldCache});
+    }
+    // Compatibilità con la cache precedente all'identificazione della campagna.
+    if(!oldCache && !bootCloudCaches.length){
       try{
-        const legacyState = JSON.parse(store.get(SAVE_KEY));
+        const raw = store.get(SAVE_KEY), legacyState = JSON.parse(raw);
         if(legacyState?.root && Array.isArray(legacyState.checklist) && Array.isArray(legacyState.players)){
-          bootCloudCache = {
-            ...makePendingCache({
-              campaignId: window.__cloud.id,
-              state: legacyState,
-              baseRevision: cloudRevision,
-            }),
-            legacy: true,
-          };
+          bootCloudCaches.push({key:SAVE_KEY, raw, cache:{
+            ...makePendingCache({campaignId:window.__cloud.id, state:legacyState, baseRevision:cloudRevision}),
+            legacy:true,
+          }});
         }
       }catch(_){}
     }
@@ -310,36 +336,13 @@ export function initStato(){
     }catch(e){ st.state = emptyState(); }
   }
   migrateState(st.state);                         // migrazione salvataggi vecchi
-  if(window.__cloud){
-    // La cache viene dal localStorage: forma valida non vuol dire contenuto
-    // sicuro, e passa dallo stesso imbuto di ogni altro caricamento.
-    if(bootCloudCache) migrateState(bootCloudCache.state);
-    const server = {
-      state: st.state,
-      revision: cloudRevision,
-      updatedAt: window.__cloud.updatedAt || null,
-    };
-    const recupero = classifyCloudRecovery(bootCloudCache, {
-      campaignId: window.__cloud.id,
-      state: server.state,
-      revision: server.revision,
-    });
-    if(recupero === "equivalent"){
-      // Era già arrivata: nessuna domanda da fare, solo un'etichetta da correggere.
-      writeCloudCache(store, makeSyncedCache({
-        campaignId: window.__cloud.id,
-        state: server.state,
-        revision: server.revision,
-      }));
-      if(bootCloudCache.legacy) store.del(SAVE_KEY);
-    }else if(recupero === "pending" || recupero === "conflict"){
-      cloudPaused = true;
-      /* Il dialogo aspetta la fine di main.js: i microtask girano quando lo
-         stack si svuota, cioè dopo il primo renderMap(). Aprirlo qui lo
-         mostrerebbe sopra una mappa non ancora disegnata, e "Recupera locale"
-         ridisegnerebbe una vista che nessuno ha ancora costruito. */
-      queueMicrotask(()=>showCloudRecovery(recupero, bootCloudCache, server));
-    }
+  if(window.__cloud && bootCloudCaches.length){
+    cloudPaused = true;
+    // Aspetta il primo render di main.js prima di aprire il dialogo.
+    queueMicrotask(()=>resumeCloudRecovery({
+      state:structuredClone(st.state), revision:cloudRevision,
+      updatedAt:window.__cloud.updatedAt || null,
+    }));
   }
   resetUndo();
   st.path = [st.state.root.id];
@@ -348,7 +351,7 @@ export function initStato(){
   // spedire, riparte da sé invece di aspettare la battitura successiva.
   addEventListener("online", ()=>{
     if(window.__cloud && !cloudPaused &&
-       readCloudCache(store, window.__cloud.id)?.status === "pending") cloudPush();
+       currentPending) cloudPush();
   });
 }
 
@@ -532,37 +535,56 @@ function replaceCloudState(nuovo){
 /* Le due versioni non si fondono. Un merge campo per campo di due alberi di
    campagna è indistinguibile, per l'utente, da una perdita silenziosa: sceglie
    lui, e "Esporta entrambe" gli permette di non scegliere alla cieca. */
-function showCloudRecovery(kind, localCache, server){
+function resumeCloudRecovery(server){
+  while(bootCloudCaches.length){
+    const entry = bootCloudCaches.shift();
+    // Potrebbe essere già stata consumata o sostituita da un'altra scheda.
+    if(store.get(entry.key) !== entry.raw) continue;
+    migrateState(entry.cache.state);
+    const kind = classifyCloudRecovery(entry.cache, {
+      campaignId:window.__cloud.id, state:server.state, revision:server.revision,
+    });
+    if(kind === "equivalent"){
+      discardCloudCache(store, entry);
+    }else if(kind === "pending" || kind === "conflict"){
+      cloudPaused = true;
+      showCloudRecovery(kind, entry.cache, server, entry);
+      return;
+    }
+  }
+  cloudPaused = false;
+}
+
+function showCloudRecovery(kind, localCache, server, source = null){
+  cloudPaused = true;
+  clearTimeout(saveTimer);
+  saveTimer = null;
+  cloudDirty = false;
   openCloudRecoveryDialog({
     kind,
     campaignId: window.__cloud.id,
     localCache,
     server,
     onKeepServer(){
-      cloudPaused = false;
       cloudRevision = server.revision;
       replaceCloudState(server.state);
-      writeCloudCache(store, makeSyncedCache({
-        campaignId: window.__cloud.id,
-        state: server.state,
-        revision: server.revision,
-      }));
-      if(localCache.legacy) store.del(SAVE_KEY);
+      acknowledgeCloudPending();
+      discardCloudCache(store, source);
       cloudStatus("Versione cloud conservata ✓");
+      resumeCloudRecovery(server);
     },
     onRecoverLocal(){
-      cloudPaused = false;
-      // Ribasare sulla revisione mostrata nel dialogo è ciò che rende la
-      // sovrascrittura ESPLICITA: la PATCH che segue non passa perché ha
-      // ragione, passa perché l'utente ha appena guardato l'altra versione.
+      // La base è esattamente la versione mostrata: se cambia ancora,
+      // il server deve rispondere con un nuovo conflitto.
       cloudRevision = server.revision;
-      replaceCloudState(localCache.state);
-      persistent = writeCloudCache(store, makePendingCache({
+      replaceCloudState(structuredClone(localCache.state));
+      recoveringEntry = source || recoveringEntry;
+      persistCloudPending(makePendingCache({
         campaignId: window.__cloud.id,
         state: st.state,
         baseRevision: cloudRevision,
       }));
-      if(localCache.legacy) store.del(SAVE_KEY);
+      cloudPaused = false;
       cloudStatus(persistent ? "Sincronizzazione in attesa…" : "Solo in memoria — usa Esporta",
                   "var(--gold)");
       cloudPush();
@@ -608,16 +630,18 @@ async function cloudPush(finale = false, json = null){
       return;
     }
     if(res.status === 409){
-      // Il server è andato avanti da un'altra parte. La copia locale NON si
-      // tocca: è una delle due versioni fra cui si sta per scegliere.
       const conflitto = await res.json();
-      const localCache = readCloudCache(store, window.__cloud.id) || makePendingCache({
+      // Lo stato di QUESTA scheda, incluse le battute durante la PATCH o
+      // ancora nel debounce. Una cache condivisa potrebbe già contenere A.
+      const localCache = makePendingCache({
         campaignId: window.__cloud.id,
-        state: st.state,
+        state: structuredClone(st.state),
         baseRevision: sentBase,
       });
+      persistCloudPending(localCache);
       cloudPaused = true;
-      cloudStatus("Conflitto rilevato — scegli quale versione conservare", "var(--ember)");
+      cloudStatus(persistent ? "Conflitto rilevato — scegli quale versione conservare"
+                             : "Conflitto rilevato · ultima modifica solo in memoria — usa Esporta entrambe", "var(--ember)");
       showCloudRecovery("conflict", localCache, {
         state: conflitto.data,
         revision: conflitto.revision,
@@ -637,15 +661,17 @@ async function cloudPush(finale = false, json = null){
       currentJson: JSON.stringify(st.state),
       acknowledgedRevision: cloudRevision,
     });
-    persistent = writeCloudCache(store, esito.cache);
     if(esito.retry){
+      persistCloudPending(esito.cache);
       // Qualcosa è cambiato mentre la richiesta era in volo: la base nuova è
       // l'ACK appena ricevuto, ma lo stato corrente resta da spedire.
       cloudDirty = true;
-      cloudStatus("Sincronizzazione in attesa…", "var(--gold)");
+      cloudStatus(persistent ? "Sincronizzazione in attesa…" : "Solo in memoria — usa Esporta", "var(--gold)");
     }else{
+      acknowledgeCloudPending();
       cloudStatus(warn ? `Salvato nel cloud ✓ · ${warn.msg}` : "Salvato nel cloud ✓",
                   warn ? warn.tone : "var(--ink-dim)");
+      resumeCloudRecovery({state:structuredClone(st.state), revision:cloudRevision, updatedAt:ack.updatedAt || null});
     }
   }catch(_){
     cloudStatus(persistent ? "Salvato su questo dispositivo · sincronizzazione in attesa"
@@ -657,6 +683,8 @@ async function cloudPush(finale = false, json = null){
   }
 }
 function doSave(finale = false){
+  saveTimer = null;
+  if(RO || cloudPaused) return;
   const json = JSON.stringify(st.state);
   lastSnap = json;                                // da qui in poi l'undo torna a questo punto
   refreshUndoBtn();                               // lastSnap è cambiato: il proxy va rivalutato
@@ -665,7 +693,7 @@ function doSave(finale = false){
        quale revisione discende. È l'ordine che rende recuperabile una scheda
        chiusa a metà PATCH: se si scrivesse dopo la risposta, il caso da coprire
        sarebbe proprio quello in cui la risposta non arriva. */
-    persistent = writeCloudCache(store, makePendingCache({
+    persistent = persistCloudPending(makePendingCache({
       campaignId: window.__cloud.id,
       state: st.state,
       baseRevision: cloudRevision,

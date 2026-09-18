@@ -91,6 +91,51 @@ export function writeCloudCache(store, cache){
   return store.set(cloudCacheKey(cache.campaignId), JSON.stringify(cache));
 }
 
+/* Ogni snapshot pendente ha una chiave immutabile. Nessun indice condiviso:
+   un read-modify-write dell'indice perderebbe comunque una delle due schede.
+   Si scrive il successore PRIMA di eliminare il precedente della stessa
+   scheda: a quota piena rimane almeno l'ultima copia riuscita. Un dialogo può
+   così consumare la copia mostrata senza cancellare una modifica successiva
+   fatta dalla scheda che l'aveva prodotta. */
+const PENDING_PREFIX = "runebog-cloud-pending-v1:";
+const pendingPrefix = campaignId => PENDING_PREFIX + encodeURIComponent(campaignId) + ":";
+
+export function readPendingCloudCaches(store, campaignId){
+  const entries = [];
+  for(const key of store.keys()){
+    if(!key.startsWith(pendingPrefix(campaignId))) continue;
+    try{
+      const raw = store.get(key), cache = JSON.parse(raw);
+      if(isCloudCache(cache, campaignId) && cache.status === "pending")
+        entries.push({key, raw, cache});
+    }catch(_){}
+  }
+  return entries.sort((a,b)=>a.cache.savedAt-b.cache.savedAt || a.key.localeCompare(b.key));
+}
+
+export function discardCloudCache(store, entry){
+  // Il confronto serve alle chiavi legacy, che erano mutabili. Le nuove
+  // chiavi non vengono MAI riscritte da alcuna scheda.
+  if(entry && store.get(entry.key) === entry.raw) store.del(entry.key);
+}
+
+export function writePendingCloudCache(store, cache, previous = null){
+  if(!isCloudCache(cache, cache?.campaignId) || cache.status !== "pending")
+    throw new TypeError("cache pendente non valida");
+  const raw = JSON.stringify(cache);
+  if(previous?.raw === raw && store.get(previous.key) === raw)
+    return {persistent:true, entry:previous};
+  const key = pendingPrefix(cache.campaignId) + crypto.randomUUID();
+  if(!store.set(key, raw)){
+    // store può avere un fallback in RAM: non accumulare un nuovo documento
+    // ad ogni tentativo fallito. Lo stato vivo resta nella scheda chiamante.
+    store.del(key);
+    return {persistent:false, entry:previous};
+  }
+  discardCloudCache(store, previous);
+  return {persistent:true, entry:{key, raw, cache:JSON.parse(raw)}};
+}
+
 export function statesEqual(a, b){
   try{ return JSON.stringify(a) === JSON.stringify(b); }
   catch(_){ return false; }

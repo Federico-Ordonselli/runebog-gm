@@ -23,7 +23,12 @@ const abMod = v => { const m = Math.floor(((+v||10)-10)/2); return (m>=0?"+":"")
    non è mai l'unica informazione. */
 const hpFascia = pct => pct>50 ? "" : pct>25 ? "mid" : "low";
 
-export function newFoe(name="Nemico", hp=10){ return {id:uid(), name, hp, hpMax:hp}; }
+const safeHP = (value, fallback=1) => Number.isFinite(value)
+  ? Math.max(0, Math.min(1000000, value)) : fallback;
+export function newFoe(name="Nemico", hp=10){
+  hp = Math.max(1, safeHP(hp));
+  return {id:uid(), name, hp, hpMax:hp};
+}
 function ensureMon(n){
   if(!n.monster) n.monster = {};
   const m = n.monster;
@@ -149,7 +154,9 @@ export function rollDice(expr){
 }
 
 function foeCard(nodeId, f){
-  const pct = f.hpMax ? Math.round(100*f.hp/f.hpMax) : 0;
+  const hpMax = Math.max(1, safeHP(f.hpMax));
+  const hp = Math.min(hpMax, safeHP(f.hp, 0));
+  const pct = Math.round(100*hp/hpMax);
   return `<div class="foe-card ${f.hp<=0?"dead":""}">
     <div class="foe-top">
       <input class="foe-name" value="${escapeAttr(f.name)}" oninput="editFoe('${nodeId}','${f.id}','name',this.value)" placeholder="Nome">
@@ -158,10 +165,10 @@ function foeCard(nodeId, f){
     <div class="foe-hp" data-foehp="${f.id}">
       <button class="btn tiny" onclick="bumpFoeHP('${nodeId}','${f.id}',-1)">−</button>
       <div class="hp-bar"><i class="${hpFascia(pct)}" style="transform:scaleX(${pct/100})"></i></div>
-      <input class="hp-now" type="number" value="${f.hp}" min="0" max="${f.hpMax}"
-        onchange="editFoe('${nodeId}','${f.id}','hp',Math.max(0,Math.min(${f.hpMax},parseInt(this.value)||0)))">
+      <input class="hp-now" type="number" value="${hp}" min="0" max="${hpMax}"
+        onchange="editFoe('${nodeId}','${f.id}','hp',Math.max(0,Math.min(${hpMax},parseInt(this.value)||0)))">
       <span class="hp-sep">/</span>
-      <input class="hp-max" type="number" value="${f.hpMax}" min="1"
+      <input class="hp-max" type="number" value="${hpMax}" min="1"
         onchange="editFoe('${nodeId}','${f.id}','hpMax',Math.max(1,parseInt(this.value)||1))">
       <button class="btn tiny" onclick="bumpFoeHP('${nodeId}','${f.id}',1)">+</button>
     </div>
@@ -184,7 +191,7 @@ export function statblockHTML(n){
   }
   ensureMon(n);
   const alive = m.foes.filter(f=>f.hp>0).length;
-  const total = m.foes.reduce((s,f)=>s+f.hp,0);
+  const total = m.foes.reduce((s,f)=>s+safeHP(f.hp,0),0);
   const campo = foesInCampo(n.id);      // quante di queste creature sono già pedine
   /* L'ordine di questo blocco è l'ordine del TAVOLO, non quello della scheda
      stampata: PF, azioni, dadi — le tre cose che si toccano mentre si gioca —
