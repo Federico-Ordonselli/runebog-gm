@@ -319,17 +319,31 @@ export async function giroDiPolling(pagina) {
  * un file mancante e non del perché.
  */
 export function chromiumDellaCache() {
-  const base = path.join(os.homedir(), ".cache", "ms-playwright");
-  const build = elenca(base)
-    .filter(d => /^chromium-\d+$/.test(d))
-    .sort((a, b) => Number(b.split("-")[1]) - Number(a.split("-")[1]));
-  for (const dir of build) {
-    for (const dentro of ["chrome-linux64/chrome", "chrome-linux/chrome", "chrome-mac/Chromium.app/Contents/MacOS/Chromium"]) {
-      const eseguibile = path.join(base, dir, dentro);
-      if (existsSync(eseguibile)) return eseguibile;
+  /* Playwright usa ~/.cache su Linux e ~/Library/Caches su macOS. Inoltre le
+     build recenti chiamano il bundle "Google Chrome for Testing": tenere qui
+     entrambi i nomi evita di legare le verifiche a una singola release. */
+  const basi = [
+    path.join(os.homedir(), ".cache", "ms-playwright"),
+    path.join(os.homedir(), "Library", "Caches", "ms-playwright"),
+  ];
+  for(const base of basi){
+    const build = elenca(base)
+      .filter(d => /^chromium-\d+$/.test(d))
+      .sort((a, b) => Number(b.split("-")[1]) - Number(a.split("-")[1]));
+    for (const dir of build) {
+      for (const dentro of [
+        "chrome-linux64/chrome",
+        "chrome-linux/chrome",
+        "chrome-mac/Chromium.app/Contents/MacOS/Chromium",
+        "chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      ]) {
+        const eseguibile = path.join(base, dir, dentro);
+        if (existsSync(eseguibile)) return eseguibile;
+      }
     }
   }
-  throw new Error(`nessun Chromium in ${base}: installalo con "npx playwright install chromium"`);
+  throw new Error(`nessun Chromium nella cache Playwright: installalo con "npx playwright install chromium"`);
 }
 
 /** `playwright-core` non è una dipendenza del progetto (in CI non serve, e

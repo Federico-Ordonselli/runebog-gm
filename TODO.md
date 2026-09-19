@@ -127,6 +127,32 @@ Scritti per essere ripresi **a freddo**: ognuno dice dove si tocca e quale
 ostacolo è già stato misurato, così non si rifà l'indagine. L'ordine è di
 consiglio, non di vincolo. Le voci per esteso stanno nelle sezioni sotto.
 
+- [x] **P1 — Non coprire la mappa quando si seleziona una bolla su schermo
+  stretto.** Su telefono e in una finestra desktop larga al massimo 760px, il
+  `pointerdown` seleziona subito la bolla e `mobileDetailSync()` apre
+  automaticamente `#detail`: il bottom sheet arriva al 62% dell'altezza e
+  rende difficile continuare a usare la tela. Con un long-press si aggiunge
+  anche il menu contestuale sopra al pannello. La selezione deve restare
+  visibile sulla mappa senza aprire il foglio; i dettagli si aprono solo con
+  un gesto esplicito (il pulsante flottante esiste già). Le azioni esplicite
+  del menu contestuale che richiedono il pannello, come «Rinomina» ed
+  «Etichetta», devono invece aprirlo prima di portare il focus al campo.
+  Toccare `public/app/pannello.js` (`mobileDetailSync`) e
+  `public/app/menu.js` (azioni che entrano nel dettaglio), senza cambiare il
+  pannello laterale desktop. Verifica: tap, trascinamento e long-press su bolla,
+  collegamento e muro a 390px e 760px; finestra desktop stretta con mouse;
+  apertura/chiusura esplicita, focus di «Rinomina»/«Etichetta» e tela ancora
+  utilizzabile con il pannello chiuso.
+  Chiuso il 19 settembre 2026: `mobileDetailSync()` segue soltanto
+  `detailOpen`, quindi tap e selezione aggiornano il contenuto senza aprire il
+  foglio; «Rinomina» ed «Etichetta» passano da `openDetailSheet()`. Il menu
+  contestuale è confinato alla finestra e, fino a 760px, al 60% dell'altezza,
+  con scorrimento interno. Aggiunta
+  `test/browser/verifica-pannello-mobile.mjs`; 12/12 controlli a 390px touch e
+  760px mouse. La fixture Chromium ora riconosce anche la cache e il bundle
+  correnti di Playwright su macOS. `npm test` (124), `npx tsc --noEmit` e build
+  di produzione superati.
+
 **Chiusa: la copia offline** (2 ago 2026), comprese le tre lacune che il primo
 giro aveva lasciato aperte: la porta d'ingresso senza rete, la ricerca che
 reggeva per fortuna e l'installazione a schermo intero. I due commit

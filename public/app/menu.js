@@ -11,7 +11,7 @@ import { etichettaOffline } from "./offline.js";
 import { exportJSON } from "./esporta.js";
 import { childOf, enterNode, duplicateSelected, addSpatialChild, arrangeGrid,
          planPointXY, renderCanvas, wallOf, setWallDoor, deleteWallSeg } from "./mappa.js";
-import { renderDetail, editNode, askDeleteNode, editEdge, deleteEdge } from "./pannello.js";
+import { renderDetail, openDetailSheet, editNode, askDeleteNode, editEdge, deleteEdge } from "./pannello.js";
 
 const ctxEl = () => document.getElementById("ctx-menu");
 function closeCtx(){ ctxEl().classList.remove("show"); }
@@ -31,8 +31,11 @@ function openCtx(items, x, y){
   });
   el.classList.add("show");
   const r = el.getBoundingClientRect();
-  el.style.left = Math.min(x, innerWidth  - r.width  - 8) + "px";
-  el.style.top  = Math.min(y, innerHeight - r.height - 8) + "px";
+  /* Un menu più alto della finestra dava coordinate negative e copriva anche
+     il bordo da cui chiuderlo. Il CSS lo rende scorrevole; qui lo teniamo
+     sempre dentro gli otto pixel di margine su tutti e quattro i lati. */
+  el.style.left = Math.max(8, Math.min(x, innerWidth  - r.width  - 8)) + "px";
+  el.style.top  = Math.max(8, Math.min(y, innerHeight - r.height - 8)) + "px";
 }
 
 function focusDetailTitle(){
@@ -50,7 +53,7 @@ export function showCtxFor(target, cx, cy){
     st.selectedId = n.id; st.selectedEdgeId = st.selectedWallId = null; renderCanvas(); renderDetail();
     const items = [
       {id:"enter", label:"Entra →", run:()=>enterNode(n.id)},
-      {id:"ren",   label:"Rinomina", run:()=>{ st.selectedId=n.id; renderDetail(); focusDetailTitle(); }},
+      {id:"ren",   label:"Rinomina", run:()=>{ st.selectedId=n.id; openDetailSheet(); focusDetailTitle(); }},
       {id:"dup",   label:"Duplica", run:()=>{ st.selectedId=n.id; duplicateSelected(); }},
       "---",
       {head:"Stato"},
@@ -84,7 +87,7 @@ export function showCtxFor(target, cx, cy){
         run:()=>editEdge(e.id,"type",k)
       })),
       "---",
-      {id:"lab", label:"Etichetta…", run:()=>{ st.selectedEdgeId=e.id; renderDetail(); focusDetailTitle(); }},
+      {id:"lab", label:"Etichetta…", run:()=>{ st.selectedEdgeId=e.id; openDetailSheet(); focusDetailTitle(); }},
       {id:"del", label:"Elimina", danger:true, run:()=>deleteEdge(e.id)}
     ];
     openCtx(items, cx, cy);

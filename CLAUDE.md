@@ -49,6 +49,10 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   copie in /tmp e controlla il cambio di sola UI anche offline. Quest’ultimo
   conserva le build in caso di errore per la diagnosi. Le attese asincrone
   sulle cache sono cicli di `evaluate`, non predicati async di `waitForFunction`.
+- Pannello stretto: selezionare sulla mappa non apre il bottom sheet; lo aprono
+  il pulsante flottante e le azioni che richiedono un campo. Il menu contestuale
+  resta entro il 60% dell’altezza fino a 760px. Verifica con
+  `node test/browser/verifica-pannello-mobile.mjs` e `npm run dev` acceso.
 - PostgreSQL reale senza dati dell’app: avviare
   `docker run --rm -d --name runebog-todo-test -e POSTGRES_PASSWORD=runebog-test-only postgres:17-alpine`,
   poi `node test/database/verifica-todo.mjs` e

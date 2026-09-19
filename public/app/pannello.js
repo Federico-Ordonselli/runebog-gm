@@ -387,9 +387,11 @@ function mobileDetailSync(){
     b.onclick = closeDetailSheet;
     aside.prepend(b);
   }
-  aside.classList.toggle("open",
-    st.detailOpen || !!st.selectedId || !!st.selectedEdgeId || !!st.selectedWallId ||
-    st.multiSel.size>0 || st.multiSelWalls.size>0);
+  /* Su uno schermo stretto selezionare serve prima di tutto a operare sulla
+     mappa: aprire automaticamente il foglio copriva il 62% della tela e, col
+     long-press, lo sommava al menu contestuale. Il contenuto continua ad
+     aggiornarsi dietro le quinte; ad aprirlo è solo un gesto esplicito. */
+  aside.classList.toggle("open", st.detailOpen);
 }
 export function renderDetail(){
   renderDetailCore();

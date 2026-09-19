@@ -742,6 +742,7 @@
     position:fixed;z-index:60;min-width:190px;display:none;
     background:var(--panel);border:1px solid var(--line-ui);border-radius:10px;
     box-shadow:0 10px 30px rgba(0,0,0,.5);padding:5px;
+    max-height:calc(100dvh - 16px);overflow-y:auto;overscroll-behavior:contain;
   }
   #ctx-menu.show{display:block}
   #ctx-menu .ctx-head{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);padding:6px 10px 3px}
@@ -909,6 +910,12 @@
     .pal-sep{display:none}
     #plan-hint{display:none}
     #plan-wrap *{-webkit-touch-callout:none}
+
+    /* Il menu della bolla contiene anche stati e forme: col long-press superava
+       l'altezza del telefono e si sommava al pannello dettagli. Resta tutto
+       raggiungibile con lo scorrimento, ma almeno il 40% della tela rimane
+       visibile e un tocco fuori continua a chiuderlo. */
+    #ctx-menu{max-height:60dvh}
 
     /* pannello dettagli = bottom sheet: la larghezza non è più una scelta
        (occupa tutto), quindi la maniglia sparisce — anche dal focus da tastiera. */
