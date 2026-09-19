@@ -2,6 +2,7 @@
    pointer (drag, pinch, long-press, collegamenti), sfondo del livello,
    navigazione tra livelli e operazioni sulla selezione. */
 
+import { duplicaNodi } from "./duplica.js";
 import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeColor,
          isMarker, defShape, nodeBox, nodeCenter, node, uid, escapeHtml, escapeAttr,
          gridShape, onGrid, snapGrid, snapNode,
@@ -20,6 +21,7 @@ export function renderMap(){
   renderCanvas();
   renderDetail();
   renderBattleBar();     // vive fuori dalla tela: va aggiornata insieme, non da sola
+  allineaPalette();      // la barra segue il livello; si ferma da sé se non c'è niente da scorrere
 }
 
 export function renderCrumbs(){
@@ -901,6 +903,73 @@ export const formaImplicita = () => {
 export function quickAddCenter(){
   addAtCenter("shape", formaImplicita());
 }
+
+/* ---- la palette si porta dove serve, invece di aspettare che la si scorra ----
+ *
+ * La barra è ordinata dalla scala più larga alla più stretta (Territorio,
+ * Luoghi, Pianta, Segnalini), che è l'ordine giusto per leggerla e il rovescio
+ * esatto di quanto si usano le cose: un mondo si fonda una volta, le pedine si
+ * posano tutta la sera. Misurato il 6 ago 2026 a 390px: la striscia è 1872px su
+ * 370 visibili (20%, 2 voci su 16), Territorio è a 0 e **Segnalini a 1348px,
+ * cioè 3,6 schermate** — il gruppo che serve nella stanza dove si gioca è il
+ * più lontano di tutti.
+ *
+ * La correzione non toglie e non nasconde niente: allo scattare del livello la
+ * palette **scorre da sé** sul gruppo che lì dentro serve. Nessun comando in
+ * più (l'app sa già cosa nasce dove: è `formaImplicita`), nessun `order` in CSS
+ * (sfaserebbe l'ordine visivo da quello di Tab) e nessuna voce sottratta —
+ * sbagliare bersaglio costa una passata di dito, non un errore.
+ *
+ * A quale gruppo appartenga una forma **non è scritto qui**: si chiede alla
+ * palette, che lo dichiara già col `.pal-title` che precede le sue pastiglie.
+ * Un secondo elenco si sarebbe disallineato in silenzio, e il difetto — la
+ * barra che scorre nel posto sbagliato — non fa fallire niente.
+ */
+
+/* Il livello per cui la palette è già allineata. `renderMap` gira a ogni
+   selezione e a ogni battuta: senza questa guardia la barra scorrerebbe sotto
+   il dito di chi la sta scorrendo a mano. Nella chiave c'è anche la modalità
+   combattimento, perché accenderla cambia la risposta senza cambiare livello. */
+let paletteAllineataSu = null;
+
+function gruppoDellaPalette(pal, corrisponde){
+  let titolo = null;
+  for(const el of pal.children){
+    if(el.classList.contains("pal-title")){ titolo = el; continue; }
+    if(!el.classList.contains("pal-item")) continue;
+    let dati; try{ dati = JSON.parse(el.dataset.pal); }catch(_){ continue; }
+    if(corrisponde(dati)) return titolo;
+  }
+  return null;
+}
+
+export function allineaPalette(){
+  const pal = document.getElementById("pal-scroll");
+  /* Su scrivania `#pal-scroll` è `display:contents`, cioè non esiste come
+     contenitore: `clientWidth` è 0 e non c'è niente da allineare, perché la
+     barra va a capo e si vede tutta. Al tavolo la palette non c'è affatto. */
+  if(RO || !pal || !pal.clientWidth || pal.scrollWidth <= pal.clientWidth) return;
+
+  const cur = currentNode();
+  const chiave = cur.id + (cur.battle ? "⚔" : "");
+  if(chiave === paletteAllineataSu) return;
+  paletteAllineataSu = chiave;
+
+  const forma = cur.shape || defShape(cur);
+  /* Sotto la stanza la scala si ferma (`scalaDentro` torna ancora "stanza"),
+     ma quel che si posa dentro una stanza non è un'altra stanza: è il pavimento
+     — e a scontro acceso sono le pedine. È l'unica risposta che `formaImplicita`
+     non sa dare, ed è anche il caso che conta di più: durante un combattimento
+     la palette non si scorre. */
+  const corrisponde = forma !== "stanza" ? d => d.shape === scalaDentro(forma)
+                    : cur.battle ? d => d.marker === "token"
+                    : d => d.wall;
+  const titolo = gruppoDellaPalette(pal, corrisponde);
+  if(!titolo) return;
+
+  const lento = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  pal.scrollTo({left: titolo.offsetLeft - pal.offsetLeft, behavior: lento ? "auto" : "smooth"});
+}
 /* Crea al centro della vista corrente. La usano i pulsanti dell'empty state:
    lì non c'è un punto scelto dall'utente, quindi il centro è l'unica posizione
    che non sorprende. */
@@ -1524,30 +1593,21 @@ export function duplicateSelected(){
      stanno sempre. */
   const off = muri.length || nodi.some(onGrid) ? CELL : 30;
 
-  const nuovoId = {};                       // vecchio id → nuovo, per rimappare gli archi
-  const copieN = nodi.map(src=>{
-    const copy = JSON.parse(JSON.stringify(src));
-    (function reid(n){
-      n.id = uid();
-      const map = {};
-      n.children.forEach(ch=>{ const old = ch.id; reid(ch); map[old] = ch.id; });
-      n.edges = (n.edges||[]).map(e=>({...e, id:uid(), a:map[e.a]||e.a, b:map[e.b]||e.b}));
-    })(copy);
-    nuovoId[src.id] = copy.id;
+  const {copie: copieN, nodi: nuovoId} = duplicaNodi(nodi);
+  copieN.forEach(copy=>{
     copy.x = (copy.x||0)+off; copy.y = (copy.y||0)+off;
     // Il "(copia)" solo quando se ne duplica una: su dieci bolle sarebbero dieci
     // titoli con la stessa coda, e a distinguerle basta che siano sfalsate.
     if(nodi.length===1) copy.title = (copy.title||"") + " (copia)";
     cur.children.push(copy);
-    return copy;
   });
   /* I collegamenti fra le bolle duplicate: due stanze collegate, copiate
      insieme, devono restare collegate — sennò non è una copia del gruppo, sono
      due copie sciolte. Si itera su un'istantanea perché il ciclo scrive
      nell'array che sta leggendo. */
   for(const e of [...(cur.edges||[])]){
-    if(!nuovoId[e.a] || !nuovoId[e.b]) continue;
-    cur.edges.push({...e, id:uid(), a:nuovoId[e.a], b:nuovoId[e.b]});
+    if(!nuovoId.has(e.a) || !nuovoId.has(e.b)) continue;
+    cur.edges.push({...e, id:uid(), a:nuovoId.get(e.a), b:nuovoId.get(e.b)});
   }
   if(!Array.isArray(cur.wallSegs)) cur.wallSegs = [];
   const copieW = muri.map(w=>{

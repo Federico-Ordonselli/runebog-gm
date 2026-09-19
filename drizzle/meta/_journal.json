@@ -15,6 +15,13 @@
       "when": 1784922659435,
       "tag": "0001_revisione-campagna",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786035822171,
+      "tag": "0002_immagini-fuori-dal-json",
+      "breakpoints": true
     }
   ]
 }

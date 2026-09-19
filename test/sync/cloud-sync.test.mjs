@@ -1,14 +1,16 @@
 /* La cache cloud: formato, classificazione del recupero e riconciliazione
    dell'ACK. Puri come i test degli strumenti — niente DOM, niente rete, niente
-   server: è tutto ciò che sta in sync-cloud.js proprio perché sia provabile
-   così. Quello che resta in stato.js (fetch, debounce, dialogo) si prova a mano,
-   con la procedura scritta in TODO.md. */
+   server. Fetch, debounce e dialogo di stato.js sono coperti dalla verifica
+   Chromium test/browser/verifica-conflitti-cloud.mjs, con API simulate. */
 
 import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
   cloudCacheKey,
+  readPendingCloudCaches,
+  writePendingCloudCache,
+  discardCloudCache,
   makePendingCache,
   makeSyncedCache,
   readCloudCache,
@@ -26,6 +28,7 @@ function memoryStore(pieno = false){
     get: key => values.get(key) ?? null,
     set: (key, value)=>{ if(pieno) return false; values.set(key, value); return true; },
     del: key=>values.delete(key),
+    keys: ()=>[...values.keys()],
   };
 }
 
@@ -165,4 +168,34 @@ test("una revisione non dichiarata non diventa zero", ()=>{
   // cosa ci sia": un metadato mancante deve far fallire la cache, non passarci.
   for(const base of [null, undefined, "3", 1.5, -1, NaN])
     assert.throws(()=>makePendingCache({campaignId:"c1", state:state("X"), baseRevision:base}));
+});
+
+
+test("un ACK di A non cancella il pendente di B e la riapertura ritrova B", ()=>{
+  const store = memoryStore();
+  const a = writePendingCloudCache(store, makePendingCache({campaignId:"c1",state:state("A"),baseRevision:1}));
+  const b = writePendingCloudCache(store, makePendingCache({campaignId:"c1",state:state("B"),baseRevision:1}));
+  assert.notEqual(a.entry.key,b.entry.key);
+  discardCloudCache(store,a.entry);
+  assert.deepEqual(readPendingCloudCaches(store,"c1").map(e=>e.cache.state.root.title),["B"]);
+  assert.deepEqual(readPendingCloudCaches(store,"c2"),[]);
+});
+
+test("consumare una copia mostrata nel dialogo non elimina il suo successore", ()=>{
+  const store = memoryStore();
+  const first = writePendingCloudCache(store,makePendingCache({campaignId:"c1",state:state("Prima"),baseRevision:1}));
+  const next = writePendingCloudCache(store,makePendingCache({campaignId:"c1",state:state("Dopo"),baseRevision:1}),first.entry);
+  discardCloudCache(store,first.entry);
+  assert.equal(readPendingCloudCaches(store,"c1")[0].cache.state.root.title,"Dopo");
+  assert.notEqual(first.entry.key,next.entry.key);
+});
+
+test("a quota piena la copia precedente rimane recuperabile", ()=>{
+  const store = memoryStore();
+  const first = writePendingCloudCache(store,makePendingCache({campaignId:"c1",state:state("Prima"),baseRevision:1}));
+  store.set=()=>false;
+  const next = writePendingCloudCache(store,makePendingCache({campaignId:"c1",state:state("Dopo"),baseRevision:1}),first.entry);
+  assert.equal(next.persistent,false);
+  assert.equal(next.entry,first.entry);
+  assert.equal(readPendingCloudCaches(store,"c1")[0].cache.state.root.title,"Prima");
 });

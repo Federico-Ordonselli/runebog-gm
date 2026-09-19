@@ -15,6 +15,49 @@ vedi le intestazioni di `src/lib/share.ts` o `src/lib/inline-json.ts` come model
 `TODO.md` è il registro dei lavori: le voci completate restano spuntate con data e
 riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
 
+## Aggiornamento 19 settembre 2026
+
+- Duplicazione: `public/app/duplica.js` rimappa nodi, nemici, archi, muri e
+  iniziativa sull’intera selezione in due passaggi; riferimenti esterni e PG
+  restano invariati. Non ripristinare una rimappatura limitata ai singoli figli.
+- Reset: `reset-token-sql.ts` consuma con DELETE RETURNING e cambia password
+  nella stessa istruzione tramite CTE. Il driver Neon HTTP supporta `batch`
+  transazionale, non le callback delle transazioni interattive.
+- Immagini: upload autenticato `/api/campaigns/[id]/images`, byte in Neon,
+  URL casuale `/immagini/[chiave]`. Le immagini si caricano prima della PATCH;
+  il salvataggio conserva modifiche concorrenti e migra i vecchi data URL alla
+  prima apertura. Lo standalone resta in base64. Import cloud ricopia i byte
+  per garantire la proprietà della campagna destinataria.
+- Quote comprensive degli orfani: 500 immagini/32 MiB per campagna,
+  2000/128 MiB per account; limite binario per immagine derivato dai 3,75 MiB
+  del contratto base64. Lock utente poi campagna negli upload; lock campagna
+  prima della PATCH e del controllo dei riferimenti. Lo spazzino usa gli
+  stessi lock e 30 giorni di grazia; non cancellare immagini dai gesti UI.
+  `scripts/pulisci-immagini.mjs` conta senza modificare; `--apply` esegue la
+  manutenzione anche delle campagne inattive. DATABASE_URL è l’unica variabile.
+- Backup normale e dei conflitti reincorporano tutte le immagini, con progresso
+  e fallimento esplicito. Limite archivio 64 MiB (128 per le due copie), documento
+  cloud sempre 4 MiB. Conta le occorrenze prima di espandere gli URL ripetuti.
+- SRD offline: impronta su dati, rendering, ricerca, stili/layout e lockfile.
+  Precaricare i chunk di TUTTE le pagine: anche l’indice laterale è client e
+  Next può cancellare il contenuto SSR se non trova quel chunk. La cache vecchia
+  si elimina solo dopo HTML e chunk nuovi completi. La cache corrente prevale
+  su quelle vecchie; il rinnovo bypassa la cache HTTP.
+- Verifiche nuove: `node test/browser/verifica-todo.mjs` e
+  `node test/browser/verifica-conflitti-cloud.mjs` usano l’editor reale con API
+  simulate; `node test/browser/verifica-aggiornamento-srd.mjs` costruisce due
+  copie in /tmp e controlla il cambio di sola UI anche offline. Quest’ultimo
+  conserva le build in caso di errore per la diagnosi. Le attese asincrone
+  sulle cache sono cicli di `evaluate`, non predicati async di `waitForFunction`.
+- PostgreSQL reale senza dati dell’app: avviare
+  `docker run --rm -d --name runebog-todo-test -e POSTGRES_PASSWORD=runebog-test-only postgres:17-alpine`,
+  poi `node test/database/verifica-todo.mjs` e
+  `node test/database/verifica-api-immagini.mjs`. Creano/eliminano database
+  sintetici e applicano le migrazioni vere; il secondo esegue gli handler API
+  reali sostituendo sessione e trasporto. Al termine `docker stop runebog-todo-test`.
+  Non includere questi script nel glob di `npm test`, che deve restare senza
+  Docker, Chromium e database.
+
 ## Comandi
 
 ```bash
@@ -70,6 +113,67 @@ lug 2026). Flusso: modifica `src/db/schema.ts` → `npm run db:generate` (commit
 file SQL generato) → `npm run db:migrate`. MAI `drizzle-kit push`: su questo schema
 propone di togliere NOT NULL dalle chiavi primarie (errore 42P16) e di troncare la
 tabella `user` — per questo lo script `db:push` è stato rimosso.
+**`db:generate` dà al file un nome a caso** (`0002_black_cable`): va rinominato
+alla convenzione italiana del repo **e va corretto il `tag` in
+`drizzle/meta/_journal.json`**, sennò `db:migrate` cerca un file che non c'è.
+
+**Le immagini stanno in `campaign_image`** (migrazione `0002`, 6 ago 2026), non
+in un deposito esterno: **ci sono sempre state**, in base64 dentro
+`campaign.data`, quindi una tabella loro non aggiunge un byte — semmai ne toglie,
+perché il +33% del base64 in `bytea` non si paga. Il guadagno non viene da dove
+stanno i byte ma dal documento che smette di portarseli e dall'URL immutabile,
+memorizzabile in cache per sempre.
+- La chiave è **casuale, non un hash del contenuto**: il content-addressing
+  farebbe condividere un oggetto fra due utenti, e cancellare tornerebbe a
+  essere un conteggio di riferimenti.
+- `ON DELETE cascade` su `campaign_id` **è** tutta la politica di cancellazione
+  per il caso normale, e regge la promessa di `deleteAccountAction` (GDPR art.
+  17) attraverso la catena `user → campaign → campaign_image`.
+- **`orphan_since` è il periodo di grazia**: gli snapshot di `undo` sono
+  `JSON.stringify` dello stato e continuano a puntare a un'immagine appena
+  scollegata, quindi non si cancella mai in sincrono con un gesto. Lo spazzino
+  segna, cancella a un passaggio successivo e **riazzera se l'immagine torna
+  referenziata** — cioè quando qualcuno preme Ctrl+Z.
+- **`IMMAGINE_LOCALE` è UNA regola sola** (esportata da `formato-campagna.js`,
+  importata da `modello.js` e da `share.ts`): `^/immagini/[A-Za-z0-9_-]{1,64}$`
+  è la sola forma di URL **relativo** che entra in un documento. È l'unico
+  pezzo dei tre elenchi di `safeUrl` che non è ricopiato, e non è un'eccezione
+  gratuita: se client e server divergessero su questa forma, il DM si vedrebbe
+  rimbalzare con 422 una campagna legittima. `..`, `//altro.host`, query e
+  frammenti cadono **per costruzione** — nessuno dei loro caratteri sta nella
+  classe. Test al negativo in `test/critici/immagine-locale.test.mjs`, che
+  guarda sia la regex sia i tre percorsi che la applicano.
+- **`modello.js` ha ora UN import** (`IMMAGINE_LOCALE`), dopo essere stato senza
+  per tutta la sua vita. Il contratto non importa niente, quindi la chiusura
+  transitiva resta un modulo e non ci sono cicli — ma non è la porta per farne
+  entrare altri.
+
+**La rotta delle immagini** (`src/app/immagini/[chiave]/route.ts`, 6 ago 2026):
+
+- **Non controlla la sessione, ed è l'unica rotta che tocca una campagna a non
+  farlo.** Il segreto è l'URL, come per `/tavolo/[token]`; l'indirizzo di
+  un'immagine non condivisa non lascia mai il server perché `projectForPlayers`
+  ricostruisce la proiezione campo per campo. **Da qui in avanti quel filtro
+  decide anche chi può leggere un file**, non solo cosa si vede sulla tela.
+- **Sta fuori da `/api` di proposito**: l'invariante esclude `/play`, `/tavolo`
+  e `/api` dalla cache perché quelle risposte invecchiano, e una chiave
+  immutabile no. Verificato che il service worker la lasci passare da sé — non è
+  nel manifesto, non è `/_next/static/` e un `<img>` non è `mode: "navigate"` —
+  quindi risponde la cache HTTP, che con `immutable` è esattamente il
+  comportamento voluto.
+- **Il MIME si controlla in USCITA**, non solo al caricamento: il
+  `Content-Type` lo decide una riga di database, e una riga che dicesse
+  `text/html` farebbe di questa rotta una XSS nell'origine del sito. Finché le
+  immagini erano `data:` dentro il documento l'esposizione non esisteva: è nata
+  con l'averle messe su un URL nostro. Provato con una riga ostile in tabella:
+  404.
+- **`default-src 'none'; sandbox` più `nosniff`**, perché fra i tipi ammessi c'è
+  `image/svg+xml`: dentro un `<img>` un SVG è inerte, **navigato direttamente**
+  è un documento e può eseguire script. La difesa sta qui e non nel togliere
+  l'SVG dal contratto, che è un problema di un'altra scala.
+- L'ETag è la **chiave** (stessa logica per cui quello del tavolo è la
+  revisione) e il confronto di `If-None-Match` passa da `src/lib/etag.ts`, che
+  ora ha due chiamanti: una regola che si sbaglia in silenzio non si ricopia.
 
 ## Architettura: due mondi, un JSON
 
@@ -205,6 +309,19 @@ senza ridipendere dalla rete che ha appena fallito.
   chiude — mette al sicuro le due versioni senza scegliere. Mentre aspetta, `cloudPaused`
   ferma il salvataggio: anche in `undo()`, che chiama `doSave()` per conto suo e
   riscriverebbe la copia che il dialogo sta proponendo di recuperare.
+  **Il dialogo mostra i due TITOLI accanto alle due date** (`nomeCampagna`): il
+  testo del caso `legacy` dice «controlla il titolo prima di recuperarla», e
+  fino al 6 ago 2026 un titolo non lo mostrava — l'unico modo di controllarlo
+  era recuperare la copia, cioè fare la cosa di cui si è incerti. Regola
+  generale: un dialogo che chiede di **confrontare** deve avere accanto le due
+  cose da confrontare, sennò l'istruzione non è eseguibile.
+- **L'atomicità si prova con N richieste concorrenti, non con due schede.** A
+  mano due PATCH non partono mai davvero insieme, quindi un "leggi-poi-scrivi"
+  passerebbe il giro delle due schede: misurato il 6 ago 2026 — otto PATCH dalla
+  stessa base danno **una** 200 e sette 409, mentre la stessa route riscritta
+  leggi-poi-scrivi ne fa passare **sei**, con la revisione a 6. Chi tocca quel
+  `where` rifaccia quella corsa. Serve un DB vero: la ricetta (branch Neon
+  usa-e-getta) sta in `TODO.md`.
 - `main.js` **non** salva all'avvio in cloud: creerebbe una revisione a ogni apertura,
   e ogni altra scheda si troverebbe in conflitto senza aver toccato niente.
 - Il modulo non importa `stato.js`: stato, `store` e callback arrivano da fuori, ed è
@@ -409,6 +526,26 @@ allargarla bisognava esportare il JSON e riscriverlo a mano.
   il salvataggio di una campagna legittima, e il DM lo scopre dopo averla
   costruita. La palette in `app.html` va allineata a mano; quella del livello
   vuoto (`emptyNodeMarkup`) si genera da `SHAPES`.
+- **La palette si porta sul gruppo che serve al livello** (`allineaPalette` in
+  `mappa.js`, chiamata in fondo a `renderMap`, 6 ago 2026). La barra va da
+  Territorio a Segnalini, cioè dalla scala più larga alla più stretta: giusto
+  per leggerla, e il rovescio esatto di quanto si usano le cose — un mondo si
+  fonda una volta, le pedine si posano tutta la sera. Su telefono la striscia è
+  1872px su 370 visibili, e Segnalini stava a **3,6 schermate** proprio nella
+  stanza dove si gioca. Adesso al cambio di livello scorre da sé; non toglie e
+  non nasconde niente, quindi sbagliare bersaglio costa una passata di dito.
+  - **A quale gruppo appartiene una forma non è scritto nel JS**: si chiede alla
+    palette, che lo dichiara già col `.pal-title` che precede le sue pastiglie.
+    Un secondo elenco si disallineerebbe in silenzio, e "la barra scorre nel
+    posto sbagliato" non fa fallire niente. Stessa ragione di `emptyNodeMarkup`.
+  - L'eccezione dichiarata è la **stanza**: `scalaDentro("stanza")` torna ancora
+    "stanza", ma lì dentro non nasce un'altra stanza — si disegna il pavimento
+    (Pianta), e con `n.battle` acceso si posano le pedine (Segnalini). Il
+    secondo è il caso che conta: durante uno scontro la palette non si scorre.
+  - Si allinea **solo al cambio di livello** (chiave `id + battle`): `renderMap`
+    gira a ogni selezione, e senza la guardia la barra scorrerebbe sotto il dito
+    di chi la sta scorrendo a mano. Su scrivania `#pal-scroll` è
+    `display:contents`, quindi `clientWidth` è 0 e la funzione esce subito.
 
 **Chi sta sulla maglia, e come** (`onGrid`/`snapNode` in `modello.js`, l'unico
 posto che lo decide). Ci si sta in due modi, perché sono due cose diverse:
@@ -1326,6 +1463,13 @@ Non negoziabili; se tocchi queste aree, mantienili:
   va applicato a un id **e** a ogni riferimento che lo punta (edge.a/b, playerId,
   foe.\*, order.\*), sennò i lookup `x.id===ref` si disallineano.
 - **Ogni route API verifica** che la campagna appartenga all'utente autenticato.
+  Le **due eccezioni sono dichiarate** e valgono entrambe per lo stesso motivo —
+  il segreto è l'URL, non la sessione: `/tavolo/[token]` (col suo
+  `GET /api/tavolo/[token]`) e `/immagini/[chiave]`. Fuori da queste due, una
+  rotta che legge una campagna senza controllare la proprietà è un difetto. Chi
+  ne aggiunge una terza sappia che ne sta scrivendo una: il link segreto è un
+  modello di autorizzazione, e ogni URL che lo adotta va difeso da chi lo
+  distribuisce, non dal server.
 - **Password**: scrypt della stdlib con `maxmem` esplicito (`src/lib/password.ts`);
   token di reset monouso, scadenza 1h, nel DB solo lo SHA-256; la richiesta di reset
   risponde sempre allo stesso modo, che l'account esista o no.
@@ -1498,4 +1642,15 @@ Non negoziabili; se tocchi queste aree, mantienili:
   `npm run db:migrate` applica solo al branch del `DATABASE_URL` corrente: **ogni
   migrazione va applicata a entrambi**, sennò si ripete il guasto del 15 lug 2026
   (colonna `share_token` solo su dev, produzione rotta con errore 42703). Entrambi i
-  branch hanno il baseline nel registro migrazioni.
+  branch hanno il baseline nel registro migrazioni. La ricetta, seguita per la
+  `0001` e per la `0002`: **backup di produzione come branch Neon** → migrazione
+  su entrambi → deploy → smoke test. Un rollback del solo codice è innocuo, e
+  la colonna (o la tabella) in più non dà fastidio: **non toglierla** durante
+  un'emergenza.
+- **Una cascata si prova, non si deduce dal vincolo.** `confdeltype='c'` dice
+  che la regola c'è, non che la catena regge fino in fondo — e qui la catena è
+  lunga due (`user → campaign → campaign_image`). Si prova su un **branch
+  usa-e-getta**, dove scrivere e cancellare non tocca dati di nessuno.
+  Trappola: `DELETE` e conteggio nella **stessa** istruzione (in una CTE) danno
+  un falso rosso, perché le CTE leggono lo snapshot d'inizio istruzione e la
+  riga risulta ancora lì. Va contata in una query separata.

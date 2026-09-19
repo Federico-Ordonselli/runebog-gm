@@ -14,6 +14,8 @@
    "il server è cambiato" e "il server è quello di prima" sono indistinguibili e
    l'unico recupero possibile diventa la sovrascrittura alla cieca. */
 
+import { embedImages, ARCHIVE_BYTES } from "./immagini.js";
+
 export const CLOUD_CACHE_VERSION = 1;
 export const CLOUD_CACHE_PREFIX = "runebog-cloud-v1:";
 
@@ -89,6 +91,51 @@ export function readCloudCache(store, campaignId){
 export function writeCloudCache(store, cache){
   if(!isCloudCache(cache, cache?.campaignId)) throw new TypeError("cache cloud non valida");
   return store.set(cloudCacheKey(cache.campaignId), JSON.stringify(cache));
+}
+
+/* Ogni snapshot pendente ha una chiave immutabile. Nessun indice condiviso:
+   un read-modify-write dell'indice perderebbe comunque una delle due schede.
+   Si scrive il successore PRIMA di eliminare il precedente della stessa
+   scheda: a quota piena rimane almeno l'ultima copia riuscita. Un dialogo può
+   così consumare la copia mostrata senza cancellare una modifica successiva
+   fatta dalla scheda che l'aveva prodotta. */
+const PENDING_PREFIX = "runebog-cloud-pending-v1:";
+const pendingPrefix = campaignId => PENDING_PREFIX + encodeURIComponent(campaignId) + ":";
+
+export function readPendingCloudCaches(store, campaignId){
+  const entries = [];
+  for(const key of store.keys()){
+    if(!key.startsWith(pendingPrefix(campaignId))) continue;
+    try{
+      const raw = store.get(key), cache = JSON.parse(raw);
+      if(isCloudCache(cache, campaignId) && cache.status === "pending")
+        entries.push({key, raw, cache});
+    }catch(_){}
+  }
+  return entries.sort((a,b)=>a.cache.savedAt-b.cache.savedAt || a.key.localeCompare(b.key));
+}
+
+export function discardCloudCache(store, entry){
+  // Il confronto serve alle chiavi legacy, che erano mutabili. Le nuove
+  // chiavi non vengono MAI riscritte da alcuna scheda.
+  if(entry && store.get(entry.key) === entry.raw) store.del(entry.key);
+}
+
+export function writePendingCloudCache(store, cache, previous = null){
+  if(!isCloudCache(cache, cache?.campaignId) || cache.status !== "pending")
+    throw new TypeError("cache pendente non valida");
+  const raw = JSON.stringify(cache);
+  if(previous?.raw === raw && store.get(previous.key) === raw)
+    return {persistent:true, entry:previous};
+  const key = pendingPrefix(cache.campaignId) + crypto.randomUUID();
+  if(!store.set(key, raw)){
+    // store può avere un fallback in RAM: non accumulare un nuovo documento
+    // ad ogni tentativo fallito. Lo stato vivo resta nella scheda chiamante.
+    store.del(key);
+    return {persistent:false, entry:previous};
+  }
+  discardCloudCache(store, previous);
+  return {persistent:true, entry:{key, raw, cache:JSON.parse(raw)}};
 }
 
 export function statesEqual(a, b){
@@ -178,8 +225,12 @@ export function recoveryBackup({ campaignId, localCache, server }){
   };
 }
 
-export function downloadRecoveryBackup(payload, documentRef = document){
+export async function downloadRecoveryBackup(payload, documentRef = document, onProgress = ()=>{}){
+  payload = structuredClone(payload);
+  payload.local.state = await embedImages(payload.local.state, {onProgress});
+  payload.server.state = await embedImages(payload.server.state, {onProgress});
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+  if(blob.size > 2 * ARCHIVE_BYTES) throw new Error("Il backup delle due copie supera 128 MiB.");
   const url = URL.createObjectURL(blob);
   const link = documentRef.createElement("a");
   const safeId = String(payload.campaignId).replace(/[^a-zA-Z0-9_-]/g, "_");
@@ -203,6 +254,18 @@ export function downloadRecoveryBackup(payload, documentRef = document){
  * stato senza dirlo. "Esporta entrambe" apposta NON chiude: mette al sicuro le
  * due versioni, ma la scelta resta da fare.
  */
+const TITOLO_NEL_DIALOGO = 60;
+
+/** Il titolo di una campagna come si legge in una didascalia. Una copia
+ *  recuperata può venire da qualunque parte, quindi qui non si dà per scontato
+ *  né che `root` esista né che il titolo sia una stringa: il dialogo di
+ *  recupero è proprio il posto in cui si aprono i documenti storti. */
+function nomeCampagna(state){
+  const t = typeof state?.root?.title === "string" ? state.root.title.trim() : "";
+  if(!t) return "«senza titolo»";
+  return `«${t.length > TITOLO_NEL_DIALOGO ? t.slice(0, TITOLO_NEL_DIALOGO) + "…" : t}»`;
+}
+
 export function openCloudRecoveryDialog({
   kind,
   campaignId,
@@ -233,12 +296,22 @@ export function openCloudRecoveryDialog({
     ? "Questa campagna è stata modificata anche altrove. Scegli quale versione continuare: nessuna delle due verrà sovrascritta senza conferma."
     : "Esiste una copia salvata soltanto su questo dispositivo. Il cloud non è cambiato da quando è stata creata.";
 
+  /* Il TITOLO accanto alla data, e non è una rifinitura: il testo del caso
+     `legacy` dice «controlla il titolo prima di recuperarla», e fino al 6 ago
+     2026 il dialogo un titolo non lo mostrava — l'unico modo di controllarlo
+     era recuperare la copia, cioè fare esattamente la cosa di cui si è
+     incerti. È la riga che rende eseguibile l'istruzione che c'era già.
+     Nel conflitto i due titoli sono spesso uguali, ed è giusto vederli lo
+     stesso: «sono la stessa campagna» è a sua volta la risposta a una
+     domanda che lì ci si fa. Il taglio a 60 caratteri è perché `titleChars`
+     ne ammette 500 e questa riga è una didascalia, non il documento. */
   const meta = documentRef.createElement("p");
   meta.className = "hint-sm";
   const localDate = new Date(localCache.savedAt).toLocaleString("it-IT");
   const serverDate = server.updatedAt
     ? new Date(server.updatedAt).toLocaleString("it-IT") : "data sconosciuta";
-  meta.textContent = `Copia locale: ${localDate} · Cloud: ${serverDate}`;
+  meta.textContent = `Copia locale: ${nomeCampagna(localCache.state)} · ${localDate}`
+                   + ` — Cloud: ${nomeCampagna(server.state)} · ${serverDate}`;
 
   const actions = documentRef.createElement("div");
   actions.className = "d-actions cloud-recovery-actions";
@@ -247,8 +320,16 @@ export function openCloudRecoveryDialog({
   exportBtn.type = "button";
   exportBtn.className = "btn";
   exportBtn.textContent = "Esporta entrambe";
-  exportBtn.addEventListener("click", ()=>{
-    downloadRecoveryBackup(recoveryBackup({campaignId, localCache, server}), documentRef);
+  const exportStatus = documentRef.createElement("p");
+  exportStatus.setAttribute("role", "status");
+  exportBtn.addEventListener("click", async ()=>{
+    exportBtn.disabled = true;
+    try{
+      await downloadRecoveryBackup(recoveryBackup({campaignId, localCache, server}), documentRef,
+        (done,total)=>{ exportStatus.textContent = `Preparazione backup: immagini ${done}/${total}…`; });
+      exportStatus.textContent = "Backup completo esportato.";
+    }catch(error){ exportStatus.textContent = `Backup non creato: ${error.message}`; }
+    finally{ exportBtn.disabled = false; }
   });
 
   const serverBtn = documentRef.createElement("button");
@@ -272,7 +353,7 @@ export function openCloudRecoveryDialog({
   });
 
   actions.append(exportBtn, serverBtn, localBtn);
-  dialog.append(title, text, meta, actions);
+  dialog.append(title, text, meta, actions, exportStatus);
   documentRef.body.append(dialog);
   // Escape non deve poter chiudere una scelta che l'app sta aspettando.
   dialog.addEventListener("cancel", e=>e.preventDefault());

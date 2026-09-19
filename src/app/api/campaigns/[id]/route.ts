@@ -1,3 +1,5 @@
+import { localImageKeys } from "../../../../../public/app/immagini.js";
+import { lockCampaignSql, ownsImageReferencesSql, markOrphanImagesSql, deleteOrphanImagesSql } from "@/lib/campaign-images-sql";
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { campaigns } from "@/db/schema";
@@ -66,7 +68,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   let body: any;
   try { body = JSON.parse(text); } catch { return NextResponse.json({ error: "json non valido" }, { status: 400, headers: NO_STORE }); }
-  const data = body.data;
+  const data = body?.data;
   if (!data?.root || !Array.isArray(data.checklist) || !Array.isArray(data.players))
     return NextResponse.json({ error: "formato non valido" }, { status: 400, headers: NO_STORE });
   // Una PATCH senza revisione è una scrittura alla cieca: si rifiuta invece di
@@ -92,7 +94,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   // Il titolo vuoto non ribattezza la campagna: senza rileggere la riga prima di
   // scrivere, il vecchio nome si conserva non toccando la colonna.
   const title = typeof data.root.title === "string" ? data.root.title.trim() : "";
-  const [updated] = await db.update(campaigns)
+  const update = db.update(campaigns)
     .set({
       data: prepared.value,
       ...(title ? { name: title.slice(0, 120) } : {}),
@@ -103,14 +105,25 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       eq(campaigns.id, id),
       eq(campaigns.userId, session.user.id),
       eq(campaigns.revision, baseRevision),
+      ownsImageReferencesSql(id, localImageKeys(prepared.value)),
     ))
     .returning({ revision: campaigns.revision, updatedAt: campaigns.updatedAt });
 
+  // Il lock precede il controllo delle immagini in una transazione: il GC
+  // non può cancellare un riferimento fra la verifica e la scrittura.
+  const [, result] = await db.batch([
+    db.execute(lockCampaignSql(id,session.user.id)), update,
+    db.execute(markOrphanImagesSql(id,session.user.id)),
+    db.execute(deleteOrphanImagesSql(id,session.user.id)),
+  ]);
+  const updated = result[0];
   if (updated) return NextResponse.json({ ok: true, ...updated }, { headers: NO_STORE });
 
   const current = await owned(id, session.user.id);
   if (!current)
     return NextResponse.json({ error: "not found" }, { status: 404, headers: NO_STORE });
+  if(current.revision === baseRevision)
+    return NextResponse.json({error:"invalid_image_reference",detail:{message:"Un’immagine non esiste o appartiene a un’altra campagna. Importa il backup completo."}}, {status:422,headers:NO_STORE});
   // Il conflitto porta con sé la versione del server: il client deve poterla
   // mostrare accanto alla propria senza una seconda richiesta, che con la rete
   // che ha appena fallito è la parte meno affidabile del recupero.

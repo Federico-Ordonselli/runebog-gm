@@ -1,5 +1,11 @@
 /* Il vocabolario del modello dati: tipi di bolla, forme, collegamenti, e le
-   utilità pure che ne derivano. Nessuna dipendenza: è la base di tutti i moduli. */
+   utilità pure che ne derivano. È la base di tutti i moduli, e l'UNICA cosa che
+   importa è il contratto — che a sua volta non importa niente, quindi la
+   chiusura transitiva resta un modulo solo e non ci sono cicli possibili.
+   Quell'import esiste per una riga sola (`IMMAGINE_LOCALE`): la forma di un URL
+   di immagine deve essere la stessa qui e nel validatore, sennò il client
+   accetta ciò che il server rifiuta. Non è la porta per farne entrare altre. */
+import { IMMAGINE_LOCALE } from "./formato-campagna.js";
 
 export const TYPES = {
   zona:      {label:"Zona",      color:"var(--fen)"},
@@ -449,6 +455,10 @@ const safeId = v => String(v ?? "").replace(/[^\w-]/g, "");
 const safeColor = v => /^#[0-9a-f]{3,8}$/i.test(String(v)) ? String(v) : null;
 function safeUrl(v){
   const s = String(v ?? "");
+  // Una figura servita da noi (/immagini/[chiave]): regola CONDIVISA col
+  // contratto, non ricopiata — se le due divergessero il client accetterebbe
+  // un URL che il server rifiuta con 422, e a scoprirlo sarebbe il DM.
+  if(IMMAGINE_LOCALE.test(s)) return s;
   if(!/^(data:image\/|https?:\/\/)/i.test(s)) return null;   // niente javascript: e simili
   if(/[\s"'<>`]/.test(s)) return null;                       // niente uscite dall'attributo
   return s;

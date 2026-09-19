@@ -1,3 +1,4 @@
+import { localImageKeys } from "../../../../public/app/immagini.js";
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { campaigns } from "@/db/schema";
@@ -32,6 +33,8 @@ export async function POST(req: Request) {
       detail: { ...prepared.error, message: campaignErrorMessage(prepared.error) },
     }, { status });
   }
+  if(localImageKeys(prepared.value).length)
+    return NextResponse.json({error:"Le immagini vanno caricate nella nuova campagna."}, {status:422});
   const [row] = await db.insert(campaigns)
     .values({ userId: session.user.id, name, data: prepared.value })
     .returning({ id: campaigns.id });
