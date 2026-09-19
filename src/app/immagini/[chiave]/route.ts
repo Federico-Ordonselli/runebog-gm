@@ -1,3 +1,4 @@
+import { IMAGE_MIMES } from "../../../../public/app/immagini.js";
 import { db } from "@/db";
 import { campaignImages } from "@/db/schema";
 import { stessoEtag } from "@/lib/etag";
@@ -47,9 +48,7 @@ const CHIAVE = /^[A-Za-z0-9_-]{1,64}$/;
    questa rotta una XSS nell'origine del sito. Finché le immagini erano `data:`
    dentro il documento questa esposizione non esisteva: è nuova, e nasce
    dall'averle messe su un URL nostro. */
-const MIME = new Set([
-  "image/png", "image/jpeg", "image/webp", "image/gif", "image/avif", "image/svg+xml",
-]);
+
 
 /* Un anno, e `immutable`: la chiave è casuale e il contenuto non cambia mai:
    cambiare figura vuol dire una chiave nuova. È tutto il guadagno del lavoro —
@@ -75,7 +74,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ chiave: 
   // Una chiave che non esiste non si mette in cache: la sola cosa immutabile
   // qui è ciò che c'è, non ciò che manca — un'immagine può ancora nascere.
   if (!row) return new Response(null, { status: 404, headers: { "Cache-Control": "no-store" } });
-  if (!MIME.has(row.mime)) return new Response(null, { status: 404, headers: { "Cache-Control": "no-store" } });
+  if (!IMAGE_MIMES.has(row.mime)) return new Response(null, { status: 404, headers: { "Cache-Control": "no-store" } });
 
   /* L'ETag è la chiave, per la stessa ragione per cui l'ETag del tavolo è la
      revisione: è già il modo in cui questo dato dice qual è la sua versione, e

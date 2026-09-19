@@ -15,6 +15,49 @@ vedi le intestazioni di `src/lib/share.ts` o `src/lib/inline-json.ts` come model
 `TODO.md` è il registro dei lavori: le voci completate restano spuntate con data e
 riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
 
+## Aggiornamento 19 settembre 2026
+
+- Duplicazione: `public/app/duplica.js` rimappa nodi, nemici, archi, muri e
+  iniziativa sull’intera selezione in due passaggi; riferimenti esterni e PG
+  restano invariati. Non ripristinare una rimappatura limitata ai singoli figli.
+- Reset: `reset-token-sql.ts` consuma con DELETE RETURNING e cambia password
+  nella stessa istruzione tramite CTE. Il driver Neon HTTP supporta `batch`
+  transazionale, non le callback delle transazioni interattive.
+- Immagini: upload autenticato `/api/campaigns/[id]/images`, byte in Neon,
+  URL casuale `/immagini/[chiave]`. Le immagini si caricano prima della PATCH;
+  il salvataggio conserva modifiche concorrenti e migra i vecchi data URL alla
+  prima apertura. Lo standalone resta in base64. Import cloud ricopia i byte
+  per garantire la proprietà della campagna destinataria.
+- Quote comprensive degli orfani: 500 immagini/32 MiB per campagna,
+  2000/128 MiB per account; limite binario per immagine derivato dai 3,75 MiB
+  del contratto base64. Lock utente poi campagna negli upload; lock campagna
+  prima della PATCH e del controllo dei riferimenti. Lo spazzino usa gli
+  stessi lock e 30 giorni di grazia; non cancellare immagini dai gesti UI.
+  `scripts/pulisci-immagini.mjs` conta senza modificare; `--apply` esegue la
+  manutenzione anche delle campagne inattive. DATABASE_URL è l’unica variabile.
+- Backup normale e dei conflitti reincorporano tutte le immagini, con progresso
+  e fallimento esplicito. Limite archivio 64 MiB (128 per le due copie), documento
+  cloud sempre 4 MiB. Conta le occorrenze prima di espandere gli URL ripetuti.
+- SRD offline: impronta su dati, rendering, ricerca, stili/layout e lockfile.
+  Precaricare i chunk di TUTTE le pagine: anche l’indice laterale è client e
+  Next può cancellare il contenuto SSR se non trova quel chunk. La cache vecchia
+  si elimina solo dopo HTML e chunk nuovi completi. La cache corrente prevale
+  su quelle vecchie; il rinnovo bypassa la cache HTTP.
+- Verifiche nuove: `node test/browser/verifica-todo.mjs` e
+  `node test/browser/verifica-conflitti-cloud.mjs` usano l’editor reale con API
+  simulate; `node test/browser/verifica-aggiornamento-srd.mjs` costruisce due
+  copie in /tmp e controlla il cambio di sola UI anche offline. Quest’ultimo
+  conserva le build in caso di errore per la diagnosi. Le attese asincrone
+  sulle cache sono cicli di `evaluate`, non predicati async di `waitForFunction`.
+- PostgreSQL reale senza dati dell’app: avviare
+  `docker run --rm -d --name runebog-todo-test -e POSTGRES_PASSWORD=runebog-test-only postgres:17-alpine`,
+  poi `node test/database/verifica-todo.mjs` e
+  `node test/database/verifica-api-immagini.mjs`. Creano/eliminano database
+  sintetici e applicano le migrazioni vere; il secondo esegue gli handler API
+  reali sostituendo sessione e trasporto. Al termine `docker stop runebog-todo-test`.
+  Non includere questi script nel glob di `npm test`, che deve restare senza
+  Docker, Chromium e database.
+
 ## Comandi
 
 ```bash

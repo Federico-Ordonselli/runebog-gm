@@ -84,7 +84,19 @@ Il flusso:
 3. Ogni `save()` fa `PATCH /api/campaigns/:id`. Se la rete manca, l'app mostra "Offline — salvato in locale" e non perde nulla.
 4. Ogni route API verifica che la campagna appartenga all'utente autenticato.
 
-Le immagini (mappe di sfondo, riferimenti) sono in base64 dentro il JSON. Funziona, ma fa crescere il peso: l'evoluzione naturale è spostarle su object storage (R2, S3) tenendo nel JSON solo gli URL. C'è un limite di 4 MB per salvataggio nell'API, allineato ai limiti di Vercel.
+Le immagini cloud stanno in `campaign_image` su Neon e nel documento restano
+URL immutabili `/immagini/[chiave]`. I vecchi data URL vengono convertiti alla
+prima apertura della campagna. Lo standalone conserva le immagini in base64.
+L’export reincorpora i byte: è un backup autosufficiente, con un limite di
+64 MiB; il documento inviato all’API conserva il limite di 4 MiB.
+
+Gli upload hanno quote di 500 immagini/32 MiB per campagna e 2000/128 MiB per
+account. Gli orfani contano nella quota e vengono rimossi dopo 30 giorni di
+inutilizzo, così l’undo può ripristinarli. La manutenzione avviene su upload e
+salvataggio; per le campagne inattive lo script
+`node --env-file=.env scripts/pulisci-immagini.mjs` mostra ciò che è eliminabile,
+e con `--apply` esegue la pulizia. La cancellazione della campagna o dell’account
+rimuove le immagini a cascata.
 
 ---
 
@@ -157,7 +169,7 @@ Con i free tier di Vercel e Neon il costo resta zero fino a traffico significati
 
 - Il **rate limiting è in memoria** (`src/lib/rate-limit.ts`), quindi vale per processo. In locale è esatto; su Vercel, con più istanze serverless, un attaccante distribuito lo aggira. Per una difesa vera serve uno store condiviso (Upstash/Redis).
 - Le sessioni JWT non sono revocabili lato server.
-- Le immagini in base64 dentro il JSON fanno crescere il peso delle campagne.
+- Nello standalone immagini e campagne occupano la quota di `localStorage` del browser.
 
 ---
 
@@ -180,5 +192,5 @@ Alcune creature iconiche (Beholder, Mind Flayer) e nomi propri (Tiamat, Strahd) 
 - Recupero password via email in produzione (dominio verificato su Resend).
 - Rate limiting su store condiviso.
 - Condivisione delle campagne con i giocatori (colonna `share_token`, route in sola lettura), poi collaborazione in tempo reale.
-- Immagini su object storage esterno invece che in base64.
+- Eventuale cache offline delle immagini cloud, oltre alla cache HTTP.
 - Ricerca incantesimi/oggetti magici oltre ai mostri.

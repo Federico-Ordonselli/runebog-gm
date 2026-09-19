@@ -9,7 +9,7 @@ import { hashPassword } from "@/lib/password";
 import { allowAttempt, blockedForMinutes } from "@/lib/rate-limit";
 import { normalizeUsername } from "@/lib/username";
 import { sendEmail } from "@/lib/email";
-import { consumeResetToken, createResetToken } from "@/lib/reset-token";
+import { resetPasswordWithToken, createResetToken, isResetTokenValid } from "@/lib/reset-token";
 
 export type AuthState = { error?: string; notice?: string };
 
@@ -100,12 +100,12 @@ export async function resetPasswordAction(_prev: AuthState, form: FormData): Pro
   const password = String(form.get("password") ?? "");
   if (password.length < 8) return { error: "La password deve avere almeno 8 caratteri." };
 
-  const userId = await consumeResetToken(token);
-  if (!userId) return { error: "Link scaduto o già usato. Richiedine uno nuovo." };
-
-  await db.update(users)
-    .set({ passwordHash: await hashPassword(password) })
-    .where(eq(users.id, userId));
+  // Preflight economico: un token inventato non deve avviare scrypt. La
+  // validità viene ricontrollata dalla DELETE atomica dopo il calcolo dell'hash.
+  if (!/^[A-Za-z0-9_-]{43}$/.test(token) || !await isResetTokenValid(token))
+    return { error: "Link scaduto o già usato. Richiedine uno nuovo." };
+  const changed = await resetPasswordWithToken(token, await hashPassword(password));
+  if (!changed) return { error: "Link scaduto o già usato. Richiedine uno nuovo." };
 
   return { notice: "Password aggiornata. Ora puoi accedere." };
 }

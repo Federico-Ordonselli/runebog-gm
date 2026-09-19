@@ -15,7 +15,7 @@
  *   - REGOLE  le 61 pagine dell'SRD, ~1,5 MB, solo su richiesta esplicita.
  *             Toccare `mappa.js` non deve far riscaricare il glossario. Lì
  *             dentro finiscono anche i chunk di Next che servono alla ricerca
- *             (vedi `chunkDiNext` e `iChunkDellaRicerca`): sono la stessa
+ *             (vedi `chunkDiNext` e `iChunkDelleRegole`): sono la stessa
  *             spesa, accettata dallo stesso bottone.
  *
  * Fuori dalla cache, sempre: /play, /tavolo, /api. Vedi `fuoriDallaCache`.
@@ -61,7 +61,7 @@ self.addEventListener("install", (ev) => {
          completa. Per la stessa ragione /icon.svg non è in elenco — lo genera
          Next da src/app/icon.svg, non sta su disco in public/, e un favicon
          mancante non vale il rischio di far cadere tutto. */
-      await cache.addAll(MANIFESTO.app);
+      await cache.addAll(MANIFESTO.app.map(url=>new Request(url, {cache:"reload"})));
       /* Senza skipWaiting una versione nuova resta in attesa finché non si
          chiudono TUTTE le schede: su uno strumento che si tiene aperto per
          un'intera sessione di gioco vuol dire mai. */
@@ -123,8 +123,8 @@ function riconvalidando(ev, nome) {
   })();
 }
 
-/* Le regole: prima la cache e basta. Il deposito è versionato sul contenuto dei
-   JSON da cui quelle pagine nascono, quindi una copia che c'è è per costruzione
+/* Le regole: prima la cache e basta. Il deposito è versionato su dati,
+   rendering, ricerca e stili: una copia che c'è è per costruzione
    la copia giusta — riconvalidarla sarebbe 1,4 MB di rete per non cambiare
    niente.
  *
@@ -137,12 +137,16 @@ function riconvalidando(ev, nome) {
  * incomparabilmente meglio di un errore, e dura finché la rete non torna. */
 function primaLaCache(ev, conRipiego) {
   return (async () => {
-    const salvata = await caches.match(ev.request, { ignoreVary: true });
+    // Preferisci sempre il deposito corrente: durante l'aggiornamento quello
+    // precedente esiste ancora e caches.match da solo lo troverebbe per primo.
+    const corrente = await caches.has(CACHE_REGOLE) ? await caches.open(CACHE_REGOLE) : null;
+    const salvata = corrente && await corrente.match(ev.request, { ignoreVary: true });
     if (salvata) return salvata;
+    const precedente = await caches.match(ev.request, { ignoreVary: true });
     try {
       return await fetch(ev.request);
     } catch (e) {
-      return (conRipiego && (await paginaDiRipiego())) || Response.error();
+      return precedente || (conRipiego && (await paginaDiRipiego())) || Response.error();
     }
   })();
 }
@@ -260,40 +264,36 @@ function ripiegando(ev) {
 /* --- il livello a richiesta: le regole ---------------------------------- */
 
 async function scaricaLeRegole() {
+  const esisteva = await caches.has(CACHE_REGOLE);
   const cache = await caches.open(CACHE_REGOLE);
-  /* Atomico come il precache dell'editor, e per lo stesso motivo: mezze regole
-     offline sono peggio di nessuna, perché non si vede quale metà manca. */
-  await cache.addAll(MANIFESTO.regole.concat([MANIFESTO.indiceRicerca]));
-  await iChunkDellaRicerca(cache);
+  try{
+    // Il deposito nuovo deve contenere la build nuova, non una risposta ancora
+    // fresca nella cache HTTP. Altrimenti cambia solo l'etichetta della cache.
+    await cache.addAll(MANIFESTO.regole.concat([MANIFESTO.indiceRicerca])
+      .map(url=>new Request(url, {cache:"reload"})));
+    await iChunkDelleRegole(cache);
+  }catch(error){
+    // Non pubblicare un download monco. La versione precedente resta; una
+    // copia già completa della stessa versione non si elimina per un retry.
+    if(!esisteva) await caches.delete(CACHE_REGOLE);
+    throw error;
+  }
 }
 
-/* I chunk che servono alla RICERCA, presi qui e non lasciati al caso.
- *
- * La regola a runtime (`chunkDiNext`) da sola non basta, ed è un problema di
- * ordine: quei file il browser li ha scaricati aprendo /srd, cioè PRIMA che
- * esistesse il deposito in cui scriverli — e non li richiede più. Il DM che
- * preme il bottone e stacca la rete si troverebbe le regole intere e la ricerca
- * muta, che è esattamente il difetto che si sta chiudendo.
- *
- * I nomi si leggono dall'HTML appena salvato invece di essere dichiarati nel
- * manifesto: la rotta /sw.js gira durante il build e i chunk delle altre pagine
- * non esistono ancora. Leggerli dalla pagina è anche l'unico modo che non può
- * disallinearsi — sono i chunk che quella copia cita, non quelli che citava il
- * build.
- *
- * Solo /srd: la ricerca sta lì. Le 60 pagine di regole sono prosa resa dal
- * server e si leggono senza idratazione, quindi i loro chunk non valgono i byte.
- * E best-effort a differenza delle pagine, che sono atomiche: un chunk che
- * manca costa la ricerca, non le regole. */
-async function iChunkDellaRicerca(cache) {
-  const res = await cache.match("/srd", { ignoreVary: true });
-  if (!res) return;
-  const html = await res.text();
-  /* La classe esclude la barra rovescia perché nel payload RSC gli indirizzi
-     compaiono fra virgolette scappate: senza, il nome del file si porterebbe
-     dietro mezzo documento. */
-  const nomi = [...new Set(html.match(/\/_next\/static\/[^"'\\\s)]+/g) || [])];
-  await Promise.all(nomi.map((n) => cache.add(n).catch(() => {})));
+/* Anche i capitoli hanno componenti client (l'indice laterale): senza il
+ * loro chunk, Next può sostituire persino la prosa SSR con una pagina di
+ * errore. I nomi si ricavano da TUTTO l'HTML salvato, non soltanto da /srd.
+ * Il Set evita di scaricare più volte runtime, CSS e componenti condivisi.
+ * Un chunk mancante fa fallire l'aggiornamento e conserva la vecchia copia. */
+async function iChunkDelleRegole(cache) {
+  const nomi = new Set();
+  for(const pagina of MANIFESTO.regole){
+    const res = await cache.match(pagina, {ignoreVary:true});
+    if(!res) throw new Error("Pagina SRD mancante");
+    const html = await res.text();
+    for(const nome of html.match(/\/_next\/static\/[^"'\\\s)]+/g) || []) nomi.add(nome);
+  }
+  await cache.addAll([...nomi].map(url=>new Request(url, {cache:"reload"})));
 }
 
 /* `pagine` esce SEMPRE, anche quando il deposito non c'è: è una proprietà del

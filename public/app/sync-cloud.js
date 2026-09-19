@@ -14,6 +14,8 @@
    "il server è cambiato" e "il server è quello di prima" sono indistinguibili e
    l'unico recupero possibile diventa la sovrascrittura alla cieca. */
 
+import { embedImages, ARCHIVE_BYTES } from "./immagini.js";
+
 export const CLOUD_CACHE_VERSION = 1;
 export const CLOUD_CACHE_PREFIX = "runebog-cloud-v1:";
 
@@ -223,8 +225,12 @@ export function recoveryBackup({ campaignId, localCache, server }){
   };
 }
 
-export function downloadRecoveryBackup(payload, documentRef = document){
+export async function downloadRecoveryBackup(payload, documentRef = document, onProgress = ()=>{}){
+  payload = structuredClone(payload);
+  payload.local.state = await embedImages(payload.local.state, {onProgress});
+  payload.server.state = await embedImages(payload.server.state, {onProgress});
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+  if(blob.size > 2 * ARCHIVE_BYTES) throw new Error("Il backup delle due copie supera 128 MiB.");
   const url = URL.createObjectURL(blob);
   const link = documentRef.createElement("a");
   const safeId = String(payload.campaignId).replace(/[^a-zA-Z0-9_-]/g, "_");
@@ -314,8 +320,16 @@ export function openCloudRecoveryDialog({
   exportBtn.type = "button";
   exportBtn.className = "btn";
   exportBtn.textContent = "Esporta entrambe";
-  exportBtn.addEventListener("click", ()=>{
-    downloadRecoveryBackup(recoveryBackup({campaignId, localCache, server}), documentRef);
+  const exportStatus = documentRef.createElement("p");
+  exportStatus.setAttribute("role", "status");
+  exportBtn.addEventListener("click", async ()=>{
+    exportBtn.disabled = true;
+    try{
+      await downloadRecoveryBackup(recoveryBackup({campaignId, localCache, server}), documentRef,
+        (done,total)=>{ exportStatus.textContent = `Preparazione backup: immagini ${done}/${total}…`; });
+      exportStatus.textContent = "Backup completo esportato.";
+    }catch(error){ exportStatus.textContent = `Backup non creato: ${error.message}`; }
+    finally{ exportBtn.disabled = false; }
   });
 
   const serverBtn = documentRef.createElement("button");
@@ -339,7 +353,7 @@ export function openCloudRecoveryDialog({
   });
 
   actions.append(exportBtn, serverBtn, localBtn);
-  dialog.append(title, text, meta, actions);
+  dialog.append(title, text, meta, actions, exportStatus);
   documentRef.body.append(dialog);
   // Escape non deve poter chiudere una scelta che l'app sta aspettando.
   dialog.addEventListener("cancel", e=>e.preventDefault());

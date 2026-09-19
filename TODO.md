@@ -2,11 +2,16 @@
 
 ## Fix dalla code review del 18 settembre 2026
 
-Avviati i fix: **chiusi entrambi i P1 e implementato il collegamento delle
-pedine ai PG** (18–19 settembre). Restano i P2 elencati sotto. La review ha passato `npm test`, typecheck e build (con
-configurazione database fittizia); le riproduzioni mirate usano il codice reale
-con dipendenze simulate. Non sono stati eseguiti test browser completi né
-verifiche contro database e OAuth reali.
+**Chiusi tutti i fix della review** (18–19 settembre), compresa la verifica
+browser delle pedine importate. Completato anche il lavoro sulle immagini
+fuori dal JSON: dettagli nella sezione dedicata. I test usano dati sintetici;
+nessuna modifica ai database dell’app, nessuna migrazione nuova.
+
+Verifica finale del 19 settembre: `npm test`, `npx tsc --noEmit` e build di
+produzione superati; 23 controlli su PostgreSQL reale e 73 controlli browser
+(13 funzionalità, 27 conflitti cloud, 6 aggiornamento fra due build SRD,
+27 regressione offline). Le API cloud dei test browser sono simulate;
+gli handler immagini sono verificati separatamente su PostgreSQL sintetico.
 
 - [x] **P1 — Validare l'import dungeon per impedire XSS.**
   `public/app/dungeon.js`, `importDungeon` / `dungeonFromExport`, e
@@ -57,7 +62,7 @@ verifiche contro database e OAuth reali.
   chiarito il 6 agosto, «Recupera locale» sostituisce A nel cloud esplicitamente;
   «Esporta entrambe» e «Conserva cloud» lasciano A sul server.
 
-- [ ] **P2 — Rimappare i riferimenti quando si duplica una zona.**
+- [x] **P2 — Rimappare i riferimenti quando si duplica una zona.**
   `public/app/mappa.js`, `duplicateSelected`: cambiano gli ID dei nodi e
   degli archi, ma `foe.nodeId` e i riferimenti in `battle.order` continuano
   a puntare agli incontri originali. Riprodotto duplicando un contenitore
@@ -67,8 +72,12 @@ verifiche contro database e OAuth reali.
   Verifica: PF e iniziativa della copia risolvono i mostri copiati e restano
   corretti dopo la cancellazione dell'originale; coprire anche più nodi
   selezionati insieme.
+  Chiuso il 19 settembre: `duplica.js` assegna gli ID in due passaggi sull’intera
+  selezione, compresi nemici, iniziativa e muri. Test unitari sui riferimenti
+  fra fratelli e su quelli esterni; Chromium prova `duplicateSelected` e
+  risolve nome/PF/iniziativa dopo aver cancellato l’originale.
 
-- [ ] **P2 — Rendere atomico il consumo dei token di reset password.**
+- [x] **P2 — Rendere atomico il consumo dei token di reset password.**
   `src/lib/reset-token.ts`, `consumeResetToken`: SELECT e DELETE separati
   permettono a due richieste simultanee di consumare lo stesso token.
   Usare una sola `DELETE … WHERE … RETURNING`, con controllo della scadenza,
@@ -76,7 +85,13 @@ verifiche contro database e OAuth reali.
   `src/app/auth-actions.ts`. Verifica contro un database di prova: due
   richieste concorrenti con lo stesso token, una sola autorizzata; token
   scaduto o già consumato rifiutato. Rilievo da lettura del codice, non
-  ancora riprodotto su database.
+  ancora riprodotto su database al momento della review.
+  Chiuso il 19 settembre: `reset-token-sql.ts` usa DELETE con RETURNING e,
+  nel reset completo, una CTE con UPDATE nello stesso statement. L’hash viene
+  calcolato dopo un preflight economico e prima del consumo definitivo.
+  PostgreSQL 17 usa-e-getta: due consumi concorrenti e otto reset concorrenti,
+  un solo vincitore; scaduti/usati rifiutati; un UPDATE fallito conserva il
+  token e il retry funziona. Nessuna transazione interattiva sul driver Neon.
 
 - [x] **P2 — Collegare ai giocatori le pedine create dall'import dungeon.**
   `public/app/dungeon.js`, ciclo `pcs.forEach`: viene copiato il nome ma
@@ -85,10 +100,10 @@ verifiche contro database e OAuth reali.
   Verifica: dopo l'import nome e PF seguono la scheda PG; «Metti in campo
   i PG» riconosce le pedine esistenti e non ne crea duplicati.
   Implementato insieme al P1: `tk.playerId = pl.id`, con regressione sul
-  documento importato. Il comportamento interattivo PF/«Metti in campo»
-  resta da verificare in browser.
+  documento importato. Verificato il 19 settembre in Chromium: nome e PF
+  seguono la scheda PG; «Metti in campo» non aggiunge una seconda pedina.
 
-- [ ] **P2 — Invalidare la cache SRD anche quando cambia l'interfaccia.**
+- [x] **P2 — Invalidare la cache SRD anche quando cambia l'interfaccia.**
   `src/app/sw.js/route.ts`, `versioneRegole`, e
   `src/lib/offline/sw-sorgente.js`, `primaLaCache`: l'impronta include dati
   e URL, ma non componenti, ricerca e stili. Un deploy solo dell'interfaccia
@@ -97,6 +112,14 @@ verifiche contro database e OAuth reali.
   nella versione. Verifica browser su due build: scaricare le regole nella
   prima, modificare soltanto l'interfaccia nella seconda e controllare che
   HTML e risorse vengano aggiornati mantenendo il funzionamento offline.
+  Chiuso il 19 settembre: `versione-regole.ts` include componenti, ricerca,
+  stili/layout condivisi e lockfile, oltre a dati e URL. Il worker preferisce
+  la cache corrente e riscarica con `cache: reload`.
+  Due build reali che cambiano solo pagina/CSS: nuova cache, HTML e CSS nuovi
+  online e offline. La prova ha trovato anche un difetto precedente: i chunk
+  dei capitoli mancavano e Next sostituiva il testo SSR con un errore. Ora si
+  raccolgono i chunk da tutte le pagine, con deduplicazione; un download
+  incompleto conserva la versione precedente. `verifica-aggiornamento-srd.mjs`.
 
 ## Prossimi passi, in ordine
 
@@ -1360,7 +1383,42 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
 
 ## Immagini fuori dal JSON
 
-- [ ] **Le immagini in base64 pesano su tutto ciò che il documento attraversa**
+**Completato il 19 settembre 2026.** I paragrafi sotto conservano l’indagine e
+le decisioni precedenti; l’implementazione finale aggiunge:
+
+- `POST /api/campaigns/[id]/images`: upload autenticato nella tabella già
+  esistente, corpo letto con limite anche senza Content-Length, MIME ammessi,
+  URL casuale immutabile. Quote, inclusi gli orfani: **500 immagini / 32 MiB
+  per campagna**, **2000 / 128 MiB per utente**. Lock e inserimento nella stessa
+  transazione impediscono che upload paralleli superino la quota.
+- `public/app/immagini.js` e salvataggio cloud: upload dei data URL, poi PATCH
+  con riferimenti. La prima apertura migra le campagne vecchie senza riscrivere
+  il database in massa. Le modifiche durante l’upload restano nella scheda e
+  vengono inviate dopo l’ACK; gli upload già riusciti si riusano nei retry
+  della sessione, solo nella stessa campagna. Lo standalone mantiene i data URL.
+- Export normale **e dei conflitti**: snapshot completo, immagini reincorporate,
+  avanzamento e nessun download se manca una figura. L’import cloud ricopia le
+  figure nella campagna destinataria e non sostituisce il documento se fallisce.
+  Il backup ammette **64 MiB** (128 per le due copie del conflitto), mentre il
+  limite del documento cloud resta **4 MiB**. Si contano anche gli URL ripetuti
+  prima di espanderli, per non creare JSON enormi in memoria. La quota locale
+  dello standalone rimane quella del browser.
+- La PATCH verifica che i riferimenti locali esistano e appartengano alla
+  campagna, sotto lock; riferimenti mancanti/altrui danno 422. Creare una nuova
+  campagna via API con riferimenti locali non ancora caricati viene rifiutato.
+- Spazzino in upload/PATCH, con **30 giorni di grazia**: segna gli orfani,
+  azzera la data se l’immagine torna referenziata e cancella solo gli scaduti.
+  Mai cancellazione alla rimozione di un nodo. Per le campagne inattive:
+  `node --env-file=.env scripts/pulisci-immagini.mjs` conta soltanto;
+  `--apply` esegue la manutenzione. Non è stato lanciato sui dati dell’app.
+- Cascate e query provate su PostgreSQL 17 in Docker, database usa-e-getta.
+  Gli handler HTTP sono provati con Drizzle e quel database, sostituendo solo
+  sessione e trasporto Neon. Chromium copre migrazione, errore upload, modifica
+  durante l’upload, backup normale/conflitti, import cloud/standalone e immagini
+  mancanti. Nessun nuovo servizio, dipendenza o migrazione.
+
+
+- [x] **Le immagini in base64 pesano su tutto ciò che il documento attraversa**
   — indagine del 30 lug 2026, nessuna riga toccata. Era un inciso di mezza riga
   nella sezione qui sopra; questa è la misura, perché il primo passo onesto è
   sapere quanto costa davvero, non scrivere lo schema.
@@ -1671,7 +1729,7 @@ regole 2024; l'SRD 5.1 (2014) e la versione inglese vengono dopo.
     tre test cadono (la regex, il contratto e la proiezione del tavolo);
     rimessa stretta, 104/104.
 
-  **Cosa resta** (nessuna decisione, solo costruzione): il caricamento in
+  **Cosa restava al 6 agosto** (completato il 19 settembre, vedi sopra): il caricamento in
   `compressImage` — le due gemelle in `pannello.js` e `mappa.js` — che deve
   diventare un'operazione di rete e quindi avere un suo modo di fallire;
   l'esporta che re-incorpora in base64, con avanzamento, e che **non** deve

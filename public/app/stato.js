@@ -2,6 +2,7 @@
    condiviso da tutti i moduli, il salvataggio (locale o cloud), le campagne
    multiple e le utilità sull'albero. */
 
+import { imageFields, uploadImages, replaceImageUrls } from "./immagini.js";
 import { uid, node, escapeHtml, sanitizeState, isMarker, snapNode,
          nodeBox, defShape, scalaSopra, SHAPES, SCALA } from "./modello.js";
 import { openAlert, openConfirm, showView } from "./viste.js";
@@ -346,6 +347,11 @@ export function initStato(){
   }
   resetUndo();
   st.path = [st.state.root.id];
+  // Migrazione pigra delle campagne precedenti: niente riscritture massive
+  // sul DB. La prima apertura carica le immagini e salva con la revisione.
+  if(window.__cloud) queueMicrotask(()=>{
+    if(!cloudPaused && imageFields(st.state).some(([o,k])=>o[k].startsWith('data:'))) save();
+  });
   addEventListener("pagehide", flushSave);
   // Tornare in rete non è un'azione dell'utente: se è rimasto del lavoro da
   // spedire, riparte da sé invece di aspettare la battitura successiva.
@@ -598,14 +604,28 @@ async function cloudPush(finale = false, json = null){
   cloudBusy = true;
   // Lo snapshot che parte e la base che dichiara si fissano QUI: quando la
   // risposta arriva, `st.state` e `cloudRevision` possono essere già altri.
-  const sentJson = json ?? JSON.stringify(st.state);
+  let sentJson = json ?? JSON.stringify(st.state);
   const sentBase = cloudRevision;
   // Il body si compone attorno al JSON già serializzato invece di passare
   // l'oggetto a JSON.stringify: su una campagna con immagini è un giro da 4 MB
   // risparmiato a ogni salvataggio.
-  const body = `{"data":${sentJson},"baseRevision":${sentBase}}`;
-  const warn = sizeWarning(body.length);
+  let body, warn;
+  let uploading = true;
   try{
+    const snapshot = JSON.parse(sentJson);
+    const replacements = await uploadImages(snapshot, window.__cloud.id, {
+      onProgress(done,total){ if(total) cloudStatus(`Caricamento immagini: ${done}/${total}…`, "var(--gold)"); },
+    });
+    if(replacements.size){
+      replaceImageUrls(snapshot, replacements);
+      replaceImageUrls(st.state, replacements);
+      sentJson = JSON.stringify(snapshot);
+      // Anche le modifiche arrivate durante l'upload restano recuperabili.
+      persistCloudPending(makePendingCache({campaignId:window.__cloud.id,state:st.state,baseRevision:sentBase}));
+    }
+    uploading = false;
+    body = `{"data":${sentJson},"baseRevision":${sentBase}}`;
+    warn = sizeWarning(body.length);
     const res = await fetch(`/api/campaigns/${window.__cloud.id}`, {
       method: "PATCH",
       headers: {"Content-Type":"application/json"},
@@ -673,7 +693,11 @@ async function cloudPush(finale = false, json = null){
                   warn ? warn.tone : "var(--ink-dim)");
       resumeCloudRecovery({state:structuredClone(st.state), revision:cloudRevision, updatedAt:ack.updatedAt || null});
     }
-  }catch(_){
+  }catch(error){
+    if(uploading){
+      cloudStatus(`Immagini non caricate: ${error.message} · ${persistent ? "copia locale conservata" : "solo in memoria — usa Esporta"}`, "var(--ember)");
+      return;
+    }
     cloudStatus(persistent ? "Salvato su questo dispositivo · sincronizzazione in attesa"
                            : "Solo in memoria — usa Esporta",
                 "var(--gold)");
@@ -752,7 +776,7 @@ export function findParent(id, cur=st.state.root){
    invece di gridarlo a ogni ridisegno. */
 export let ultimoDifettoFormato = null;
 
-export function migrateState(s){
+export function migrateState(s, options = {}){
   /* Il contratto morde in SCRITTURA (import, POST, PATCH) e qui NO. Questo è
      l'imbuto che attraversa ogni caricamento — cloud, localStorage, undo,
      recupero offline — e lanciare di qui vorrebbe dire: campagna storta,
@@ -766,7 +790,7 @@ export function migrateState(s){
      niente da riassegnare. Gira PRIMA delle migrazioni visuali qui sotto perché
      è lui a dare `type` e `id` ai nodi che non li hanno — e `isMarker`, due
      righe più giù, legge proprio `type`. */
-  const esito = prepareCampaignDocument(s);
+  const esito = prepareCampaignDocument(s, options);
   ultimoDifettoFormato = esito.ok ? null : esito.error;
   if(!esito.ok)
     console.warn("Campagna non conforme al contratto:", campaignErrorMessage(esito.error));

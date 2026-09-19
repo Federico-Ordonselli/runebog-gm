@@ -2,6 +2,7 @@
    pointer (drag, pinch, long-press, collegamenti), sfondo del livello,
    navigazione tra livelli e operazioni sulla selezione. */
 
+import { duplicaNodi } from "./duplica.js";
 import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeColor,
          isMarker, defShape, nodeBox, nodeCenter, node, uid, escapeHtml, escapeAttr,
          gridShape, onGrid, snapGrid, snapNode,
@@ -1592,30 +1593,21 @@ export function duplicateSelected(){
      stanno sempre. */
   const off = muri.length || nodi.some(onGrid) ? CELL : 30;
 
-  const nuovoId = {};                       // vecchio id → nuovo, per rimappare gli archi
-  const copieN = nodi.map(src=>{
-    const copy = JSON.parse(JSON.stringify(src));
-    (function reid(n){
-      n.id = uid();
-      const map = {};
-      n.children.forEach(ch=>{ const old = ch.id; reid(ch); map[old] = ch.id; });
-      n.edges = (n.edges||[]).map(e=>({...e, id:uid(), a:map[e.a]||e.a, b:map[e.b]||e.b}));
-    })(copy);
-    nuovoId[src.id] = copy.id;
+  const {copie: copieN, nodi: nuovoId} = duplicaNodi(nodi);
+  copieN.forEach(copy=>{
     copy.x = (copy.x||0)+off; copy.y = (copy.y||0)+off;
     // Il "(copia)" solo quando se ne duplica una: su dieci bolle sarebbero dieci
     // titoli con la stessa coda, e a distinguerle basta che siano sfalsate.
     if(nodi.length===1) copy.title = (copy.title||"") + " (copia)";
     cur.children.push(copy);
-    return copy;
   });
   /* I collegamenti fra le bolle duplicate: due stanze collegate, copiate
      insieme, devono restare collegate — sennò non è una copia del gruppo, sono
      due copie sciolte. Si itera su un'istantanea perché il ciclo scrive
      nell'array che sta leggendo. */
   for(const e of [...(cur.edges||[])]){
-    if(!nuovoId[e.a] || !nuovoId[e.b]) continue;
-    cur.edges.push({...e, id:uid(), a:nuovoId[e.a], b:nuovoId[e.b]});
+    if(!nuovoId.has(e.a) || !nuovoId.has(e.b)) continue;
+    cur.edges.push({...e, id:uid(), a:nuovoId.get(e.a), b:nuovoId.get(e.b)});
   }
   if(!Array.isArray(cur.wallSegs)) cur.wallSegs = [];
   const copieW = muri.map(w=>{

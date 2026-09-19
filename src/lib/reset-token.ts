@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "crypto";
 import { and, eq, gt, lt } from "drizzle-orm";
 import { db } from "@/db";
+import { consumeResetTokenSql, resetPasswordSql } from "./reset-token-sql";
 import { passwordResetTokens } from "@/db/schema";
 
 const TTL_MS = 60 * 60 * 1000; // 1 ora
@@ -22,12 +23,13 @@ export async function createResetToken(userId: string): Promise<string> {
 
 /** Restituisce lo userId se il token è valido e non scaduto, altrimenti null. */
 export async function consumeResetToken(token: string): Promise<string | null> {
-  const h = hash(token);
-  const [row] = await db.select().from(passwordResetTokens)
-    .where(and(eq(passwordResetTokens.tokenHash, h), gt(passwordResetTokens.expires, new Date())));
-  if (!row) return null;
-  await db.delete(passwordResetTokens).where(eq(passwordResetTokens.tokenHash, h)); // monouso
-  return row.userId;
+  const result = await db.execute<{userId: string}>(consumeResetTokenSql(hash(token)));
+  return result.rows[0]?.userId ?? null;
+}
+
+export async function resetPasswordWithToken(token: string, passwordHash: string): Promise<boolean> {
+  const result = await db.execute(resetPasswordSql(hash(token), passwordHash));
+  return result.rows.length === 1;
 }
 
 /** Verifica senza consumare: serve a mostrare il form solo se il link è ancora buono. */
