@@ -72,6 +72,11 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   passano da `duplicaNodi`. Taglia toglie subito: rimandare la rimozione
   permetterebbe di incollare una bolla dentro sé stessa. Solo nella stessa
   campagna (`campagnaCorrente` in `stato.js`).
+- Scala sulla tela (`#plan-scale`, `aggiornaScala` in `mappa.js`, 22 set
+  2026): la barra è lunga n quadretti VERI dello schermo e si aggiorna da
+  `planApplyVB` (zoom/pan) più un ResizeObserver. Compare solo dove la maglia
+  misura qualcosa (`scalaUtile`: livello in scala, piante o muri, scontro).
+  Vive in HTML fuori da `plan-svg`, che `renderCanvas` riscrive.
 - PostgreSQL reale senza dati dell’app: avviare
   `docker run --rm -d --name runebog-todo-test -e POSTGRES_PASSWORD=runebog-test-only postgres:17-alpine`,
   poi `node test/database/verifica-todo.mjs` e

@@ -8,7 +8,7 @@ import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeCo
          gridShape, onGrid, snapGrid, snapNode,
          wallShape, wallBox, contentBox, wallOpening, wallPlan, WALL,
          wallSegsOf, wallSegEnds, newWallSeg, stretchWallSeg,
-         DOOR_TYPES, doorKind, wallLabel, shapeType, scalaSopra, scalaDentro } from "./modello.js";
+         DOOR_TYPES, doorKind, wallLabel, shapeType, scalaSopra, scalaDentro, METRI_PER_CELLA } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, pathNodes, RO,
          clearSel, selectNode, selectWall, zoomOut } from "./stato.js";
 import { showView, openConfirm } from "./viste.js";
@@ -123,6 +123,55 @@ function planApplyVB(){
   // dipendere da quell'ordine costa una riga e non si rompe se manca.
   document.getElementById("plan-tools-svg")?.setAttribute("viewBox", vb);
   planVBs[currentNode().id] = planVB;
+  aggiornaScala();
+}
+
+/* ---------- la scala sullo schermo ----------
+   Quanto è grande un quadretto lo diceva solo il title di ⚔ Combattimento e il
+   pannello di una bolla in scala: guardando la tela non lo si sapeva, e a zoom
+   diversi un quadretto è 15px o 90. La barra in basso è lunga ESATTAMENTE n
+   quadretti dello schermo di adesso, con una tacca per quadretto, e dice
+   quanti sono e quanti metri fanno.
+   - È situazionale: compare solo dove la maglia è una misura — un livello in
+     scala (edificio, stanza, piazza), uno che contiene piante o muri, o uno
+     scontro aperto. Dentro un mondo o una regione 1,5 m non misura niente, e
+     una scala lì direbbe il contrario.
+   - n è 1, 2, 5, 10… il più piccolo per cui la barra supera 24px: sotto
+     quella misura una barra non si legge, e allontanando lo zoom i quadretti
+     si contano a gruppi come su una carta.
+   - Sta in HTML fuori da plan-svg (che renderCanvas riscrive) e si aggiorna da
+     planApplyVB, cioè a ogni zoom e pan, più un ResizeObserver per la
+     finestra: la lunghezza vera dipende anche da quanto è larga la tela. */
+const PASSI_SCALA = [1, 2, 5, 10, 20, 50, 100];
+let scalaOsservata = false;
+function scalaUtile(cur){
+  return battleOn() || gridShape(cur) || wallSegsOf(cur).length>0 || cur.children.some(gridShape);
+}
+function aggiornaScala(){
+  const el = document.getElementById("plan-scale");
+  if(!el || !planVB) return;
+  const svg = planSvg();
+  if(!scalaOsservata && typeof ResizeObserver==="function"){
+    scalaOsservata = true;
+    new ResizeObserver(()=>aggiornaScala()).observe(svg);
+  }
+  const pxUnit = Math.min(svg.clientWidth/planVB.w, svg.clientHeight/planVB.h);
+  if(!scalaUtile(currentNode()) || !(pxUnit>0)){ el.hidden = true; return; }
+  const cella = CELL*pxUnit;
+  const n = PASSI_SCALA.find(k => k*cella >= 24) ?? PASSI_SCALA[PASSI_SCALA.length-1];
+  const len = Math.round(n*cella);
+  // Una tacca per quadretto finché si distinguono (almeno 4px l'una).
+  const tacche = cella>=4 && n>1
+    ? Array.from({length:n-1}, (_,i)=>`<line x1="${((i+1)*cella).toFixed(1)}" y1="5" x2="${((i+1)*cella).toFixed(1)}" y2="9"/>`).join("")
+    : "";
+  const metri = (n*METRI_PER_CELLA).toLocaleString("it-IT",{maximumFractionDigits:1});
+  const quadretti = n===1 ? "1 quadretto" : `${n} quadretti`;
+  el.hidden = false;
+  el.title = `1 quadretto = ${METRI_PER_CELLA.toLocaleString("it-IT")} m`;
+  el.innerHTML = `<svg width="${len+2}" height="10" aria-hidden="true" focusable="false">
+      <g transform="translate(1,0)"><path d="M0 1V9H${len}V1"/>${tacche}</g></svg>
+    <span aria-hidden="true">${n} ▢ · ${metri} m</span>
+    <span class="sr-only">Scala: ${quadretti}, ${metri} metri</span>`;
 }
 export function planFit(rerender){
   const cur = currentNode();

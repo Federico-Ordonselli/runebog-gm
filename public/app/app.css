@@ -468,6 +468,16 @@
   #plan-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--ink-dim);
     background:color-mix(in srgb, var(--bog) 85%, transparent);padding:5px 12px;border-radius:8px;border:1px solid var(--line);
     max-width:92%;text-align:center;pointer-events:none}
+  /* In basso a DESTRA su scrivania: a sinistra c'è il tabellone d'iniziativa,
+     che scende fino in fondo alla tela quando l'ordine è lungo. Su telefono il
+     FAB prende l'angolo destro e la scala passa a sinistra (sotto, nel blocco
+     da 760px). Testo su fondo quasi opaco come #plan-hint: stessa coppia. */
+  #plan-scale{position:absolute;right:10px;bottom:10px;display:flex;align-items:center;gap:8px;
+    font-size:11px;color:var(--ink-dim);font-variant-numeric:tabular-nums;
+    background:color-mix(in srgb, var(--bog) 85%, transparent);padding:5px 10px;border-radius:8px;
+    border:1px solid var(--line);pointer-events:none}
+  #plan-scale[hidden]{display:none}
+  #plan-scale svg{display:block;fill:none;stroke:var(--ink);stroke-width:1.5}
   .blk{cursor:grab}
   .blk.dragging{cursor:grabbing}
   /* I blocchi poggiano sulla torbiera invece di galleggiarci sopra piatti: un'ombra
@@ -926,6 +936,7 @@
        separarli è la riga, e da flex item si prenderebbe tutto lo spazio. */
     .pal-sep{display:none}
     #plan-hint{display:none}
+    #plan-scale{right:auto;left:10px}
     #plan-wrap *{-webkit-touch-callout:none}
 
     /* Il menu della bolla contiene anche stati e forme: col long-press superava

@@ -194,6 +194,10 @@
              a dove sei (radice, livello interno, tavolo dei giocatori) -->
         <div id="empty-node"></div>
         <div id="plan-hint"></div>
+        <!-- Scala della maglia: una barra lunga n quadretti veri dello schermo
+             corrente. Contenuto da aggiornaScala() in mappa.js, che la mostra
+             solo dove i quadretti misurano qualcosa (piante, muri, scontri). -->
+        <div id="plan-scale" hidden></div>
         <!-- Tabellone d'iniziativa: contenuto da renderBattleBar() in battaglia.js.
              Compare solo se il livello corrente ha una battaglia aperta, e c'è
              anche al tavolo dei giocatori (lì senza comandi). aria-live: il

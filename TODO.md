@@ -3639,3 +3639,15 @@ Cosa **resta** da fare, misurato:
     tema di default avrebbe detto che il difetto non c'era. Su Gilda il browser
     conferma i numeri del verificatore al centesimo: 1,96:1 sulla vecchia
     pista, 7,67:1 sull'incavo.
+
+- [x] **La scala della maglia sulla tela** — fatto (22 set 2026). Una barra in
+  basso (`#plan-scale` in `app.html`, `aggiornaScala` in `mappa.js`) lunga
+  n quadretti veri dello schermo corrente, con una tacca per quadretto e
+  l'etichetta «n ▢ · metri». n scala a 1, 2, 5, 10… perché la barra resti
+  sopra i 24px quando si allontana lo zoom. **Situazionale**: compare solo dove
+  i quadretti misurano qualcosa — livello in scala, piante o muri dentro, o uno
+  scontro aperto — e resta nascosta su mondo, regione e quartieri di sole zone.
+  In basso a destra su scrivania (a sinistra scende il tabellone d'iniziativa),
+  a sinistra su telefono (a destra c'è il FAB). Misurato in Chromium: la barra
+  da 1 quadretto è 43px contro i 43,25 della maglia disegnata, e 2 quadretti
+  su telefono 45 contro 44,6.
