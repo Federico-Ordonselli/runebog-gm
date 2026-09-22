@@ -1,5 +1,51 @@
 # To-do
 
+## Riscontri del primo tester (22 settembre 2026)
+
+Primo giro di prova di un DM esterno: pulsanti e caricamento immagini
+funzionano. Quattro punti, verificati contro il codice.
+
+- [ ] **Il generatore di dungeon non si trova, e sul desktop non c'è.**
+  Il tester non è riuscito a creare un dungeon. Il percorso esiste
+  (menu "⋯" → "Genera un dungeon ↗", e la sezione "Generatore di dungeon" del
+  pannello) ma è in due passi: si genera su `/dungeon` in un'altra scheda, si
+  copia il JSON e si torna a incollarlo. Sul **desktop** `/dungeon` è una
+  pagina Next che il pacchetto Electron non contiene, e
+  `setWindowOpenHandler` in `desktop/main.cjs` apre fuori solo gli `https://`:
+  il bottone non fa niente. Da chiarire quale versione ha provato. Il motore è
+  puro (`src/lib/dungeon/engine.ts`): generarlo dentro l'editor toglierebbe
+  sia il giro di copia-incolla sia la dipendenza dal sito.
+- [x] **Sfondo sotto la griglia, non sopra.** Fatto il 22 settembre:
+  `#bg-grid` in `renderCanvas` ridisegna la maglia sopra l'immagine con
+  `pointer-events="none"` e segue sposta/ridimensiona (`updateBgAttrs`). Usa
+  un pattern suo (`#grid-bg`, linea doppia scura+chiara): `--grid` è il 9%
+  dell'accento e su un'immagine spariva. Verificato in Chromium su fondo
+  nero, rosso e bianco; in "Sposta/Ridim." il clic arriva ancora
+  all'immagine. Restano aperti i due punti "da valutare" qui sotto.
+  Lo sfondo per livello esiste già
+  (sezione "Sfondo della pianta": carica, sposta/ridimensiona, opacità), ed è
+  esattamente la richiesta "bolla città con la mappa della città dentro". Ma
+  in `renderCanvas` (`mappa.js`) l'`<image id="bg-img">` è disegnata **dopo**
+  il rettangolo della maglia, quindi la copre: il tester vuole la griglia
+  sopra la mappa per misurarci le distanze. La maglia va ridisegnata sopra lo
+  sfondo con `pointer-events:none`, lasciando il rettangolo `data-bg` sotto
+  (è lui che riceve i clic sullo sfondo). Da valutare: l'aggancio di una
+  dimensione dell'immagine a quadretti interi, e rendere la sezione più
+  scopribile — il tester ha chiesto una funzione che c'era.
+- [ ] **Aprire un'immagine in una finestra propria**, trascinabile su un
+  secondo schermo mentre si continua a lavorare. Oggi c'è solo il lightbox
+  modale (`pannello.js`), che blocca l'editor. Un `window.open` con la sola
+  immagine; per le immagini ancora in base64 (standalone) serve un URL `blob:`,
+  perché i browser bloccano la navigazione verso `data:`. Sul desktop il
+  `setWindowOpenHandler` va aperto a queste finestre. Parente stretto del
+  tavolo dei giocatori, che è già "la cosa da mostrare sull'altro schermo".
+- [ ] **Caselle di testo sulla mappa**: testo libero visibile sulla tela
+  (dentro la bolla di un PNG, per esempio), senza dover aprire una nota.
+  È un tipo nuovo **persistente**, quindi tocca tutti i confini: forma in
+  `SHAPES` e nella whitelist di `formato-campagna.js` (il test di `test/scala/`
+  lo impone), `sanitizeState`, proiezione in `share.ts` (condivisa o solo DM),
+  e il disegno che deve restare leggibile a ogni zoom.
+
 ## Fix dalla code review del 18 settembre 2026
 
 **Chiusi tutti i fix della review** (18–19 settembre), compresa la verifica

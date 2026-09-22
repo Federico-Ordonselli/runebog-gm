@@ -614,6 +614,10 @@ export function renderCanvas(){
       <path d="M${CELL} 0H0V${CELL}" fill="none" stroke-width="${inBattaglia?1.4:1}"
         style="stroke:${inBattaglia?"color-mix(in srgb, var(--fen) 26%, transparent)":"var(--grid)"}"/>
     </pattern>
+    <pattern id="grid-bg" width="${CELL}" height="${CELL}" patternUnits="userSpaceOnUse">
+      <path d="M${CELL} 0H0V${CELL}" fill="none" stroke="rgba(0,0,0,${inBattaglia?.55:.4})" stroke-width="1"/>
+      <path d="M${CELL} 1H1V${CELL}" fill="none" stroke="rgba(255,255,255,${inBattaglia?.45:.3})" stroke-width="1"/>
+    </pattern>
   </defs>
   <rect x="${planVB.x-6000}" y="${planVB.y-6000}" width="14000" height="14000" fill="url(#grid)" data-bg="1"/>`;
 
@@ -622,6 +626,17 @@ export function renderCanvas(){
     out += `<image id="bg-img" href="${cur.bg.img}" x="${cur.bg.x}" y="${cur.bg.y}" width="${cur.bg.w}" height="${cur.bg.h}"
       opacity="${cur.bg.opacity ?? 0.6}" preserveAspectRatio="none"
       style="pointer-events:${bgEdit ? "auto" : "none"};cursor:${bgEdit ? "move" : "default"}"/>`;
+    /* La maglia si ridisegna SOPRA lo sfondo: su una mappa caricata è la scala
+       con cui si misurano le distanze, e sotto l'immagine spariva. Il
+       rettangolo `data-bg` qui sopra resta dov'è perché è lui a ricevere i
+       clic sullo sfondo; questa copia è solo disegno, quindi non prende
+       eventi — sennò in "Sposta/Ridim." coprirebbe l'immagine da trascinare.
+       Il tratto non è `--grid`: quello è tarato sul fondo della tela (9%
+       dell'accento) e su un'immagine sparisce. Sopra una mappa di colore
+       qualunque regge solo una linea doppia, scura più chiara — per questo
+       non segue il tema, come il colore scelto dal DM per una bolla. */
+    out += `<rect id="bg-grid" x="${cur.bg.x}" y="${cur.bg.y}" width="${cur.bg.w}" height="${cur.bg.h}"
+      fill="url(#grid-bg)" pointer-events="none"/>`;
     if(bgEdit) out += `
       <rect id="bg-frame" x="${cur.bg.x}" y="${cur.bg.y}" width="${cur.bg.w}" height="${cur.bg.h}"
         fill="none" stroke="var(--gold)" stroke-width="2" stroke-dasharray="8 6" pointer-events="none"/>
@@ -1455,9 +1470,11 @@ function updateBgAttrs(){
   const im = svg.querySelector("#bg-img");
   if(im){ im.setAttribute("x",cur.bg.x); im.setAttribute("y",cur.bg.y);
           im.setAttribute("width",cur.bg.w); im.setAttribute("height",cur.bg.h); }
-  const fr = svg.querySelector("#bg-frame");
-  if(fr){ fr.setAttribute("x",cur.bg.x); fr.setAttribute("y",cur.bg.y);
-          fr.setAttribute("width",cur.bg.w); fr.setAttribute("height",cur.bg.h); }
+  for(const sel of ["#bg-grid","#bg-frame"]){
+    const r = svg.querySelector(sel); if(!r) continue;
+    r.setAttribute("x",cur.bg.x); r.setAttribute("y",cur.bg.y);
+    r.setAttribute("width",cur.bg.w); r.setAttribute("height",cur.bg.h);
+  }
   const h = svg.querySelector("#bg-handle");
   if(h){ h.setAttribute("x",cur.bg.x+cur.bg.w-14); h.setAttribute("y",cur.bg.y+cur.bg.h-14); }
 }
