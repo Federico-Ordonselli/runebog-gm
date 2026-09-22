@@ -4,20 +4,50 @@
 
 import { TYPES, STATUSES, SHAPES, EDGE_TYPES, NODE_COLORS, nodeColor,
          isMarker, isTesto, testoSize, nomeInElenco, TESTO_SIZES, defShape, nodeBox, node, escapeHtml, escapeAttr,
-         gridShape, wallShape, CELL, DOOR_TYPES, doorKind, wallLabel } from "./modello.js";
+         wallShape, inScala, DOOR_TYPES, doorKind, wallLabel,
+         GRIGLIE, GRID_LIMITS, grigliaDi, isHex, nomeCelle, formattaMetri } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, RO } from "./stato.js";
 import { openConfirm } from "./viste.js";
 import { renderMap, renderCrumbs, renderCanvas, bgEdit, isEmptyNode, doDeleteNodes,
          wallOf, misuraMuro, deleteWallSeg, adattaTesto } from "./mappa.js";
 import { statblockHTML } from "./mostri.js";
 
-/* Una forma in scala si legge in quadretti e metri (1 quadretto = 1,5 m):
+/* Una forma in scala si legge in celle e metri della maglia del suo livello:
    i pixel non dicono niente al tavolo. */
-const labelScala = box => {
-  const q = v => (v/CELL).toLocaleString("it-IT",{maximumFractionDigits:2});
-  const m = v => (v/CELL*1.5).toLocaleString("it-IT",{maximumFractionDigits:2});
-  return `${q(box.w)}×${q(box.h)} quadretti · ${m(box.w)}×${m(box.h)} m`;
+const labelScala = (box, g) => {
+  const q = v => (v/g.cella).toLocaleString("it-IT",{maximumFractionDigits:2});
+  const m = v => formattaMetri(v/g.cella*g.metri);
+  return `${q(box.w)}×${q(box.h)} ${GRIGLIE[g.forma].unita[1]} · ${m(box.w)} × ${m(box.h)}`;
 };
+
+/* La maglia del livello aperto, nel pannello del livello: forma, lato della
+   cella in px e metri per cella. Il lato è in px perché serve ad allineare la
+   maglia allo sfondo caricato, che è misurato in px; i metri sono quello che
+   il righello e la barra della scala dicono al tavolo. */
+function grigliaHTML(cur){
+  const g = grigliaDi(cur), L = GRID_LIMITS;
+  const forme = Object.entries(GRIGLIE)
+    .map(([k,v])=>`<option value="${k}" ${k===g.forma?"selected":""}>${v.label}</option>`).join("");
+  const num = v => String(v).replace(".", ",");
+  return `<details class="field" data-sec="griglia" ontoggle="secToggle(this)"${secOpen("griglia")}>
+    <summary>Griglia</summary>
+    <label for="griglia-forma">Forma</label>
+    <select id="griglia-forma" onchange="impostaGriglia('forma',this.value)">${forme}</select>
+    <div class="row" style="margin-top:10px">
+      <div class="field"><label for="griglia-cella">Lato cella (px)</label>
+        <input id="griglia-cella" type="number" inputmode="decimal" min="${L.cellaMin}" max="${L.cellaMax}" step="1"
+          value="${g.cella}" onchange="impostaGriglia('cella',this.value)"></div>
+      <div class="field"><label for="griglia-metri">Metri per cella</label>
+        <input id="griglia-metri" type="text" inputmode="decimal" value="${num(g.metri)}"
+          onchange="impostaGriglia('metri',this.value)"></div>
+    </div>
+    <p class="hint-sm">${escapeHtml(`${nomeCelle(g, 1)} = ${formattaMetri(g.metri)}.`)}
+      ${isHex(g)
+        ? "Segnalini e pedine si agganciano al centro degli esagoni; righello e aree d'effetto contano in esagoni. Piante e muri restano liberi."
+        : "Piante e muri si agganciano agli incroci, segnalini e pedine al centro dei quadretti."}
+      Vale solo per questo livello.</p>
+  </details>`;
+}
 import { tokenLink } from "./battaglia.js";
 
 /* Sezioni richiudibili (<details>) del pannello: lo stato di apertura vive qui,
@@ -214,6 +244,9 @@ function renderDetailCore(){
   // a scriverci un nome che il disegno poi ignora, perché legge la fonte.
   const link = n.type === "token" ? tokenLink(n) : null;
   if(sel && isTesto(n)){ aside.innerHTML = testoDetailHTML(n); return; }
+  // La bolla si misura nella maglia del livello su cui sta, che per il livello
+  // aperto è quella del genitore.
+  const gN = grigliaDi(findParent(n.id) || cur), C = gN.cella, scala = inScala(n, gN);
 
   // "Testo" non è fra i tipi in cui trasformare una bolla: una bolla con dei
   // figli diventerebbe una scritta in cui non si entra più, e quei figli
@@ -280,17 +313,17 @@ function renderDetailCore(){
       <select onchange="editNode('${n.id}','shape',this.value)">${shapeOpts}</select></div>
     <div class="row">
       <div class="field"><label>Larghezza</label>
-        <input type="number" step="${gridShape(n)?CELL:10}" min="${gridShape(n)?CELL:40}" value="${nodeBox(n).w}"
-          onchange="editNode('${n.id}','w',${gridShape(n)
-            ? `Math.max(${CELL},Math.round((parseInt(this.value)||${CELL})/${CELL})*${CELL})`
+        <input type="number" step="${scala?C:10}" min="${scala?C:40}" value="${nodeBox(n).w}"
+          onchange="editNode('${n.id}','w',${scala
+            ? `Math.max(${C},Math.round((parseFloat(this.value)||${C})/${C})*${C})`
             : `Math.max(40,parseInt(this.value)||40)`})"></div>
       <div class="field"><label>Altezza</label>
-        <input type="number" step="${gridShape(n)?CELL:10}" min="${gridShape(n)?CELL:30}" value="${nodeBox(n).h}"
-          onchange="editNode('${n.id}','h',${gridShape(n)
-            ? `Math.max(${CELL},Math.round((parseInt(this.value)||${CELL})/${CELL})*${CELL})`
+        <input type="number" step="${scala?C:10}" min="${scala?C:30}" value="${nodeBox(n).h}"
+          onchange="editNode('${n.id}','h',${scala
+            ? `Math.max(${C},Math.round((parseFloat(this.value)||${C})/${C})*${C})`
             : `Math.max(30,parseInt(this.value)||30)`})"></div>
     </div>
-    ${gridShape(n)?`<p class="hint-sm">${labelScala(nodeBox(n))}</p>`:""}
+    ${scala?`<p class="hint-sm">${labelScala(nodeBox(n), gN)}</p>`:""}
     ${SHAPES[n.shape||defShape(n)]?.walls ? `<div class="opt">
       <label><input type="checkbox" ${wallShape(n)?"checked":""}
         onchange="editNode('${n.id}','walls',this.checked)"> Muri e porte</label>
@@ -331,6 +364,8 @@ function renderDetailCore(){
     ${n.type==="quest" ? `<div class="field"><label>Diario</label>
       <button class="btn ${n.main?"primary":""}" onclick="editNode('${n.id}','main',${n.main?"false":"true"})">
         ★ ${n.main?"Quest principale":"Segna come principale"}</button></div>` : ""}
+
+    ${!sel && !RO ? grigliaHTML(cur) : ""}
 
     ${!sel && !isMarker(n) ? `<details class="field" data-sec="bg" ontoggle="secToggle(this)"${secOpen("bg", bgEdit)}>
       <summary>Sfondo della pianta</summary>

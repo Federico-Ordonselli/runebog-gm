@@ -23,7 +23,9 @@ import { randomBytes } from "crypto";
 // Direttamente dal sorgente .js, non dal wrapper "./formato-campagna": questo
 // modulo è importato anche dai test puri sotto Node, dove il type stripping
 // non risolve gli import senza estensione.
-import { CURRENT_CAMPAIGN_SCHEMA_VERSION, IMMAGINE_LOCALE } from "../../public/app/formato-campagna.js";
+import {
+  CURRENT_CAMPAIGN_SCHEMA_VERSION, IMMAGINE_LOCALE, GRID_FORMS, GRID_LIMITS,
+} from "../../public/app/formato-campagna.js";
 
 type Node = Record<string, any>;
 
@@ -95,6 +97,16 @@ const DOOR_KINDS = new Set(["aperta", "chiusa", "chiave", "segreta"]);
 const safeId = (v: unknown) => String(v ?? "").replace(/[^\w-]/g, "");
 const num = (v: unknown, alt: number | null = null) =>
   Number.isFinite(Number(v)) ? Number(v) : alt;
+function projectGriglia(g: unknown): Node | null {
+  if (!g || typeof g !== "object") return null;
+  const { forma, cella, metri } = g as Node;
+  if (!GRID_FORMS.includes(forma)) return null;
+  const dentro = (v: unknown, min: number, max: number) =>
+    typeof v === "number" && Number.isFinite(v) && v >= min && v <= max;
+  if (!dentro(cella, GRID_LIMITS.cellaMin, GRID_LIMITS.cellaMax)) return null;
+  if (!dentro(metri, GRID_LIMITS.metriMin, GRID_LIMITS.metriMax)) return null;
+  return { forma: String(forma), cella, metri };
+}
 const safeColor = (v: unknown) =>
   /^#[0-9a-f]{3,8}$/i.test(String(v)) ? String(v) : null;
 function safeUrl(v: unknown) {
@@ -291,6 +303,14 @@ function projectNode(n: Node, data: Node): Node {
     w: num(n.bg.w, 0), h: num(n.bg.h, 0),
     opacity: num(n.bg.opacity, 0.6),
   };
+
+  // La maglia del livello: al tavolo i giocatori contano con il righello e
+  // vedono le pedine centrate negli esagoni, quindi deve arrivare la stessa
+  // del DM. Non nasconde niente, ma si ricostruisce comunque campo per campo:
+  // i numeri finiscono in attributi SVG, e una forma sconosciuta o un numero
+  // fuori dai limiti del contratto fa semplicemente tornare la maglia storica.
+  const griglia = projectGriglia(n.griglia);
+  if (griglia) out.griglia = griglia;
 
   const combat = projectCombat(n.monster);
   if (combat) out.combat = combat;

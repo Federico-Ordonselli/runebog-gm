@@ -5,7 +5,7 @@
    Quell'import esiste per una riga sola (`IMMAGINE_LOCALE`): la forma di un URL
    di immagine deve essere la stessa qui e nel validatore, sennò il client
    accetta ciò che il server rifiuta. Non è la porta per farne entrare altre. */
-import { IMMAGINE_LOCALE } from "./formato-campagna.js";
+import { IMMAGINE_LOCALE, GRID_FORMS, GRID_LIMITS } from "./formato-campagna.js";
 
 export const TYPES = {
   zona:      {label:"Zona",      color:"var(--fen)"},
@@ -35,7 +35,155 @@ export const CELL = 40;
    mostra. La formattazione con unità ("1,5 m") sta dove serve mostrarla, non
    qui — un numero non porta la sua etichetta, sennò non lo si può sommare. */
 export const METRI_PER_CELLA = 1.5;
-export const snapGrid = v => Math.round(v / CELL) * CELL;
+
+/* ---------------- la maglia di un livello ----------------
+   Dal 22 set 2026 CELL e METRI_PER_CELLA sono il DEFAULT, non la maglia: ogni
+   livello può dichiararne una sua in `n.griglia` — {forma, cella, metri} —
+   perché un mondo si misura in esagoni da 9 km e il dungeon che ci sta dentro
+   in quadretti da 1,5 m. Vive sul nodo del livello come lo sfondo e i muri
+   liberi, cioè accanto alle cose che misura. Assente = la maglia storica, e
+   per questo nessuna campagna va migrata.
+
+   `grigliaDi` è l'UNICO modo di leggerla: normalizza e ripiega sul default,
+   quindi a valle nessuno deve chiedersi se il campo c'è o se è sano. Chi
+   aggancia o misura qualcosa riceve la maglia del livello dove quella cosa
+   sta — non di quello aperto: un segnalino si centra nella cella del proprio
+   genitore anche quando lo migra `migrateState`, che non apre niente.
+
+   Negli esagoni `cella` è la distanza fra i centri di due esagoni vicini (la
+   larghezza da lato a lato), cioè il passo con cui si conta: un esagono =
+   `metri`. La matematica è quella delle coordinate assiali, fatta una volta
+   per la punta in alto; il lato piatto in alto è la stessa maglia trasposta
+   (x↔y), e si ottiene scambiando gli assi all'ingresso e all'uscita. */
+export const GRIGLIE = {
+  quadrata:     {label:"Quadrata",                      unita:["quadretto","quadretti"], sigla:"q",  glifo:"▢"},
+  "hex-punta":  {label:"Esagoni, punta in alto",       unita:["esagono","esagoni"],     sigla:"es", glifo:"⬡", hex:true},
+  "hex-piatto": {label:"Esagoni, lato piatto in alto", unita:["esagono","esagoni"],     sigla:"es", glifo:"⬡", hex:true},
+};
+export { GRID_FORMS, GRID_LIMITS };
+export const GRIGLIA_BASE = Object.freeze({forma:"quadrata", cella:CELL, metri:METRI_PER_CELLA});
+const numeroFra = (v, min, max) => typeof v === "number" && Number.isFinite(v) && v >= min && v <= max;
+/* La bonifica del campo: forma dichiarata e numeri nei limiti del contratto,
+   oppure niente — una maglia storta non si "corregge" a metà, si torna al
+   default. Si scrivono solo le tre chiavi: il campo finisce in `style` e in
+   attributi SVG attraverso i numeri che ne escono. */
+export function safeGriglia(g){
+  if(!g || typeof g !== "object" || !GRIGLIE[g.forma]) return null;
+  const L = GRID_LIMITS;
+  return {
+    forma: g.forma,
+    cella: numeroFra(g.cella, L.cellaMin, L.cellaMax) ? g.cella : CELL,
+    metri: numeroFra(g.metri, L.metriMin, L.metriMax) ? g.metri : METRI_PER_CELLA,
+  };
+}
+export const grigliaDi = n => (n && safeGriglia(n.griglia)) || GRIGLIA_BASE;
+export const isHex = g => !!GRIGLIE[g?.forma]?.hex;
+/* Il nome della cella con il suo numero: "1 quadretto", "3 esagoni". */
+export const nomeCelle = (g, n) => {
+  const u = (GRIGLIE[g?.forma] || GRIGLIE.quadrata).unita;
+  return `${n.toLocaleString("it-IT",{maximumFractionDigits:2})} ${n === 1 ? u[0] : u[1]}`;
+};
+/* I metri all'italiana, in km sopra il migliaio: un esagono di viaggio da 9000 m
+   si legge "9 km", non "9.000 m". */
+export function formattaMetri(m){
+  const km = Math.abs(m) >= 1000;
+  return `${(km ? m/1000 : m).toLocaleString("it-IT",{maximumFractionDigits:2})} ${km ? "km" : "m"}`;
+}
+
+/* Sulla maglia quadrata un punto si aggancia agli INCROCI (piante, muri); negli
+   esagoni gli incroci non formano una maglia ortogonale, quindi piante e muri
+   restano liberi e il punto torna com'è. */
+export const snapGrid = (v, g = GRIGLIA_BASE) => isHex(g) ? v : Math.round(v / g.cella) * g.cella;
+
+const R3 = Math.sqrt(3);
+const hexPiatto = g => g.forma === "hex-piatto";
+function arrotondaCubo(q, r){
+  const s = -q - r;
+  let rq = Math.round(q), rr = Math.round(r);
+  const rs = Math.round(s);
+  const dq = Math.abs(rq - q), dr = Math.abs(rr - r), ds = Math.abs(rs - s);
+  if(dq > dr && dq > ds) rq = -rr - rs;
+  else if(dr > ds) rr = -rq - rs;
+  return {q:rq + 0, r:rr + 0};                   // + 0: niente -0, che deepEqual e i JSON leggono diversi
+}
+/* L'esagono che contiene il punto, in coordinate assiali. */
+export function cellaEsagono(g, x, y){
+  const [X, Y] = hexPiatto(g) ? [y, x] : [x, y];
+  const r = Y / (g.cella * R3 / 2);
+  return arrotondaCubo(X / g.cella - r / 2, r);
+}
+export function centroEsagono(g, {q, r}){
+  const X = g.cella * (q + r / 2), Y = g.cella * R3 / 2 * r;
+  return hexPiatto(g) ? {x:Y, y:X} : {x:X, y:Y};
+}
+/* Il centro della cella che contiene il punto, qualunque sia la forma. */
+export function centroCella(g, x, y){
+  if(isHex(g)) return centroEsagono(g, cellaEsagono(g, x, y));
+  const c = g.cella;
+  return {x:Math.floor(x / c) * c + c / 2, y:Math.floor(y / c) * c + c / 2};
+}
+/* Dove si aggancia un punto preso col puntatore dagli strumenti (righello, aree
+   d'effetto): incroci sulla maglia quadrata, come i muri; centri negli
+   esagoni, perché lì è dal centro di un esagono all'altro che si conta. */
+export const puntoMaglia = (g, p) => isHex(g) ? centroCella(g, p.x, p.y) : {x:snapGrid(p.x, g), y:snapGrid(p.y, g)};
+/* Quante celle fra due punti, contate come si contano sulla maglia: negli
+   esagoni è la distanza assiale fra le due celle, ed è intera per costruzione.
+   Sulla maglia quadrata torna null — lì il righello ha i suoi metodi per la
+   diagonale (distanzaCelle in strumenti/righello.js). */
+export function celleFra(g, a, b){
+  if(!isHex(g)) return null;
+  const p = cellaEsagono(g, a.x, a.y), q = cellaEsagono(g, b.x, b.y);
+  const dq = p.q - q.q, dr = p.r - q.r;
+  return (Math.abs(dq) + Math.abs(dr) + Math.abs(dq + dr)) / 2;
+}
+/* Il vettore di maglia più vicino a uno spostamento: spostando un gruppo di
+   tanto, chi era agganciato resta agganciato. Negli esagoni i vettori di
+   maglia sono i centri stessi, perché l'origine è un centro. */
+export const vettoreMaglia = (g, dx, dy) => isHex(g)
+  ? centroEsagono(g, cellaEsagono(g, dx, dy))
+  : {x:snapGrid(dx, g), y:snapGrid(dy, g)};
+/* Un passo di freccia: un lato sulla maglia quadrata, il vicino negli esagoni.
+   In verticale (punta in alto) o in orizzontale (lato piatto) i vicini sono
+   due, sfalsati di mezza cella: si sceglie in base alla parità della riga di
+   partenza, così su-giù e giù-su tornano nello stesso esagono invece di
+   scivolare di lato a ogni battuta. È sempre un vettore di maglia, quindi un
+   gruppo si sposta rigido e nessuno esce dal proprio centro. */
+const DIREZIONI = {ArrowLeft:[-1,0], ArrowRight:[1,0], ArrowUp:[0,-1], ArrowDown:[0,1]};
+export function passoMaglia(g, dir, da = {x:0, y:0}){
+  const [ux, uy] = DIREZIONI[dir] || [0, 0];
+  if(!isHex(g)) return {dx:ux * g.cella, dy:uy * g.cella};
+  const c = cellaEsagono(g, da.x, da.y), o = centroEsagono(g, c);
+  const verso = ((c.r % 2) + 2) % 2 === 0 ? 1 : -1;
+  let meglio = null;
+  for(const [dq, dr] of [[1,0],[-1,0],[0,1],[0,-1],[1,-1],[-1,1]]){
+    const p = centroEsagono(g, {q:c.q + dq, r:c.r + dr});
+    const vx = p.x - o.x, vy = p.y - o.y;
+    const allineato = (vx * ux + vy * uy) / g.cella;
+    const lato = (ux ? vy : vx) * verso;
+    if(!meglio || allineato > meglio.a + 1e-6 || (Math.abs(allineato - meglio.a) <= 1e-6 && lato > meglio.l))
+      meglio = {a:allineato, l:lato, dx:vx, dy:vy};
+  }
+  return {dx:meglio.dx, dy:meglio.dy};
+}
+/* Il disegno della maglia: il tassello di un <pattern> SVG e il percorso che ci
+   sta dentro. Negli esagoni ogni esagono disegna tre dei suoi sei lati (i due in
+   alto e quello a destra, per la punta in alto): gli altri tre li disegnano i
+   vicini, così ogni lato è tracciato UNA volta — due volte, con un tratto
+   semitrasparente, si vedrebbe più scuro. Il tassello ritaglia ciò che esce, e
+   per questo gli esagoni si elencano anche un giro fuori dal tassello. */
+export function tasselloMaglia(g){
+  const s = g.cella, f = v => Math.round(v * 100) / 100;
+  if(!isHex(g)) return {w:s, h:s, d:`M${s} 0H0V${s}`};
+  const h = s * R3 / 2, R = s / R3;
+  const lati = [];
+  for(let j = -1; j <= 3; j++) for(let i = -1; i <= 2; i++){
+    const cx = i * s + (((j % 2) + 2) % 2 ? s / 2 : 0), cy = j * h;
+    const pt = [[cx - s/2, cy - R/2], [cx, cy - R], [cx + s/2, cy - R/2], [cx + s/2, cy + R/2]]
+      .map(([x, y]) => hexPiatto(g) ? [y, x] : [x, y]);
+    lati.push("M" + pt.map(([x, y]) => `${f(x)} ${f(y)}`).join("L"));
+  }
+  return hexPiatto(g) ? {w:f(2 * h), h:s, d:lati.join("")} : {w:s, h:f(2 * h), d:lati.join("")};
+}
 
 /* Le forme con grid:true sono piante, non simboli: posizione e dimensioni
    vivono in quadretti interi (scelta del 19 lug 2026: solo le forme
@@ -137,7 +285,10 @@ export const gridShape = n => !isMarker(n) && !isTesto(n) && !!SHAPES[n.shape ||
    è come stavano quest, encounter e PNG fino al 22 lug 2026.
    Fuori restano quartiere e torre: non sono in scala, sono etichette di
    territorio, e vivono libere come prima. */
-export const onGrid = n => gridShape(n) || isMarker(n);
+export const onGrid = (n, g = GRIGLIA_BASE) => inScala(n, g) || isMarker(n);
+/* Una pianta sta in quadretti interi solo sulla maglia quadrata: negli esagoni
+   una stanza rettangolare non ha una maglia su cui appoggiarsi, e resta libera. */
+export const inScala = (n, g = GRIGLIA_BASE) => gridShape(n) && !isHex(g);
 /* Il raggio disegnato del simbolo: la pedina è un filo più grande del segnalino
    (vedi il disco in mappa.js, che legge di qui). Il raggio decide l'aggancio,
    quindi dev'essere quello vero: con un raggio sbagliato il centro geometrico
@@ -147,13 +298,21 @@ export function snapToCell(v, r = MARKER_R + 1){
   const centro = v + r;
   return Math.floor(centro / CELL) * CELL + CELL / 2 - r;
 }
+/* Il segnalino col centro nel centro della cella, su qualunque maglia: le
+   coordinate di un simbolo sono l'angolo del suo riquadro, quindi si passa dal
+   centro e si torna indietro del raggio. Sulla maglia quadrata di default è
+   esattamente snapToCell sui due assi. */
+export function snapMarker(g, x, y, r = MARKER_R + 1){
+  const c = centroCella(g, x + r, y + r);
+  return {x:c.x - r, y:c.y - r};
+}
 /* L'unico posto che sa dove va una bolla sulla maglia. Le coordinate arrivano
    da fuori (il puntatore, una griglia di riordino, la posizione attuale) perché
    i chiamanti le calcolano in modi diversi; a scegliere la regola è il nodo. */
-export function snapNode(n, x = n.x, y = n.y){
+export function snapNode(n, x = n.x, y = n.y, g = GRIGLIA_BASE){
   if(typeof x !== "number" || typeof y !== "number") return {x, y};
-  if(gridShape(n)) return {x:snapGrid(x), y:snapGrid(y)};
-  if(isMarker(n)){ const r = markerR(n); return {x:snapToCell(x, r), y:snapToCell(y, r)}; }
+  if(inScala(n, g)) return {x:snapGrid(x, g), y:snapGrid(y, g)};
+  if(isMarker(n)) return snapMarker(g, x, y, markerR(n));
   return {x, y};
 }
 
@@ -314,11 +473,16 @@ export function wallPlan(box, openings){
 export const WALL_MIN = 1;                  // meno di un quadretto non è un muro
 export const WALL_MAX = 200;                // 300 m: oltre, è un JSON che mente
 export const wallSegsOf = n => Array.isArray(n.wallSegs) ? n.wallSegs : [];
-export const wallSegEnds = w => w.dir === "v"
-  ? {x1:w.x, y1:w.y, x2:w.x,               y2:w.y + w.len*CELL}
-  : {x1:w.x, y1:w.y, x2:w.x + w.len*CELL,  y2:w.y};
-export const newWallSeg = (x, y, dir = "h", len = 2) =>
-  ({id:uid(), x:snapGrid(x), y:snapGrid(y), dir, len});
+/* `len` è in celle della maglia del livello su cui il muro sta: il muro è
+   fatto di lati di cella, e con una maglia da 60px un muro da due è lungo 120.
+   Negli esagoni non c'è un incrocio ortogonale dove appoggiarlo: la posizione
+   resta libera e la lunghezza si conta comunque in celle, così "3 esagoni" di
+   muro è quanto ci si aspetta di leggere accanto al righello. */
+export const wallSegEnds = (w, g = GRIGLIA_BASE) => w.dir === "v"
+  ? {x1:w.x, y1:w.y, x2:w.x,                  y2:w.y + w.len*g.cella}
+  : {x1:w.x, y1:w.y, x2:w.x + w.len*g.cella,  y2:w.y};
+export const newWallSeg = (x, y, dir = "h", len = 2, g = GRIGLIA_BASE) =>
+  ({id:uid(), x:snapGrid(x, g), y:snapGrid(y, g), dir, len});
 
 /* Una porta è un muro DICHIARATO porta, non un buco fra due muri. Il buco resta
    il modo di fare un varco, e va benissimo per un'arcata o uno sfondamento —
@@ -349,17 +513,17 @@ export const wallLabel = w => DOOR_TYPES[doorKind(w)]?.label || "Muro pieno";
    decide lo spostamento più lungo. Così un gesto solo allunga E ruota — non
    serve un comando "ruota", che sarebbe un bottone per una cosa che il dito sta
    già dicendo. */
-export function stretchWallSeg(w, capo, px, py){
-  const e = wallSegEnds(w);
+export function stretchWallSeg(w, capo, px, py, g = GRIGLIA_BASE){
+  const e = wallSegEnds(w, g), C = g.cella;
   const fx = capo === "a" ? e.x2 : e.x1, fy = capo === "a" ? e.y2 : e.y1;
-  const dx = snapGrid(px) - fx, dy = snapGrid(py) - fy;
+  const dx = snapGrid(px, g) - fx, dy = snapGrid(py, g) - fy;
   const orizzontale = Math.abs(dx) >= Math.abs(dy);
   const d = orizzontale ? dx : dy;
-  const len = Math.max(WALL_MIN, Math.min(WALL_MAX, Math.round(Math.abs(d) / CELL)));
+  const len = Math.max(WALL_MIN, Math.min(WALL_MAX, Math.round(Math.abs(d) / C)));
   w.dir = orizzontale ? "h" : "v";
   w.len = len;
-  w.x = orizzontale ? (d >= 0 ? fx : fx - len*CELL) : fx;
-  w.y = orizzontale ? fy : (d >= 0 ? fy : fy - len*CELL);
+  w.x = orizzontale ? (d >= 0 ? fx : fx - len*C) : fx;
+  w.y = orizzontale ? fy : (d >= 0 ? fy : fy - len*C);
 }
 
 /* Colore di default PER FORMA, non per tipo: prima edificio e stanza erano
@@ -492,7 +656,7 @@ function safeUrl(v){
    cadere il segmento invece di finire nel markup. `len` ha anche un tetto: un
    muro da un miliardo di quadretti non è un muro, è un modo di piantare il
    browser di chi apre la campagna. */
-function safeWallSeg(w){
+function safeWallSeg(w, g){
   if(!w || typeof w !== "object") return null;
   /* `Number(null)` è 0 e `Number("")` pure: senza il primo test un muro con una
      coordinata mancante non cadrebbe, verrebbe "corretto" a 0,0 — cioè
@@ -507,7 +671,7 @@ function safeWallSeg(w){
   if(x === null || y === null || len === null) return null;
   const seg = {
     id: safeId(w.id ?? uid()),
-    x: snapGrid(x), y: snapGrid(y),
+    x: snapGrid(x, g), y: snapGrid(y, g),
     dir: w.dir === "v" ? "v" : "h",
     len: Math.max(WALL_MIN, Math.min(WALL_MAX, Math.round(len)))
   };
@@ -532,8 +696,11 @@ export function sanitizeState(s){
     // riferimenti della pedina: stesso safeId dei nodi/foe puntati, così restano allineati
     if(n.playerId != null) n.playerId = safeId(n.playerId);
     if(n.foe){ n.foe.nodeId = safeId(n.foe.nodeId); n.foe.foeId = safeId(n.foe.foeId); }
+    // La maglia prima dei muri: i muri si agganciano a quella del loro livello,
+    // e con la maglia ancora da bonificare si aggancerebbero a un numero sporco.
+    if(n.griglia != null){ const g = safeGriglia(n.griglia); if(g) n.griglia = g; else delete n.griglia; }
     if(n.wallSegs != null) n.wallSegs = (Array.isArray(n.wallSegs) ? n.wallSegs : [])
-      .map(safeWallSeg).filter(Boolean);
+      .map(w => safeWallSeg(w, grigliaDi(n))).filter(Boolean);
     for(const e of (Array.isArray(n.edges) ? n.edges : [])){
       if(e.id != null) e.id = safeId(e.id);
       e.a = safeId(e.a); e.b = safeId(e.b);

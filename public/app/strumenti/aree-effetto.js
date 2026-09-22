@@ -8,6 +8,7 @@
 
 import { distanzaCelle } from "./righello.js";
 import { svgEl, scalaSchermo, formattaNumero } from "./svg.js";
+import { formattaMetri } from "../modello.js";
 
 function misura(quadretti, metriPerCella){
   return { quadretti, metri: quadretti * metriPerCella };
@@ -147,8 +148,8 @@ function percorsoForma(geometria, cell){
 function disegna(ctx, a, b){
   const s = scalaSchermo(ctx.overlaySvg);
   const geometria = geometriaPer(ctx, a, b);
-  const testo = `${formattaNumero(geometria.misura.quadretti)} q · `
-    + `${formattaNumero(geometria.misura.metri)} m`;
+  const testo = `${formattaNumero(geometria.misura.quadretti)} ${ctx.sigla || "q"} · `
+    + formattaMetri(geometria.misura.metri);
 
   if(!gfx){
     const forma = svgEl("path", {

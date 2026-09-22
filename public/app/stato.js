@@ -3,7 +3,7 @@
    multiple e le utilità sull'albero. */
 
 import { imageFields, uploadImages, replaceImageUrls } from "./immagini.js";
-import { uid, node, escapeHtml, sanitizeState, isMarker, snapNode,
+import { uid, node, escapeHtml, sanitizeState, isMarker, snapNode, grigliaDi,
          nodeBox, defShape, scalaSopra, SHAPES, SCALA } from "./modello.js";
 import { openAlert, openConfirm, showView } from "./viste.js";
 import {
@@ -802,7 +802,7 @@ export function migrateState(s, options = {}){
   if(!esito.ok)
     console.warn("Campagna non conforme al contratto:", campaignErrorMessage(esito.error));
 
-  (function walk(n){
+  (function walk(n, genitore){
     if(!Array.isArray(n.edges)) n.edges=[];
     // tokenColor era il colore del solo segnalino "token"; ora `color` vale per
     // qualsiasi bolla (vedi nodeColor in modello.js). Le pedine già colorate
@@ -815,9 +815,12 @@ export function migrateState(s, options = {}){
     // quindi non può finire sopra una bolla che prima non toccava. L'unico modo
     // di sovrapporre qualcosa è avere due segnalini più vicini di un quadretto —
     // per questo l'import del dungeon dispone i PG a una cella l'uno dall'altro.
-    if(isMarker(n)){ const q = snapNode(n); n.x = q.x; n.y = q.y; }
-    (n.children||[]).forEach(walk);
-  })(s.root);
+    // Nella maglia del GENITORE, cioè del livello su cui il simbolo sta: con
+    // quella di default un segnalino su una mappa a esagoni tornerebbe fra
+    // quattro quadretti a ogni apertura.
+    if(isMarker(n)){ const q = snapNode(n, n.x, n.y, grigliaDi(genitore)); n.x = q.x; n.y = q.y; }
+    (n.children||[]).forEach(c => walk(c, n));
+  })(s.root, null);
   // vecchia "Pianta" separata → diventa una zona dentro la radice
   if(s.plan && Array.isArray(s.plan.blocks) && s.plan.blocks.length){
     const z = node("Pianta città (bozza)","zona"); z.shape="quartiere";

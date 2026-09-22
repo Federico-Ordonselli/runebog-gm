@@ -17,7 +17,7 @@
    Solo dentro la stessa campagna: in un'altra i PG a cui puntano le pedine non
    esistono, e le immagini caricate appartengono alla campagna d'origine. */
 
-import { uid, snapGrid, nodeBox, CELL } from "./modello.js";
+import { uid, snapGrid, snapNode, nodeBox, grigliaDi, vettoreMaglia } from "./modello.js";
 import { st, save, currentNode, findNode, clearSel, RO, campagnaCorrente } from "./stato.js";
 import { childOf, wallOf, doDeleteNodes, renderMap, centroVista } from "./mappa.js";
 import { duplicaNodi } from "./duplica.js";
@@ -82,7 +82,7 @@ function tuttiGliId(nodi, out = []){
 }
 
 /* Il riquadro del gruppo, per metterne il centro dove si incolla. */
-function riquadro(nodi, muri){
+function riquadro(nodi, muri, g){
   let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
   for(const n of nodi){
     if(typeof n.x !== "number" || typeof n.y !== "number") continue;
@@ -91,7 +91,7 @@ function riquadro(nodi, muri){
     x2 = Math.max(x2, n.x + b.w); y2 = Math.max(y2, n.y + b.h);
   }
   for(const w of muri){
-    const L = w.len * CELL;
+    const L = w.len * g.cella;
     x1 = Math.min(x1, w.x); y1 = Math.min(y1, w.y);
     x2 = Math.max(x2, w.x + (w.dir === "h" ? L : 0)); y2 = Math.max(y2, w.y + (w.dir === "v" ? L : 0));
   }
@@ -121,14 +121,21 @@ export function incolla(punto){
   }
   const muri = appunti.muri.map(w => ({...w, id: sposta ? w.id : uid()}));
 
-  /* Il gruppo si sposta RIGIDO, di un numero intero di quadretti: così chi era
+  /* Il gruppo si sposta RIGIDO, di un vettore della maglia: così chi era
      agganciato alla maglia (piante, segnalini, muri) resta agganciato senza
      doverlo riagganciare, e il gruppo non si deforma. */
-  const centro = riquadro(nodi, muri);
+  const g = grigliaDi(cur);
+  const centro = riquadro(nodi, muri, g);
   const dove = punto || centroVista();
-  const dx = centro ? snapGrid(dove.x - centro.x) : 0, dy = centro ? snapGrid(dove.y - centro.y) : 0;
-  for(const n of nodi) if(typeof n.x === "number" && typeof n.y === "number"){ n.x += dx; n.y += dy; }
-  for(const w of muri){ w.x += dx; w.y += dy; }
+  const v = centro ? vettoreMaglia(g, dove.x - centro.x, dove.y - centro.y) : {x:0, y:0};
+  for(const n of nodi) if(typeof n.x === "number" && typeof n.y === "number"){ n.x += v.x; n.y += v.y; }
+  for(const w of muri){ w.x += v.x; w.y += v.y; }
+  /* Il vettore di maglia tiene agganciato chi arriva da un livello con la
+     STESSA maglia; da un livello con un'altra (quadretti → esagoni, o un lato
+     diverso) ognuno si riaggancia a quella di qui, come al rilascio di un
+     trascinamento. Per chi era già al suo posto è un'identità. */
+  for(const n of nodi){ const q = snapNode(n, n.x, n.y, g); n.x = q.x; n.y = q.y; }
+  for(const w of muri){ w.x = snapGrid(w.x, g); w.y = snapGrid(w.y, g); }
 
   /* Si prova su una copia della campagna prima di toccare quella vera, come
      l'import del dungeon: un incolla che sfonda i limiti del documento

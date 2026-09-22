@@ -3,10 +3,10 @@
    script classico coi dati del bestiario). L'ordine conta: prima lo stato,
    poi i listener, poi il primo render. */
 
-import { initStato, renderCampaignSelect, save, RO } from "./stato.js";
+import { initStato, renderCampaignSelect, save, RO, currentNode } from "./stato.js";
 import { initViste } from "./viste.js";
 import { initMappa, renderMap, planSvg, planPointXY } from "./mappa.js";
-import { CELL, METRI_PER_CELLA } from "./modello.js";
+import { CELL, METRI_PER_CELLA, GRIGLIE, grigliaDi, puntoMaglia, celleFra } from "./modello.js";
 import { initStrumentiMappa } from "./strumenti/index.js";
 import { initMenu } from "./menu.js";
 import { initRicerca } from "./ricerca.js";
@@ -150,6 +150,11 @@ initStrumentiMappa({
   keyTarget: window,
   cell: CELL,
   metersPerCell: METRI_PER_CELLA,
+  griglia: () => {
+    const g = grigliaDi(currentNode());
+    return { cella: g.cella, metri: g.metri, sigla: GRIGLIE[g.forma].sigla,
+             aggancia: p => puntoMaglia(g, p), conta: (a, b) => celleFra(g, a, b) };
+  },
   toMapPoint: planPointXY,
   readOnly: RO,
 });

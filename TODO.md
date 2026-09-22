@@ -71,23 +71,30 @@ funzionano. Quattro punti, verificati contro il codice.
   `SHAPES` e nella whitelist di `formato-campagna.js` (il test di `test/scala/`
   lo impone), `sanitizeState`, proiezione in `share.ts` (condivisa o solo DM),
   e il disegno che deve restare leggibile a ogni zoom.
-- [ ] **Scala del quadretto per livello.** "Dentro ogni bolla decidere quanto
-  misura un quadretto", di default 1,5 m come ora. Si può fare senza toccare
-  la geometria: il quadretto resta 40px (`CELL`) e cambia solo quanti metri
-  vale, cioè `METRI_PER_CELLA` diventa un campo del livello con 1,5 come
-  default. Oggi è una costante letta da righello e aree d'effetto
-  (`metersPerCell` nel `ToolContext`, fissato una volta in `main.js`) e dal
-  tabellone d'iniziativa: devono leggerla dal livello corrente. Campo nuovo nel
-  contratto e nella proiezione di `share.ts`, perché al tavolo il righello dei
-  giocatori deve misurare con la stessa scala.
-- [ ] **Griglia esagonale per livello.** Il disegno è la parte facile (un
-  pattern SVG). Il costo sta in tutto ciò che oggi dà per scontato il
-  quadretto: aggancio di segnalini e pedine (`snapToCell`), piante in scala
-  (`snapGrid`), muri liberi sugli incroci della maglia, distanza del righello,
-  sagome delle aree d'effetto, generatore di dungeon. Da decidere prima cosa
-  deve valere sugli esagoni. Proposta: pedine agganciate al centro
-  dell'esagono e righello in esagoni; piante, muri e dungeon restano a
-  quadretti, quindi la griglia esagonale si sceglie solo dove non servono.
+- [x] **Scala del quadretto per livello.** Fatto il 22 settembre insieme
+  agli esagoni (voce sotto): `n.griglia = {forma, cella, metri}` sul nodo del
+  livello, letto solo da `grigliaDi` (`modello.js`), che senza campo torna la
+  maglia storica (quadrata, 40px, 1,5 m) — nessuna migrazione. Oltre ai metri
+  si sceglie anche il lato in px, per allineare la maglia a uno sfondo
+  caricato: piante e muri si agganciano alla maglia del LORO livello, e `len`
+  di un muro è in celle di quella maglia. Righello, aree d'effetto, barra della
+  scala e tabellone d'iniziativa leggono il livello aperto (`deps.griglia` in
+  `main.js`, getter nel `ToolContext`). Limiti una volta sola in
+  `formato-campagna.js` (`GRID_FORMS`, `GRID_LIMITS`), usati da contratto,
+  `safeGriglia` e `projectGriglia` in `share.ts`. Descrizione originale:
+  "Dentro ogni bolla decidere quanto misura un quadretto", di default 1,5 m.
+- [x] **Griglia esagonale per livello.** Fatto il 22 settembre: sezione
+  "Griglia" nel pannello del livello, con punta in alto e lato piatto in alto.
+  Matematica assiale in `modello.js` (`cellaEsagono`, `centroEsagono`,
+  `celleFra`, `passoMaglia`, `vettoreMaglia`, `tasselloMaglia`); il lato
+  piatto è la stessa maglia trasposta. Deciso cosa vale sugli esagoni:
+  segnalini e pedine al centro dell'esagono, righello e aree in esagoni
+  (intere), frecce/duplica/incolla per vettori di maglia; **piante e muri
+  restano liberi** (`inScala` è falso), perché una stanza rettangolare non ha
+  incroci ortogonali dove appoggiarsi. Il dungeon importato è un livello suo
+  e nasce a quadretti. Test in `test/scala/griglia.test.mjs`; provato in
+  Chromium (disegno, frecce che tornano allo stesso esagono, righello "3 es",
+  riapertura e tavolo con la stessa maglia del DM).
 - [x] **Copia, taglia e incolla le bolle, anche fra livelli.** Fatto il 22
   settembre in `public/app/appunti.js`: Ctrl+C/X/V, "Copia"/"Taglia" nel menu
   di una bolla (tutta la selezione), "Incolla qui" nel menu della tela.

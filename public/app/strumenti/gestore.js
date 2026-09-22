@@ -44,10 +44,13 @@
  * @property {any} mapSvg
  * @property {any} overlaySvg
  * @property {any} layer                     Il <g> del tool attivo.
- * @property {number} cell                   Lato del quadretto in px (CELL).
- * @property {number} metersPerCell          Metri per quadretto (numero).
+ * @property {number} cell                   Lato della cella in px, della maglia del livello aperto.
+ * @property {number} metersPerCell          Metri per cella (numero).
+ * @property {string} sigla                  Unità breve della cella: "q" (quadretti) o "es" (esagoni).
  * @property {(clientX:number, clientY:number)=>{x:number,y:number}} toMapPoint
- * @property {(p:{x:number,y:number})=>{x:number,y:number}} snapToGrid
+ * @property {(p:{x:number,y:number})=>{x:number,y:number}} snapToGrid  Incroci sui quadretti, centri negli esagoni.
+ * @property {(a:{x:number,y:number}, b:{x:number,y:number})=>number|null} contaCelle
+ *           Celle fra due punti contate sulla maglia (esagoni); null sui quadretti, dove il tool usa i suoi metodi per la diagonale.
  * @property {(testo:string)=>void} announce
  * @property {()=>void} clear                Svuota il layer del tool.
  */
@@ -152,17 +155,22 @@ export function attivaTool(id){
   proteggi(()=> tool.activate?.(ctx), "activate");
 }
 
+/* La maglia si chiede a ogni uso (`deps.griglia`) e non all'accensione: un tool
+   resta acceso cambiando livello, e ogni livello può averne una sua. Senza
+   `deps.griglia` (i test) vale la maglia quadrata di `deps.cell`. */
 function creaContesto(){
-  const cell = deps.cell;
-  const snap = v => Math.round(v / cell) * cell;   // la stessa maglia di snapGrid, dal CELL iniettato
+  const maglia = () => deps.griglia ? deps.griglia() : null;
+  const snap = v => Math.round(v / deps.cell) * deps.cell;
   return {
     mapSvg: deps.mapSvg,
     overlaySvg: deps.overlaySvg,
     layer,
-    cell,
-    metersPerCell: deps.metersPerCell,
+    get cell(){ return maglia()?.cella ?? deps.cell; },
+    get metersPerCell(){ return maglia()?.metri ?? deps.metersPerCell; },
+    get sigla(){ return maglia()?.sigla ?? "q"; },
     toMapPoint: deps.toMapPoint,
-    snapToGrid: p => ({ x: snap(p.x), y: snap(p.y) }),
+    snapToGrid: p => maglia()?.aggancia?.(p) ?? { x: snap(p.x), y: snap(p.y) },
+    contaCelle: (a, b) => maglia()?.conta?.(a, b) ?? null,
     announce: testo => { if(deps.status) deps.status.textContent = testo; },
     clear: () => { if(layer) layer.replaceChildren(); },
   };

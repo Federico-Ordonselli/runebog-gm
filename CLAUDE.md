@@ -77,6 +77,19 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   `planApplyVB` (zoom/pan) più un ResizeObserver. Compare solo dove la maglia
   misura qualcosa (`scalaUtile`: livello in scala, piante o muri, scontro).
   Vive in HTML fuori da `plan-svg`, che `renderCanvas` riscrive.
+- Maglia per livello (`n.griglia = {forma, cella, metri}`, 22 set 2026):
+  quadrata, esagoni punta in alto, esagoni lato piatto in alto; lato in px e
+  metri per cella. Si legge SOLO con `grigliaDi(livello)` (`modello.js`), che
+  senza campo torna la maglia storica: niente migrazione. Aggancio e misure
+  usano la maglia del livello su cui la cosa STA (il genitore), anche in
+  `migrateState` e `sanitizeState` (i muri si agganciano a quella del loro
+  nodo). Negli esagoni segnalini e pedine vanno al centro, righello e aree
+  contano in esagoni, frecce/duplica/incolla spostano per vettori di maglia
+  (`passoMaglia`, `vettoreMaglia`); piante e muri restano liberi (`inScala`).
+  Forme e limiti stanno una volta sola in `formato-campagna.js`
+  (`GRID_FORMS`, `GRID_LIMITS`) e li leggono contratto, `safeGriglia` e
+  `projectGriglia` di `share.ts`: al tavolo arriva la stessa maglia del DM.
+  `test/scala/griglia.test.mjs` impone GRIGLIE = GRID_FORMS.
 - PostgreSQL reale senza dati dell’app: avviare
   `docker run --rm -d --name runebog-todo-test -e POSTGRES_PASSWORD=runebog-test-only postgres:17-alpine`,
   poi `node test/database/verifica-todo.mjs` e
@@ -402,9 +415,10 @@ conseguenze da tenere:
 livello dove si combatte — la sua presenza è la modalità accesa, non c'è stato globale.
 Le pedine **referenziano** la loro fonte (`playerId`, oppure `{nodeId, foeId}`) e non
 ne copiano nome e PF: c'è un solo numero per creatura, letto alla fonte a ogni disegno.
-La griglia è quella che c'era già — `CELL` (40px, 1 quadretto = 1,5 m) è definita una
-sola volta in `modello.js`: `battaglia.js` la riesporta, il pattern `#grid` in `mappa.js`
-e `DG_SCALE` in `dungeon.js` la importano.
+La griglia è quella del livello (`grigliaDi`, vedi "La maglia di un livello"): senza
+scelta del DM è `CELL` (40px, 1 quadretto = 1,5 m), definita una sola volta in
+`modello.js`; `DG_SCALE` in `dungeon.js` la importa, e il dungeon importato è un
+livello suo, quindi nasce sempre a quadretti.
 
 - **Nel tabellone d'iniziativa ogni distinzione ha due canali** (29 lug 2026), che
   è la regola che `.ini-row.on` seguiva già da sola: il turno corrente si dice con

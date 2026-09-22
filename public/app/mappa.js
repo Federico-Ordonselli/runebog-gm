@@ -8,13 +8,20 @@ import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeCo
          gridShape, onGrid, snapGrid, snapNode,
          wallShape, wallBox, contentBox, wallOpening, wallPlan, WALL,
          wallSegsOf, wallSegEnds, newWallSeg, stretchWallSeg,
-         DOOR_TYPES, doorKind, wallLabel, shapeType, scalaSopra, scalaDentro, METRI_PER_CELLA } from "./modello.js";
+         DOOR_TYPES, doorKind, wallLabel, shapeType, scalaSopra, scalaDentro,
+         GRIGLIE, GRIGLIA_BASE, GRID_LIMITS, grigliaDi, isHex, inScala, nomeCelle, formattaMetri,
+         passoMaglia, tasselloMaglia } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, pathNodes, RO,
          clearSel, selectNode, selectWall, zoomOut } from "./stato.js";
 import { showView, openConfirm } from "./viste.js";
 import { renderDetail, compressImage, openDetailSheet } from "./pannello.js";
 import { showCtxFor } from "./menu.js";
-import { battleOn, tokenLink, renderBattleBar, CELL } from "./battaglia.js";
+import { battleOn, tokenLink, renderBattleBar } from "./battaglia.js";
+
+/* La maglia del livello aperto: muri, aggancio e disegno la leggono da qui.
+   Ciò che sta sulla tela è sempre figlio del livello aperto, quindi è anche la
+   maglia di tutto quello che si trascina. */
+export const maglia = () => grigliaDi(currentNode());
 
 export function renderMap(){
   renderCrumbs();
@@ -145,7 +152,9 @@ function planApplyVB(){
 const PASSI_SCALA = [1, 2, 5, 10, 20, 50, 100];
 let scalaOsservata = false;
 function scalaUtile(cur){
-  return battleOn() || gridShape(cur) || wallSegsOf(cur).length>0 || cur.children.some(gridShape);
+  // Una maglia dichiarata dal DM misura qualcosa per definizione: l'ha messa
+  // lì per contare, anche su una mappa di viaggio senza piante.
+  return battleOn() || !!cur.griglia || gridShape(cur) || wallSegsOf(cur).length>0 || cur.children.some(gridShape);
 }
 function aggiornaScala(){
   const el = document.getElementById("plan-scale");
@@ -157,21 +166,21 @@ function aggiornaScala(){
   }
   const pxUnit = Math.min(svg.clientWidth/planVB.w, svg.clientHeight/planVB.h);
   if(!scalaUtile(currentNode()) || !(pxUnit>0)){ el.hidden = true; return; }
-  const cella = CELL*pxUnit;
+  const g = maglia(), cella = g.cella*pxUnit;
   const n = PASSI_SCALA.find(k => k*cella >= 24) ?? PASSI_SCALA[PASSI_SCALA.length-1];
   const len = Math.round(n*cella);
   // Una tacca per quadretto finché si distinguono (almeno 4px l'una).
   const tacche = cella>=4 && n>1
     ? Array.from({length:n-1}, (_,i)=>`<line x1="${((i+1)*cella).toFixed(1)}" y1="5" x2="${((i+1)*cella).toFixed(1)}" y2="9"/>`).join("")
     : "";
-  const metri = (n*METRI_PER_CELLA).toLocaleString("it-IT",{maximumFractionDigits:1});
-  const quadretti = n===1 ? "1 quadretto" : `${n} quadretti`;
+  const metri = formattaMetri(n*g.metri);
+  const quadretti = nomeCelle(g, n);
   el.hidden = false;
-  el.title = `1 quadretto = ${METRI_PER_CELLA.toLocaleString("it-IT")} m`;
+  el.title = `${nomeCelle(g, 1)} = ${formattaMetri(g.metri)}`;
   el.innerHTML = `<svg width="${len+2}" height="10" aria-hidden="true" focusable="false">
       <g transform="translate(1,0)"><path d="M0 1V9H${len}V1"/>${tacche}</g></svg>
-    <span aria-hidden="true">${n} ▢ · ${metri} m</span>
-    <span class="sr-only">Scala: ${quadretti}, ${metri} metri</span>`;
+    <span aria-hidden="true">${n} ${GRIGLIE[g.forma].glifo} · ${metri}</span>
+    <span class="sr-only">Scala: ${quadretti}, ${metri}</span>`;
 }
 export function planFit(rerender){
   const cur = currentNode();
@@ -186,7 +195,7 @@ export function planFit(rerender){
   kids.forEach(c=>{ const b=nodeBox(c);
     x1=Math.min(x1,c.x); y1=Math.min(y1,c.y);
     x2=Math.max(x2,c.x+b.w); y2=Math.max(y2,c.y+b.h+20); });
-  muri.forEach(w=>{ const e=wallSegEnds(w);
+  muri.forEach(w=>{ const e=wallSegEnds(w, maglia());
     x1=Math.min(x1,e.x1); y1=Math.min(y1,e.y1);
     x2=Math.max(x2,e.x2); y2=Math.max(y2,e.y2); });
   const pad=120, w=Math.max(700,x2-x1+pad*2), h=Math.max(480,y2-y1+pad*2);
@@ -247,13 +256,14 @@ function moveGroupBy(g, ddx, ddy, ancora){
    gruppo si muove rigido con l'àncora, e l'àncora può essere una bolla libera
    che si muove di 10px per volta. */
 function riagganciaGruppo(g){
+  const mg = maglia();
   for(const id of g.nodi){
     const m = childOf(id); if(!m) continue;
-    const q = snapNode(m); m.x = q.x; m.y = q.y;
+    const q = snapNode(m, m.x, m.y, mg); m.x = q.x; m.y = q.y;
   }
   for(const id of g.muri){
     const w = wallOf(id); if(!w) continue;
-    w.x = snapGrid(w.x); w.y = snapGrid(w.y);
+    w.x = snapGrid(w.x, mg); w.y = snapGrid(w.y, mg);
   }
 }
 /* Le linee dei collegamenti che toccano una bolla mossa: durante il gesto la
@@ -298,8 +308,10 @@ const canEditEdges = () => true;   // i collegamenti si creano a ogni livello, c
 /* La misura di un muro si dice in quadretti E in metri: il quadretto è l'unità
    con cui lo si costruisce, il metro quella con cui si decide se ci passa un
    carro. È la stessa coppia che il pannello mostra per le stanze. */
-export const misuraMuro = w =>
-  `${w.len} quadrett${w.len===1?"o":"i"} · ${String(w.len*1.5).replace(".", ",")} m`;
+export const misuraMuro = w => {
+  const g = maglia();
+  return `${nomeCelle(g, w.len)} · ${formattaMetri(w.len*g.metri)}`;
+};
 const ariaMuro = w =>
   `${wallLabel(w)} ${w.dir==="v" ? "verticale" : "orizzontale"}, ${misuraMuro(w)}`;
 
@@ -319,9 +331,10 @@ function doorMarkup(w, e, kind){
   if(kind === "segreta")
     return `<line class="wall-seg__secret" x1="${e.x1+ux*4}" y1="${e.y1+uy*4}"
                   x2="${e.x2-ux*4}" y2="${e.y2-uy*4}"/>`;
-  const g = Math.min(JAMB, w.len*CELL/3);
+  const L = w.len*maglia().cella;
+  const g = Math.min(JAMB, L/3);
   const ax = e.x1+ux*g, ay = e.y1+uy*g, bx = e.x2-ux*g, by = e.y2-uy*g;
-  const luce = w.len*CELL - 2*g;                     // il vano fra i due stipiti
+  const luce = L - 2*g;                     // il vano fra i due stipiti
   let out = `<line class="wall-seg__line" x1="${e.x1}" y1="${e.y1}" x2="${ax}" y2="${ay}"/>
              <line class="wall-seg__line" x1="${bx}" y1="${by}" x2="${e.x2}" y2="${e.y2}"/>`;
   /* L'anta, come nelle piante: PARALLELA al muro se la porta è chiusa,
@@ -347,7 +360,7 @@ function doorMarkup(w, e, kind){
    renderCanvas quando ricostruisce la tela, e aggiornaMuro durante il
    trascinamento. */
 function wallSegInner(w, sel){
-  const e = wallSegEnds(w), kind = doorKind(w);
+  const e = wallSegEnds(w, maglia()), kind = doorKind(w);
   let out = `<line class="wall-seg__hit" x1="${e.x1}" y1="${e.y1}" x2="${e.x2}" y2="${e.y2}"/>`;
   if(!kind || kind === "segreta")
     out += `<line class="wall-seg__line" x1="${e.x1}" y1="${e.y1}" x2="${e.x2}" y2="${e.y2}"/>`;
@@ -664,19 +677,24 @@ export function renderCanvas(){
   planVB = planVBs[cur.id] || null;
   if(!planVB) planFit(); else planApplyVB();
 
-  /* La maglia è sempre a CELL px (1 quadretto = 1,5 m), ma in combattimento si
+  /* La maglia è quella del livello (vedi maglia() qui sopra), e in combattimento si
      alza il contrasto: lì la griglia smette di essere una carta da parati e
      diventa la regola con cui si misurano portata e movimento. */
   const inBattaglia = battleOn();
   svg.classList.toggle("battaglia", inBattaglia);
+  /* Il tassello lo decide la maglia del livello (tasselloMaglia in modello.js):
+     quadretti o esagoni, e del lato che il DM ha scelto. La copia chiara sopra
+     lo sfondo è lo stesso percorso spostato di un pixel, come la linea doppia
+     dei quadretti. */
+  const t = tasselloMaglia(maglia());
   let out = `<defs>
-    <pattern id="grid" width="${CELL}" height="${CELL}" patternUnits="userSpaceOnUse">
-      <path d="M${CELL} 0H0V${CELL}" fill="none" stroke-width="${inBattaglia?1.4:1}"
+    <pattern id="grid" width="${t.w}" height="${t.h}" patternUnits="userSpaceOnUse">
+      <path d="${t.d}" fill="none" stroke-width="${inBattaglia?1.4:1}"
         style="stroke:${inBattaglia?"color-mix(in srgb, var(--fen) 26%, transparent)":"var(--grid)"}"/>
     </pattern>
-    <pattern id="grid-bg" width="${CELL}" height="${CELL}" patternUnits="userSpaceOnUse">
-      <path d="M${CELL} 0H0V${CELL}" fill="none" stroke="rgba(0,0,0,${inBattaglia?.55:.4})" stroke-width="1"/>
-      <path d="M${CELL} 1H1V${CELL}" fill="none" stroke="rgba(255,255,255,${inBattaglia?.45:.3})" stroke-width="1"/>
+    <pattern id="grid-bg" width="${t.w}" height="${t.h}" patternUnits="userSpaceOnUse">
+      <path d="${t.d}" fill="none" stroke="rgba(0,0,0,${inBattaglia?.55:.4})" stroke-width="1"/>
+      <path d="${t.d}" transform="translate(1 1)" fill="none" stroke="rgba(255,255,255,${inBattaglia?.45:.3})" stroke-width="1"/>
     </pattern>
   </defs>
   <rect x="${planVB.x-6000}" y="${planVB.y-6000}" width="14000" height="14000" fill="url(#grid)" data-bg="1"/>`;
@@ -921,7 +939,7 @@ export function arrangeGrid(){
     if(i%perRow===0 && i){ x=0; y+=rowH+GAP; rowH=0; }
     // Piante e simboli restano agganciati anche nell'ordinamento: il GAP di 50
     // assorbe lo spostamento (±20 max), quindi niente sovrapposizioni.
-    const q = snapNode(c, x, y);
+    const q = snapNode(c, x, y, maglia());
     c.x = q.x; c.y = q.y;
     x += b.w+GAP; rowH = Math.max(rowH, b.h);
   });
@@ -939,20 +957,21 @@ export function addSpatialChild(opts, x, y){
   if(opts.testo){ c = node("", "testo"); c.w = TESTO_BOX.w; c.h = TESTO_BOX.h; }
   else if(opts.marker) c = node("", opts.marker);
   else { c = node("", shapeType(opts.shape)); c.shape = opts.shape; }
-  if(gridShape(c)){
+  const mg = maglia();
+  if(inScala(c, mg)){
     // Le forme architettoniche nascono già sulla maglia: sono piante in scala
     // (1 quadretto = 1,5 m), non simboli. Le dimensioni diventano esplicite e
     // in quadretti interi: i default di SHAPES restano quelli delle bolle
     // vecchie e non sono tutti multipli di cella.
     const d = nodeBox(c);
-    c.w = Math.max(CELL, snapGrid(d.w));
-    c.h = Math.max(CELL, snapGrid(d.h));
+    c.w = Math.max(mg.cella, snapGrid(d.w, mg));
+    c.h = Math.max(mg.cella, snapGrid(d.h, mg));
   }
   const b = nodeBox(c);
   // Nasce già agganciata, che sia una pianta o un simbolo: sennò il primo gesto
   // dopo l'aggiunta sarebbe sempre "trascinala per allinearla".
-  if(onGrid(c)){
-    const q = snapNode(c, x-b.w/2, y-b.h/2);
+  if(onGrid(c, mg)){
+    const q = snapNode(c, x-b.w/2, y-b.h/2, mg);
     c.x = q.x; c.y = q.y;
   }else{
     c.x = Math.round((x-b.w/2)/10)*10;
@@ -977,7 +996,8 @@ export function addWallSeg(x, y, porta){
   const cur = currentNode();
   if(!Array.isArray(cur.wallSegs)) cur.wallSegs = [];
   const k = DOOR_TYPES[porta] ? porta : null;
-  const w = newWallSeg(k ? x - CELL/2 : x - CELL, y, "h", k ? 1 : 2);
+  const mg = maglia();
+  const w = newWallSeg(k ? x - mg.cella/2 : x - mg.cella, y, "h", k ? 1 : 2, mg);
   if(k) w.porta = k;
   cur.wallSegs.push(w);
   selectWall(w.id);
@@ -1385,8 +1405,8 @@ export function initMappa(){
       // quadretto proprio ciò che dev'esserci dentro. La maglia è già un
       // allineamento, e più forte — due simboli in due celle sono allineati per
       // costruzione, senza che nessuno debba centrare la guida.
-      if(onGrid(n)){
-        const q = snapNode(n, p.x-planDrag.dx, p.y-planDrag.dy);
+      if(onGrid(n, maglia())){
+        const q = snapNode(n, p.x-planDrag.dx, p.y-planDrag.dy, maglia());
         n.x = q.x; n.y = q.y;
         drawGuides(null, null);
       }else{
@@ -1409,23 +1429,24 @@ export function initMappa(){
       if(planDrag.mode==="wallmove"){
         // Il muro corre sui bordi delle celle, quindi si aggancia agli INCROCI
         // della maglia (snapGrid) e non al centro come i segnalini.
-        w.x = snapGrid(p.x-planDrag.dx);
-        w.y = snapGrid(p.y-planDrag.dy);
+        w.x = snapGrid(p.x-planDrag.dx, maglia());
+        w.y = snapGrid(p.y-planDrag.dy, maglia());
         // Il resto della selezione segue: qui l'àncora è un muro, ma il gruppo
         // è lo stesso di quando si trascina una bolla.
         const s = planDrag.g.startW[w.id];
         moveGroupBy(planDrag.g, w.x - s.x, w.y - s.y, w.id);
         aggiornaArchiDi(planDrag.g.nodi);
       }else{
-        stretchWallSeg(w, planDrag.end, p.x, p.y);
+        stretchWallSeg(w, planDrag.end, p.x, p.y, maglia());
       }
       planDrag.moved = true;
       aggiornaMuro(w);
     }else if(planDrag.mode==="resize"){
       const n = childOf(planDrag.id); if(!n) return;
-      if(gridShape(n)){
-        n.w = Math.max(CELL, snapGrid(p.x-n.x));
-        n.h = Math.max(CELL, snapGrid(p.y-n.y));
+      const mg = maglia();
+      if(inScala(n, mg)){
+        n.w = Math.max(mg.cella, snapGrid(p.x-n.x, mg));
+        n.h = Math.max(mg.cella, snapGrid(p.y-n.y, mg));
       }else{
         n.w = Math.max(40, Math.round((p.x-n.x)/10)*10);
         n.h = Math.max(30, Math.round((p.y-n.y)/10)*10);
@@ -1616,6 +1637,38 @@ export function setBgOpacity(v){
   save();
 }
 
+/* ==================== la maglia del livello ====================
+   Un campo alla volta (forma, lato in px, metri per cella), dal pannello del
+   livello. Un numero fuori dai limiti del contratto non si scrive: il pannello
+   si ridisegna col valore di prima invece di salvare un documento che il
+   server rifiuterebbe con 422. Tornati esattamente al default il campo sparisce,
+   così il documento resta com'era per chi la maglia non l'ha mai toccata.
+
+   I segnalini seguono SUBITO la maglia nuova (un simbolo si sposta al massimo
+   di mezza cella e non cambia dimensione — la stessa ragione per cui
+   migrateState li centra al caricamento). Piante e muri no: ridimensionarli le
+   farebbe accavallare, e si agganciano al primo tocco come sempre. */
+export function impostaGriglia(chiave, valore){
+  if(RO) return;
+  const cur = currentNode();
+  const g = {...grigliaDi(cur)};
+  if(chiave==="forma"){
+    if(!GRIGLIE[valore]) return;
+    g.forma = valore;
+  }else if(chiave==="cella" || chiave==="metri"){
+    const v = parseFloat(String(valore).replace(",", "."));
+    const L = GRID_LIMITS;
+    const [min, max] = chiave==="cella" ? [L.cellaMin, L.cellaMax] : [L.metriMin, L.metriMax];
+    if(!Number.isFinite(v) || v < min || v > max){ renderDetail(); return; }
+    g[chiave] = v;
+  }else return;
+  if(g.forma===GRIGLIA_BASE.forma && g.cella===GRIGLIA_BASE.cella && g.metri===GRIGLIA_BASE.metri) delete cur.griglia;
+  else cur.griglia = g;
+  for(const c of cur.children)
+    if(isMarker(c)){ const q = snapNode(c, c.x, c.y, g); c.x = q.x; c.y = q.y; }
+  save(); renderMap();
+}
+
 /* ==================== vai a un nodo (ricerca, diario quest) ====================
    Storicamente si chiamava revealNode ed era SOVRASCRITTA dall'omonima funzione
    di condivisione al tavolo (tavolo.js): cliccare una quest nel diario toglieva
@@ -1705,11 +1758,18 @@ export function duplicateSelected(){
      gruppo misto usciva deformata rispetto all'originale. Basta che uno stia
      sulla maglia perché la maglia sia il denominatore comune — e i muri ci
      stanno sempre. */
-  const off = muri.length || nodi.some(onGrid) ? CELL : 30;
+  const mg = maglia();
+  const suMaglia = (muri.length && !isHex(mg)) || nodi.some(n=>onGrid(n, mg));
+  /* Sulla maglia lo scarto è un vettore di maglia (un passo a destra più uno
+     in basso): in diagonale di un lato, negli esagoni, i segnalini
+     uscirebbero dal centro. */
+  const off = suMaglia
+    ? (()=>{ const a = passoMaglia(mg,"ArrowRight"), b = passoMaglia(mg,"ArrowDown"); return {x:a.dx+b.dx, y:a.dy+b.dy}; })()
+    : {x:30, y:30};
 
   const {copie: copieN, nodi: nuovoId} = duplicaNodi(nodi);
   copieN.forEach(copy=>{
-    copy.x = (copy.x||0)+off; copy.y = (copy.y||0)+off;
+    copy.x = (copy.x||0)+off.x; copy.y = (copy.y||0)+off.y;
     // Il "(copia)" solo quando se ne duplica una: su dieci bolle sarebbero dieci
     // titoli con la stessa coda, e a distinguerle basta che siano sfalsate.
     if(nodi.length===1) copy.title = (copy.title||"") + " (copia)";
@@ -1725,7 +1785,7 @@ export function duplicateSelected(){
   }
   if(!Array.isArray(cur.wallSegs)) cur.wallSegs = [];
   const copieW = muri.map(w=>{
-    const c = {...w, id:uid(), x:w.x+off, y:w.y+off};
+    const c = {...w, id:uid(), x:w.x+off.x, y:w.y+off.y};
     cur.wallSegs.push(c);
     return c;
   });
@@ -1743,4 +1803,4 @@ export function duplicateSelected(){
 // per gli onclick inline nei template e nell'HTML statico
 Object.assign(window, { enterNode, jumpTo, planFit, planZoom, arrangeGrid, quickAddCenter, addAtCenter,
   pickBg, removeBg, toggleBgEdit, setBgOpacity, requestDeleteSelection, goToNode,
-  deleteWallSeg, setWallDoor });
+  deleteWallSeg, setWallDoor, impostaGriglia });

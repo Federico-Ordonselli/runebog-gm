@@ -1,8 +1,8 @@
 /* Scorciatoie da tastiera globali. Attive solo fuori dai campi di testo
    e, per quelle della mappa, solo con la vista Mappa aperta. */
 
-import { onGrid, CELL } from "./modello.js";
-import { st, save, doUndo, doRedo, findNode, clearSel } from "./stato.js";
+import { onGrid, isHex, isMarker, markerR, grigliaDi, passoMaglia } from "./modello.js";
+import { st, save, doUndo, doRedo, findNode, clearSel, currentNode } from "./stato.js";
 import { showView, openKeys } from "./viste.js";
 import { goUp, enterNode, planZoom, planFit, renderCanvas, wallOf,
          requestDeleteSelection, duplicateSelected } from "./mappa.js";
@@ -130,10 +130,17 @@ export function initScorciatoie(){
          sta sulla maglia si muove di quadretti interi anche con Shift — un
          ritocco da 1px porta una pianta fuori dalla maglia che la definisce, e
          un muro sui bordi delle celle non ha dove appoggiarsi a mezza cella —
-         e un passo diverso per ciascuno deformerebbe il gruppo a ogni freccia. */
-      const passo = (muri.length || nodi.some(onGrid)) ? CELL : (e.shiftKey ? 1 : 10);
-      const dx = k==="ArrowLeft" ? -passo : k==="ArrowRight" ? passo : 0;
-      const dy = k==="ArrowUp"   ? -passo : k==="ArrowDown"  ? passo : 0;
+         e un passo diverso per ciascuno deformerebbe il gruppo a ogni freccia.
+         Sulla maglia il passo è un VETTORE di maglia (passoMaglia): un lato
+         sui quadretti, il vicino negli esagoni, calcolato dall'àncora. */
+      const g = grigliaDi(currentNode());
+      const suMaglia = (muri.length && !isHex(g)) || nodi.some(n=>onGrid(n, g));
+      const ancora = nodi.find(n=>onGrid(n, g));
+      const r = ancora && isMarker(ancora) ? markerR(ancora) : 0;
+      const passo = e.shiftKey ? 1 : 10;
+      const {dx, dy} = suMaglia ? passoMaglia(g, k, ancora ? {x:ancora.x+r, y:ancora.y+r} : {x:0, y:0})
+        : {dx: k==="ArrowLeft" ? -passo : k==="ArrowRight" ? passo : 0,
+           dy: k==="ArrowUp"   ? -passo : k==="ArrowDown"  ? passo : 0};
       if(!dx && !dy) return;
       for(const n of nodi){ n.x += dx; n.y += dy; }
       for(const w of muri){ w.x += dx; w.y += dy; }

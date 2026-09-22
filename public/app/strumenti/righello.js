@@ -9,6 +9,7 @@
    del contratto: nessun listener proprio, quelli sono del gestore. */
 
 import { svgEl, scalaSchermo, formattaNumero } from "./svg.js";
+import { formattaMetri } from "../modello.js";
 
 /* Come contare una diagonale. "euclideo" è la distanza vera (√2 per un
    quadretto), gli altri due sono i conteggi a griglia del regolamento:
@@ -30,9 +31,11 @@ let gfx = null;         // gli elementi SVG della misura in corso
 function disegna(ctx, a, b){
   const s = scalaSchermo(ctx.overlaySvg);        // unità-mappa per pixel: tiene tratto ed etichetta costanti allo zoom
   const dxC = (b.x - a.x) / ctx.cell, dyC = (b.y - a.y) / ctx.cell;
-  const celle = distanzaCelle(dxC, dyC);
+  // Negli esagoni si contano le celle attraversate (intere); sui quadretti la
+  // distanza è quella del metodo della diagonale.
+  const celle = ctx.contaCelle?.(a, b) ?? distanzaCelle(dxC, dyC);
   const metri = celle * ctx.metersPerCell;
-  const testo = `${formattaNumero(celle)} q · ${formattaNumero(metri)} m`;
+  const testo = `${formattaNumero(celle)} ${ctx.sigla || "q"} · ${formattaMetri(metri)}`;
 
   if(!gfx){
     const linea = svgEl("line", { style: "stroke:var(--fen)", "stroke-linecap": "round" });
@@ -70,8 +73,9 @@ export const righelloTool = {
     ctx.announce("Righello attivo: trascina sulla mappa per misurare; Esc per uscire.");
   },
   deactivate(){ da = null; gfx = null; },        // il layer lo svuota il gestore
-  // La partenza si aggancia agli incroci della maglia; l'altro capo segue il
-  // dito senza aggancio, così la misura è continua mentre trascini.
+  // La partenza si aggancia alla maglia (incroci sui quadretti, centri negli
+  // esagoni); l'altro capo segue il dito senza aggancio, così la misura è
+  // continua mentre trascini.
   pointerDown(ctx, ev, p){
     da = ctx.snapToGrid(p);
     disegna(ctx, da, da);

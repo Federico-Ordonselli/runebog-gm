@@ -15,22 +15,15 @@
       dalla scheda invece che dalla pianta. Espandere un encounter resta perciò
       reversibile: le pedine sono viste, non copie.
 
-   3. LA GRIGLIA C'ERA GIÀ. Il pattern SVG della tela è a 40px e il generatore di
-      dungeon ci disegna sopra le stanze alla stessa scala: 1 quadretto = 5 piedi
-      = 1,5 metri. La modalità combattimento non introduce una scala nuova, rende
-      rigido l'aggancio a quella esistente (vedi CELL). */
+   3. LA GRIGLIA C'ERA GIÀ. La modalità combattimento non introduce una scala
+      nuova: usa la maglia del livello (grigliaDi in modello.js — quadretti da
+      1,5 m se il DM non ne ha scelta un'altra, oppure esagoni) e ne alza il
+      contrasto. */
 
-import { node, uid, NODE_COLORS, escapeHtml, CELL, METRI_PER_CELLA, snapToCell } from "./modello.js";
+import { node, uid, NODE_COLORS, escapeHtml,
+         snapMarker, markerR, grigliaDi, nomeCelle, formattaMetri, GRIGLIE } from "./modello.js";
 import { st, save, findNode, findParent, currentNode, RO, selectNode } from "./stato.js";
 import { openConfirm } from "./viste.js";
-
-/* 1 quadretto = 5 piedi = 1,5 m. La costante vive in modello.js (unica
-   definizione della maglia), e con lei ci vive ora anche l'aggancio al centro
-   della cella: non è più una regola della battaglia, è la regola di ogni
-   simbolo sulla mappa (vedi snapNode). Qui restano riesportate per gli import
-   esistenti. METRI_PER_CELLA è il NUMERO: il tabellone lo formatta con l'unità
-   solo quando lo mostra (sotto), sennò sarebbe una fonte parallela di "1,5". */
-export { CELL, METRI_PER_CELLA, snapToCell };
 
 /* --- lo stato della battaglia sul livello corrente --- */
 export function battleOf(n = currentNode()){ return n && n.battle ? n.battle : null; }
@@ -177,12 +170,12 @@ export function expandEncounter(nodeId){
   // in fila accanto al segnalino che le genera, così si vede da dove vengono
   const bx = typeof enc.x === "number" ? enc.x : 0;
   const by = typeof enc.y === "number" ? enc.y : 0;
+  const g = grigliaDi(parent), C = g.cella;
   daFare.forEach((f, i) => {
     const t = node("", "token");
     t.foe = {nodeId, foeId: f.id};
     t.color = NODE_COLORS[3];                    // l'ember della tavolozza: sono ostili
-    t.x = snapToCell(bx + CELL + (i % 4) * CELL);
-    t.y = snapToCell(by + Math.floor(i / 4) * CELL);
+    Object.assign(t, snapMarker(g, bx + C + (i % 4) * C, by + Math.floor(i / 4) * C, markerR(t)));
     parent.children.push(t);
   });
   save(); ridisegna();
@@ -214,8 +207,8 @@ export function placePlayer(playerId){
   const t = node("", "token");
   t.playerId = playerId;
   t.color = NODE_COLORS[idx % NODE_COLORS.length];
-  t.x = snapToCell(inCampo * CELL);
-  t.y = snapToCell(0);
+  const g = grigliaDi(cur);
+  Object.assign(t, snapMarker(g, inCampo * g.cella, 0, markerR(t)));
   cur.children.push(t);
   selectNode(t.id);
   save(); ridisegna();
@@ -257,6 +250,7 @@ export function renderBattleBar(){
   if(btn){ btn.classList.toggle("on", !!b); btn.setAttribute("aria-pressed", b ? "true" : "false"); }
   if(!b){ bar.classList.remove("show"); bar.innerHTML = ""; return; }
   bar.classList.add("show");
+  const maglia = grigliaDi(currentNode());
 
   // I numeri si interpolano dentro attributi (value=…): un JSON importato o una
   // riga di DB manomessa può portarci dentro qualsiasi cosa, quindi si coercono
@@ -315,7 +309,7 @@ export function renderBattleBar(){
   bar.innerHTML = `
     <div class="ini-head">
       <span class="ini-round">Round ${intero(b.round, 1)}</span>
-      <span class="ini-scala" title="Un quadretto della griglia">▦ ${METRI_PER_CELLA.toLocaleString("it-IT")} m</span>
+      <span class="ini-scala" title="${escapeHtml(`${nomeCelle(maglia, 1)} della griglia`)}">${GRIGLIE[maglia.forma].glifo} ${formattaMetri(maglia.metri)}</span>
       ${RO ? "" : `
         <button class="btn tiny" onclick="prevTurn()" title="Turno precedente">‹</button>
         <button class="btn tiny primary" onclick="nextTurn()" title="Turno successivo">Avanti ›</button>`}

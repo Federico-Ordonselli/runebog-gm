@@ -66,6 +66,16 @@ const STATUSES = new Set(["","da fare","in corso","fatto"]);
 const SHAPES = new Set(["mondo","continente","nazione","regione","quartiere","edificio","stanza","piazza","torre"]);
 const EDGE_TYPES = new Set(["strada","bloccata","ponte","segreto","tunnel"]);
 const DOOR_TYPES = new Set(["aperta","chiusa","chiave","segreta"]);
+/* La maglia di un livello (`node.griglia`, 22 set 2026): forma, lato della
+   cella in px e metri per cella. Esportati perché li leggono anche la bonifica
+   (modello.js) e la proiezione del tavolo (share.ts): un limite ricopiato in
+   tre posti sono tre limiti, e il primo che diverge rimbalza con 422 una
+   campagna che l'app ha appena scritto. `GRID_FORMS` e GRIGLIE in modello.js
+   sono la stessa verità vista da due lati, e un test li impone identici come
+   per le forme. Il campo è facoltativo: assente vuol dire la maglia storica
+   (quadrata, 40px, 1,5 m), quindi nessuna campagna esistente va migrata. */
+export const GRID_FORMS = Object.freeze(["quadrata","hex-punta","hex-piatto"]);
+export const GRID_LIMITS = Object.freeze({cellaMin:10, cellaMax:400, metriMin:0.01, metriMax:1000000});
 const IMAGE_MIMES = new Set(["png","jpeg","jpg","webp","gif","avif","svg+xml"]);
 const ID_RE = /^[\w-]+$/u;
 const COLOR_RE = /^#[0-9a-f]{3,8}$/i;
@@ -470,6 +480,17 @@ function validateNodeShallow(node, path){
         min:-CAMPAIGN_LIMITS.coordinateAbs,max:CAMPAIGN_LIMITS.coordinateAbs,
       }))) return error;
     if((error = validateNumber(node.bg.opacity, `${path}.bg.opacity`, {min:0,max:1}))) return error;
+  }
+  if(node.griglia !== undefined){
+    if((error = requireObject(node.griglia, `${path}.griglia`))) return error;
+    if(!GRID_FORMS.includes(node.griglia.forma))
+      return bad("invalid_grid", "Forma della griglia non valida", `${path}.griglia.forma`);
+    if((error = validateNumber(node.griglia.cella, `${path}.griglia.cella`, {
+      min:GRID_LIMITS.cellaMin, max:GRID_LIMITS.cellaMax,
+    }))) return error;
+    if((error = validateNumber(node.griglia.metri, `${path}.griglia.metri`, {
+      min:GRID_LIMITS.metriMin, max:GRID_LIMITS.metriMax,
+    }))) return error;
   }
   if(node.wallSegs !== undefined){
     if((error = requireArray(node.wallSegs, CAMPAIGN_LIMITS.wallsPerNode, `${path}.wallSegs`))) return error;
