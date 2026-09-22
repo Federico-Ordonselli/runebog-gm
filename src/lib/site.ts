@@ -10,7 +10,7 @@ export const DONATE_URL = "https://ko-fi.com/runebog";
 // Il repo è pubblico: /privacy afferma che il codice è verificabile da chiunque,
 // quindi se questo link torna privato va tolta anche quella frase.
 export const REPO_URL = "https://github.com/Federico-Ordonselli/runebog-gm";
-export const WINDOWS_PORTABLE_VERSION = "0.2.0";
+export const WINDOWS_PORTABLE_VERSION = "0.2.1";
 export const WINDOWS_PORTABLE_URL = `${REPO_URL}/releases/download/v${WINDOWS_PORTABLE_VERSION}/Runebog-GM-Portable-${WINDOWS_PORTABLE_VERSION}-x64.exe`;
 export const WINDOWS_PORTABLE_SHA256 = "6e6698ce1b48d51fea0a25e1dba75b87f1787b41c482d14588c51a8d807a4296";
 

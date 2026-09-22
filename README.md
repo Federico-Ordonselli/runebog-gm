@@ -10,7 +10,7 @@ La cartella `desktop/` confeziona l'editor standalone in un eseguibile Windows 6
 
 Il **Tavolo locale** dell'app desktop funziona anche senza Internet: usa la stessa rete Wi-Fi o l'hotspot del PC. Collega i telefoni alla rete, apri la campagna sul PC, premi **Tavolo** → **Apri il tavolo locale** e fai scansionare il QR. Il PC deve rimanere acceso con Runebog aperto; se Windows chiede il permesso, consenti l'accesso sulla rete privata. Se attivi l'hotspot dopo il tavolo, premi **Aggiorna indirizzi**. I giocatori vedono solo le bolle rivelate e ricevono le modifiche circa ogni 5 secondi. **Chiudi il tavolo** disattiva il link; cambiando campagna si chiude automaticamente. Il tavolo locale non richiede account e non invia dati al cloud.
 
-Per ottenere l'EXE, usa la pagina **Scarica** del sito o la [GitHub Release v0.2.0](https://github.com/Federico-Ordonselli/runebog-gm/releases/tag/v0.2.0). L'eseguibile è un asset della release: supera il limite di 100 MiB dei normali file Git, quindi non va committato nel repository. Il workflow **Windows portable** può ricostruirlo dalla scheda Actions. Non serve Node.js sul PC che lo usa.
+Per ottenere l'EXE, usa la pagina **Scarica** del sito o la [GitHub Release v0.2.1](https://github.com/Federico-Ordonselli/runebog-gm/releases/tag/v0.2.1). L'eseguibile è un asset della release: supera il limite di 100 MiB dei normali file Git, quindi non va committato nel repository. Il workflow **Windows portable** può ricostruirlo dalla scheda Actions. Non serve Node.js sul PC che lo usa.
 
 Per creare l'EXE direttamente su Windows:
 
