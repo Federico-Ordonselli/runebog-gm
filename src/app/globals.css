@@ -151,6 +151,18 @@ body {
   background: linear-gradient(to right, var(--edge), transparent);
 }
 
+.desktop-download {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+.desktop-download .section { margin: 0; }
+.desktop-download p { max-width: 32rem; margin: 0.25rem 0 0; }
+.download-hash { overflow-wrap: anywhere; }
+
 .link { color: var(--wisp); text-decoration-color: color-mix(in srgb, var(--wisp) 40%, transparent); }
 .link:hover { color: var(--wisp-lit); }
 .link--lantern { color: var(--lantern); text-decoration-color: color-mix(in srgb, var(--lantern) 40%, transparent); }

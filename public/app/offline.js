@@ -21,6 +21,8 @@ let attivo = false;
 let pronto = false;
 
 export function initOffline() {
+  // L'edizione desktop ha già tutti i file nel pacchetto e non serve un worker.
+  if (location.protocol === 'runebog:') return;
   if (!("serviceWorker" in navigator)) return;
   if (window.__cloud || window.__table) return;
   attivo = true;

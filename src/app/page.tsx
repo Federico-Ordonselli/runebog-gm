@@ -130,6 +130,15 @@ export default async function Home() {
       )}
 
       <hr className="rule" />
+      <section className="desktop-download" aria-labelledby="desktop-download-title">
+        <div>
+          <h2 id="desktop-download-title" className="section">Runebog sul tuo PC</h2>
+          <p className="small muted">App portable per Windows 64 bit: campagne locali e tavolo condiviso via Wi-Fi o hotspot, anche senza Internet.</p>
+        </div>
+        <a href="/scarica" className="btn btn--primary">Scarica l’app per Windows</a>
+      </section>
+
+      <hr className="rule" />
       {/* Le regole sono un pezzo del prodotto, non una voce di servizio: stanno
           sopra la riga delle donazioni e dei link legali. */}
       <p className="small">

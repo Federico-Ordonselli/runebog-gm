@@ -160,6 +160,7 @@ initChecklist();
 initEsporta();
 initDungeon();
 initTavolo();
+if(window.runebogDesktop) document.documentElement.classList.add('desktop');
 initDetailResize();
 
 renderCampaignSelect();

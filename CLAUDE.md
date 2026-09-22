@@ -195,7 +195,9 @@ Il repo contiene **due applicazioni** che condividono un formato dati:
    che è dati e non dominio. Lo stato condiviso tra moduli vive nell'oggetto `st`
    esportato da `app/stato.js` (i binding ES importati non sono riassegnabili). Le funzioni usate dagli `onclick` inline nei template vengono esposte
    su `window` con l'`Object.assign` in fondo a ogni modulo. Le versioni
-   standalone/desktop sono state ritirate: questa è l'unica copia del sorgente.
+   standalone/desktop non duplicano l'editor: `desktop/` confeziona questa stessa
+   copia dei file statici in Electron. Il tavolo LAN del desktop serve il medesimo
+   `app.html` e usa `src/lib/share.ts` compilato con esbuild per filtrare i segreti.
 
 Il ponte è **un unico oggetto JSON serializzabile** (`{schemaVersion, root, checklist,
 players}`) che contiene l'intero stato di una campagna: stessa forma per Esporta/Importa,

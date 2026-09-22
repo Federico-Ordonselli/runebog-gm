@@ -218,6 +218,7 @@ export function renderCampaignSelect(){
 }
 export function switchCampaign(id){
   if(id===campaignId || window.__cloud) return;
+  window.runebogDesktop?.closeTable();
   clearTimeout(saveTimer); persistCurrent();
   campaignId = id; store.set(CUR_KEY, id);
   try{ const raw = store.get(ckey(id)); st.state = raw ? JSON.parse(raw) : emptyState(); }
@@ -229,6 +230,7 @@ export function switchCampaign(id){
 }
 export function newCampaign(){
   if(window.__cloud) return;
+  window.runebogDesktop?.closeTable();
   clearTimeout(saveTimer); persistCurrent();
   const id = uid();
   campaignsIdx.push({id, name:"Nuova campagna", updatedAt: Date.now()});
@@ -251,6 +253,7 @@ export function newCampaign(){
    esporta.js chiede prima di arrivare qui. */
 export function importAsNewCampaign(data){
   if(window.__cloud) return false;
+  window.runebogDesktop?.closeTable();
   clearTimeout(saveTimer); persistCurrent();       // la campagna di prima si chiude salvata
   const id = uid();
   campaignId = id; store.set(CUR_KEY, id);
@@ -727,6 +730,7 @@ function doSave(finale = false){
     cloudPush(finale, json); return;
   }
   persistent = store.set(ckey(campaignId), json);
+  window.runebogDesktop?.updateTable(st.state).catch(()=>{});
   const c = campaignsIdx.find(x=>x.id===campaignId);
   if(c){
     const nm = st.state.root.title || "Campagna";

@@ -4,6 +4,32 @@ Strumento per Game Master di giochi di ruolo da tavolo: costruisci mappe gerarch
 
 Questo repository contiene il **sito web multi-utente** (Next.js 15): serve l'app dietro un login, con le campagne salvate su database cloud. L'app in sé (`public/app.html` + i moduli in `public/app/`) è vanilla JavaScript, senza framework, senza build step e senza dipendenze a runtime, e gira identica anche standalone nel browser.
 
+## App portable per Windows
+
+La cartella `desktop/` confeziona l'editor standalone in un eseguibile Windows 64 bit. Funziona senza installazione né connessione Internet. Include mappe, quest, encounter, mostri, tavolo locale ed esportazione/importazione JSON. L'account cloud, il tavolo accessibile via Internet e le pagine delle regole SRD del sito richiedono invece il sito web e non fanno parte dell'eseguibile.
+
+Il **Tavolo locale** dell'app desktop funziona anche senza Internet: usa la stessa rete Wi-Fi o l'hotspot del PC. Collega i telefoni alla rete, apri la campagna sul PC, premi **Tavolo** → **Apri il tavolo locale** e fai scansionare il QR. Il PC deve rimanere acceso con Runebog aperto; se Windows chiede il permesso, consenti l'accesso sulla rete privata. Se attivi l'hotspot dopo il tavolo, premi **Aggiorna indirizzi**. I giocatori vedono solo le bolle rivelate e ricevono le modifiche circa ogni 5 secondi. **Chiudi il tavolo** disattiva il link; cambiando campagna si chiude automaticamente. Il tavolo locale non richiede account e non invia dati al cloud.
+
+Per ottenere l'EXE, usa la pagina **Scarica** del sito o la [GitHub Release v0.2.0](https://github.com/Federico-Ordonselli/runebog-gm/releases/tag/v0.2.0). L'eseguibile è un asset della release: supera il limite di 100 MiB dei normali file Git, quindi non va committato nel repository. Il workflow **Windows portable** può ricostruirlo dalla scheda Actions. Non serve Node.js sul PC che lo usa.
+
+Per creare l'EXE direttamente su Windows:
+
+```powershell
+cd desktop
+npm ci
+npm run build:win
+```
+
+### Firmare l'EXE
+
+Per una firma Windows attendibile serve un certificato di code signing valido, con la relativa chiave privata. Il workflow **Windows portable firmato** usa due secret GitHub Actions: `WIN_CSC_LINK` (contenuto base64 del file `.pfx`/`.p12`) e `WIN_CSC_KEY_PASSWORD` (password del certificato). Dopo averli configurati nel repository, avvia il workflow dalla scheda Actions. La build fallisce se non riesce a firmare e controlla che la firma Authenticode dell'EXE finale sia valida prima di caricarlo come artifact.
+
+Su una macchina di sviluppo puoi usare `npm run build:win:signed` con le stesse due variabili d'ambiente. Non mettere certificato o password nel repository. Una firma attendibile identifica il publisher, ma non garantisce che SmartScreen smetta subito di mostrare avvisi: la reputazione cresce con le distribuzioni successive.
+
+Il file risultante è in `desktop/dist/`. Le campagne e le preferenze sono nel profilo `Runebog GM Data` creato **accanto all'EXE**: per spostare l'app su una chiavetta o fare un backup, copia entrambi. La capienza del salvataggio locale dipende dalla quota di `localStorage`; usa periodicamente **Esporta** per conservare copie JSON. Le campagne già presenti sul sito si trasferiscono con **Esporta** dal sito e **Importa** nell'app portable (e viceversa).
+
+Per provare l'involucro desktop durante lo sviluppo su macOS o Windows: `cd desktop`, `npm ci`, `npm start`. In sviluppo il profilo usa la posizione standard di Electron, mentre nell'EXE portable rimane accanto al programma.
+
 Nato per gestire una one-shot di compleanno ambientata nella città immaginaria di **Runebog** (da cui il nome), è cresciuto fino a diventare uno strumento generico per qualsiasi campagna, con dati ufficiali **D&D 5e (SRD 5.2.1, regole 2024)** integrati.
 
 ---

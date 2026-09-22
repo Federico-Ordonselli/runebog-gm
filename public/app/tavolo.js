@@ -25,13 +25,18 @@ export function revealNode(id, on){
   save(); renderCanvas(); renderDetail();
 }
 
-/* --- il link del tavolo (solo sul sito: serve il server) --- */
+/* --- il link del tavolo: server cloud o piccolo server locale del desktop --- */
 export async function openShare(){
-  if(!window.__cloud) return;
+  if(!window.__cloud && !window.runebogDesktop) return;
   const dlg = document.getElementById("share-dialog");
   const body = document.getElementById("share-body");
   body.innerHTML = `<p class="hint-sm">Carico…</p>`;
   dlg.showModal();
+  if(window.runebogDesktop){
+    try{ renderDesktopShare(await window.runebogDesktop.tableInfo()); }
+    catch(_){ body.innerHTML = `<p>Non riesco a leggere lo stato del tavolo locale.</p>`; }
+    return;
+  }
   try{
     const res = await fetch(`/api/campaigns/${window.__cloud.id}`);
     if(!res.ok) throw new Error(res.status);
@@ -40,6 +45,33 @@ export async function openShare(){
   }catch(_){
     body.innerHTML = `<p class="hint-sm" style="color:var(--gold)">Non riesco a leggere lo stato del tavolo. Sei offline?</p>`;
   }
+}
+function renderDesktopShare(info){
+  const body = document.getElementById("share-body");
+  if(!info.open){
+    body.innerHTML = `<p>Collega i telefoni e questo PC alla stessa rete Wi-Fi o all'hotspot.
+      Il tavolo funziona senza Internet e mostra solo le bolle rivelate.</p>
+      <p class="hint-sm">Tieni Runebog aperto sul PC durante la partita. Se Windows lo chiede,
+      consenti l'accesso sulla rete privata.</p>
+      <div class="d-actions"><button class="btn" onclick="document.getElementById('share-dialog').close()">Annulla</button>
+      <button class="btn primary" onclick="rotateShare()">Apri il tavolo locale</button></div>`;
+    return;
+  }
+  body.innerHTML = `<p>Il tavolo locale è aperto. Fai scansionare il QR della rete
+    a cui sono connessi i giocatori.</p>
+    ${info.urls.map((url,i)=>`<div class="field"><label>${escapeAttr(info.interfaces[i])}</label>
+      <img src="${escapeAttr(info.qrs[i])}" alt="QR per ${escapeAttr(info.interfaces[i])}"
+        width="200" height="200" style="display:block;margin:8px auto;max-width:100%;height:auto">
+      <input ${i===0?'id="share-url"':''} readonly value="${escapeAttr(url)}" onclick="this.select()"></div>`).join('')}
+    <p class="hint-sm">Se hai acceso l'hotspot dopo aver aperto il tavolo, premi Aggiorna indirizzi.</p>
+    <div class="d-actions"><button class="btn" onclick="copyShare()">Copia link</button>
+      <button class="btn" onclick="refreshDesktopShare()">Aggiorna indirizzi</button>
+      <button class="btn" onclick="rotateShare()">Nuovo link</button>
+      <button class="btn danger" onclick="closeShare()">Chiudi il tavolo</button></div>`;
+}
+export async function refreshDesktopShare(){
+  try{ renderDesktopShare(await window.runebogDesktop.tableInfo()); }
+  catch(_){ openAlert('Non riesco a leggere gli indirizzi di rete.'); }
 }
 function renderShare(token){
   const body = document.getElementById("share-body");
@@ -75,12 +107,22 @@ function renderShare(token){
     </div>`;
 }
 export async function rotateShare(){
+  if(window.runebogDesktop){
+    try{ renderDesktopShare(await window.runebogDesktop.openTable(st.state)); }
+    catch(_){ openAlert('Non riesco ad aprire il tavolo locale. Controlla la rete e riprova.'); }
+    return;
+  }
   const res = await fetch(`/api/campaigns/${window.__cloud.id}/share`, {method:"POST"});
   if(!res.ok){ openAlert("Non riesco ad aprire il tavolo. Controlla la connessione e riprova."); return; }
   const {token} = await res.json();
   renderShare(token);
 }
 export async function closeShare(){
+  if(window.runebogDesktop){
+    try{ renderDesktopShare(await window.runebogDesktop.closeTable()); }
+    catch(_){ openAlert('Non riesco a chiudere il tavolo locale.'); }
+    return;
+  }
   const res = await fetch(`/api/campaigns/${window.__cloud.id}/share`, {method:"DELETE"});
   if(!res.ok){ openAlert("Non riesco a chiudere il tavolo. Controlla la connessione e riprova."); return; }
   renderShare(null);
@@ -157,4 +199,4 @@ export function initTavolo(){
 }
 
 // per gli onclick inline nei template (pannello e dialogo di condivisione)
-Object.assign(window, { revealNode, openShare, rotateShare, closeShare, copyShare });
+Object.assign(window, { revealNode, openShare, rotateShare, closeShare, copyShare, refreshDesktopShare });

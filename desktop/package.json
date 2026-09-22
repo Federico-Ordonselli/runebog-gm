@@ -1,0 +1,76 @@
+{
+  "name": "runebog-portable",
+  "version": "0.2.0",
+  "private": true,
+  "productName": "Runebog GM",
+  "description": "Runebog GM offline per Windows",
+  "main": "main.cjs",
+  "scripts": {
+    "prestart": "node build-projector.cjs",
+    "start": "electron .",
+    "pretest:smoke": "node build-projector.cjs",
+    "test:smoke": "node smoke.cjs",
+    "pretest:table": "node build-projector.cjs",
+    "test:table": "node --test table-server.test.cjs",
+    "prebuild:win": "node build-projector.cjs",
+    "build:win": "electron-builder --win portable --x64",
+    "prebuild:win:signed": "node build-projector.cjs",
+    "build:win:signed": "electron-builder --win portable --x64 -c.forceCodeSigning=true"
+  },
+  "devDependencies": {
+    "electron": "44.4.3",
+    "electron-builder": "26.16.1",
+    "esbuild": "^0.25.12"
+  },
+  "build": {
+    "appId": "app.runebog.gm",
+    "productName": "Runebog GM",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.cjs",
+      "table-server.cjs",
+      "preload.cjs",
+      "projector.cjs",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../public/app.html",
+        "to": "static/app.html"
+      },
+      {
+        "from": "../public/themes.css",
+        "to": "static/themes.css"
+      },
+      {
+        "from": "../public/app",
+        "to": "static/app"
+      },
+      {
+        "from": "../public/icone",
+        "to": "static/icone"
+      },
+      {
+        "from": "../src/app/icon.svg",
+        "to": "static/icon.svg"
+      }
+    ],
+    "win": {
+      "icon": "../public/icone/runebog-512.png",
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "Runebog-GM-Portable-${version}-${arch}.${ext}"
+    }
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4"
+  }
+}

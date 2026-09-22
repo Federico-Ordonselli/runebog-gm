@@ -1,0 +1,43 @@
+name: Windows portable firmato
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  signed-portable:
+    runs-on: windows-latest
+    env:
+      WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+      WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - run: npm ci
+        working-directory: desktop
+      - run: npm run test:smoke
+        working-directory: desktop
+      - run: npm run test:table
+        working-directory: desktop
+      # forceCodeSigning fa fallire la build se il certificato manca o non funziona.
+      - run: npm run build:win:signed
+        working-directory: desktop
+      - name: Verifica firma Authenticode dell'EXE portable
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem desktop/dist/Runebog-GM-Portable-*.exe | Select-Object -First 1
+          if (-not $exe) { throw 'EXE portable non trovato' }
+          $signature = Get-AuthenticodeSignature -FilePath $exe.FullName
+          if ($signature.Status -ne 'Valid') { throw "Firma non valida: $($signature.Status)" }
+          Write-Host "Firmato da: $($signature.SignerCertificate.Subject)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: runebog-windows-portable-firmato
+          path: desktop/dist/*.exe
+          if-no-files-found: error

@@ -360,7 +360,8 @@
   }
   dialog::backdrop{background:rgba(6,10,8,.7)}
   dialog .d-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
-  #share-dialog{max-width:440px}
+  #share-dialog{max-width:440px;max-height:85vh;overflow:auto}
+  #share-dialog .d-actions{flex-wrap:wrap}
 
   /* Il dialogo del recupero cloud ha tre azioni invece di due: su schermo
      stretto vanno a capo, sennò le etichette si troncano proprio dove serve
@@ -388,6 +389,7 @@
      spediti (il filtro è in src/lib/share.ts). Qui si fa solo ordine.            */
   .only-cloud{display:none}
   html.cloud .only-cloud{display:inline-flex}
+  html.desktop .only-cloud{display:inline-flex}
   html.ro .dm-only,
   html.ro #camp-wrap,
   html.ro .pal-title,
