@@ -114,3 +114,15 @@ test("la proiezione è una whitelist anche per campi futuri", ()=>{
   for(const child of projected.root.children)
     assert.equal("futureSecret" in child, false);
 });
+
+test("le caselle di testo non escono nemmeno se dichiarate condivise", ()=>{
+  const campagna = sensitiveCampaign();
+  campagna.root.children.push(baseNode({
+    id:"testo-dm", title:"TITOLO CASELLA", type:"testo", shared:true,
+    notes:"APPUNTO DEL DM SULLA PIANTA", x:0, y:0, w:200, h:80, textSize:22,
+  }));
+  const json = JSON.stringify(projectForPlayers(campagna));
+  assert.equal(json.includes("testo-dm"), false);
+  assert.equal(json.includes("TITOLO CASELLA"), false);
+  assert.equal(json.includes("APPUNTO DEL DM"), false);
+});

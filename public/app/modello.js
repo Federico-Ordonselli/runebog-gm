@@ -14,7 +14,8 @@ export const TYPES = {
   encounter: {label:"Encounter", color:"var(--ember)"},
   png:       {label:"PNG",       color:"var(--viola)"},
   token:     {label:"Token",     color:"var(--ink)"},
-  nota:      {label:"Nota",      color:"var(--grigio)"}
+  nota:      {label:"Nota",      color:"var(--grigio)"},
+  testo:     {label:"Testo",     color:"var(--ink)"}
 };
 /* La tavolozza del colore personalizzato. Sono hex letterali, non token di tema,
    e la differenza è voluta: il DEFAULT di una bolla segue il tema (vedi
@@ -124,7 +125,7 @@ export function scalaDentro(shape){
    `shape==="quartiere"` dentro addSpatialChild: con cinque territori doveva
    smettere di essere una stringa scritta a mano in un altro modulo. */
 export const shapeType = shape => SHAPES[shape]?.territorio ? "zona" : "luogo";
-export const gridShape = n => !isMarker(n) && !!SHAPES[n.shape || defShape(n)]?.grid;
+export const gridShape = n => !isMarker(n) && !isTesto(n) && !!SHAPES[n.shape || defShape(n)]?.grid;
 
 /* Sulla maglia ci si sta in due modi, perché sono due cose diverse.
    Una pianta è in scala e occupa quadretti interi: si aggancia l'ANGOLO, e la
@@ -184,7 +185,7 @@ export const DOOR = CELL;         // un'apertura sta in un quadretto (1,5 m), co
 const WALL_INSET = WALL/2 + 2;
 
 export function wallShape(n){
-  if(isMarker(n)) return false;
+  if(isMarker(n) || isTesto(n)) return false;
   const w = SHAPES[n.shape || defShape(n)]?.walls;
   if(!w) return false;
   return n.walls == null ? w === true : !!n.walls;   // la scelta del DM batte il default
@@ -414,7 +415,27 @@ export const STATUS_COLORS = {"da fare":"var(--grigio)","in corso":"var(--gold)"
 export const uid = () => Math.random().toString(36).slice(2,10);
 export const node = (title, type="zona") => ({id:uid(), title, type, status:"", notes:"", img:null, children:[], edges:[], x:null, y:null, shape:null});
 
-export const isMarker = n => !(n.type==="zona" || n.type==="luogo");
+/* Una casella di testo (22 set 2026) è una scritta posata sulla pianta, da
+   leggere senza aprire niente: non è un simbolo (isMarker), non è un posto in
+   cui si entra, non sta sulla maglia e non ha muri. È un nodo e non un elenco
+   a parte come i muri liberi perché così selezione, trascinamento,
+   ridimensionamento, annulla, duplica ed elimina sono quelli di sempre — i
+   muri hanno dovuto riscriverseli tutti. Il testo sta in `notes`, quindi è del
+   DM: al tavolo non esce (share.ts la toglie comunque, anche se `shared`). */
+export const isTesto = n => n.type === "testo";
+export const TESTO_BOX = {w:200, h:80};
+/* Come si chiama un nodo in un elenco (ricerca, contenuto del pannello): la
+   casella di testo un titolo non ce l'ha, e "(senza nome)" la farebbe
+   sembrare una bolla dimenticata. */
+export const nomeInElenco = n => n.title || (isTesto(n) ? "Casella di testo" : "(senza nome)");
+/* La dimensione del carattere finisce in un attributo style: si legge SOLO da
+   qui, che la riduce a un numero fra due limiti qualunque cosa ci sia scritto. */
+export const TESTO_SIZES = [12, 16, 22, 30];
+export const testoSize = n => {
+  const v = Number(n.textSize);
+  return Number.isFinite(v) ? Math.min(48, Math.max(10, Math.round(v))) : 16;
+};
+export const isMarker = n => !(n.type==="zona" || n.type==="luogo" || n.type==="testo");
 export const defShape = n => n.type==="zona" ? "quartiere" : "edificio";
 
 /* L'UNICO posto che decide di che colore è una bolla. Ordine: scelta esplicita
@@ -424,12 +445,12 @@ export const defShape = n => n.type==="zona" ? "quartiere" : "edificio";
 export function nodeColor(n){
   if(n.color) return n.color;
   if(n.type === "token") return "#e8e3d8";              // pedina senza colore: avorio
-  if(isMarker(n)) return (TYPES[n.type] || TYPES.nota).color;
+  if(isMarker(n) || isTesto(n)) return (TYPES[n.type] || TYPES.nota).color;
   return SHAPE_COLORS[n.shape || defShape(n)] || (TYPES[n.type] || TYPES.nota).color;
 }
 export function nodeBox(n){
   if(isMarker(n)) return {w:MARKER_R*2, h:MARKER_R*2};
-  const s = SHAPES[n.shape] || SHAPES[defShape(n)];
+  const s = isTesto(n) ? TESTO_BOX : (SHAPES[n.shape] || SHAPES[defShape(n)]);
   return {w:n.w||s.w, h:n.h||s.h};
 }
 export const nodeCenter = n => { const b=nodeBox(n); return {x:n.x+b.w/2, y:n.y+b.h/2}; };

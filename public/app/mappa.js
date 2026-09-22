@@ -4,7 +4,7 @@
 
 import { duplicaNodi } from "./duplica.js";
 import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeColor,
-         isMarker, defShape, nodeBox, nodeCenter, node, uid, escapeHtml, escapeAttr,
+         isMarker, isTesto, testoSize, TESTO_BOX, defShape, nodeBox, nodeCenter, node, uid, escapeHtml, escapeAttr,
          gridShape, onGrid, snapGrid, snapNode,
          wallShape, wallBox, contentBox, wallOpening, wallPlan, WALL,
          wallSegsOf, wallSegEnds, newWallSeg, stretchWallSeg,
@@ -12,7 +12,7 @@ import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeCo
 import { st, save, findNode, findParent, removeNode, currentNode, pathNodes, RO,
          clearSel, selectNode, selectWall, zoomOut } from "./stato.js";
 import { showView, openConfirm } from "./viste.js";
-import { renderDetail, compressImage } from "./pannello.js";
+import { renderDetail, compressImage, openDetailSheet } from "./pannello.js";
 import { showCtxFor } from "./menu.js";
 import { battleOn, tokenLink, renderBattleBar, CELL } from "./battaglia.js";
 
@@ -80,7 +80,15 @@ export function goUp(){
   }
 }
 
+/* Una casella di testo non è un posto: "entrarci" (doppio clic, Invio, menu,
+   pannello — quattro strade, un cancello solo) vuol dire scriverci. */
 export function enterNode(id){
+  const n = childOf(id);
+  if(n && isTesto(n)){
+    selectNode(id); renderMap(); openDetailSheet();
+    setTimeout(()=>document.getElementById("testo-area")?.focus(), 30);
+    return;
+  }
   st.path.push(id); clearSel(); renderMap();
 }
 
@@ -477,7 +485,9 @@ function statusDot(x,y,st_){
    arrivandoci con Tab. Tipo prima del titolo, come nel pannello di dettaglio. */
 function ariaBlk(c){
   const link = c.type==="token" ? tokenLink(c) : null;
-  let s = `${(TYPES[c.type]||TYPES.nota).label}: ${link ? link.nome : (c.title||"senza nome")}`;
+  // Una casella di testo si annuncia con ciò che c'è scritto: il titolo non ce l'ha.
+  const nome = link ? link.nome : isTesto(c) ? ((c.notes||"").slice(0,80) || "vuota") : (c.title||"senza nome");
+  let s = `${(TYPES[c.type]||TYPES.nota).label}: ${nome}`;
   // I PF vanno detti, non solo disegnati: la barra sotto la pedina non esiste
   // per chi usa un lettore di schermo.
   if(link && link.hpMax>0) s += ` · ${link.hp} PF su ${link.hpMax}`;
@@ -520,6 +530,7 @@ function miniPreview(n, dentro){
   }
   for(const c of kids){
     const col = nodeColor(c);
+    if(isTesto(c)) continue;   // una scritta, rimpicciolita, è un rettangolo vuoto che finge una stanza
     if(isMarker(c)){
       const C = nodeCenter(c);
       out += `<circle cx="${C.x*k+ox}" cy="${C.y*k+oy}" r="3" style="fill:${col}"/>`;
@@ -713,6 +724,21 @@ export function renderCanvas(){
         ${inBattaglia ? "" :
           `<text x="${R}" y="${R*2+(pct===null?15:22)}" text-anchor="middle" style="font-size:11px;fill:var(--ink-dim)">${escapeHtml(nome)}</text>`}
       </g>`;
+    }else if(isTesto(c)){
+      /* Il testo va a capo da sé dentro un foreignObject: in SVG puro ogni riga
+         sarebbe un <text> da misurare a mano. Il contenuto passa da escapeHtml
+         e la dimensione da testoSize, che la riduce a un numero — sono le due
+         sole cose del documento che entrano qui. Vuota, la casella dice cosa
+         aspetta invece di sparire: una cornice trasparente non si ritrova. */
+      const box = nodeBox(c);
+      const txt = c.notes ? escapeHtml(c.notes) : `<span class="testo-vuoto">Scrivi dal pannello…</span>`;
+      out += `<g class="blk testo${selCls}" data-block="${c.id}" ${a11y} transform="translate(${c.x},${c.y})">
+        <rect class="blk-shape" width="${box.w}" height="${box.h}" rx="4" style="--c:${col}"/>
+        <foreignObject width="${box.w}" height="${box.h}" pointer-events="none">
+          <div xmlns="http://www.w3.org/1999/xhtml" class="testo-txt" style="font-size:${testoSize(c)}px;color:${col}">${txt}</div>
+        </foreignObject>
+        ${c.id===st.selectedId && st.multiSel.size<=1 ? `<rect class="rs-handle" x="${box.w-8}" y="${box.h-8}" width="16" height="16" rx="3"/>`:""}
+      </g>`;
     }else if(isMarker(c)){
       const R = markerR(c);
       out += `<g class="blk marker${selCls}${shCls}" data-block="${c.id}" ${a11y} transform="translate(${c.x},${c.y})">
@@ -772,6 +798,21 @@ export function renderCanvas(){
     // il focus() di ripristino non deve ri-selezionare (ciclo col focusin)
     if(el){ suppressFocusSel = true; el.focus(); suppressFocusSel = false; }
   }
+}
+
+/* L'altezza di una casella di testo la decide il testo, come in un
+   programma di scrittura: la larghezza è una scelta (si tira l'angolo),
+   l'altezza no — tagliare l'ultima riga di un appunto è il modo di perderlo.
+   Si misura sulla resa vera, che è l'unica a sapere dove il testo va a capo;
+   per questo si chiama DOPO un renderCanvas, e ne fa un secondo solo se
+   l'altezza è cambiata. Si arrotonda a 10px come il resto delle bolle libere. */
+export function adattaTesto(n){
+  const el = planSvg().querySelector(`.blk.testo[data-block="${n.id}"] .testo-txt`);
+  if(!el) return;
+  el.style.height = "auto";
+  const h = Math.max(40, Math.ceil(el.offsetHeight / 10) * 10);
+  el.style.height = "";
+  if(h !== n.h){ n.h = h; renderCanvas(); }
 }
 
 const SNAP_DIST = 8;
@@ -846,7 +887,8 @@ export function addSpatialChild(opts, x, y){
   // Invio dalla palette), e sdoppiarli avrebbe voluto dire tenerli allineati.
   if(opts.wall) return addWallSeg(x, y, opts.porta);
   let c;
-  if(opts.marker) c = node("", opts.marker);
+  if(opts.testo){ c = node("", "testo"); c.w = TESTO_BOX.w; c.h = TESTO_BOX.h; }
+  else if(opts.marker) c = node("", opts.marker);
   else { c = node("", shapeType(opts.shape)); c.shape = opts.shape; }
   if(gridShape(c)){
     // Le forme architettoniche nascono già sulla maglia: sono piante in scala
@@ -870,7 +912,10 @@ export function addSpatialChild(opts, x, y){
   cur.children.push(c);
   selectNode(c.id);
   save(); renderMap();
-  setTimeout(()=>{ const i=document.querySelector("#detail input"); if(i) i.focus(); }, 50);
+  // Una casella nuova è vuota e va scritta: è un'azione che chiede un campo,
+  // quindi su telefono apre il foglio (le bolle no — lì si posa e basta).
+  if(isTesto(c)) openDetailSheet();
+  setTimeout(()=>{ const i=document.querySelector(isTesto(c) ? "#testo-area" : "#detail input"); if(i) i.focus(); }, 50);
 }
 /* Nasce lungo due quadretti e centrato sul punto toccato: uno solo è un
    trattino che non si capisce cos'è, e nascere con un capo sotto il dito
@@ -1089,7 +1134,7 @@ export function initMappa(){
   svg.addEventListener("drop", ev=>{
     ev.preventDefault();
     let opts; try{ opts = JSON.parse(ev.dataTransfer.getData("text/plain")); }catch(_){ return; }
-    if(!opts || (!opts.shape && !opts.marker && !opts.wall)) return;
+    if(!opts || (!opts.shape && !opts.marker && !opts.wall && !opts.testo)) return;
     const p = planPoint(ev);
     addSpatialChild(opts, p.x, p.y);
   });
@@ -1422,6 +1467,8 @@ export function initMappa(){
       // Il render qui serve: fa comparire le maniglie sul muro appena scelto.
       renderCanvas(); renderDetail();
     }else if(planDrag.mode==="resize"){
+      const n = childOf(planDrag.id);
+      if(n && isTesto(n)) adattaTesto(n);
       save(); renderCanvas(); renderDetail();
     }else if(planDrag.mode==="bgmove"||planDrag.mode==="bgresize"){
       if(planDrag.moved) save();

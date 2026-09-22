@@ -3,12 +3,12 @@
    bottom sheet su mobile. */
 
 import { TYPES, STATUSES, SHAPES, EDGE_TYPES, NODE_COLORS, nodeColor,
-         isMarker, defShape, nodeBox, node, escapeHtml, escapeAttr,
+         isMarker, isTesto, testoSize, nomeInElenco, TESTO_SIZES, defShape, nodeBox, node, escapeHtml, escapeAttr,
          gridShape, wallShape, CELL, DOOR_TYPES, doorKind, wallLabel } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, RO } from "./stato.js";
 import { openConfirm } from "./viste.js";
 import { renderMap, renderCrumbs, renderCanvas, bgEdit, isEmptyNode, doDeleteNodes,
-         wallOf, misuraMuro, deleteWallSeg } from "./mappa.js";
+         wallOf, misuraMuro, deleteWallSeg, adattaTesto } from "./mappa.js";
 import { statblockHTML } from "./mostri.js";
 
 /* Una forma in scala si legge in quadretti e metri (1 quadretto = 1,5 m):
@@ -213,8 +213,12 @@ function renderDetailCore(){
   // Una pedina collegata non ha un titolo proprio: mostrarne il campo inviterebbe
   // a scriverci un nome che il disegno poi ignora, perché legge la fonte.
   const link = n.type === "token" ? tokenLink(n) : null;
+  if(sel && isTesto(n)){ aside.innerHTML = testoDetailHTML(n); return; }
 
-  const typeOpts = Object.entries(TYPES)
+  // "Testo" non è fra i tipi in cui trasformare una bolla: una bolla con dei
+  // figli diventerebbe una scritta in cui non si entra più, e quei figli
+  // resterebbero nel documento senza una strada per raggiungerli.
+  const typeOpts = Object.entries(TYPES).filter(([k])=>k!=="testo")
     .map(([k,v])=>`<option value="${k}" ${k===n.type?"selected":""}>${v.label}</option>`).join("");
   const statusOpts = STATUSES
     .map(s=>`<option value="${s}" ${s===n.status?"selected":""}>${s||"—"}</option>`).join("");
@@ -232,7 +236,7 @@ function renderDetailCore(){
   const childRows = n.children.map(c=>{
     const cc = nodeColor(c);
     return `<div class="child" onclick="jumpTo('${n.id}','${c.id}')">
-      <span class="type-badge" style="background:${cc}"></span>${escapeHtml(c.title||"(senza nome)")}
+      <span class="type-badge" style="background:${cc}"></span>${escapeHtml(nomeInElenco(c))}
       ${c.status?`<span class="st">${c.status}</span>`:""}
     </div>`;
   }).join("");
@@ -373,6 +377,41 @@ function renderDetailCore(){
   </div>`;
 }
 
+/* Il pannello di una casella di testo è un pannello a sé, come quello del
+   tavolo: di una bolla le servono tre cose (testo, grandezza, colore), e
+   nascondere le altre venti con degli `if` sparsi vorrebbe dire inseguirle
+   ogni volta che se ne aggiunge una. */
+function testoDetailHTML(n){
+  const size = testoSize(n);
+  return `<div class="inner">
+    <div>
+      <span style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim)">
+        <span class="type-badge" style="background:var(--ink)"></span>Casella di testo
+      </span>
+    </div>
+    <div class="field"><label for="testo-area">Testo <span class="only-dm">solo tuo</span></label>
+      <textarea id="testo-area" rows="6" oninput="editNode('${n.id}','notes',this.value)"
+        placeholder="Quello che vuoi leggere a colpo d'occhio sulla mappa">${escapeHtml(n.notes||"")}</textarea>
+      <p class="hint-sm">Si legge sulla mappa senza aprire niente. Al tavolo dei giocatori non compare.
+        La grandezza della casella si cambia tirando l'angolo in basso a destra.</p></div>
+    <div class="field"><label>Carattere</label>
+      <div class="img-actions">${TESTO_SIZES.map((v,i)=>`<button class="btn${v===size?" primary":""}"
+        aria-pressed="${v===size}" onclick="editNode('${n.id}','textSize',${v})"
+        style="font-size:${11+i*2}px">${["Piccolo","Medio","Grande","Titolo"][i]}</button>`).join("")}</div></div>
+    <div class="field"><label>Colore del testo</label>
+      <div class="swatches">
+        <button class="swatch swatch--auto${n.color?"":" on"}" style="background:var(--ink)"
+          aria-label="Colore predefinito" onclick="editNode('${n.id}','color',null)"></button>
+        ${NODE_COLORS.map(cc=>`<button class="swatch${n.color===cc?" on":""}"
+          style="background:${cc}" aria-label="Colora di ${cc}"
+          onclick="editNode('${n.id}','color','${cc}')"></button>`).join("")}
+      </div></div>
+    <div class="detail-actions">
+      <button class="btn danger" onclick="askDeleteNode('${n.id}')">Elimina</button>
+    </div>
+  </div>`;
+}
+
 /* --- pannello mobile (bottom sheet): sempre sincronizzato dopo ogni render --- */
 export function openDetailSheet(){ st.detailOpen = true; renderDetail(); }
 function closeDetailSheet(){
@@ -408,6 +447,10 @@ export function editNode(id, key, val){
   if(key==="type" && !isMarker(n) && !n.shape) n.shape = defShape(n);
   save();
   if(["title","type","status","shape","w","h","color","walls"].includes(key)){ renderCrumbs(); renderCanvas(); }
+  // il testo di una casella È il suo disegno; la textarea resta viva perché
+  // renderDetail qui non gira
+  else if(isTesto(n) && ["notes","textSize"].includes(key)){ renderCanvas(); adattaTesto(n); }
+  if(key==="textSize") renderDetail();
   // shape: cambiando forma cambia il colore predefinito, e il campione "Predefinito"
   // nel pannello deve seguirlo
   if(["type","img","main","color","shape"].includes(key)) renderDetail();

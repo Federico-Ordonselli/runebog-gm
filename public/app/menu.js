@@ -1,7 +1,7 @@
 /* Il menu contestuale della mappa: tasto destro col mouse, long-press su touch
    (il long-press lo rileva mappa.js, che chiama showCtxFor). */
 
-import { TYPES, SHAPES, EDGE_TYPES, STATUS_COLORS, isMarker, defShape,
+import { TYPES, SHAPES, EDGE_TYPES, STATUS_COLORS, isMarker, isTesto, defShape,
          DOOR_TYPES, doorKind } from "./modello.js";
 import { st, currentNode, newCampaign, askDeleteCampaign, doUndo, doRedo, RO,
          selectNode, selectWall } from "./stato.js";
@@ -51,6 +51,18 @@ export function showCtxFor(target, cx, cy){
     const n = childOf(blkEl.dataset.block); if(!n) return;
     if(!st.multiSel.has(n.id)) selectNode(n.id);
     st.selectedId = n.id; st.selectedEdgeId = st.selectedWallId = null; renderCanvas(); renderDetail();
+    /* Una casella di testo ha meno voci: non ci si entra, non ha una forma
+       né uno stato, e "rinominarla" vuol dire riscriverla — enterNode lo sa
+       già (mette il cursore nel testo). */
+    if(isTesto(n)){
+      openCtx([
+        {id:"ren", label:"Modifica testo", run:()=>enterNode(n.id)},
+        {id:"dup", label:"Duplica", run:()=>{ st.selectedId=n.id; duplicateSelected(); }},
+        "---",
+        {id:"del", label:"Elimina…", danger:true, run:()=>askDeleteNode(n.id)}
+      ], cx, cy);
+      return;
+    }
     const items = [
       {id:"enter", label:"Entra →", run:()=>enterNode(n.id)},
       {id:"ren",   label:"Rinomina", run:()=>{ st.selectedId=n.id; openDetailSheet(); focusDetailTitle(); }},

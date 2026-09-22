@@ -58,6 +58,14 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   naviga all’URL, che per i `data:` è bloccato e per `/immagini` è sandbox.
   Nel desktop `setWindowOpenHandler` ammette solo about:blank con quel nome;
   la finestra eredita il preload, innocuo perché l’IPC accetta solo l’editor.
+- Caselle di testo (tipo `testo`, 22 set 2026): nodo e non elenco a parte,
+  così selezione, drag, annulla e duplica sono quelli delle bolle. Non è
+  `isMarker` né una forma: `gridShape`/`wallShape` la escludono, `enterNode`
+  la apre in scrittura invece di entrarci. Il testo è `notes` e non esce al
+  tavolo (`DM_ONLY_NODES` in `share.ts`, da tenere allineato a `TYPES`).
+  `textSize` passa sempre da `testoSize`, che lo riduce a un numero prima
+  dello `style`. Non compare fra i tipi del select: una bolla coi figli
+  diventerebbe irraggiungibile.
 - PostgreSQL reale senza dati dell’app: avviare
   `docker run --rm -d --name runebog-todo-test -e POSTGRES_PASSWORD=runebog-test-only postgres:17-alpine`,
   poi `node test/database/verifica-todo.mjs` e

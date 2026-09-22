@@ -524,6 +524,16 @@
      sopra la griglia: piene, non a contorno. */
   .wall-seg__handle{fill:var(--gold);stroke:var(--bog);stroke-width:2;cursor:crosshair}
   .blk text{font-size:13px;fill:var(--ink);pointer-events:none;font-family:"Iowan Old Style",Palatino,Georgia,serif}
+  /* Casella di testo: una scritta sulla pianta, non una bolla. Il fondo è il
+     pannello velato, così il testo si legge anche sopra uno sfondo caricato;
+     il contorno compare solo a chi la cerca (hover, selezione, focus), sennò
+     dieci appunti sulla mappa sarebbero dieci stanze in più. */
+  .blk.testo .blk-shape{fill:color-mix(in srgb, var(--panel) 78%, transparent);stroke:transparent;filter:none}
+  .blk.testo:hover .blk-shape{stroke:var(--line-ui);filter:none}
+  .testo-txt{box-sizing:border-box;width:100%;height:100%;overflow:hidden;padding:6px 9px;
+    white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.3;
+    font-family:"Iowan Old Style",Palatino,Georgia,serif}
+  .testo-vuoto{color:var(--ink-dim);font-style:italic;font-size:13px}
   .blk .link-handle{fill:var(--panel);stroke:var(--fen-dim);stroke-width:2;cursor:crosshair;opacity:0}
   .blk:hover .link-handle,.blk.sel .link-handle{opacity:1}
   /* Senza hover (tablet) la maniglia resterebbe invisibile per sempre e i

@@ -7,7 +7,7 @@
    decide il colore di una bolla, e senza l'import questo modulo lanciava
    "nodeColor is not defined" sulla prima bolla incontrata — con la ricerca che
    restava chiusa, cioè indistinguibile da "nessun risultato". */
-import { TYPES, escapeHtml, nodeColor } from "./modello.js";
+import { TYPES, escapeHtml, nodeColor, nomeInElenco } from "./modello.js";
 import { st, RO } from "./stato.js";
 import { goToNode } from "./mappa.js";
 import { showView } from "./viste.js";
@@ -36,7 +36,7 @@ export function initRicerca(){
     (function walk(n, parent){
       if(n!==st.state.root){
         const color = nodeColor(n);
-        const label = n.title||"(senza nome)", path = parent?.title||"";
+        const label = nomeInElenco(n), path = parent?.title||"";
         if((n.title||"").toLowerCase().includes(q)){
           titoli.push({color, label, path, go:()=>goToNode(n.id)});
         }else{

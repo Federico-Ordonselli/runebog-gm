@@ -183,9 +183,18 @@ function projectBattle(b: Node | undefined, data: Node) {
  * Se un giorno questa funzione diventasse "copia tutto tranne X", il primo campo
  * segreto che dimentichi di togliere finisce dritto in mano ai giocatori.
  */
+/**
+ * Tipi di nodo che non escono MAI, nemmeno con `shared: true` (vedi TYPES in
+ * public/app/modello.js). Oggi la casella di testo: il suo testo è `notes`,
+ * cioè appunti del DM, e l'app non offre di condividerla — ma un JSON importato
+ * può dichiararla condivisa, e allora uscirebbe col titolo e senza testo, una
+ * cornice vuota al tavolo. Come per DM_ONLY_EDGES, a decidere è il server.
+ */
+const DM_ONLY_NODES = new Set(["testo"]);
+
 function projectNode(n: Node, data: Node): Node {
   const kids = (Array.isArray(n.children) ? n.children : [])
-    .filter((c: Node) => c?.shared === true)
+    .filter((c: Node) => c?.shared === true && !DM_ONLY_NODES.has(String(c?.type ?? "")))
     .map((c: Node) => projectNode(c, data));
   const visibleIds = new Set(kids.map((c: Node) => c.id));
 

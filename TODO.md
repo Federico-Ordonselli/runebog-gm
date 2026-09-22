@@ -48,7 +48,17 @@ funzionano. Quattro punti, verificati contro il codice.
   perché i browser bloccano la navigazione verso `data:`. Sul desktop il
   `setWindowOpenHandler` va aperto a queste finestre. Parente stretto del
   tavolo dei giocatori, che è già "la cosa da mostrare sull'altro schermo".
-- [ ] **Caselle di testo sulla mappa**: testo libero visibile sulla tela
+- [x] **Caselle di testo sulla mappa** — fatto il 22 settembre: tipo di
+  nodo `testo` (`isTesto`, `TESTO_BOX`, `testoSize` in `modello.js`), voce
+  "Testo" nella palette, resa con `foreignObject` in `renderCanvas`, pannello
+  suo (`testoDetailHTML`: testo, quattro grandezze, colore). Il testo è
+  `notes`, l'altezza segue il contenuto (`adattaTesto`), la larghezza si
+  tira. `enterNode` è il cancello unico: "entrare" in una casella mette il
+  cursore nel testo. Solo DM: `DM_ONLY_NODES` in `share.ts` la toglie anche se
+  `shared`, con test in `test/critici/proiezione-tavolo.test.mjs`. Contratto:
+  `testo` fra i tipi, `textSize` numerico. Verificato in Chromium su scrivania
+  e a 390px col tocco. Da decidere se e come mostrarle al tavolo.
+  Richiesta originale: **Caselle di testo sulla mappa**: testo libero visibile sulla tela
   (dentro la bolla di un PNG, per esempio), senza dover aprire una nota.
   È un tipo nuovo **persistente**, quindi tocca tutti i confini: forma in
   `SHAPES` e nella whitelist di `formato-campagna.js` (il test di `test/scala/`

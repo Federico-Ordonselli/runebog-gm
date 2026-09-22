@@ -56,7 +56,7 @@ export const CAMPAIGN_LIMITS = Object.freeze({
   coordinateAbs: 10000000,
 });
 
-const NODE_TYPES = new Set(["zona","luogo","quest","encounter","png","token","nota"]);
+const NODE_TYPES = new Set(["zona","luogo","quest","encounter","png","token","nota","testo"]);
 const STATUSES = new Set(["","da fare","in corso","fatto"]);
 // I cinque territori più le quattro costruzioni. Questo elenco e SHAPES in
 // modello.js sono la stessa verità vista da due lati (il contratto e il
@@ -455,6 +455,7 @@ function validateNodeShallow(node, path){
       nullable:true, min:-CAMPAIGN_LIMITS.coordinateAbs, max:CAMPAIGN_LIMITS.coordinateAbs,
     }))) return error;
   }
+  if((error = validateOptionalNumber(node.textSize, `${path}.textSize`, {min:6, max:200}))) return error;
   if(node.playerId !== undefined && (error = validateId(node.playerId, `${path}.playerId`))) return error;
   if(node.foe !== undefined){
     if((error = requireObject(node.foe, `${path}.foe`))) return error;
