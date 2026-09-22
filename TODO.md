@@ -88,7 +88,17 @@ funzionano. Quattro punti, verificati contro il codice.
   deve valere sugli esagoni. Proposta: pedine agganciate al centro
   dell'esagono e righello in esagoni; piante, muri e dungeon restano a
   quadretti, quindi la griglia esagonale si sceglie solo dove non servono.
-- [ ] **Copia, taglia e incolla le bolle, anche fra livelli.** "Come su
+- [x] **Copia, taglia e incolla le bolle, anche fra livelli.** Fatto il 22
+  settembre in `public/app/appunti.js`: Ctrl+C/X/V, "Copia"/"Taglia" nel menu
+  di una bolla (tutta la selezione), "Incolla qui" nel menu della tela.
+  Taglia toglie subito; il primo incolla di un taglio è uno SPOSTAMENTO e
+  tiene gli id, così pedine e iniziativa che puntavano lì restano valide; gli
+  incolla successivi sono copie via `duplicaNodi`. Gruppo spostato di quadretti
+  interi, validato su una copia della campagna prima di scriverlo. Solo nella
+  stessa campagna (un'altra la rifiuta con un messaggio). Verificato in
+  Chromium: taglia della locanda con la sua sala e incolla in un'altra bolla
+  con gli stessi id, secondo incolla con id nuovi, Ctrl+Z, due bolle collegate
+  copiate con l'arco e i nemici rimappati. Descrizione originale: "Come su
   Windows": una bolla con tutte le sottobolle, o più bolle selezionate nello
   stesso livello, portate in un'altra bolla o città. La base c'è già:
   `duplicaNodi` (`duplica.js`) rimappa id, nemici, archi, muri e iniziativa

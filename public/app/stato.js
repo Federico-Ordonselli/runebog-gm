@@ -195,6 +195,9 @@ const CUR_KEY = "gm-current-campaign";
 const ckey = id => "gm-campaign-" + id;
 let campaignsIdx = [];
 let campaignId = null;
+/* Quale campagna è aperta, per chi deve saperlo senza toccare il resto:
+   gli appunti di copia/incolla (appunti.js) non incollano in un'altra. */
+export const campagnaCorrente = () => window.__cloud?.id || campaignId;
 
 function loadCampaignsIdx(){ try{ return JSON.parse(store.get(IDX_KEY)) || []; }catch(_){ return []; } }
 function persistIndex(){ store.set(IDX_KEY, JSON.stringify(campaignsIdx)); }

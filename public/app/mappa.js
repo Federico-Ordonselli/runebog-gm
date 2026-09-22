@@ -1033,8 +1033,9 @@ export function allineaPalette(){
 /* Crea al centro della vista corrente. La usano i pulsanti dell'empty state:
    lì non c'è un punto scelto dall'utente, quindi il centro è l'unica posizione
    che non sorprende. */
+export const centroVista = () => planVB ? {x:planVB.x+planVB.w/2, y:planVB.y+planVB.h/2} : {x:0, y:0};
 export function addAtCenter(kind, key){
-  const cx = planVB ? planVB.x+planVB.w/2 : 0, cy = planVB ? planVB.y+planVB.h/2 : 0;
+  const {x:cx, y:cy} = centroVista();
   addSpatialChild(kind==="marker" ? {marker:key} : {shape:key}, cx, cy);
 }
 

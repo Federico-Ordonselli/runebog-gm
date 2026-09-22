@@ -66,6 +66,12 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   `textSize` passa sempre da `testoSize`, che lo riduce a un numero prima
   dello `style`. Non compare fra i tipi del select: una bolla coi figli
   diventerebbe irraggiungibile.
+- Copia/taglia/incolla (`appunti.js`, 22 set 2026): istantanea della
+  selezione più gli archi interni. Il primo incolla di un taglio tiene gli id
+  (è uno spostamento, e i riferimenti esterni restano validi), gli altri
+  passano da `duplicaNodi`. Taglia toglie subito: rimandare la rimozione
+  permetterebbe di incollare una bolla dentro sé stessa. Solo nella stessa
+  campagna (`campagnaCorrente` in `stato.js`).
 - PostgreSQL reale senza dati dell’app: avviare
   `docker run --rm -d --name runebog-todo-test -e POSTGRES_PASSWORD=runebog-test-only postgres:17-alpine`,
   poi `node test/database/verifica-todo.mjs` e

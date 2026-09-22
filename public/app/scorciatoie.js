@@ -7,6 +7,7 @@ import { showView, openKeys } from "./viste.js";
 import { goUp, enterNode, planZoom, planFit, renderCanvas, wallOf,
          requestDeleteSelection, duplicateSelected } from "./mappa.js";
 import { renderDetail, deleteEdge } from "./pannello.js";
+import { copiaSelezione, tagliaSelezione, incolla } from "./appunti.js";
 
 export function initScorciatoie(){
   addEventListener("keydown", e=>{
@@ -102,6 +103,15 @@ export function initScorciatoie(){
       if(st.selectedId) enterNode(st.selectedId);
     }else if((e.ctrlKey||e.metaKey) && k.toLowerCase()==="d"){
       e.preventDefault(); duplicateSelected();
+    }else if((e.ctrlKey||e.metaKey) && ["c","x","v"].includes(k.toLowerCase()) && !e.shiftKey && !e.altKey){
+      /* Un testo selezionato nella pagina (una descrizione nel pannello, una
+         voce della ricerca) vuole la copia del browser: gli appunti delle
+         bolle rispondono solo quando non c'è niente di evidenziato. */
+      if(k.toLowerCase()!=="v" && String(getSelection?.() || "")) return;
+      e.preventDefault();
+      if(k.toLowerCase()==="c") copiaSelezione();
+      else if(k.toLowerCase()==="x") tagliaSelezione();
+      else incolla();
     }else if(k==="+"||k==="="){
       planZoom(1.2);
     }else if(k==="-"){

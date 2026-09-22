@@ -12,6 +12,7 @@ import { exportJSON } from "./esporta.js";
 import { childOf, enterNode, duplicateSelected, addSpatialChild, arrangeGrid,
          planPointXY, renderCanvas, wallOf, setWallDoor, deleteWallSeg } from "./mappa.js";
 import { renderDetail, openDetailSheet, editNode, askDeleteNode, editEdge, deleteEdge } from "./pannello.js";
+import { copiaSelezione, tagliaSelezione, incolla, ciSonoAppunti } from "./appunti.js";
 
 const ctxEl = () => document.getElementById("ctx-menu");
 function closeCtx(){ ctxEl().classList.remove("show"); }
@@ -58,6 +59,8 @@ export function showCtxFor(target, cx, cy){
       openCtx([
         {id:"ren", label:"Modifica testo", run:()=>enterNode(n.id)},
         {id:"dup", label:"Duplica", run:()=>{ st.selectedId=n.id; duplicateSelected(); }},
+        {id:"cop", label:"Copia", run:copiaSelezione},
+        {id:"tag", label:"Taglia", run:tagliaSelezione},
         "---",
         {id:"del", label:"Elimina…", danger:true, run:()=>askDeleteNode(n.id)}
       ], cx, cy);
@@ -67,6 +70,10 @@ export function showCtxFor(target, cx, cy){
       {id:"enter", label:"Entra →", run:()=>enterNode(n.id)},
       {id:"ren",   label:"Rinomina", run:()=>{ st.selectedId=n.id; openDetailSheet(); focusDetailTitle(); }},
       {id:"dup",   label:"Duplica", run:()=>{ st.selectedId=n.id; duplicateSelected(); }},
+      // Copia e taglia prendono TUTTA la selezione, come Duplica: il clic
+      // destro su una bolla di un gruppo selezionato non lo scioglie.
+      {id:"cop",   label:"Copia", run:copiaSelezione},
+      {id:"tag",   label:"Taglia", run:tagliaSelezione},
       "---",
       {head:"Stato"},
       ...Object.entries(STATUS_COLORS).map(([stt,col])=>({
@@ -144,6 +151,9 @@ export function showCtxFor(target, cx, cy){
       run:()=>addSpatialChild({marker:t}, p.x, p.y)
     })),
     "---",
+    // Solo se c'è qualcosa: una voce che risponde "niente da incollare" è
+    // un comando che si prova per scoprire che non fa niente.
+    ...(ciSonoAppunti() ? [{id:"inc", label:"Incolla qui", run:()=>incolla(p)}] : []),
     {id:"grid", label:"Riordina in griglia", run:arrangeGrid}
   ];
   openCtx(items, cx, cy);
