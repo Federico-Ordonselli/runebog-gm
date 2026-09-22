@@ -53,6 +53,11 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   il pulsante flottante e le azioni che richiedono un campo. Il menu contestuale
   resta entro il 60% dell’altezza fino a 760px. Verifica con
   `node test/browser/verifica-pannello-mobile.mjs` e `npm run dev` acceso.
+- Immagine in finestra (`apriInFinestra`, `pannello.js`, 22 set 2026): una
+  finestra sola per nome, riempita dall’editor dentro un about:blank — non si
+  naviga all’URL, che per i `data:` è bloccato e per `/immagini` è sandbox.
+  Nel desktop `setWindowOpenHandler` ammette solo about:blank con quel nome;
+  la finestra eredita il preload, innocuo perché l’IPC accetta solo l’editor.
 - PostgreSQL reale senza dati dell’app: avviare
   `docker run --rm -d --name runebog-todo-test -e POSTGRES_PASSWORD=runebog-test-only postgres:17-alpine`,
   poi `node test/database/verifica-todo.mjs` e

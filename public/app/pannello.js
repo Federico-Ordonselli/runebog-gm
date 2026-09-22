@@ -356,7 +356,9 @@ function renderDetailCore(){
       ${n.img ? imgZoomMarkup(n) : ""}
       <div class="img-actions" style="margin-top:8px">
         <button class="btn" onclick="pickImage('${n.id}')">${n.img?"Sostituisci":"Carica"} immagine</button>
-        ${n.img?`<button class="btn danger" onclick="editNode('${n.id}','img',null)">Rimuovi</button>`:""}
+        ${n.img?`<button class="btn" onclick="apriInFinestra('${n.id}')"
+          title="Una finestra a parte, da trascinare su un altro schermo">In finestra ↗</button>
+        <button class="btn danger" onclick="editNode('${n.id}','img',null)">Rimuovi</button>`:""}
       </div>
     </details>
 
@@ -496,6 +498,46 @@ export function openLightbox(id){
   document.getElementById("lightbox").showModal();
 }
 
+/* L'immagine in una finestra sua, da trascinare su un secondo schermo mentre
+   si continua a lavorare: il lightbox è un modale, e finché è aperto l'editor
+   non risponde.
+
+   La finestra è UNA sola, per nome: chi la mette sull'altro schermo la mette
+   lì una volta, e l'immagine successiva deve arrivare nello stesso posto invece
+   di aprirne un'altra davanti all'editor. Si scrive dentro un about:blank e
+   non si naviga all'URL dell'immagine per due ragioni: i browser bloccano la
+   navigazione verso `data:` (le immagini dello standalone e quelle mai
+   migrate), e `/immagini/[chiave]` risponde con `sandbox`, cioè una pagina a
+   cui non si potrebbe cambiare immagine da qui. Titolo e src si scrivono come
+   proprietà, quindi non c'è markup da escapare. */
+const FINESTRA_IMMAGINE = "runebog-immagine";
+export function apriInFinestra(id){
+  const n = findNode(id); if(!n||!n.img) return;
+  const w = window.open("", FINESTRA_IMMAGINE, "popup,width=900,height=700");
+  /* Un blocco dei popup non deve sembrare un bottone rotto: lo si dice nella
+     riga di stato, dove l'app dice già "Modifica annullata". */
+  if(!w){
+    document.getElementById("savestate").textContent = "Finestra bloccata: consenti i popup per questo sito";
+    return;
+  }
+  const d = w.document;
+  let img = d.getElementById("img");
+  if(!img){
+    d.open(); d.write(`<!doctype html><meta charset="utf-8"><title>Runebog</title>
+      <style>html,body{margin:0;height:100%;background:#0b0f0c}
+      body{display:flex;align-items:center;justify-content:center}
+      img{max-width:100%;max-height:100%;object-fit:contain}</style><img id="img">`);
+    d.close();
+    img = d.getElementById("img");
+  }
+  /* Assoluto: la base di un about:blank è quella di chi lo apre, ma su un
+     percorso relativo non vale la pena di dipenderne. */
+  img.src = new URL(n.img, location.href).href;
+  img.alt = nomeImmagine(n);
+  d.title = n.title || "Immagine";
+  w.focus();
+}
+
 // per gli onclick/ontoggle inline nei template
 Object.assign(window, { editNode, editEdge, deleteEdge, addChild, askDeleteNode,
-  pickImage, openLightbox, openDetailSheet, secToggle });
+  pickImage, openLightbox, apriInFinestra, openDetailSheet, secToggle });

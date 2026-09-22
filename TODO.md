@@ -32,7 +32,16 @@ funzionano. Quattro punti, verificati contro il codice.
   (è lui che riceve i clic sullo sfondo). Da valutare: l'aggancio di una
   dimensione dell'immagine a quadretti interi, e rendere la sezione più
   scopribile — il tester ha chiesto una funzione che c'era.
-- [ ] **Aprire un'immagine in una finestra propria**, trascinabile su un
+- [x] **Aprire un'immagine in una finestra propria** — fatto il 22 settembre:
+  bottone "In finestra ↗" nella sezione dell'immagine di riferimento,
+  `apriInFinestra` in `pannello.js`. Una finestra sola per nome
+  (`runebog-immagine`): l'immagine dopo arriva dove la prima è stata
+  trascinata. Si scrive dentro un about:blank invece di navigare all'URL, così
+  valgono sia i `data:` sia `/immagini/[chiave]`. Il desktop ammette solo
+  quella finestra (`setWindowOpenHandler`), e lo smoke test lo controlla.
+  Verificato in Chromium: si apre, la seconda immagine rimpiazza la prima
+  nella stessa finestra, l'editor resta attivo. Testo originale:
+  **Aprire un'immagine in una finestra propria**, trascinabile su un
   secondo schermo mentre si continua a lavorare. Oggi c'è solo il lightbox
   modale (`pannello.js`), che blocca l'editor. Un `window.open` con la sola
   immagine; per le immagini ancora in base64 (standalone) serve un URL `blob:`,

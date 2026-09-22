@@ -73,9 +73,21 @@ if (!app.requestSingleInstanceLock()) {
     });
     win.on('closed', () => table.close());
     win.removeMenu();
-    win.webContents.setWindowOpenHandler(({ url }) => {
+    /* L'unica finestra interna ammessa è quella dell'immagine (apriInFinestra
+       in pannello.js): un about:blank col nome dichiarato, che l'editor riempie
+       da sé. Nient'altro si apre qui dentro. */
+    win.webContents.setWindowOpenHandler(({ url, frameName }) => {
+      if (url === 'about:blank' && frameName === 'runebog-immagine') {
+        return { action: 'allow', overrideBrowserWindowOptions: {
+          width: 900, height: 700, autoHideMenuBar: true, backgroundColor: '#0b0f0c' } };
+      }
       if (url.startsWith('https://')) shell.openExternal(url);
       return { action: 'deny' };
+    });
+    win.webContents.on('did-create-window', child => {
+      child.removeMenu();
+      child.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+      child.webContents.on('will-navigate', event => event.preventDefault());
     });
     win.webContents.on('will-navigate', (event, url) => {
       if (url.startsWith(ORIGIN + '/')) return;
@@ -109,6 +121,15 @@ if (!app.requestSingleInstanceLock()) {
             return ok;
           })()`);
           if (!tableOK) throw new Error('Tavolo locale non disponibile');
+          // la finestra dell'immagine si apre e si scrive; qualunque altra resta chiusa
+          const finestra = await win.webContents.executeJavaScript(`(() => {
+            const w = window.open('', 'runebog-immagine', 'popup');
+            const altra = window.open('', 'altra', 'popup');
+            const ok = !!w && typeof w.document?.write === 'function' && altra === null;
+            w?.close();
+            return ok;
+          })()`, true);
+          if (!finestra) throw new Error('Finestra immagine non disponibile');
           console.log('Desktop smoke OK:', JSON.stringify(result));
           app.exit(0);
         } catch (error) { console.error(error); app.exit(1); }
