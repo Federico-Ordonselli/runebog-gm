@@ -993,7 +993,17 @@ in nessun altro posto.
 
 **Generatore di dungeon**: motore puro e deterministico (seed-based) in
 `src/lib/dungeon/engine.ts`, dataset SRD in `src/lib/dungeon/srd-data.ts`, UI in
-`src/app/dungeon/`. L'export (schema `1.1`) è importabile nell'app come bolla `luogo`.
+`src/app/dungeon/`. **Dal 22 set 2026 si genera anche dentro l'editor** (dialogo
+`#dungeon-dialog`, `apriGeneratoreDungeon` in `dungeon.js`): il motore arriva
+all'app come `public/app/dungeon-motore.js`, **GENERATO** con
+`node scripts/genera-motore-dungeon.mjs` (esbuild, già fra le dipendenze) e da
+non modificare a mano. Chi tocca `engine.ts` o `srd-data.ts` rigeneri:
+`test/dungeon/motore-app.test.mjs` genera 24 dungeon con entrambi e confronta
+il risultato, quindi un file rimasto indietro fa fallire `npm test`. Il
+risultato entra da `importDungeon` come un file incollato — una sola strada
+d'ingresso, con la stessa validazione. Prima si passava da `/dungeon` in
+un'altra scheda con un giro di copia-incolla, e nel desktop quella pagina non
+esisteva. L'export (schema `1.1`) è importabile nell'app come bolla `luogo`.
 I nomi dei mostri in `srd-data.ts` DEVONO combaciare con le schede italiane di
 `public/app/srd-mostri.js`: all'import `dungeon.js` aggancia la scheda per nome
 (`statblockSRD()` in `mostri.js`, la stessa ricetta del bestiario) — gli export

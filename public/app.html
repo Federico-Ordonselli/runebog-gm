@@ -281,6 +281,51 @@
   </div>
 </dialog>
 
+<!-- Il generatore di dungeon dentro l'editor: prima stava solo su /dungeon,
+     in un'altra scheda e con un giro di copia-incolla, e nel desktop non
+     c'era affatto. Il motore è public/app/dungeon-motore.js, GENERATO dal
+     sito (scripts/genera-motore-dungeon.mjs). -->
+<dialog id="dungeon-dialog" aria-labelledby="dg-titolo">
+  <form method="dialog" onsubmit="event.preventDefault(); generaDungeonDaDialogo()">
+    <h2 id="dg-titolo" class="serif" style="font-size:19px;margin-bottom:12px">Genera un dungeon</h2>
+    <div class="field"><label for="dg-nome">Nome</label>
+      <input id="dg-nome" required maxlength="120" value="Le Cripte di Vaelthorn"></div>
+    <div class="field"><label for="dg-tema">Tema e bestiario</label>
+      <select id="dg-tema"></select></div>
+    <div class="field"><label for="dg-stanze">Stanze: <output id="dg-stanze-n">11</output></label>
+      <input id="dg-stanze" type="range" min="6" max="16" value="11"
+        oninput="document.getElementById('dg-stanze-n').value=this.value"></div>
+    <div class="row">
+      <div class="field"><label for="dg-livello">Livello del gruppo</label>
+        <input id="dg-livello" type="number" min="1" max="20" value="3" required></div>
+      <div class="field"><label for="dg-pg">N° di PG</label>
+        <input id="dg-pg" type="number" min="1" max="8" value="4" required></div>
+    </div>
+    <div class="row">
+      <div class="field"><label for="dg-diff">Difficoltà</label>
+        <select id="dg-diff">
+          <option value="facile">Facile</option><option value="medio" selected>Medio</option>
+          <option value="difficile">Difficile</option><option value="mortale">Mortale</option>
+        </select></div>
+      <div class="field"><label for="dg-regole">Budget PE</label>
+        <select id="dg-regole">
+          <option value="2024">Regole 2024</option><option value="2014">Regole 2014</option>
+        </select></div>
+    </div>
+    <div class="field"><label for="dg-seed">Seed <span class="hint-sm">(stesso seed, stesso dungeon)</span></label>
+      <div class="img-actions">
+        <input id="dg-seed" type="number" min="0" max="2147483647" required style="flex:1">
+        <button type="button" class="btn" onclick="seedDungeonCasuale()" aria-label="Seed casuale">🎲</button>
+      </div></div>
+    <p class="hint-sm">Diventa una bolla nel livello in cui sei, con stanze, muri, incontri
+      e i tuoi PG all'ingresso. Non ti piace? Ctrl+Z e rigenera.</p>
+    <div class="d-actions">
+      <button type="button" class="btn" onclick="document.getElementById('dungeon-dialog').close()">Annulla</button>
+      <button type="submit" class="btn primary">Genera</button>
+    </div>
+  </form>
+</dialog>
+
 <dialog id="alert-dialog">
   <p id="alert-text" class="serif" style="font-size:16px"></p>
   <div class="d-actions">

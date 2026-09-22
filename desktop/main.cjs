@@ -130,6 +130,13 @@ if (!app.requestSingleInstanceLock()) {
             return ok;
           })()`, true);
           if (!finestra) throw new Error('Finestra immagine non disponibile');
+          // il generatore di dungeon è un import dinamico dal protocollo dell'app
+          const dungeon = await win.webContents.executeJavaScript(`import('/app/dungeon-motore.js').then(m => {
+            const d = m.generateDungeon({ seed: 1, name: 'Smoke', roomCount: 6, theme: 'misto', level: 1,
+              partySize: 4, difficulty: 'medio', ruleset: '2024' }, m.MONSTERS, m.MAGIC_ITEMS);
+            return d.rooms.length === 6;
+          })`);
+          if (!dungeon) throw new Error('Generatore di dungeon non disponibile');
           console.log('Desktop smoke OK:', JSON.stringify(result));
           app.exit(0);
         } catch (error) { console.error(error); app.exit(1); }

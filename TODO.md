@@ -5,7 +5,14 @@
 Primo giro di prova di un DM esterno: pulsanti e caricamento immagini
 funzionano. Quattro punti, verificati contro il codice.
 
-- [ ] **Il generatore di dungeon non si trova, e sul desktop non c'è.**
+- [x] **Il generatore di dungeon non si trova, e sul desktop non c'è.**
+  Fatto il 22 settembre: si genera dentro l'editor (menu "⋯" → "Genera un
+  dungeon…", o il bottone nella sezione del pannello), con un dialogo che
+  riprende i parametri di `/dungeon` e il numero di PG della campagna. Il
+  motore è `public/app/dungeon-motore.js`, generato dal sito; un test
+  confronta i due motori su 24 dungeon. Provato in Chromium (11 stanze, 80
+  muri, 3 pedine, annullabile con Ctrl+Z) e nello smoke test del desktop.
+  Incolla/Da file restano per gli export della pagina. Descrizione originale:
   Il tester non è riuscito a creare un dungeon. Il percorso esiste
   (menu "⋯" → "Genera un dungeon ↗", e la sezione "Generatore di dungeon" del
   pannello) ma è in due passi: si genera su `/dungeon` in un'altra scheda, si
@@ -64,6 +71,40 @@ funzionano. Quattro punti, verificati contro il codice.
   `SHAPES` e nella whitelist di `formato-campagna.js` (il test di `test/scala/`
   lo impone), `sanitizeState`, proiezione in `share.ts` (condivisa o solo DM),
   e il disegno che deve restare leggibile a ogni zoom.
+- [ ] **Scala del quadretto per livello.** "Dentro ogni bolla decidere quanto
+  misura un quadretto", di default 1,5 m come ora. Si può fare senza toccare
+  la geometria: il quadretto resta 40px (`CELL`) e cambia solo quanti metri
+  vale, cioè `METRI_PER_CELLA` diventa un campo del livello con 1,5 come
+  default. Oggi è una costante letta da righello e aree d'effetto
+  (`metersPerCell` nel `ToolContext`, fissato una volta in `main.js`) e dal
+  tabellone d'iniziativa: devono leggerla dal livello corrente. Campo nuovo nel
+  contratto e nella proiezione di `share.ts`, perché al tavolo il righello dei
+  giocatori deve misurare con la stessa scala.
+- [ ] **Griglia esagonale per livello.** Il disegno è la parte facile (un
+  pattern SVG). Il costo sta in tutto ciò che oggi dà per scontato il
+  quadretto: aggancio di segnalini e pedine (`snapToCell`), piante in scala
+  (`snapGrid`), muri liberi sugli incroci della maglia, distanza del righello,
+  sagome delle aree d'effetto, generatore di dungeon. Da decidere prima cosa
+  deve valere sugli esagoni. Proposta: pedine agganciate al centro
+  dell'esagono e righello in esagoni; piante, muri e dungeon restano a
+  quadretti, quindi la griglia esagonale si sceglie solo dove non servono.
+- [ ] **Copia, taglia e incolla le bolle, anche fra livelli.** "Come su
+  Windows": una bolla con tutte le sottobolle, o più bolle selezionate nello
+  stesso livello, portate in un'altra bolla o città. La base c'è già:
+  `duplicaNodi` (`duplica.js`) rimappa id, nemici, archi, muri e iniziativa
+  sull'intera selezione, e `duplicateSelected` la usa nello stesso livello.
+  Mancano gli appunti (in memoria, o in `localStorage` per incollare in
+  un'altra campagna), Ctrl+C/X/V, le voci nel menu contestuale e l'incolla nel
+  livello corrente. Da decidere:
+  - **Taglia** toglie subito, e Ctrl+Z rimedia. Con la rimozione rimandata
+    all'incolla si potrebbe incollare una bolla dentro una sua sottobolla,
+    cioè un ciclo nell'albero.
+  - **Riferimenti che escono dalla selezione**: una pedina che punta a un
+    nemico non copiato, un arco verso una bolla rimasta dov'era. Nello stesso
+    livello `duplicateSelected` li tiene; altrove vanno lasciati cadere.
+  - **Fra due campagne**: i `playerId` non esistono nell'altra, e le immagini
+    cloud appartengono alla campagna d'origine (vanno ricopiate come fa
+    l'import cloud).
 
 ## Fix dalla code review del 18 settembre 2026
 

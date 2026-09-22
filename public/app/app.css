@@ -372,6 +372,11 @@
 
   /* ---------- dialog scorciatoie ---------- */
   #keys-dialog{max-width:480px}
+  /* width e dvh: su telefono il dialogo prende lo schermo meno i 16px di
+     margine, e se la tastiera ne mangia metà si scorre invece di tagliarsi. */
+  #dungeon-dialog{width:min(440px, calc(100vw - 32px));max-height:90dvh;overflow:auto}
+  #dungeon-dialog form{display:flex;flex-direction:column;gap:12px}
+  #dungeon-dialog label .hint-sm{text-transform:none;letter-spacing:0}
   .keys-h{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin:14px 0 8px}
   .keys-grid{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;align-items:center;font-size:13px}
   .keys-grid > span:nth-child(odd){white-space:nowrap}

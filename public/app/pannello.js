@@ -346,13 +346,13 @@ function renderDetailCore(){
     <details class="field" data-sec="dungeon" ontoggle="secToggle(this)"${secOpen("dungeon")}>
       <summary>Generatore di dungeon</summary>
       <div class="img-actions">
-        <a class="btn primary" href="/dungeon" target="_blank" rel="noopener">Genera un dungeon ↗</a>
-        <button class="btn" onclick="pasteDungeon()">Incolla dungeon</button>
+        <button class="btn primary" onclick="apriGeneratoreDungeon()">Genera un dungeon…</button>
+        <button class="btn" onclick="pasteDungeon()">Incolla</button>
         <button class="btn" onclick="document.getElementById('dungeon-file').click()">Da file…</button>
       </div>
-      <p class="hint-sm">Il generatore si apre in una scheda a parte — la campagna resta
-        aperta qui. Copia il JSON e torna: diventa una bolla con le stanze sulla pianta,
-        gli incontri pronti per i PF e i tuoi PG come pedine all'ingresso.</p>
+      <p class="hint-sm">Diventa una bolla in questo livello, con le stanze sulla pianta,
+        gli incontri pronti per i PF e i tuoi PG come pedine all'ingresso.
+        Incolla e Da file servono per un dungeon esportato dalla pagina del generatore.</p>
     </details>` : ""}
 
     <details class="field" data-sec="img" ontoggle="secToggle(this)"${secOpen("img", !!n.img)}>

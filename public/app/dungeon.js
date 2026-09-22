@@ -6,7 +6,7 @@
    "tunnel", gli incontri sono nodi encounter coi nemici già contati, e i PG di
    state.players entrano come pedine trascinabili nella stanza d'ingresso. */
 
-import { node, uid, NODE_COLORS, MARKER_R, CELL, snapNode } from "./modello.js";
+import { node, uid, NODE_COLORS, MARKER_R, CELL, snapNode, escapeHtml } from "./modello.js";
 import { muriDelleStanze } from "./dungeon-muri.js";
 import { st, save, currentNode, RO } from "./stato.js";
 import { enterNode, planFit } from "./mappa.js";
@@ -196,6 +196,61 @@ export function importDungeon(text){
   planFit(true);
 }
 
+/* ==================== generatore dentro l'editor ====================
+   Il motore arriva con un import dinamico: sono 100 KB che servono solo a chi
+   apre questo dialogo, e l'editor parte senza. Il risultato passa da
+   importDungeon come se fosse un file incollato — validazione, controllo della
+   campagna intera su una copia, undo — perché due strade d'ingresso per lo
+   stesso oggetto sono due posti in cui dimenticare un controllo. */
+let motore = null;
+const caricaMotore = () => motore ||= import("./dungeon-motore.js")
+  .catch(err => { motore = null; throw err; });
+
+const campo = id => document.getElementById(id);
+const intero = (id, min, max, def) => {
+  const v = parseInt(campo(id).value, 10);
+  return Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : def;
+};
+
+export function seedDungeonCasuale(){
+  campo("dg-seed").value = Math.floor(Math.random() * 2147483647);
+}
+
+export async function apriGeneratoreDungeon(){
+  if(RO) return;
+  let m;
+  try{ m = await caricaMotore(); }
+  catch(_){ openAlert("Il generatore non si è caricato: controlla la connessione e riprova."); return; }
+  const tema = campo("dg-tema");
+  if(!tema.options.length)
+    tema.innerHTML = Object.entries(m.THEMES)
+      .map(([k, t]) => `<option value="${k}">${escapeHtml(t.label)}</option>`).join("");
+  // Il gruppo è quello della campagna, se c'è: le pedine all'ingresso sono i
+  // PG di state.players, e un dungeon tarato su un altro numero non torna.
+  const pg = (st.state.players || []).length;
+  if(pg) campo("dg-pg").value = Math.min(8, pg);
+  seedDungeonCasuale();
+  campo("dungeon-dialog").showModal();
+}
+
+export async function generaDungeonDaDialogo(){
+  if(RO) return;
+  const m = await caricaMotore();
+  const params = {
+    seed: intero("dg-seed", 0, 2147483647, 1),
+    name: campo("dg-nome").value.trim().slice(0, 120) || "Dungeon",
+    roomCount: intero("dg-stanze", 6, 16, 11),
+    theme: m.THEMES[campo("dg-tema").value] ? campo("dg-tema").value : "misto",
+    level: intero("dg-livello", 1, 20, 3),
+    partySize: intero("dg-pg", 1, 8, 4),
+    difficulty: ["facile","medio","difficile","mortale"].includes(campo("dg-diff").value) ? campo("dg-diff").value : "medio",
+    ruleset: campo("dg-regole").value === "2014" ? "2014" : "2024",
+  };
+  const d = m.generateDungeon(params, m.MONSTERS, m.MAGIC_ITEMS);
+  campo("dungeon-dialog").close();
+  importDungeon(JSON.stringify(m.exportForRunebog(d)));
+}
+
 export async function pasteDungeon(){
   if(RO) return;
   let text = null;
@@ -220,4 +275,4 @@ export function initDungeon(){
 }
 
 // per l'onclick inline nel pannello
-Object.assign(window, { pasteDungeon });
+Object.assign(window, { pasteDungeon, apriGeneratoreDungeon, generaDungeonDaDialogo, seedDungeonCasuale });

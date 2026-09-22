@@ -156,9 +156,9 @@ export function showCtxFor(target, cx, cy){
 export function openTopbarMenu(ev){
   const cur = document.getElementById("theme-select")?.value || TEMA_DEFAULT;
   const items = [];
-  /* Le regole stanno accanto al generatore di dungeon perché sono la stessa
-     cosa: uno strumento che vive altrove nel sito e si apre in una scheda
-     nuova, così la campagna aperta non si perde. Serve anche ai giocatori al
+  /* Le regole stanno accanto al generatore di dungeon: sono gli strumenti del
+     menu. Vivono altrove nel sito e si aprono in una scheda nuova, così la
+     campagna aperta non si perde. Servono anche ai giocatori al
      tavolo — un incantesimo lo cerca chi lo lancia — e lì il menu è corto,
      quindi apre l'elenco invece di stare in coda a cinque temi. */
   const regole = {id:"srd", label:"Regole SRD 5.2.1 ↗",
@@ -176,8 +176,9 @@ export function openTopbarMenu(ev){
       {id:"imp", label:"Importa da file…", run:()=>document.getElementById("import-file").click()},
       // Il generatore sta anche nel pannello del livello, ma lì compare solo se
       // non c'è un segnalino selezionato: qui è raggiungibile sempre, da dentro
-      // qualsiasi campagna. Scheda nuova: la campagna aperta non si perde.
-      {id:"dg", label:"Genera un dungeon ↗", run:()=>window.open("/dungeon","_blank","noopener")},
+      // qualsiasi campagna. Si apre dentro l'editor (22 set 2026): la scheda a
+      // parte chiedeva un giro di copia-incolla, e nel desktop non esisteva.
+      {id:"dg", label:"Genera un dungeon…", run:()=>window.apriGeneratoreDungeon()},
       regole,
       "---"
     );
