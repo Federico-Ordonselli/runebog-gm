@@ -38,8 +38,44 @@ export default function Privacy() {
         </li>
       </ul>
       <p>
-        Non usiamo cookie di tracciamento, non facciamo profilazione, non c&apos;è pubblicità e non
-        vendiamo nulla a nessuno. L&apos;unico cookie è quello che ti tiene collegato.
+        Non facciamo profilazione, non c&apos;è pubblicità e non vendiamo nulla a nessuno.
+      </p>
+
+      <h2>Cookie e dati salvati sul tuo dispositivo</h2>
+      <p>
+        Non usiamo cookie di tracciamento, di analisi o pubblicitari, né nostri né di terzi. Tutto
+        ciò che il sito salva sul tuo dispositivo serve a farlo funzionare o a ricordare una scelta
+        che hai fatto tu: per questo non ti chiediamo un consenso, che la legge (direttiva
+        ePrivacy, art. 5.3) non richiede per questi casi.
+      </p>
+      <ul>
+        <li>
+          <strong>Cookie di accesso</strong> (<code>authjs.session-token</code>): ti tiene
+          collegato dopo il login. Senza, dovresti rientrare a ogni pagina.
+        </li>
+        <li>
+          <strong>Cookie di sicurezza</strong> (<code>authjs.csrf-token</code>,{" "}
+          <code>authjs.callback-url</code> e, solo durante l&apos;accesso con Google,{" "}
+          <code>authjs.state</code> e <code>authjs.pkce.code_verifier</code>): proteggono i moduli
+          di accesso da richieste contraffatte e riportano alla pagina giusta dopo il login. Quelli
+          dell&apos;accesso con Google spariscono appena l&apos;accesso è completato.
+        </li>
+        <li>
+          <strong>Memoria locale del browser</strong> (<code>localStorage</code>, chiavi che
+          iniziano con <code>runebog-</code>): il tema e le preferenze dell&apos;interfaccia, le
+          campagne che usi senza account e una copia di sicurezza delle modifiche non ancora
+          salvate sul server. Non lascia mai il tuo dispositivo, se non quando salvi tu.
+        </li>
+        <li>
+          <strong>Copia offline</strong> (service worker e cache del browser): solo se apri
+          l&apos;editor senza account o scegli di scaricare le regole per usarle senza rete.
+        </li>
+      </ul>
+      <p>
+        Sul sito i nomi dei cookie hanno davanti il prefisso <code>__Secure-</code> o{" "}
+        <code>__Host-</code>, che obbliga il browser a spedirli solo su connessione cifrata.
+        Puoi cancellare tutto in qualsiasi momento dalle impostazioni del browser. Perderai
+        l&apos;accesso (basta rientrare) e ciò che era salvato solo lì.
       </p>
 
       <h2>Dove stanno i dati</h2>
@@ -49,9 +85,12 @@ export default function Privacy() {
         <li><strong>Google</strong> — solo se scegli di accedere con Google.</li>
         <li><strong>Resend</strong> — solo per spedire l&apos;email di reimpostazione password, se ne chiedi una.</li>
         <li>
-          <strong>Cloudflare</strong> — instrada verso di noi la posta che scrivi a{" "}
-          <a href={`mailto:${CONTACT_EMAIL}`} className="link">{CONTACT_EMAIL}</a>. Riguarda solo
-          le email che ci mandi tu: se non ci scrivi, non passa di lì nulla di tuo.
+          <strong>Cloudflare</strong> — sta davanti al sito: ogni richiesta passa di lì prima di
+          arrivare a Vercel, quindi Cloudflare vede il tuo indirizzo IP e le pagine che chiedi,
+          per consegnarle e per proteggere il sito dagli attacchi. Instrada anche la posta che
+          scrivi a{" "}
+          <a href={`mailto:${CONTACT_EMAIL}`} className="link">{CONTACT_EMAIL}</a>. Non usiamo i
+          suoi strumenti di analisi.
         </li>
       </ul>
       <p>

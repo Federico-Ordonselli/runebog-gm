@@ -3687,3 +3687,15 @@ Cosa **resta** da fare, misurato:
   a sinistra su telefono (a destra c'è il FAB). Misurato in Chromium: la barra
   da 1 quadretto è 43px contro i 43,25 della maglia disegnata, e 2 quadretti
   su telefono 45 contro 44,6.
+- [x] **Privacy: cookie e Cloudflare dichiarati per quello che sono** — fatto
+  (23 set 2026), dopo una segnalazione ePrivacy ("cookie non essenziali senza
+  consenso") che si è rivelata un falso positivo: in produzione le pagine non
+  impostano cookie, gli unici sono quelli di Auth.js (sessione, CSRF, callback,
+  state/pkce di Google), tutti tecnici, e non c'è nessuno script di analisi. La
+  pagina però diceva «l'unico cookie è quello che ti tiene collegato» e che
+  Cloudflare instrada solo la posta, mentre fa da proxy a tutto il sito
+  (`server: cloudflare`). Ora `src/app/privacy/page.tsx` elenca cookie,
+  `localStorage` e copia offline con lo scopo di ciascuno, e dice che il
+  traffico passa da Cloudflare. Niente banner: chiederebbe un consenso che
+  l'art. 5.3 non richiede. Chi aggiunge uno script di terze parti o un cookie
+  nuovo aggiorni quell'elenco.
