@@ -785,6 +785,45 @@
   #ctx-menu .dot{width:9px;height:9px;border-radius:50%;flex:none}
   #ctx-menu .bar{width:16px;height:0;border-top:3px solid;border-radius:2px;flex:none}
 
+  /* La scorciatoia accanto alla voce: promemoria, non comando. */
+  #ctx-menu .ctx-kbd{margin-left:auto;padding-left:18px;font-size:11px;color:var(--ink-dim);font-family:inherit}
+  @media (pointer:coarse){ #ctx-menu .ctx-kbd{display:none} }   /* col dito i tasti non ci sono */
+
+  /* ---------- barra a menu (barra-menu.js, 22 set 2026) ----------
+     È il default. html.ui-classica è la barra completa di prima: tutto ciò che
+     segue vale solo senza quella classe, così la barra completa resta quella
+     che era, riga per riga, senza regole da ripristinare. */
+  #menubar{display:flex;align-items:center;gap:2px}
+  #menubar button{padding:6px 10px;border-radius:7px;font-size:14px;color:var(--ink);white-space:nowrap}
+  #menubar button:hover, #menubar button[aria-expanded="true"]{background:var(--panel-2);color:var(--fen)}
+  html.ui-classica #menubar{display:none}
+  #menubar-tutto{display:none}   /* solo dove le intestazioni non ci stanno */
+  /* !important di proposito: questi elementi hanno regole per id (#topbar-more,
+     #camp-wrap, i gradini della topbar) che li rimettono in display, e la
+     preferenza della barra deve vincere su tutte senza inseguirle una a una. */
+  html:not(.ui-classica) .solo-classica{display:none !important}
+
+  /* La palette: un bottone per gruppo, le pastiglie in tendina. Nella barra
+     completa gruppo e voci non esistono (display:contents) e il bottone non
+     c'è — la striscia di sempre. */
+  html.ui-classica .pal-gruppo, html.ui-classica .pal-voci{display:contents}
+  html.ui-classica .pal-apri{display:none}
+  html:not(.ui-classica) .pal-title{display:none}
+  .pal-apri{flex:none;white-space:nowrap}
+  /* Il gruppo che serve nel livello corrente (segnaGruppoSuggerito in
+     mappa.js): bordo d'accento E grassetto, due canali — il solo colore non
+     si distingue in tutti i temi. */
+  .pal-gruppo.suggerito .pal-apri{border-color:var(--fen);font-weight:600}
+  /* Una pastiglia armata dentro una tendina chiusa: senza questo non si vede
+     più cosa si sta per posare. */
+  .pal-gruppo:has(.pal-item.armed) .pal-apri{background:var(--panel-2);color:var(--fen)}
+  html:not(.ui-classica) .pal-voci{
+    position:fixed;z-index:55;display:none;flex-direction:column;gap:4px;min-width:170px;
+    background:var(--panel);border:1px solid var(--line-ui);border-radius:10px;
+    box-shadow:0 10px 30px rgba(0,0,0,.5);padding:6px;overflow-y:auto;overscroll-behavior:contain;
+  }
+  html:not(.ui-classica) .pal-gruppo.aperto .pal-voci{display:flex}
+
   /* ---------- tema ---------- */
   #theme-wrap select{width:auto;padding:6px 8px;font-size:13px;background:var(--panel);cursor:pointer}
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
@@ -903,6 +942,11 @@
     #savestate{order:6;font-size:11px}
     .tabs button{padding:6px 10px;font-size:13px}
     #quick-search{width:110px}
+    /* Barra a menu: le cinque intestazioni qui non hanno spazio, quindi il ☰
+       le raccoglie e prende il posto del ⋯ in fondo alla prima riga. */
+    #menubar{order:1}
+    #menubar [data-menu]:not(#menubar-tutto){display:none}
+    #menubar-tutto{display:inline-flex;align-items:center;justify-content:center}
 
     /* DUE strisce, non una. La palette è roba da posare e i comandi agiscono
        sulla vista: mescolarli in un unico scorrimento metteva Adatta, righello,
@@ -1028,6 +1072,11 @@
     #savestate{order:0;font-size:11px}
     .tabs button{padding:6px 10px;font-size:13px}
     #quick-search{width:110px}
+    /* Barra a menu: le cinque intestazioni qui non hanno spazio, quindi il ☰
+       le raccoglie e prende il posto del ⋯ in fondo alla prima riga. */
+    #menubar{order:1}
+    #menubar [data-menu]:not(#menubar-tutto){display:none}
+    #menubar-tutto{display:inline-flex;align-items:center;justify-content:center}
     #crumbs{padding:4px 12px}
     /* Righe scorrevoli invece di una barra che va a capo: è la ricetta di
        ≤760px, e qui è LA correzione — una palette che va a capo su uno schermo

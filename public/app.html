@@ -38,6 +38,9 @@
   // Prima del disegno, o si vede un lampo del tema sbagliato al caricamento.
   try{ var t = localStorage.getItem("runebog-theme");
        if(t && t !== "torbiera") document.documentElement.dataset.theme = t; }catch(e){}
+  // Stessa ragione per la barra: senza, la barra completa lampeggerebbe a menu.
+  try{ if(localStorage.getItem("runebog-ui") === "classica")
+         document.documentElement.classList.add("ui-classica"); }catch(e){}
 </script>
 </head>
 <body>
@@ -48,7 +51,20 @@
        centrale e "apri in una scheda nuova". Il salvataggio in sospeso lo chiude
        il pagehide in stato.js, che vale per qualsiasi uscita, non solo per questa. -->
   <h1><a href="/">Runebog <small>GM · Diario del GM</small></a></h1>
-  <div id="camp-wrap">
+  <!-- La barra a menu (barra-menu.js): le voci si costruiscono all'apertura,
+       così dicono lo stato di adesso (tema, campagna, combattimento). Nella
+       barra completa (html.ui-classica) sparisce e tornano i bottoni sparsi. -->
+  <nav id="menubar" aria-label="Menu">
+    <button type="button" class="dm-only" data-menu="file" aria-haspopup="menu">File</button>
+    <button type="button" class="dm-only" data-menu="modifica" aria-haspopup="menu">Modifica</button>
+    <button type="button" data-menu="visualizza" aria-haspopup="menu">Visualizza</button>
+    <button type="button" data-menu="strumenti" aria-haspopup="menu">Strumenti</button>
+    <button type="button" data-menu="aiuto" aria-haspopup="menu">Aiuto</button>
+    <!-- Solo su telefono, al posto delle cinque intestazioni: lì non c'è una
+         riga da dare alla barra, e il ☰ apre le stesse sezioni in fila. -->
+    <button type="button" id="menubar-tutto" class="btn" data-menu="tutto" aria-haspopup="menu" aria-label="Menu" title="Menu">☰</button>
+  </nav>
+  <div id="camp-wrap" class="solo-classica">
     <select id="campaign-select" onchange="switchCampaign(this.value)" title="Campagna attiva"></select>
     <button class="btn tiny" title="Nuova campagna" onclick="newCampaign()">＋</button>
     <button class="btn tiny danger" title="Elimina campagna" onclick="askDeleteCampaign()">🗑</button>
@@ -70,7 +86,7 @@
   <!-- role=status/aria-live: "Salvato ✓", "Modifica annullata", l'avviso sui 4 MB
        e gli errori cloud vengono annunciati anche da lettore di schermo -->
   <span id="savestate" role="status" aria-live="polite"></span>
-  <label id="theme-wrap" title="Tema">
+  <label id="theme-wrap" class="solo-classica" title="Tema">
     <span class="sr-only">Tema</span>
     <!-- Vuoto apposta: le voci le mette popolaTemi() in app/main.js leggendo
          app/temi.js, raggruppate per fondo. Elencarle qui voleva dire tenere
@@ -79,10 +95,10 @@
          dimenticato qui semplicemente non compare. -->
     <select id="theme-select" onchange="setTheme(this.value)"></select>
   </label>
-  <button id="keys-btn" class="btn tiny" onclick="openKeys()" title="Scorciatoie da tastiera" aria-label="Scorciatoie da tastiera">?</button>
+  <button id="keys-btn" class="btn tiny solo-classica" onclick="openKeys()" title="Scorciatoie da tastiera" aria-label="Scorciatoie da tastiera">?</button>
   <button class="btn only-cloud" onclick="openShare()" title="Link per i giocatori">Tavolo</button>
-  <button class="btn dm-only" onclick="exportJSON()">Esporta</button>
-  <button class="btn dm-only" onclick="document.getElementById('import-file').click()">Importa</button>
+  <button class="btn dm-only solo-classica" onclick="exportJSON()">Esporta</button>
+  <button class="btn dm-only solo-classica" onclick="document.getElementById('import-file').click()">Importa</button>
   <!-- Solo su touch dai 761px in su (via CSS): lì Ctrl+Z non esiste e un drag
        accidentale sarebbe irreversibile; sul telefono la topbar non ha spazio e
        l'annulla sta nel menu ⋯. hidden lo governa stato.js: appare quando c'è
@@ -93,8 +109,10 @@
        ha niente da rifare, e un bottone spento in permanenza è rumore in una
        topbar che su touch è già stretta. -->
   <button id="redo-btn" class="btn tiny" hidden onclick="doRedo()" title="Ripristina la modifica annullata" aria-label="Ripristina la modifica annullata">↷</button>
-  <!-- Solo mobile (display:none su desktop): raccoglie le azioni rare in sessione. -->
-  <button id="topbar-more" class="btn" onclick="openTopbarMenu(event)" title="Altre azioni" aria-label="Altre azioni" aria-haspopup="menu">⋯</button>
+  <!-- Il menu della barra completa: raccoglie le azioni rare in sessione.
+       .solo-classica: nella barra a menu quei comandi stanno nei menu, e i
+       bottoni marcati così spariscono (barra-menu.js, "Barra a menu" in app.css). -->
+  <button id="topbar-more" class="btn solo-classica" onclick="openTopbarMenu(event)" title="Altre azioni" aria-label="Altre azioni" aria-haspopup="menu">⋯</button>
   <input type="file" id="import-file" accept=".json,application/json" hidden>
   <input type="file" id="dungeon-file" accept=".json,application/json" hidden>
 </header>
@@ -127,27 +145,48 @@
              sono due strisce che scorrono separatamente, sennò per arrivare a
              ⚔ Combattimento si scorrono cinque schermate di palette. Stessa
              ragione di `.ini-actions` nel tabellone d'iniziativa. -->
+        <!-- Ogni gruppo sta in un .pal-gruppo con un bottone .pal-apri e le
+             pastiglie dentro .pal-voci. Nella barra completa (html.ui-classica)
+             gruppo e voci sono display:contents e il bottone non c'è: la
+             palette è la striscia di sempre. Nella barra a menu il bottone apre
+             le voci come tendina (barra-menu.js). Le pastiglie sono le STESSE
+             in entrambi i casi — niente copie da tenere allineate. -->
         <div id="pal-scroll">
+        <div class="pal-gruppo" data-gruppo="territorio">
+        <button type="button" class="btn pal-apri" aria-expanded="false" aria-haspopup="true">Territorio <span aria-hidden="true">▾</span></button>
         <span class="pal-title">Territorio:</span>
+        <div class="pal-voci" role="group" aria-label="Territorio">
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"mondo"}'><svg width="20" height="18" aria-hidden="true"><circle cx="9" cy="9" r="7.5" fill="none" style="stroke:var(--fen)" stroke-width="2"/><ellipse cx="9" cy="9" rx="3" ry="7.5" fill="none" style="stroke:var(--fen)" stroke-width="1.5"/></svg>Mondo</div>
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"continente"}'><svg width="22" height="18" aria-hidden="true"><path transform="translate(2,2)" d="M18.0,7.0C18.0,8.0 16.5,9.1 15.7,10.0C14.9,11.0 14.3,12.0 13.2,12.6C12.1,13.3 10.3,14.1 9.0,14.0C7.7,13.9 6.6,12.5 5.4,11.8C4.2,11.2 2.5,11.1 1.6,10.3C0.7,9.5 -0.1,8.1 0.0,7.0C0.1,5.9 1.2,4.7 2.1,3.9C3.1,3.1 4.3,2.9 5.5,2.3C6.6,1.6 7.7,0.1 9.0,0.0C10.3,-0.1 12.0,0.8 13.1,1.4C14.2,2.1 14.7,3.1 15.6,4.1C16.4,5.0 18.0,6.0 18.0,7.0Z" fill="none" style="stroke:var(--fen)" stroke-width="2"/></svg>Continente</div>
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"nazione"}'><svg width="24" height="18" aria-hidden="true"><rect x="1" y="2" width="22" height="14" rx="3.5" fill="none" style="stroke:var(--fen)" stroke-width="2"/><line x1="17.3" y1="2" x2="19.9" y2="16" style="stroke:var(--fen)" stroke-width="1.5" stroke-dasharray="1.47 .98"/></svg>Nazione</div>
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"regione"}'><svg width="26" height="18" aria-hidden="true"><rect x="1" y="1" width="24" height="16" rx="4" fill="none" style="stroke:var(--fen)" stroke-width="2" stroke-dasharray="3 2"/></svg>Regione</div>
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"quartiere"}'><svg width="26" height="18" aria-hidden="true"><rect x="1" y="1" width="24" height="16" rx="3" fill="none" style="stroke:var(--fen)" stroke-width="2"/></svg>Quartiere</div>
+        </div></div>
+        <div class="pal-gruppo" data-gruppo="luoghi">
+        <button type="button" class="btn pal-apri" aria-expanded="false" aria-haspopup="true">Luoghi <span aria-hidden="true">▾</span></button>
         <span class="pal-title" style="margin-left:6px">Luoghi:</span>
+        <div class="pal-voci" role="group" aria-label="Luoghi">
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"edificio"}'><svg width="24" height="18" aria-hidden="true"><rect x="2" y="3" width="20" height="12" rx="2" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Edificio</div>
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"stanza"}'><svg width="18" height="18" aria-hidden="true"><rect x="2" y="2" width="14" height="14" rx="2" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Stanza</div>
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"piazza"}'><svg width="18" height="18" aria-hidden="true"><circle cx="9" cy="9" r="7" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Piazza</div>
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"shape":"torre"}'><svg width="18" height="18" aria-hidden="true"><polygon points="9,1 17,9 9,17 1,9" fill="none" style="stroke:var(--teal)" stroke-width="2"/></svg>Torre</div>
+        </div></div>
         <!-- Il muro non è una bolla e non è un segnalino: è il pavimento su cui
              si gioca, quindi ha una sua etichetta invece di stare in coda alle
              forme, dove sarebbe sembrato l'ennesima sagoma da riempire. -->
+        <div class="pal-gruppo" data-gruppo="pianta">
+        <button type="button" class="btn pal-apri" aria-expanded="false" aria-haspopup="true">Pianta <span aria-hidden="true">▾</span></button>
         <span class="pal-title" style="margin-left:6px">Pianta:</span>
+        <div class="pal-voci" role="group" aria-label="Pianta">
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"wall":true}' title="Un tratto di muro: posalo, trascinalo, tira i capi per allungarlo"><svg width="24" height="18" aria-hidden="true"><line x1="2" y1="9" x2="22" y2="9" style="stroke:var(--ink-dim)" stroke-width="5" stroke-linecap="butt"/></svg>Muro</div>
         <!-- La porta nasce larga un quadretto perché è quanto è larga una porta:
              posarla e basta, invece di posare un muro e poi accorciarlo. -->
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"wall":true,"porta":"chiusa"}' title="Una porta larga un quadretto: dal pannello la cambi in aperta, chiusa a chiave o segreta"><svg width="24" height="18" aria-hidden="true"><line x1="2" y1="9" x2="6" y2="9" style="stroke:var(--ink-dim)" stroke-width="5" stroke-linecap="butt"/><line x1="18" y1="9" x2="22" y2="9" style="stroke:var(--ink-dim)" stroke-width="5" stroke-linecap="butt"/><line x1="6" y1="9" x2="18" y2="9" style="stroke:var(--track)" stroke-width="3" stroke-linecap="butt"/></svg>Porta</div>
+        </div></div>
+        <div class="pal-gruppo" data-gruppo="segnalini">
+        <button type="button" class="btn pal-apri" aria-expanded="false" aria-haspopup="true">Segnalini <span aria-hidden="true">▾</span></button>
         <span class="pal-title" style="margin-left:6px">Segnalini:</span>
+        <div class="pal-voci" role="group" aria-label="Segnalini">
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"marker":"quest"}'><span class="type-badge" style="background:var(--gold)"></span>Quest</div>
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"marker":"encounter"}'><span class="type-badge" style="background:var(--ember)"></span>Encounter</div>
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"marker":"png"}'><span class="type-badge" style="background:var(--viola)"></span>PNG</div>
@@ -156,14 +195,15 @@
         <!-- La casella di testo non è un segnalino (non si entra, non sta in un
              quadretto), ma si posa nello stesso momento: a preparare la stanza. -->
         <div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false" data-pal='{"testo":true}' title="Una scritta sulla mappa, da leggere senza aprire niente"><svg width="18" height="18" aria-hidden="true"><rect x="1.5" y="2.5" width="15" height="13" rx="2" fill="none" style="stroke:var(--ink-dim)" stroke-width="1.5" stroke-dasharray="3 2"/><text x="9" y="13" text-anchor="middle" style="font:700 10px Georgia,serif;fill:var(--ink)">T</text></svg>Testo</div>
+        </div></div>
         </div><!-- /#pal-scroll -->
         <span class="pal-sep"></span>
         <div id="plan-cmds">
         <!-- .zoom: su telefono spariscono, perché lì lo zoom si fa a pizzico -->
-        <button class="btn zoom" onclick="planZoom(1.25)">＋</button>
-        <button class="btn zoom" onclick="planZoom(0.8)">－</button>
-        <button class="btn dm-only" onclick="arrangeGrid()" title="Dispone le bolle in griglia allineata">Ordina</button>
-        <button class="btn" onclick="planFit(true)">Adatta</button>
+        <button class="btn zoom solo-classica" onclick="planZoom(1.25)">＋</button>
+        <button class="btn zoom solo-classica" onclick="planZoom(0.8)">－</button>
+        <button class="btn dm-only solo-classica" onclick="arrangeGrid()" title="Dispone le bolle in griglia allineata">Ordina</button>
+        <button class="btn solo-classica" onclick="planFit(true)">Adatta</button>
         <!-- Ancora unica degli strumenti temporanei della mappa (righello e simili):
              i pulsanti li crea il gestore in strumenti/gestore.js. NON dm-only —
              è il registro del singolo tool a decidere se vale per DM, tavolo o

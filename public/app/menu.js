@@ -15,9 +15,29 @@ import { renderDetail, openDetailSheet, editNode, askDeleteNode, editEdge, delet
 import { copiaSelezione, tagliaSelezione, incolla, ciSonoAppunti } from "./appunti.js";
 
 const ctxEl = () => document.getElementById("ctx-menu");
-function closeCtx(){ ctxEl().classList.remove("show"); }
+/* Chi ha aperto il menu, se è un bottone (barra a menu, ⋯): alla chiusura
+   torna lì il focus e si spegne aria-expanded. Col menu contestuale della
+   tela è null, e non c'è niente da ripristinare. */
+let ancora = null;
+export function closeCtx(){
+  ctxEl().classList.remove("show");
+  if(ancora){
+    ancora.setAttribute("aria-expanded","false");
+    if(ctxEl().contains(document.activeElement)) ancora.focus();
+    ancora = null;
+  }
+}
+export const ctxAperto = () => ctxEl().classList.contains("show");
+export const ancoraCtx = () => ancora;
 
-function openCtx(items, x, y){
+/* `kbd` è solo un promemoria scritto accanto alla voce (la scorciatoia vera
+   sta in scorciatoie.js): un menu che non insegna i tasti resta per sempre
+   il modo lento. `da` è il bottone che apre il menu: lo usa la barra a menu
+   per il focus e per aria-expanded. */
+export function openCtx(items, x, y, da = null){
+  if(ancora && ancora !== da) ancora.setAttribute("aria-expanded","false");
+  ancora = da;
+  if(da) da.setAttribute("aria-expanded","true");
   const el = ctxEl();
   el.innerHTML = items.map(it=>{
     if(it==="---") return "<hr>";
@@ -25,7 +45,8 @@ function openCtx(items, x, y){
     const icon = it.dot ? `<span class="dot" style="background:${it.dot}"></span>`
                : it.bar ? `<span class="bar" style="border-color:${it.bar}${it.dash?";border-top-style:dashed":""}"></span>`
                : "";
-    return `<button class="${it.danger?"danger":""}" data-act="${it.id}">${icon}${it.label}</button>`;
+    const kbd = it.kbd ? `<span class="ctx-kbd">${it.kbd}</span>` : "";
+    return `<button class="${it.danger?"danger":""}" data-act="${it.id}">${icon}${it.label}${kbd}</button>`;
   }).join("");
   el.querySelectorAll("button").forEach((b,)=>{
     b.onclick = ()=>{ closeCtx(); const it = items.filter(i=>i!=="---"&&!i.head)[[...el.querySelectorAll("button")].indexOf(b)]; it.run(); };
@@ -37,6 +58,8 @@ function openCtx(items, x, y){
      sempre dentro gli otto pixel di margine su tutti e quattro i lati. */
   el.style.left = Math.max(8, Math.min(x, innerWidth  - r.width  - 8)) + "px";
   el.style.top  = Math.max(8, Math.min(y, innerHeight - r.height - 8)) + "px";
+  // Aperto da tastiera, il focus entra nel menu: sennò Tab lo scavalca.
+  if(da && document.activeElement === da) el.querySelector("button")?.focus();
 }
 
 function focusDetailTitle(){
@@ -164,6 +187,7 @@ export function showCtxFor(target, cx, cy){
    topbar scende a due righe e la tela si riprende lo schermo. I bottoni estesi
    restano nel markup: su desktop questo bottone è display:none. */
 export function openTopbarMenu(ev){
+  if(ctxAperto() && ancora === ev.currentTarget){ closeCtx(); return; }
   const cur = document.getElementById("theme-select")?.value || TEMA_DEFAULT;
   const items = [];
   /* Le regole stanno accanto al generatore di dungeon: sono gli strumenti del
@@ -206,6 +230,8 @@ export function openTopbarMenu(ev){
       items.push({id:"th-"+t.id, label: t.label + (cur===t.id?"  ✓":""), run:()=>window.setTheme(t.id)});
   }
   items.push("---", {id:"keys", label:"Scorciatoie da tastiera", run:openKeys});
+  // La via di ritorno dalla barra completa: nella barra a menu sta in Visualizza.
+  items.push({id:"ui", label:"Passa alla barra a menu", run:()=>window.impostaBarra("menu")});
   if(!RO && !window.__cloud){
     items.push("---",
       {id:"newc", label:"Nuova campagna", run:newCampaign},
@@ -220,12 +246,23 @@ export function openTopbarMenu(ev){
   const offline = etichettaOffline();
   if(offline) items.push("---", {head: offline});
   const r = ev.currentTarget.getBoundingClientRect();
-  openCtx(items, r.left, r.bottom + 6);
+  openCtx(items, r.left, r.bottom + 6, ev.currentTarget);
 }
 
 export function initMenu(){
-  addEventListener("pointerdown", e=>{ if(!e.target.closest("#ctx-menu")) closeCtx(); }, true);
-  addEventListener("keydown", e=>{ if(e.key==="Escape") closeCtx(); });
+  // Il bottone che l'ha aperto no: il suo clic decide da sé (richiudere, nella
+  // barra a menu), e chiudere qui prima farebbe riaprire il menu al clic.
+  addEventListener("pointerdown", e=>{
+    if(!e.target.closest("#ctx-menu") && !ancora?.contains(e.target)) closeCtx();
+  }, true);
+  /* In cattura, e fermato: l'Escape che chiude il menu non deve proseguire
+     fino alle scorciatoie della mappa. La loro guardia su #ctx-menu non
+     bastava — quando arrivava lì il menu era già chiuso, e lo stesso tasto
+     deselezionava la bolla o risaliva di livello. */
+  addEventListener("keydown", e=>{
+    if(e.key!=="Escape" || !ctxAperto()) return;
+    e.stopPropagation(); closeCtx();
+  }, true);
   addEventListener("blur", closeCtx);
 }
 

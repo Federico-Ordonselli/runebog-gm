@@ -1063,7 +1063,9 @@ let paletteAllineataSu = null;
 
 function gruppoDellaPalette(pal, corrisponde){
   let titolo = null;
-  for(const el of pal.children){
+  // In ordine di documento e non per figli diretti: dal 22 set 2026 ogni
+  // gruppo sta in un suo .pal-gruppo (le tendine della barra a menu).
+  for(const el of pal.querySelectorAll(".pal-title, .pal-item")){
     if(el.classList.contains("pal-title")){ titolo = el; continue; }
     if(!el.classList.contains("pal-item")) continue;
     let dati; try{ dati = JSON.parse(el.dataset.pal); }catch(_){ continue; }
@@ -1072,8 +1074,34 @@ function gruppoDellaPalette(pal, corrisponde){
   return null;
 }
 
+/* Cosa si posa, di solito, dentro il livello `cur`. */
+function serveNelLivello(cur){
+  const forma = cur.shape || defShape(cur);
+  /* Sotto la stanza la scala si ferma (`scalaDentro` torna ancora "stanza"),
+     ma quel che si posa dentro una stanza non è un'altra stanza: è il pavimento
+     — e a scontro acceso sono le pedine. È l'unica risposta che `formaImplicita`
+     non sa dare, ed è anche il caso che conta di più: durante un combattimento
+     la palette non si scorre. */
+  return forma !== "stanza" ? d => d.shape === scalaDentro(forma)
+       : cur.battle ? d => d.marker === "token"
+       : d => d.wall;
+}
+
+/* Nella barra a menu la palette non scorre: è fatta di tendine chiuse. Lì la
+   stessa risposta si dice segnando il gruppo che serve, ed è per questo che
+   gira prima delle guardie di allineaPalette — che valgono solo per la
+   striscia che scorre. Niente guardia sul livello: toglie e rimette una
+   classe su quattro elementi. */
+function segnaGruppoSuggerito(pal){
+  if(RO || !pal) return;
+  const titolo = gruppoDellaPalette(pal, serveNelLivello(currentNode()));
+  for(const g of pal.querySelectorAll(".pal-gruppo"))
+    g.classList.toggle("suggerito", !!titolo && g.contains(titolo));
+}
+
 export function allineaPalette(){
   const pal = document.getElementById("pal-scroll");
+  segnaGruppoSuggerito(pal);
   /* Su scrivania `#pal-scroll` è `display:contents`, cioè non esiste come
      contenitore: `clientWidth` è 0 e non c'è niente da allineare, perché la
      barra va a capo e si vede tutta. Al tavolo la palette non c'è affatto. */
@@ -1084,20 +1112,14 @@ export function allineaPalette(){
   if(chiave === paletteAllineataSu) return;
   paletteAllineataSu = chiave;
 
-  const forma = cur.shape || defShape(cur);
-  /* Sotto la stanza la scala si ferma (`scalaDentro` torna ancora "stanza"),
-     ma quel che si posa dentro una stanza non è un'altra stanza: è il pavimento
-     — e a scontro acceso sono le pedine. È l'unica risposta che `formaImplicita`
-     non sa dare, ed è anche il caso che conta di più: durante un combattimento
-     la palette non si scorre. */
-  const corrisponde = forma !== "stanza" ? d => d.shape === scalaDentro(forma)
-                    : cur.battle ? d => d.marker === "token"
-                    : d => d.wall;
+  const corrisponde = serveNelLivello(cur);
   const titolo = gruppoDellaPalette(pal, corrisponde);
   if(!titolo) return;
 
+  // Nella barra a menu il titolo è nascosto e a vedersi è il bottone del gruppo.
+  const bersaglio = titolo.offsetParent ? titolo : titolo.parentElement.querySelector(".pal-apri") || titolo;
   const lento = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  pal.scrollTo({left: titolo.offsetLeft - pal.offsetLeft, behavior: lento ? "auto" : "smooth"});
+  pal.scrollTo({left: bersaglio.offsetLeft - pal.offsetLeft, behavior: lento ? "auto" : "smooth"});
 }
 /* Crea al centro della vista corrente. La usano i pulsanti dell'empty state:
    lì non c'è un punto scelto dall'utente, quindi il centro è l'unica posizione

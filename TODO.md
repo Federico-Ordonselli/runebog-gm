@@ -95,6 +95,17 @@ funzionano. Quattro punti, verificati contro il codice.
   e nasce a quadretti. Test in `test/scala/griglia.test.mjs`; provato in
   Chromium (disegno, frecce che tornano allo stesso esagono, righello "3 es",
   riapertura e tavolo con la stessa maglia del DM).
+- [x] **Barra a menu al posto della barra piena di bottoni.** Fatto il 22
+  settembre in `public/app/barra-menu.js`: File, Modifica, Visualizza,
+  Strumenti, Aiuto in topbar (su telefono e coricato un solo ☰ con le cinque
+  sezioni in fila) e la palette raggruppata in quattro tendine, col gruppo
+  utile nel livello segnato in grassetto. Nessun comando nuovo né perso: ogni
+  voce chiama la funzione del bottone che sostituisce, e la barra completa di
+  prima resta a un clic (Visualizza › Barra completa; ritorno dal ⋯),
+  ricordata in `runebog-ui`. Di passaggio: l'Escape che chiudeva un menu
+  arrivava anche alle scorciatoie della mappa. Verifica in
+  `test/browser/verifica-barra-menu.mjs` (35 controlli: scrivania, telefono,
+  tavolo).
 - [x] **Copia, taglia e incolla le bolle, anche fra livelli.** Fatto il 22
   settembre in `public/app/appunti.js`: Ctrl+C/X/V, "Copia"/"Taglia" nel menu
   di una bolla (tutta la selezione), "Incolla qui" nel menu della tela.

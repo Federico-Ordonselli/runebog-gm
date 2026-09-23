@@ -123,6 +123,8 @@ function creaPulsante(tool){
   if(tool.title) btn.setAttribute("title", tool.title
     + (tool.shortcut ? ` (${tool.shortcut.toUpperCase()})` : ""));
   btn.setAttribute("aria-pressed", "false");
+  // Letta anche dal menu Strumenti (barra-menu.js) per scriverla accanto alla voce.
+  if(tool.shortcut) btn.setAttribute("aria-keyshortcuts", tool.shortcut.toUpperCase());
   btn.dataset && (btn.dataset.tool = tool.id);
   btn.addEventListener("click", ()=> attivaTool(active === tool ? null : tool.id));
   deps.toolbar.appendChild(btn);

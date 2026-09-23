@@ -9,6 +9,7 @@ import { initMappa, renderMap, planSvg, planPointXY } from "./mappa.js";
 import { CELL, METRI_PER_CELLA, GRIGLIE, grigliaDi, puntoMaglia, celleFra } from "./modello.js";
 import { initStrumentiMappa } from "./strumenti/index.js";
 import { initMenu } from "./menu.js";
+import { initBarraMenu } from "./barra-menu.js";
 import { initRicerca } from "./ricerca.js";
 import { initScorciatoie } from "./scorciatoie.js";
 import { initChecklist } from "./checklist.js";
@@ -159,6 +160,7 @@ initStrumentiMappa({
   readOnly: RO,
 });
 initMenu();
+initBarraMenu();
 initRicerca();
 initScorciatoie();
 initChecklist();
@@ -174,7 +176,7 @@ if(window.__cloud){
   const tb = document.getElementById("topbar"), tabs = tb && tb.querySelector("nav.tabs");
   if(tb && tabs){                                  // in cloud le campagne stanno sul sito, non negli slot locali
     const back = document.createElement("a");
-    back.href = "/"; back.className = "btn"; back.textContent = "← Le mie campagne";
+    back.href = "/"; back.className = "btn solo-classica";   // nella barra a menu sta in File back.textContent = "← Le mie campagne";
     back.title = "Torna all'elenco delle campagne";
     back.style.textDecoration = "none";
     tb.insertBefore(back, tabs);

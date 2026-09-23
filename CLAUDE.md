@@ -90,6 +90,19 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   (`GRID_FORMS`, `GRID_LIMITS`) e li leggono contratto, `safeGriglia` e
   `projectGriglia` di `share.ts`: al tavolo arriva la stessa maglia del DM.
   `test/scala/griglia.test.mjs` impone GRIGLIE = GRID_FORMS.
+- Barra a menu (`barra-menu.js`, 22 set 2026): è il default; la barra
+  completa di prima è `html.ui-classica` (`runebog-ui` in localStorage,
+  applicata dallo script inline in `<head>` come il tema) e resta **solo CSS**:
+  i bottoni sono ancora nel markup, marcati `.solo-classica`, e le voci dei
+  menu chiamano le loro stesse funzioni. Non duplicare un comando dentro il
+  menu: chiamalo. I menu usano `#ctx-menu` (`openCtx` con l'ancora, `kbd` per
+  il promemoria del tasto) e si costruiscono all'apertura; Strumenti legge i
+  tool dai bottoni del gestore (`aria-keyshortcuts`), quindi un tool nuovo
+  continua a non toccare altri file. La palette sta in `.pal-gruppo` (bottone
+  `.pal-apri` + `.pal-voci` in tendina `position:fixed`): chi aggiunge una
+  pastiglia la mette dentro il suo gruppo, e `gruppoDellaPalette` la trova in
+  ordine di documento. Sotto i 760px e coricati le intestazioni diventano un
+  ☰. Verifica: `node test/browser/verifica-barra-menu.mjs`.
 - PostgreSQL reale senza dati dell’app: avviare
   `docker run --rm -d --name runebog-todo-test -e POSTGRES_PASSWORD=runebog-test-only postgres:17-alpine`,
   poi `node test/database/verifica-todo.mjs` e
