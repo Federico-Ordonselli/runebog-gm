@@ -14,7 +14,7 @@ export const metadata = {
 
 // Il tema scelto nell'app vale anche qui: stesso dominio, stessa chiave.
 // Va applicato PRIMA del primo disegno, o si vede un lampo del tema sbagliato.
-const APPLICA_TEMA = `try{var t=localStorage.getItem("runebog-theme");if(t&&t!=="torbiera")document.documentElement.dataset.theme=t;}catch(e){}`;
+const APPLICA_TEMA = `try{var t=localStorage.getItem("runebog-theme");if(t==="brace"||t==="taverna")localStorage.setItem("runebog-theme","torbiera");else if(t&&t!=="torbiera")document.documentElement.dataset.theme=t;}catch(e){}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

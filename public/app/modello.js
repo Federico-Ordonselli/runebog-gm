@@ -537,11 +537,11 @@ export function stretchWallSeg(w, capo, px, py, g = GRIGLIA_BASE){
    piazza erano --track e --tunnel, cioè la stessa sabbia più chiara e più
    scura, e su una mappa affollata leggevano come un colore solo. La piazza
    passa quindi ad --dg-trap, l'arancio del generatore.
-   Il vincolo vero è che la separazione regga in TUTTI E CINQUE i temi, non solo
-   nel default: --gold per la stanza sembrava più squillante, ma in Brace
-   l'accento --moss è rame (#d99a4e) e l'oro (#f0c05a) gli finisce addosso —
-   quartiere, stanza e piazza diventavano tre aranci. --track resta sabbia
-   pallida ovunque, e con l'arancio della piazza non si confonde. */
+   Il vincolo vero è che la separazione regga in TUTTI i temi, non solo
+   nel default: --gold per la stanza sembrava più squillante, ma in una
+   palette ramata l'accento e l'oro finiscono addosso — quartiere, stanza e
+   piazza diventano tre aranci. --track resta sabbia pallida ovunque, e con
+   l'arancio della piazza non si confonde. */
 export const SHAPE_COLORS = {
   /* I cinque territori hanno UN colore solo, ed è voluto: il colore dice che
      cosa è una bolla (un pezzo di mondo, non una costruzione). Cinque verdi

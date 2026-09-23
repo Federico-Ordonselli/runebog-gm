@@ -37,7 +37,8 @@
 <script>
   // Prima del disegno, o si vede un lampo del tema sbagliato al caricamento.
   try{ var t = localStorage.getItem("runebog-theme");
-       if(t && t !== "torbiera") document.documentElement.dataset.theme = t; }catch(e){}
+       if(t === "brace" || t === "taverna") localStorage.setItem("runebog-theme", "torbiera");
+       else if(t && t !== "torbiera") document.documentElement.dataset.theme = t; }catch(e){}
   // Stessa ragione per la barra: senza, la barra completa lampeggerebbe a menu.
   try{ if(localStorage.getItem("runebog-ui") === "classica")
          document.documentElement.classList.add("ui-classica"); }catch(e){}

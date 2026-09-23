@@ -436,9 +436,8 @@ livello suo, quindi nasce sempre a quadretti.
 - **Nel tabellone d'iniziativa ogni distinzione ha due canali** (29 lug 2026), che
   è la regola che `.ini-row.on` seguiva già da sola: il turno corrente si dice con
   fondo, grassetto **e** `▸`. Da che parte sta una riga lo diceva invece il solo
-  colore della striscia, e `--fen`/`--ember` su Brace sono la coppia di famiglie
-  più vicina dei dodici temi (ΔE 17,4, dichiarato in `themes.css`) — due righe
-  identiche per chi non distingue quei rossi. Ora c'è anche un glifo (`.ini-tipo`:
+  colore della striscia; con due famiglie cromatiche vicine diventano due righe
+  identiche per chi non distingue le tinte. Ora c'è anche un glifo (`.ini-tipo`:
   ◆ per i PG, ▲ per i nemici), e sono due **silhouette**: ◆ e ◇ sarebbero di nuovo
   un canale solo, il peso. Il glifo prende lo stesso token della striscia, perché
   è lo stesso segnale detto due volte e non un secondo codice da imparare.
@@ -892,12 +891,13 @@ state ritirate perché erano una seconda copia del sorgente).
   rispondono comunque, con la pagina di ripiego: la verifica lo controlla guardando
   il **contenuto** e non lo stato, sennò un 200 basterebbe a farla passare.
 
-**Temi** (dodici, lug 2026): `public/themes.css` è la sorgente unica dei token
+**Temi** (dieci dopo la rimozione di Brace e Taverna): `public/themes.css` è la sorgente unica dei token
 colore, letta sia dal sito (link in `layout.tsx`) sia da `app.html`. I nomi sono
 per ruolo (`--moss` = accento primario), non per tinta: i temi si cambiano lì e
-in nessun altro posto.
+in nessun altro posto. Le due vecchie preferenze vengono riportate a Torbiera
+dagli script iniziali in `layout.tsx` e `app.html`, prima del primo disegno.
 
-Revisione del 23 settembre 2026: gli undici temi ordinari usano superfici e
+Revisione del 23 settembre 2026: i nove temi ordinari usano superfici e
 accenti più morbidi, evitando nero/bianco quasi assoluti e tinte molto sature.
 `contrasto` mantiene intenzionalmente gli estremi per chi ne ha bisogno.
 Quando si ritocca una palette, controllare sia `npm run temi:contrasto` sia una
@@ -906,7 +906,7 @@ schermata reale: il rapporto WCAG non misura l'affaticamento visivo.
 - **L'elenco dei temi sta in `public/app/temi.js`**, modulo di soli dati senza
   import: `main.js` ci riempie il `<select>` della topbar e `menu.js` le voci del
   menu "⋯". Erano tre elenchi scritti a mano (le `<option>` in `app.html`, l'array
-  di validazione, la mappa id→etichetta): a cinque temi reggeva, a dodici il modo
+  di validazione, la mappa id→etichetta): con molti temi il modo
   di romperli è **silenzioso** — un tema aggiunto al CSS e dimenticato lì non
   compare, uno tolto dal CSS si sceglie e non fa niente. Resta da allineare a mano
   solo `themes.css`, che i colori li ha davvero.
@@ -960,7 +960,7 @@ schermata reale: il rapporto WCAG non misura l'affaticamento visivo.
   una coppia sta sotto la sua soglia WCAG (4.5:1 sul testo, 3:1 sui contorni). Le
   coppie sono quelle che l'interfaccia usa **davvero**, ognuna trovata nel CSS e
   citata nel commento accanto: aggiungerne una senza dire dove sta è come non
-  averla. È il controllo che rende scrivibile un tema nuovo — a dodici temi
+  averla. È il controllo che rende scrivibile un tema nuovo — con dieci temi
   l'occhio non li copre più, e un accento che su Torbiera brilla su Pergamena è
   a 3:1 senza che nessuno lo noti. Il rovescio: `COPPIE` è **scritto a mano**,
   quindi lo script misura ciò che qualcuno si è ricordato di dichiarare. Un
@@ -971,7 +971,7 @@ schermata reale: il rapporto WCAG non misura l'affaticamento visivo.
   token**: il fondo è un radial fra `--glow` e `--peat`, e per il testo chiaro
   il caso brutto è `--peat`, il più vicino. Per un **mezzotono** come
   `--edge-ui` è l'opposto — è `--glow` a stargli accanto in luminanza, e infatti
-  Torbiera, Cripta e Brace passavano su `--peat` (3,34–3,45) e cadevano sul glow
+  Torbiera e Cripta passavano su `--peat` e cadevano sul glow
   (2,85–2,96) **proprio dove `#battle-bar` si apre**, a 12px dall'angolo in alto
   a sinistra. Fino al 28 lug 2026 l'intestazione dello script dichiarava che
   l'estremo peggiore è `--peat` e basta: vero finché a guardare il fondo era
@@ -1025,9 +1025,9 @@ schermata reale: il rapporto WCAG non misura l'affaticamento visivo.
   resta inservibile. Si misura in **ΔE Lab e non col rapporto WCAG** — quello
   guarda la luminanza e dava per uguali un verde e un ciano della stessa
   chiarezza, 110 avvisi su temi che vanno benissimo. La soglia (17) è **misurata**
-  sui temi originali: la coppia più vicina già accettata è il rame e l'oro di
-  Brace, ΔE 17,4. È un avviso e non un errore — due famiglie vicine si possono
-  tenere, come fa Brace, ma dicendolo.
+  sui temi originali e resta un limite conservativo anche dopo la rimozione
+  di due palette. È un avviso e non un errore: due famiglie vicine richiedono
+  una scelta consapevole.
 - Le palette nate da proposte esterne conservano le **famiglie cromatiche** e
   i ruoli, ma dal 23 settembre non ne copiano più gli estremi di luminanza e
   saturazione. Prima di correggere un valore che sembra troppo basso, misurare

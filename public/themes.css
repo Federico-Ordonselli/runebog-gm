@@ -5,7 +5,7 @@
    --fen…) ma li aliasa a questi: un colore si cambia qui e cambia ovunque.
 
    I nomi sono per RUOLO, non per tinta: --moss è "l'accento primario",
-   che nel tema Brace è rame e nella Cripta è fuoco fatuo. Così i temi
+   che nel tema Gilda è rame e nella Cripta è fuoco fatuo. Così i temi
    restano scambiabili senza toccare una riga di componente.
 
    Revisione 23 set 2026: nei temi ordinari le superfici evitano nero e bianco
@@ -39,7 +39,7 @@
      La tela è un gradiente fra --glow e --peat, e per un MEZZOTONO come
      questo l'estremo peggiore è --glow, non --peat: --edge-ui sta in mezzo,
      quindi è l'angolo illuminato ad avvicinarglisi. Vale il contrario per il
-     testo, ed è il motivo per cui torbiera, cripta e brace sono state
+     testo, ed è il motivo per cui torbiera e cripta sono state
      ritoccate il 28 lug — passavano su --peat (3,34–3,45) e cadevano sul
      glow (2,85–2,96) proprio dove il tabellone di combattimento si apre. */
   --edge:        #2a352e;
@@ -62,10 +62,9 @@
      1.4.11 chiede 3:1, e il 29 lug 2026 stava sotto in cinque temi (peggiore
      Sottosuolo 1,94:1): erano stati scelti guardandoli su un fondo, dove il
      contrasto c'è, e nessuna riga di COPPIE guardava questo token.
-     I cinque valori ritoccati si sono avvicinati al proprio --moss quanto
-     bastava — dal 9% di Taverna al 39% di Sottosuolo, che partiva più scuro
-     di tutti — non a un colore nuovo: la variante scura deve restare la
-     stessa tinta dell'accento.
+     I valori ritoccati si sono avvicinati al proprio --moss quanto basta,
+     senza cambiare tinta: la variante scura deve restare riconoscibile come
+     parte dello stesso accento.
 
      Quello che --moss-deep NON deve reggere è il testo: un glifo chiaro
      sopra ci sta a 2,8–3,8:1 anche nei temi che passano. Per questo il
@@ -211,52 +210,8 @@
      Torbiera — su questo fondale scuro reggono senza ritocchi. */
 }
 
-/* ---------- Brace: notte rossastra, rame, tizzone ---------- */
-[data-theme="brace"] {
-  --peat:        #261e1a;
-  --peat-sunk:   #211913;
-  --surface:     #322720;
-  --surface-hi:  #3e3027;
-  --surface-hov: #4a3a30;
-
-  --edge:        #3d2a20;
-  --edge-soft:   #2c1e17;
-  --edge-lit:    #614433;
-  --edge-ui:     #a89483;
-
-  --parchment:      #e4d8cb;
-  --parchment-dim:  #c9b8a6;
-  --parchment-mute: #b9a490;
-
-  --moss:        #d9ad79;
-  --moss-lit:    #e5bf94;
-  --moss-deep:   #a77b45;
-
-  --wisp:        #7fbfa6;
-  --wisp-lit:    #9ed4bc;
-
-  --lantern:     #f0c05a;
-
-  /* Il distruttivo qui confina con l'accento rame: lo tengo nettamente più
-     rosso, e nell'interfaccia è sempre accompagnato dalla parola "Elimina" —
-     il colore da solo non deve mai portare il significato. */
-  --ember:          #ef7053;
-  --ember-deep:     #8a2b1c;
-  --ember-lit:      #a33524;
-  --ember-edge:     #6e2b1c;
-  --ember-edge-lit: #c04a30;
-  --ember-hov:      #d4664a;
-
-  --arcane:      #b393c9;
-
-  --glow:        #33261e;
-
-  /* --dg-trap, --dg-lair, --track e --tunnel: ereditati di proposito da
-     Torbiera — su questo fondale scuro reggono senza ritocchi. */
-}
-
 /* ============================================================
-   I SETTE TEMI DI LUGLIO 2026
+   I TEMI AGGIUNTI A LUGLIO 2026
    Nascono da palette proposte per intero (fondo, testo, accento). La revisione
    del 23 settembre ne conserva le famiglie cromatiche, ma attenua gli estremi
    originali. `scripts/verifica-contrasto.mjs` misura le coppie effettivamente
@@ -539,47 +494,6 @@
   --arcane:      #67e8f9;
 
   --glow:        #2c2d3b;
-}
-
-/* ---------- Taverna: noce tostato, lino, oro da paladino ----------
-   Il testo ambrato è diventato lino caldo: l'atmosfera resta, senza velare
-   tutta la pagina di giallo. L'accento oro e il distruttivo rosso restano
-   separati e il colore non porta mai da solo il significato. */
-[data-theme="taverna"] {
-  --peat:        #29221b;
-  --peat-sunk:   #241c16;
-  --surface:     #372c23;
-  --surface-hi:  #43362b;
-  --surface-hov: #514235;
-
-  --edge:        #55402d;
-  --edge-soft:   #33241a;
-  --edge-lit:    #8a6a48;
-  --edge-ui:     #a89677;
-
-  --parchment:      #e8dcb9;
-  --parchment-dim:  #c9bb92;
-  --parchment-mute: #b8a880;
-
-  --moss:        #d7a968;
-  --moss-lit:    #e6bd84;
-  --moss-deep:   #a67a3c;
-
-  --wisp:        #6ee7b7;
-  --wisp-lit:    #a7f3d0;
-
-  --lantern:     #fcd34d;
-
-  --ember:          #ff8a80;
-  --ember-deep:     #9b1c1c;
-  --ember-lit:      #b32222;
-  --ember-edge:     #7a3128;
-  --ember-edge-lit: #c25a4a;
-  --ember-hov:      #ffa79f;
-
-  --arcane:      #c4b5fd;
-
-  --glow:        #362a20;
 }
 
 /* ---------- Alto contrasto: non un'atmosfera, un'esigenza ---------- */

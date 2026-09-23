@@ -21,7 +21,7 @@ import { GRUPPI, TEMA_DEFAULT, temaValido, temiDelGruppo } from "./temi.js";
 
 /* --- temi: scelti qui, ricordati, e validi anche sul sito (stessa chiave) --- */
 
-/* Il <select> si RIEMPIE da temi.js invece di elencare dodici <option> in
+/* Il <select> si RIEMPIE da temi.js invece di elencare le <option> in
    app.html: erano tre elenchi da tenere allineati a mano, e il modo di
    romperli era silenzioso. Se il markup non c'è (una pagina che carica i
    moduli senza la topbar) non succede niente. */

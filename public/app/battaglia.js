@@ -258,11 +258,10 @@ export function renderBattleBar(){
   // ragione del num() in src/lib/share.ts.
   const intero = (v, alt = 0) => Number.isFinite(Number(v)) ? Math.trunc(Number(v)) : alt;
 
-  /* Da che parte sta una riga si diceva col solo colore della striscia, e su
-     Brace accento e distruttivo sono la coppia più vicina dei dodici temi
-     (ΔE 17,4, dichiarato in themes.css): chi non distingue quei due rossi
-     leggeva due righe identiche. Il segnale in più è una FORMA — la stessa
-     ricetta di .ini-row.on, che il turno corrente lo dice con fondo,
+  /* Da che parte sta una riga si diceva col solo colore della striscia:
+     chi non distingue accento e distruttivo leggeva due righe identiche.
+     Il segnale in più è una FORMA — la stessa ricetta di .ini-row.on, che il
+     turno corrente lo dice con fondo,
      grassetto E ▸ — e le due sagome sono diverse di silhouette, non di
      riempimento: ◆ e ◇ sarebbero di nuovo un solo canale, il peso.
      Serve soprattutto AL TAVOLO, che è dove nessuno può chiedere: lì il 🎲

@@ -50,7 +50,7 @@
   /* L'anello di focus è l'accento PIENO, non --fen-dim: quella è la variante
      scura, nata per riempimenti e barre, e come CONTORNO scendeva sotto i 3:1
      che WCAG 1.4.11 chiede a un indicatore di focus — 1,94:1 su Sottosuolo,
-     2,48 su Segnale, 2,54 su Gilda, 2,57 su Notturno, 2,90 su Taverna. Il sito
+     2,48 su Segnale, 2,54 su Gilda e 2,57 su Notturno. Il sito
      usava già --moss (globals.css): erano due ricette per la stessa cosa, e
      quella sbagliata stava nella metà che si usa da tastiera per ore.
      Le coppie sono misurate da scripts/verifica-contrasto.mjs. */
@@ -331,7 +331,7 @@
      così: una barra PF è un incavo, quello che si vede è il RIEMPIMENTO, e il
      numero sta scritto nei campi accanto. Il difetto era che a pochi PF il
      riempimento spariva dentro la pista, cioè proprio quando serve.
-     Sull'incavo i tre passano in tutti e dodici i temi (minimo 3,95:1), e da
+     Sull'incavo i tre passano in tutti i temi (minimo 3,95:1), e da
      oggi tre righe di COPPIE li guardano. */
   .hp-bar{flex:1;height:10px;background:var(--bog-2);border-radius:6px;overflow:hidden;border:1px solid var(--line)}
   /* Il riempimento è largo 100% e si scala con transform: anima sul compositor,

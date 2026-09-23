@@ -2,7 +2,7 @@
 /* Verifica i rapporti di contrasto WCAG di TUTTI i temi di public/themes.css.
 
    Perché esiste: i temi si giudicano a occhio finché non sono cinque, e a
-   dodici non si giudicano più — un accento che su Torbiera brilla, su
+   molti non si giudicano più — un accento che su Torbiera brilla, su
    Pergamena è a 3:1 e nessuno se ne accorge finché non prova quel tema con
    quella schermata. Qui il giudizio è un numero, e vale per tutti i temi
    insieme: chi ne aggiunge uno lo sa prima di pubblicarlo, non dopo.
@@ -169,11 +169,9 @@ const COPPIE = [
    avrebbe insegnato a ignorare l'avviso. Serve una distanza di COLORE:
    ΔE in Lab (CIE76, che per questo scopo basta).
 
-   La soglia non è scelta, è MISURATA sui cinque temi originali: la coppia
-   più vicina che esiste già è il rame e l'oro di Brace (ΔE 17,4), e il file
-   dei temi la dichiara consapevolmente. Quindi 17 vuol dire "non peggio del
-   caso peggiore già accettato". È un avviso e non un errore: due famiglie
-   vicine si possono tenere, come fa Brace, ma dicendolo. */
+   La soglia 17 viene dalla distanza minima accettata nella prima raccolta
+   dei temi. Resta un limite conservativo anche quando un tema viene rimosso:
+   evita che due ruoli diventino indistinguibili in una palette futura. */
 const FAMIGLIE = ["--moss", "--wisp", "--lantern", "--ember", "--arcane"];
 const VICINI = 17;
 

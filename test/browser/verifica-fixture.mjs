@@ -28,7 +28,7 @@ try {
   /* --- vista DM: seminata su localStorage ---------------------------------- */
   console.log("\nStandalone (vista DM)");
   const documento = documentoDiProva({battaglia: true, pedine: true, muri: 2});
-  await semeStandalone(contesto, {documento, tema: "brace"});
+  await semeStandalone(contesto, {documento, tema: "cripta"});
   const dm = await contesto.newPage();
   await dm.goto(`${BASE}/app.html`);
   await dm.waitForSelector(`.blk[data-block="${ID.locanda}"]`);
@@ -43,9 +43,27 @@ try {
     "le voci dei PG si risolvono: i riferimenti puntano a players esistenti");
   controlla(await dm.locator(`.wall-seg[data-wall="${ID.muro(1)}"] .wall-seg__door`).count() > 0,
     "il primo muro è disegnato come porta");
-  controlla(await dm.evaluate(() => document.documentElement.dataset.theme) === "brace",
+  controlla(await dm.evaluate(() => document.documentElement.dataset.theme) === "cripta",
     "il tema seminato è quello applicato");
+  controlla(await dm.locator('#theme-select option[value="brace"], #theme-select option[value="taverna"]').count() === 0,
+    "i due temi rimossi non sono più selezionabili");
   await dm.close();
+
+  /* Un tema rimosso può restare nella preferenza di chi aveva già usato
+     l'app: sito ed editor devono rientrare nel default fin dal primo disegno. */
+  for(const vecchio of ["brace", "taverna"]){
+    const contestoVecchio = await browser.newContext();
+    await semeStandalone(contestoVecchio, {documento, tema: vecchio});
+    for(const url of ["/", "/app.html"]){
+      const pagina = await contestoVecchio.newPage();
+      await pagina.goto(`${BASE}${url}`);
+      controlla(await pagina.evaluate(() =>
+        !document.documentElement.dataset.theme && localStorage.getItem("runebog-theme") === "torbiera"),
+        `${vecchio} salvato torna a Torbiera su ${url}`);
+      await pagina.close();
+    }
+    await contestoVecchio.close();
+  }
 
   /* --- tavolo: ponte iniettato + polling ----------------------------------- */
   console.log("\nTavolo (sola lettura)");

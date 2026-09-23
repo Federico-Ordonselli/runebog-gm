@@ -1,8 +1,11 @@
 # To-do
 
-## Palette più riposanti (23 settembre 2026)
+## Palette e temi (23 settembre 2026)
 
-- [x] **Ridurre l'affaticamento visivo dei temi.** Negli undici temi ordinari
+- [x] **Rimuovere Brace e Taverna.** Tolte da `temi.js` e `themes.css`;
+  le preferenze già salvate su quei nomi tornano a Torbiera al caricamento,
+  sia nell'editor sia nelle pagine del sito.
+- [x] **Ridurre l'affaticamento visivo dei temi.** Nei nove temi ordinari
   i fondi scuri sono meno vicini al nero, quelli chiari evitano il bianco
   puro, e testo e accenti principali hanno tinte più morbide. Le famiglie
   cromatiche restano riconoscibili; "Alto contrasto" conserva la sua funzione
