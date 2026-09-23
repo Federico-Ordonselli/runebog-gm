@@ -1,5 +1,15 @@
 # To-do
 
+## Palette più riposanti (23 settembre 2026)
+
+- [x] **Ridurre l'affaticamento visivo dei temi.** Negli undici temi ordinari
+  i fondi scuri sono meno vicini al nero, quelli chiari evitano il bianco
+  puro, e testo e accenti principali hanno tinte più morbide. Le famiglie
+  cromatiche restano riconoscibili; "Alto contrasto" conserva la sua funzione
+  di accessibilità. I token condivisi in `public/themes.css` aggiornano sito
+  ed editor insieme. Verifica: `npm run temi:contrasto` (nessuna coppia sotto
+  soglia, nessuna famiglia troppo vicina) e controllo visivo dell'editor.
+
 ## Riscontri del primo tester (22 settembre 2026)
 
 Primo giro di prova di un DM esterno: pulsanti e caricamento immagini

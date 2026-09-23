@@ -897,6 +897,12 @@ colore, letta sia dal sito (link in `layout.tsx`) sia da `app.html`. I nomi sono
 per ruolo (`--moss` = accento primario), non per tinta: i temi si cambiano lì e
 in nessun altro posto.
 
+Revisione del 23 settembre 2026: gli undici temi ordinari usano superfici e
+accenti più morbidi, evitando nero/bianco quasi assoluti e tinte molto sature.
+`contrasto` mantiene intenzionalmente gli estremi per chi ne ha bisogno.
+Quando si ritocca una palette, controllare sia `npm run temi:contrasto` sia una
+schermata reale: il rapporto WCAG non misura l'affaticamento visivo.
+
 - **L'elenco dei temi sta in `public/app/temi.js`**, modulo di soli dati senza
   import: `main.js` ci riempie il `<select>` della topbar e `menu.js` le voci del
   menu "⋯". Erano tre elenchi scritti a mano (le `<option>` in `app.html`, l'array
@@ -1022,12 +1028,11 @@ in nessun altro posto.
   sui temi originali: la coppia più vicina già accettata è il rame e l'oro di
   Brace, ΔE 17,4. È un avviso e non un errore — due famiglie vicine si possono
   tenere, come fa Brace, ma dicendolo.
-- Quando una palette arriva da fuori con tre colori, quelli **restano dove la
-  proposta li destinava** e il resto si deriva; e prima di correggere un valore
-  "che sembra basso" **va misurato**: l'oro di Taverna e l'arancione di Gilda
-  erano stati schiariti per prudenza e passavano già (5,2:1 e 5,5:1), mentre il
-  teal di Alba (3,74:1) e il viola di Sottosuolo (4,28:1) andavano davvero
-  corretti. Il valore giusto è quello che passa, non quello che rassicura.
+- Le palette nate da proposte esterne conservano le **famiglie cromatiche** e
+  i ruoli, ma dal 23 settembre non ne copiano più gli estremi di luminanza e
+  saturazione. Prima di correggere un valore che sembra troppo basso, misurare
+  le coppie effettive: un colore più brillante non è automaticamente più
+  leggibile o più comodo da guardare.
 
 **Generatore di dungeon**: motore puro e deterministico (seed-based) in
 `src/lib/dungeon/engine.ts`, dataset SRD in `src/lib/dungeon/srd-data.ts`, UI in
