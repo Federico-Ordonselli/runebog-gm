@@ -32,6 +32,7 @@ export const TEMI = [
   {id:"pergamena",  label:"Pergamena",      gruppo:"Chiari"},
   {id:"inchiostro", label:"Inchiostro",     gruppo:"Chiari"},
   {id:"alba",       label:"Alba",           gruppo:"Chiari"},
+  {id:"bruma",      label:"Bruma",          gruppo:"Chiari"},
   {id:"contrasto",  label:"Alto contrasto", gruppo:"Accessibilità"},
 ];
 

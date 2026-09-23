@@ -891,17 +891,20 @@ state ritirate perché erano una seconda copia del sorgente).
   rispondono comunque, con la pagina di ripiego: la verifica lo controlla guardando
   il **contenuto** e non lo stato, sennò un 200 basterebbe a farla passare.
 
-**Temi** (dieci dopo la rimozione di Brace e Taverna): `public/themes.css` è la sorgente unica dei token
+**Temi** (undici, incluso Bruma): `public/themes.css` è la sorgente unica dei token
 colore, letta sia dal sito (link in `layout.tsx`) sia da `app.html`. I nomi sono
 per ruolo (`--moss` = accento primario), non per tinta: i temi si cambiano lì e
 in nessun altro posto. Le due vecchie preferenze vengono riportate a Torbiera
 dagli script iniziali in `layout.tsx` e `app.html`, prima del primo disegno.
 
-Revisione del 23 settembre 2026: i nove temi ordinari usano superfici e
+Revisione del 23 settembre 2026: i dieci temi ordinari usano superfici e
 accenti più morbidi, evitando nero/bianco quasi assoluti e tinte molto sature.
 `contrasto` mantiene intenzionalmente gli estremi per chi ne ha bisogno.
 Quando si ritocca una palette, controllare sia `npm run temi:contrasto` sia una
 schermata reale: il rapporto WCAG non misura l'affaticamento visivo.
+Bruma è una prova chiara basata sui cinque colori forniti dall'utente:
+fondo `#d1f2ee`, pannelli `#f3fffe`, superfici rialzate `#e6f2ff` e
+hover `#f9eaf0`. Testo e accenti sono derivati più scuri per leggibilità.
 
 - **L'elenco dei temi sta in `public/app/temi.js`**, modulo di soli dati senza
   import: `main.js` ci riempie il `<select>` della topbar e `menu.js` le voci del

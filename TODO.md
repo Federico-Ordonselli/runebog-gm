@@ -2,6 +2,11 @@
 
 ## Palette e temi (23 settembre 2026)
 
+- [x] **Provare una light mode con la palette fornita.** Aggiunto il tema
+  Bruma, lasciando Alba disponibile per confronto. La seconda palette di
+  prova usa `#f3fffe`, `#d1f2ee`, `#b7e6df`, `#e6f2ff` e `#f9eaf0` per
+  superfici e stati; testo e accenti sono derivati più scuri per leggibilità.
+  Prova locale, da valutare visivamente prima di considerarla definitiva.
 - [x] **Rimuovere Brace e Taverna.** Tolte da `temi.js` e `themes.css`;
   le preferenze già salvate su quei nomi tornano a Torbiera al caricamento,
   sia nell'editor sia nelle pagine del sito.

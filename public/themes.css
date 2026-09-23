@@ -496,6 +496,56 @@
   --glow:        #2c2d3b;
 }
 
+/* ---------- Bruma: menta tenue, azzurro e rosa cipria ----------
+   I cinque colori forniti (#f3fffe, #d1f2ee, #b7e6df, #e6f2ff,
+   #f9eaf0) formano superfici e stati. Testo, bordi funzionali e accenti
+   sono più scuri perché la palette originale contiene solo tinte chiare. */
+[data-theme="bruma"] {
+  color-scheme: light;
+
+  --peat:        #d1f2ee;
+  --peat-sunk:   #b7e6df;
+  --surface:     #f3fffe;
+  --surface-hi:  #e6f2ff;
+  --surface-hov: #f9eaf0;
+
+  --edge:        #b7e6df;
+  --edge-soft:   #d1f2ee;
+  --edge-lit:    #83b8b2;
+  --edge-ui:     #547b78;
+
+  --parchment:      #254b50;
+  --parchment-dim:  #3b6165;
+  --parchment-mute: #41666a;
+
+  --moss:        #17645e;
+  --moss-lit:    #287870;
+  --moss-deep:   #14554f;
+  --moss-hov:    #104b46;
+
+  --wisp:        #30637a;
+  --wisp-lit:    #264e63;
+
+  --lantern:     #805b2f;
+
+  --ember:          #9e4250;
+  --ember-deep:     #913342;
+  --ember-lit:      #aa5260;
+  --ember-edge:     #cfa9ae;
+  --ember-edge-lit: #913342;
+  --ember-hov:      #873541;
+
+  --arcane:      #6b4b85;
+
+  --glow:        #f3fffe;
+
+  --dg-trap:     #945b2d;
+  --dg-lair:     #8f3b51;
+
+  --track:       #68627e;
+  --tunnel:      #55516c;
+}
+
 /* ---------- Alto contrasto: non un'atmosfera, un'esigenza ---------- */
 [data-theme="contrasto"] {
   --peat:        #000000;

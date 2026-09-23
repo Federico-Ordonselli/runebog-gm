@@ -13,7 +13,7 @@ export default function Scarica() {
       <p className="lede muted">L&apos;editor sul tuo PC, senza installazione e senza connessione Internet.</p>
 
       <p><a className="btn btn--primary" href={WINDOWS_PORTABLE_URL}>Scarica Runebog GM Portable</a></p>
-      <p className="small muted">Versione {WINDOWS_PORTABLE_VERSION} · Windows 64 bit · 104,7 MiB (circa 110 MB)</p>
+      <p className="small muted">Versione {WINDOWS_PORTABLE_VERSION} · Windows 64 bit · 104,8 MiB (circa 110 MB)</p>
 
       <h2>Come si usa</h2>
       <ol>
