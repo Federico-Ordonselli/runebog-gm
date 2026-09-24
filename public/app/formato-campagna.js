@@ -104,6 +104,28 @@ export function normalizzaCorridoi(v){
   }
   return out;
 }
+/* Il percorso di un collegamento disegnato a mano (`edge.percorso`, 24 set
+   2026): i punti di mezzo come `[u, v]` nel riferimento dell'arco (vedi
+   public/app/percorsi.js), in unità della distanza fra i due centri. Esce al
+   tavolo come i corridoi, quindi la bonifica è UNA, qui, e la leggono
+   `sanitizeState` e share.ts. Un punto che non è una coppia di numeri finiti
+   CADE: finirebbe in un attributo `d`, e `Number(null)` è 0. Il tetto dei
+   punti è ciò che resta di una traccia dopo la semplificazione, largo. */
+export const ARCO_PUNTI_MAX = 64;
+export const ARCO_COORD = 1000;
+export function normalizzaPercorso(v){
+  if(!Array.isArray(v)) return [];
+  const out = [];
+  for(const p of v){
+    if(out.length >= ARCO_PUNTI_MAX) break;
+    if(!Array.isArray(p) || p.length !== 2) continue;
+    const [u, w] = p;
+    if(typeof u !== "number" || typeof w !== "number" || !Number.isFinite(u) || !Number.isFinite(w)) continue;
+    if(Math.abs(u) > ARCO_COORD || Math.abs(w) > ARCO_COORD) continue;
+    out.push([Math.round(u*1000)/1000 + 0, Math.round(w*1000)/1000 + 0]);
+  }
+  return out;
+}
 const IMAGE_MIMES = new Set(["png","jpeg","jpg","webp","gif","avif","svg+xml"]);
 const ID_RE = /^[\w-]+$/u;
 const COLOR_RE = /^#[0-9a-f]{3,8}$/i;
@@ -413,6 +435,16 @@ function validateEdge(edge, path){
   if(!EDGE_TYPES.has(edge.type)) return bad("invalid_edge_type", "Tipo collegamento non valido", `${path}.type`);
   if((error = validateOptionalString(edge.label, CAMPAIGN_LIMITS.shortTextChars, `${path}.label`))) return error;
   if((error = validateOptionalString(edge.notes, CAMPAIGN_LIMITS.longTextChars, `${path}.notes`))) return error;
+  if(edge.percorso !== undefined){
+    if((error = requireArray(edge.percorso, ARCO_PUNTI_MAX, `${path}.percorso`))) return error;
+    for(let i=0; i<edge.percorso.length; i++){
+      const p = edge.percorso[i], pp = `${path}.percorso[${i}]`;
+      if(!Array.isArray(p) || p.length !== 2)
+        return bad("invalid_edge_path", "Un punto del percorso è una coppia [u, v]", pp);
+      for(let k=0; k<2; k++)
+        if((error = validateNumber(p[k], `${pp}[${k}]`, {min:-ARCO_COORD, max:ARCO_COORD}))) return error;
+    }
+  }
   return null;
 }
 

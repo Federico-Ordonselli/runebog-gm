@@ -3,8 +3,11 @@
    navigazione tra livelli e operazioni sulla selezione. */
 
 import { duplicaNodi } from "./duplica.js";
+import { puntiArco, percorsoRelativo, semplificaTraccia, curvaArco } from "./percorsi.js";
+import { normalizzaPercorso } from "./formato-campagna.js";
+import { testoRicco, testoSemplice } from "./testo-ricco.js";
 import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeColor,
-         isMarker, isTesto, testoSize, TESTO_BOX, defShape, nodeBox, nodeCenter, node, uid, escapeHtml, escapeAttr,
+         isMarker, isTesto, testoSize, testoAllinea, testoAdatta, TESTO_BOX, defShape, nodeBox, nodeCenter, node, uid, escapeHtml, escapeAttr,
          gridShape, onGrid, snapGrid, snapNode,
          wallShape, wallBox, contentBox, wallOpening, wallPlan, WALL,
          wallSegsOf, wallSegEnds, newWallSeg, stretchWallSeg,
@@ -270,6 +273,28 @@ function riagganciaGruppo(g){
     w.x = snapGrid(w.x, mg); w.y = snapGrid(w.y, mg);
   }
 }
+/* Tracciato e punto di mezzo di un collegamento: una funzione sola per il
+   disegno e per l'aggiornamento durante il trascinamento. */
+const geoArco = (e, a, b) => curvaArco(puntiArco(e.percorso, nodeCenter(a), nodeCenter(b)));
+/* La traccia del dito → percorso dell'arco. Si buttano i punti dentro le due
+   bolle (la strada parte dal bordo, il pezzo sotto la bolla non si vede) e si
+   semplifica con una tolleranza in pixel dello SCHERMO: a qualunque zoom il
+   tremolio della mano è lo stesso. Traccia quasi dritta → nessun punto. */
+function percorsoDaTraccia(traccia, a, b, daB, svg){
+  if(!a || !b) return [];
+  const dentro = (q, n) => { const bx = nodeBox(n);
+    return q.x>=n.x && q.x<=n.x+bx.w && q.y>=n.y && q.y<=n.y+bx.h; };
+  const A = nodeCenter(a), B = nodeCenter(b);
+  /* La corda si misura da dove il dito è PARTITO (la maniglia, nell'angolo
+     della bolla) e non dal centro: sennò una traccia tirata dritta dalla
+     maniglia risulterebbe storta di mezza bolla, e mai più dritta. */
+  const [, inizio, ...resto] = traccia;
+  const tr = resto.filter(q => !dentro(q, a) && !dentro(q, b));
+  const fine = daB ? A : B;
+  const via = semplificaTraccia([inizio, ...tr, fine], 10 * planVB.w / (svg.clientWidth || 1)).slice(1, -1);
+  // ritracciando un arco esistente dall'altro capo, la traccia va rovesciata
+  return normalizzaPercorso(percorsoRelativo(daB ? via.reverse() : via, A, B));
+}
 /* Le linee dei collegamenti che toccano una bolla mossa: durante il gesto la
    tela non si ridisegna, quindi si spostano a mano. */
 function aggiornaArchiDi(ids){
@@ -277,13 +302,9 @@ function aggiornaArchiDi(ids){
   (cur.edges||[]).forEach(e=>{
     if(!ids.includes(e.a) && !ids.includes(e.b)) return;
     const a=childOf(e.a), b=childOf(e.b); if(!a||!b) return;
-    const A=nodeCenter(a), B=nodeCenter(b);
     const g = svg.querySelector(`.edge[data-edge="${e.id}"]`); if(!g) return;
-    g.querySelectorAll(":scope > line").forEach(l=>{
-      l.setAttribute("x1",A.x); l.setAttribute("y1",A.y);
-      l.setAttribute("x2",B.x); l.setAttribute("y2",B.y);
-    });
-    const mx=(A.x+B.x)/2, my=(A.y+B.y)/2;
+    const {d, meta} = geoArco(e, a, b), mx = meta.x, my = meta.y;
+    g.querySelectorAll(":scope > path").forEach(l=>l.setAttribute("d", d));
     const txt = g.querySelector("text");
     if(txt){ txt.setAttribute("x",mx); txt.setAttribute("y",my-12); }
     const cross = g.querySelector("g");
@@ -522,8 +543,10 @@ function doorOpenings(cur){
     const a = childOf(e.a), b = childOf(e.b);
     if(!a || !b || a === b) continue;
     const t = EDGE_TYPES[e.type] || EDGE_TYPES.strada;
-    const A = nodeCenter(a), B = nodeCenter(b);
-    for(const [n, P, Q] of [[a,A,B],[b,B,A]]){
+    /* Con un percorso a mano la porta sta dove esce il PRIMO tratto, non la
+       corda: una strada che parte verso nord non buca il muro a est. */
+    const pts = puntiArco(e.percorso, nodeCenter(a), nodeCenter(b));
+    for(const [n, P, Q] of [[a,pts[0],pts[1]],[b,pts.at(-1),pts.at(-2)]]){
       if(!wallShape(n)) continue;
       const o = wallOpening(wallBox(nodeBox(n)), Q.x-P.x, Q.y-P.y);
       if(!o) continue;
@@ -552,7 +575,7 @@ function statusDot(x,y,st_){
 function ariaBlk(c){
   const link = c.type==="token" ? tokenLink(c) : null;
   // Una casella di testo si annuncia con ciò che c'è scritto: il titolo non ce l'ha.
-  const nome = link ? link.nome : isTesto(c) ? ((c.notes||"").slice(0,80) || "vuota") : (c.title||"senza nome");
+  const nome = link ? link.nome : isTesto(c) ? (testoSemplice(c.notes).slice(0,80) || "vuota") : (c.title||"senza nome");
   let s = `${(TYPES[c.type]||TYPES.nota).label}: ${nome}`;
   // I PF vanno detti, non solo disegnati: la barra sotto la pedina non esiste
   // per chi usa un lettore di schermo.
@@ -735,15 +758,15 @@ export function renderCanvas(){
   // collegamenti del livello corrente
   for(const e of (cur.edges||[])){
     const a=childOf(e.a), b=childOf(e.b); if(!a||!b) continue;
-    const A=nodeCenter(a), B=nodeCenter(b), t=EDGE_TYPES[e.type]||EDGE_TYPES.strada;
-    const mx=(A.x+B.x)/2, my=(A.y+B.y)/2, sel = st.selectedEdgeId===e.id;
+    const t=EDGE_TYPES[e.type]||EDGE_TYPES.strada;
+    const {d, meta} = geoArco(e, a, b), mx = meta.x, my = meta.y, sel = st.selectedEdgeId===e.id;
     out += `<g class="edge${sel?" sel":""}" data-edge="${e.id}" tabindex="0" role="button" aria-pressed="${sel}"
       aria-label="${escapeAttr(`${t.label}: ${a.title||"senza nome"} – ${b.title||"senza nome"}${e.label?` (${e.label})`:""}`)}">
-      <line class="edge-hit" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"/>
-      <line class="edge-line" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"
-        style="stroke:${t.stroke}" stroke-width="${t.w}"${t.dash?` stroke-dasharray="${t.dash}"`:""} stroke-linecap="round"/>`;
+      <path class="edge-hit" d="${d}"/>
+      <path class="edge-line" d="${d}" fill="none"
+        style="stroke:${t.stroke}" stroke-width="${t.w}"${t.dash?` stroke-dasharray="${t.dash}"`:""} stroke-linecap="round" stroke-linejoin="round"/>`;
     if(t.double)
-      out += `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" style="stroke:var(--bog)" stroke-width="2" pointer-events="none"/>`;
+      out += `<path d="${d}" fill="none" style="stroke:var(--bog)" stroke-width="2" pointer-events="none"/>`;
     if(t.blocked)
       out += `<g style="stroke:${t.stroke}" stroke-width="4" stroke-linecap="round" pointer-events="none">
         <line x1="${mx-9}" y1="${my-9}" x2="${mx+9}" y2="${my+9}"/>
@@ -803,16 +826,21 @@ export function renderCanvas(){
       </g>`;
     }else if(isTesto(c)){
       /* Il testo va a capo da sé dentro un foreignObject: in SVG puro ogni riga
-         sarebbe un <text> da misurare a mano. Il contenuto passa da escapeHtml
-         e la dimensione da testoSize, che la riduce a un numero — sono le due
-         sole cose del documento che entrano qui. Vuota, la casella dice cosa
-         aspetta invece di sparire: una cornice trasparente non si ritrova. */
+         sarebbe un <text> da misurare a mano. Il contenuto passa da testoRicco
+         (escapa, poi aggiunge solo tag suoi) e grandezza e allineamento da
+         testoSize/testoAllinea, che li riducono a valori noti — sono le sole
+         cose del documento che entrano qui. Vuota, la casella dice cosa
+         aspetta invece di sparire: una cornice trasparente non si ritrova.
+         Con "Adatta alla casella" la grandezza vera la misura adattaCaratteri
+         dopo il disegno; qui si usa l'ultima misurata, per non sfarfallare. */
       const box = nodeBox(c);
-      const txt = c.notes ? escapeHtml(c.notes) : `<span class="testo-vuoto">Scrivi dal pannello…</span>`;
+      const fit = testoAdatta(c) && c.notes;
+      const px = fit ? (misureFit.get(c.id)?.px ?? testoSize(c)) : testoSize(c);
+      const txt = c.notes ? testoRicco(c.notes) : `<span class="testo-vuoto">Scrivi dal pannello…</span>`;
       out += `<g class="blk testo${selCls}" data-block="${c.id}" ${a11y} transform="translate(${c.x},${c.y})">
         <rect class="blk-shape" width="${box.w}" height="${box.h}" rx="4" style="--c:${col}"/>
         <foreignObject width="${box.w}" height="${box.h}" pointer-events="none">
-          <div xmlns="http://www.w3.org/1999/xhtml" class="testo-txt" style="font-size:${testoSize(c)}px;color:${col}">${txt}</div>
+          <div xmlns="http://www.w3.org/1999/xhtml" class="testo-txt${fit?" testo-fit":""}" style="font-size:${px}px;color:${col};text-align:${testoAllinea(c)}">${txt}</div>
         </foreignObject>
         ${c.id===st.selectedId && st.multiSel.size<=1 ? `<rect class="rs-handle" x="${box.w-8}" y="${box.h-8}" width="16" height="16" rx="3"/>`:""}
       </g>`;
@@ -866,9 +894,11 @@ export function renderCanvas(){
      : af.closest(".edge") ? `.edge[data-edge="${af.closest(".edge").dataset.edge}"]` : null)
     : null;
 
-  svg.innerHTML = out + `<line id="plan-temp" stroke="var(--fen-dim)" stroke-width="3" stroke-dasharray="6 6" visibility="hidden" pointer-events="none"/>
+  svg.innerHTML = out + `<polyline id="plan-temp" fill="none" stroke="var(--fen-dim)" stroke-width="3" stroke-dasharray="6 6" stroke-linejoin="round" stroke-linecap="round" visibility="hidden" pointer-events="none"/>
     <line id="guide-v" stroke="var(--gold)" stroke-width="1" stroke-dasharray="4 4" visibility="hidden" pointer-events="none"/>
     <line id="guide-h" stroke="var(--gold)" stroke-width="1" stroke-dasharray="4 4" visibility="hidden" pointer-events="none"/>`;
+
+  adattaCaratteri(cur);
 
   if(focusSel){
     const el = svg.querySelector(focusSel);
@@ -877,19 +907,51 @@ export function renderCanvas(){
   }
 }
 
-/* L'altezza di una casella di testo la decide il testo, come in un
-   programma di scrittura: la larghezza è una scelta (si tira l'angolo),
-   l'altezza no — tagliare l'ultima riga di un appunto è il modo di perderlo.
-   Si misura sulla resa vera, che è l'unica a sapere dove il testo va a capo;
-   per questo si chiama DOPO un renderCanvas, e ne fa un secondo solo se
-   l'altezza è cambiata. Si arrotonda a 10px come il resto delle bolle libere. */
+/* L'altezza di una casella di testo: la decide il DM tirando l'angolo, ma
+   non può scendere sotto il testo — tagliare l'ultima riga di un appunto è
+   il modo di perderlo. Fino al 24 set 2026 la decideva SOLO il testo, e una
+   casella non si poteva allungare per farci stare una pergamena: ora cresce
+   se il testo non ci sta e resta com'è se ce n'è d'avanzo. Si misura sulla
+   resa vera, l'unica a sapere dove il testo va a capo; per questo si chiama
+   DOPO un renderCanvas, e ne fa un secondo solo se l'altezza è cambiata.
+   Con "Adatta alla casella" non c'è niente da fare: lì è il carattere a
+   cambiare (adattaCaratteri). */
 export function adattaTesto(n){
+  if(testoAdatta(n) && n.notes) return;
   const el = planSvg().querySelector(`.blk.testo[data-block="${n.id}"] .testo-txt`);
   if(!el) return;
   el.style.height = "auto";
   const h = Math.max(40, Math.ceil(el.offsetHeight / 10) * 10);
   el.style.height = "";
-  if(h !== n.h){ n.h = h; renderCanvas(); }
+  if(h > nodeBox(n).h){ n.h = h; renderCanvas(); }
+}
+
+/* "Adatta alla casella": il carattere più grande con cui il testo sta nella
+   casella, in larghezza (niente parole spezzate: `.testo-fit` toglie
+   overflow-wrap) e in altezza. Ricerca binaria sulla resa vera, quindi dopo
+   il disegno e nello stesso fotogramma — niente sfarfallio. La misura si
+   tiene in memoria per chiave (testo, riquadro, allineamento): la tela si
+   ridisegna a ogni selezione, e rifarla ogni volta costerebbe per niente.
+   Non entra nel documento: è una conseguenza, e dipende dai caratteri che
+   ha il dispositivo. */
+const misureFit = new Map();
+function adattaCaratteri(cur){
+  const svg = planSvg();
+  for(const n of cur.children){
+    if(!isTesto(n) || !testoAdatta(n) || !n.notes || typeof n.x !== "number") continue;
+    const b = nodeBox(n), chiave = `${b.w}x${b.h}|${testoAllinea(n)}|${n.notes}`;
+    if(misureFit.get(n.id)?.chiave === chiave) continue;
+    const el = svg.querySelector(`.blk.testo[data-block="${n.id}"] .testo-txt`);
+    if(!el) continue;
+    const sta = px => { el.style.fontSize = px + "px";
+      return el.scrollHeight <= el.clientHeight + 1 && el.scrollWidth <= el.clientWidth + 1; };
+    let lo = 4, hi = 400;
+    if(sta(hi)) lo = hi;
+    else for(let i=0; i<14 && hi-lo > 0.5; i++){ const m = (lo+hi)/2; if(sta(m)) lo = m; else hi = m; }
+    const px = Math.floor(lo*2)/2;
+    el.style.fontSize = px + "px";
+    misureFit.set(n.id, {chiave, px});
+  }
 }
 
 const SNAP_DIST = 8;
@@ -1450,10 +1512,11 @@ export function initMappa(){
     }
     if(handle && blkEl && canEditEdges()){
       const n = childOf(blkEl.dataset.block), c = nodeCenter(n);
-      planDrag = {mode:"link", from:n.id};
+      /* Il collegamento segue la traccia del dito: dritto se la si tira
+         dritta, col percorso disegnato se la si fa girare (vedi percorsi.js). */
+      planDrag = {mode:"link", from:n.id, traccia:[c, p]};
       const t = document.getElementById("plan-temp");
-      t.setAttribute("x1",c.x); t.setAttribute("y1",c.y);
-      t.setAttribute("x2",p.x); t.setAttribute("y2",p.y);
+      t.setAttribute("points", `${c.x},${c.y} ${p.x},${p.y}`);
       t.setAttribute("visibility","visible");
     }else if(blkEl){
       const n = childOf(blkEl.dataset.block);
@@ -1586,8 +1649,11 @@ export function initMappa(){
       cur.bg.h = Math.max(80,  Math.round(cur.bg.w * planDrag.ratio));
       planDrag.moved = true; updateBgAttrs();
     }else if(planDrag.mode==="link"){
-      const t = document.getElementById("plan-temp");
-      t.setAttribute("x2",p.x); t.setAttribute("y2",p.y);
+      const tr = planDrag.traccia, ult = tr.at(-1);
+      if(Math.hypot(p.x-ult.x, p.y-ult.y) >= 3*planVB.w/(svg.clientWidth||1)) tr.push(p);
+      else tr[tr.length-1] = p;
+      document.getElementById("plan-temp").setAttribute("points",
+        tr.map(q=>`${Math.round(q.x)},${Math.round(q.y)}`).join(" "));
     }else if(planDrag.mode==="pan"){
       const scale = planVB.w / svg.clientWidth;
       planVB.x = planDrag.vb.x - (ev.clientX-planDrag.sx)*scale;
@@ -1615,13 +1681,16 @@ export function initMappa(){
       if(under && under.dataset.block !== planDrag.from){
         const cur = currentNode();
         const a = planDrag.from, b = under.dataset.block;
-        const dup = (cur.edges||[]).some(e=>(e.a===a&&e.b===b)||(e.a===b&&e.b===a));
-        if(!dup){
-          const e = {id:uid(), a, b, type:"strada", label:"", notes:""};
-          cur.edges.push(e);
-          clearSel(); st.selectedEdgeId = e.id;
-          save();
-        }
+        /* Ritracciare un collegamento che c'è già ne ridisegna il percorso
+           (anche dritto): è il modo di correggerlo senza cancellarlo, e
+           tipo, etichetta e note restano. */
+        const dup = (cur.edges||[]).find(e=>(e.a===a&&e.b===b)||(e.a===b&&e.b===a));
+        const e = dup || {id:uid(), a, b, type:"strada", label:"", notes:""};
+        const percorso = percorsoDaTraccia(planDrag.traccia, childOf(e.a), childOf(e.b), planDrag.from===e.b, svg);
+        if(percorso.length) e.percorso = percorso; else delete e.percorso;
+        if(!dup) cur.edges.push(e);
+        clearSel(); st.selectedEdgeId = e.id;
+        save();
       }
       renderCanvas(); renderDetail();
     }else if(planDrag.mode==="move"){

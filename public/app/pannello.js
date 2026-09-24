@@ -2,8 +2,9 @@
    le modifiche che ne partono (editNode, editEdge, immagini) e la variante
    bottom sheet su mobile. */
 
+import { avvolgi, prefissaRighe } from "./testo-ricco.js";
 import { TYPES, STATUSES, SHAPES, EDGE_TYPES, NODE_COLORS, nodeColor,
-         isMarker, isTesto, testoSize, nomeInElenco, TESTO_SIZES, defShape, nodeBox, node, escapeHtml, escapeAttr,
+         isMarker, isTesto, testoSize, testoAllinea, testoAdatta, TESTO_ALLINEA, TESTO_SIZE_MAX, nomeInElenco, TESTO_SIZES, defShape, nodeBox, node, escapeHtml, escapeAttr,
          wallShape, inScala, DOOR_TYPES, doorKind, wallLabel,
          GRIGLIE, GRID_LIMITS, grigliaDi, isHex, nomeCelle, formattaMetri } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, RO } from "./stato.js";
@@ -224,6 +225,13 @@ function renderDetailCore(){
           ${et.dmOnly?`<p class="hint-sm">Resta tuo: al tavolo questo collegamento non compare,
             anche quando i giocatori vedono le bolle alle due estremità. Quando lo scoprono,
             cambia il tipo in strada o tunnel.</p>`:""}</div>
+        <div class="field"><label>Percorso</label>
+          ${e.percorso?.length
+            ? `<div class="img-actions"><button class="btn" onclick="raddrizzaEdge('${e.id}')">Raddrizza</button></div>
+               <p class="hint-sm">Disegnato a mano: segue le bolle quando le sposti.
+                 Per cambiarlo, ritraccialo dalla maniglia ◦ di una delle due bolle all'altra.</p>`
+            : `<p class="hint-sm">Dritto. Per dargli una forma, ritraccialo dalla maniglia ◦ di una
+                 delle due bolle all'altra seguendo il percorso che vuoi: curve e spigoli restano, ammorbiditi.</p>`}</div>
         <div class="field"><label>Etichetta (visibile sulla pianta)</label>
           <input value="${escapeAttr(e.label||"")}" oninput="editEdge('${e.id}','label',this.value)" placeholder="Es. Via del Mercato"></div>
         <div class="field"><label>Note</label>
@@ -417,7 +425,10 @@ function renderDetailCore(){
    nascondere le altre venti con degli `if` sparsi vorrebbe dire inseguirle
    ogni volta che se ne aggiunge una. */
 function testoDetailHTML(n){
-  const size = testoSize(n);
+  const size = testoSize(n), fit = testoAdatta(n), al = testoAllinea(n);
+  const cmd = (c, label, title) =>
+    `<button class="btn tiny" type="button" title="${title}" aria-label="${title}"
+      onmousedown="event.preventDefault()" onclick="formattaTesto('${n.id}','${c}')">${label}</button>`;
   return `<div class="inner">
     <div>
       <span style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim)">
@@ -425,14 +436,35 @@ function testoDetailHTML(n){
       </span>
     </div>
     <div class="field"><label for="testo-area">Testo <span class="only-dm">solo tuo</span></label>
-      <textarea id="testo-area" rows="6" oninput="editNode('${n.id}','notes',this.value)"
+      <div class="testo-strumenti" role="toolbar" aria-label="Formattazione">
+        ${cmd("b","<b>G</b>","Grassetto (Ctrl+B)")}${cmd("i","<i>C</i>","Corsivo (Ctrl+I)")}${cmd("s","<s>B</s>","Barrato")}
+        <span class="sep"></span>
+        ${cmd("t1","Titolo","Titolo")}${cmd("t2","Sottotitolo","Sottotitolo")}${cmd("t3","Intest.","Intestazione")}
+        ${cmd("piccolo","<small>Piccolo</small>","Testo piccolo")}${cmd("p","Normale","Testo normale")}
+        <span class="sep"></span>
+        ${cmd("ul","• Elenco","Elenco puntato")}${cmd("ol","1. Elenco","Elenco numerato")}${cmd("hr","―","Linea di separazione")}
+      </div>
+      <textarea id="testo-area" rows="8" oninput="editNode('${n.id}','notes',this.value)"
+        onkeydown="tastiTesto(event,'${n.id}')"
         placeholder="Quello che vuoi leggere a colpo d'occhio sulla mappa">${escapeHtml(n.notes||"")}</textarea>
       <p class="hint-sm">Si legge sulla mappa senza aprire niente. Al tavolo dei giocatori non compare.
-        La grandezza della casella si cambia tirando l'angolo in basso a destra.</p></div>
-    <div class="field"><label>Carattere</label>
+        I bottoni scrivono dei segni nel testo: <code># titolo</code>, <code>- voce</code>,
+        <code>1. voce</code>, <code>**grassetto**</code>, <code>*corsivo*</code>; due spazi davanti
+        a una voce la rientrano.</p></div>
+    <div class="opt"><label><input type="checkbox" ${fit?"checked":""}
+        onchange="editNode('${n.id}','textFit',this.checked)"> Adatta il testo alla casella</label>
+      <p class="hint-sm">${fit
+        ? "Il carattere cresce e cala con la casella: tirane l'angolo in basso a destra finché si legge bene."
+        : "La casella la allarghi e allunghi tirando l'angolo in basso a destra: il testo va a capo dentro, e se non ci sta la casella si allunga."}</p></div>
+    ${fit ? "" : `<div class="field"><label for="testo-size">Carattere</label>
       <div class="img-actions">${TESTO_SIZES.map((v,i)=>`<button class="btn${v===size?" primary":""}"
         aria-pressed="${v===size}" onclick="editNode('${n.id}','textSize',${v})"
-        style="font-size:${11+i*2}px">${["Piccolo","Medio","Grande","Titolo"][i]}</button>`).join("")}</div></div>
+        style="font-size:${11+Math.min(i,4)*2}px">${["Piccolo","Medio","Grande","Titolo","Enorme","Cartello"][i]}</button>`).join("")}
+        <input id="testo-size" type="number" min="8" max="${TESTO_SIZE_MAX}" step="1" value="${size}" style="width:5.5em"
+          aria-label="Grandezza in pixel" onchange="editNode('${n.id}','textSize',Number(this.value))"></div></div>`}
+    <div class="field"><label>Allineamento</label>
+      <div class="img-actions">${Object.entries(TESTO_ALLINEA).map(([k,v])=>`<button class="btn${k===al?" primary":""}"
+        aria-pressed="${k===al}" onclick="editNode('${n.id}','textAlign','${k}')">${v}</button>`).join("")}</div></div>
     <div class="field"><label>Colore del testo</label>
       <div class="swatches">
         <button class="swatch swatch--auto${n.color?"":" on"}" style="background:var(--ink)"
@@ -445,6 +477,30 @@ function testoDetailHTML(n){
       <button class="btn danger" onclick="askDeleteNode('${n.id}')">Elimina</button>
     </div>
   </div>`;
+}
+
+/* I bottoni della formattazione lavorano sulla selezione della textarea e
+   passano da editNode come una battitura: stesso salvataggio, stesso annulla. */
+const SEGNI = {b:"**", i:"*", s:"~~"};
+const PREFISSI = {t1:"# ", t2:"## ", t3:"### ", piccolo:"-# ", p:null, ul:"- ", ol:"1. "};
+export function formattaTesto(id, c){
+  const ta = document.getElementById("testo-area"); if(!ta || RO) return;
+  const v = ta.value, i = ta.selectionStart, f = ta.selectionEnd;
+  let r;
+  if(SEGNI[c]) r = avvolgi(v, i, f, SEGNI[c]);
+  else if(c in PREFISSI) r = prefissaRighe(v, i, f, PREFISSI[c]);
+  else if(c === "hr"){
+    const prima = i && v[i-1] !== "\n" ? "\n" : "", ins = `${prima}---\n`;
+    r = {testo: v.slice(0, i) + ins + v.slice(f), inizio: i + ins.length, fine: i + ins.length};
+  }else return;
+  ta.value = r.testo;
+  ta.focus(); ta.setSelectionRange(r.inizio, r.fine);
+  editNode(id, "notes", r.testo);
+}
+export function tastiTesto(ev, id){
+  if(!(ev.ctrlKey || ev.metaKey) || ev.altKey) return;
+  const k = ev.key.toLowerCase();
+  if(k === "b" || k === "i"){ ev.preventDefault(); formattaTesto(id, k); }
 }
 
 /* --- pannello mobile (bottom sheet): sempre sincronizzato dopo ogni render --- */
@@ -484,11 +540,18 @@ export function editNode(id, key, val){
   if(["title","type","status","shape","w","h","color","walls"].includes(key)){ renderCrumbs(); renderCanvas(); }
   // il testo di una casella È il suo disegno; la textarea resta viva perché
   // renderDetail qui non gira
-  else if(isTesto(n) && ["notes","textSize"].includes(key)){ renderCanvas(); adattaTesto(n); }
-  if(key==="textSize") renderDetail();
+  else if(isTesto(n) && ["notes","textSize","textFit","textAlign"].includes(key)){ renderCanvas(); adattaTesto(n); }
+  if(["textSize","textFit","textAlign"].includes(key)) renderDetail();
   // shape: cambiando forma cambia il colore predefinito, e il campione "Predefinito"
   // nel pannello deve seguirlo
   if(["type","img","main","color","shape"].includes(key)) renderDetail();
+}
+
+export function raddrizzaEdge(id){
+  if(RO) return;
+  const e = (currentNode().edges||[]).find(x=>x.id===id); if(!e) return;
+  delete e.percorso;
+  save(); renderCanvas(); renderDetail();
 }
 
 export function editEdge(id, key, val){
@@ -617,5 +680,5 @@ export function apriInFinestra(id){
 }
 
 // per gli onclick/ontoggle inline nei template
-Object.assign(window, { editNode, editEdge, deleteEdge, addChild, askDeleteNode,
+Object.assign(window, { editNode, editEdge, raddrizzaEdge, formattaTesto, tastiTesto, deleteEdge, addChild, askDeleteNode,
   pickImage, openLightbox, apriInFinestra, openDetailSheet, secToggle });

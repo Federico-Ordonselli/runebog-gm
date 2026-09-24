@@ -555,6 +555,26 @@
     white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.3;
     font-family:"Iowan Old Style",Palatino,Georgia,serif}
   .testo-vuoto{color:var(--ink-dim);font-style:italic;font-size:13px}
+  /* La formattazione (testo-ricco.js): tutto in em, così scala col carattere
+     della casella e con "Adatta alla casella". Le righe sono blocchi, quindi
+     il pre-wrap resta solo per gli spazi dentro la riga. */
+  .testo-fit{overflow-wrap:normal;word-break:normal}
+  .testo-txt .tr-t1{font-size:1.9em;font-weight:700;line-height:1.15;margin:.1em 0 .15em}
+  .testo-txt .tr-t2{font-size:1.45em;font-weight:700;line-height:1.2;margin:.1em 0 .1em}
+  .testo-txt .tr-t3{font-size:1.15em;font-weight:700;font-variant:small-caps;letter-spacing:.03em}
+  .testo-txt .tr-piccolo{font-size:.78em;opacity:.85}
+  .testo-txt .tr-vuota{height:.65em}
+  .testo-txt .tr-hr{border:0;border-top:1px solid currentColor;opacity:.45;margin:.35em 0}
+  .testo-txt .tr-li{position:relative;padding-left:1.1em;text-align:left}
+  .testo-txt .tr-li.tr-num{padding-left:1.7em}
+  .testo-txt .tr-mk{position:absolute;left:.15em}
+  .testo-txt .tr-num .tr-mk{left:0;width:1.45em;text-align:right}
+  .testo-txt .tr-in1{margin-left:1.1em}
+  .testo-txt .tr-in2{margin-left:2.2em}
+  .testo-txt .tr-in3{margin-left:3.3em}
+  .testo-strumenti{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+  .testo-strumenti .btn{min-width:36px;padding-inline:8px}
+  .testo-strumenti .sep{width:1px;background:var(--line);margin:2px 3px}
   .blk .link-handle{fill:var(--panel);stroke:var(--fen-dim);stroke-width:2;cursor:crosshair;opacity:0}
   .blk:hover .link-handle,.blk.sel .link-handle{opacity:1}
   /* Senza hover (tablet) la maniglia resterebbe invisibile per sempre e i

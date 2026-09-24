@@ -114,6 +114,26 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   durante il gesto. L'Esc che disarma la palette si ferma in `mappa.js`
   (`stopImmediatePropagation`), sennò `scorciatoie.js` risaliva di livello.
   Verifica: `node test/browser/verifica-corridoi.mjs`.
+- Testo formattato (`testo-ricco.js`, 24 set 2026): la casella resta una
+  stringa in `notes` con marcatura da tastiera (`# `, `## `, `### `, `-# `,
+  `- `, `1. `, `---`, `**`, `*`, `~~`, due spazi = rientro); `testoRicco`
+  escapa PRIMA e aggiunge solo tag e classi suoi — un test lo impone. Non
+  introdurre HTML nel documento. Grandezze in `em` (`.tr-*`), così scalano
+  con `textFit`. L'altezza è del DM e cresce solo se il testo non ci sta
+  (`adattaTesto`); con `textFit` è il carattere a cambiare
+  (`adattaCaratteri`, ricerca binaria dopo il disegno, misura in memoria per
+  chiave e mai nel documento). `textSize` ≤ 240, `textAlign` solo da
+  `TESTO_ALLINEA`.
+- Collegamenti a mano (`e.percorso`, `percorsi.js`, 24 set 2026): punti
+  `[u, v]` nel riferimento dell'arco (origine nel centro di `a`, unità =
+  distanza fra i centri), così seguono le bolle e sopravvivono a duplica e
+  incolla senza rimappature. Bonifica UNA (`normalizzaPercorso` nel
+  contratto, letta da `sanitizeState` e `share.ts`). La traccia si
+  semplifica a 10px di SCHERMO misurati dalla maniglia, non dal centro:
+  sennò un gesto dritto non torna mai dritto. Ritracciare un arco esistente
+  ne sostituisce il percorso. Le porte del perimetro derivato usano la
+  direzione del primo/ultimo tratto. Verifica:
+  `node test/browser/verifica-testo-e-percorsi.mjs`.
 - PostgreSQL reale senza dati dell’app: avviare
   `docker run --rm -d --name runebog-todo-test -e POSTGRES_PASSWORD=runebog-test-only postgres:17-alpine`,
   poi `node test/database/verifica-todo.mjs` e
@@ -128,7 +148,7 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
 ```bash
 npm run dev          # sviluppo su http://localhost:3000 (serve .env, vedi .env.example)
 npx tsc --noEmit     # typecheck — è il controllo principale, non c'è ESLint
-npm test             # test puri con node:test (test/{strumenti,sync,formato-campagna,dungeon,scala,critici})
+npm test             # test puri con node:test (test/{strumenti,sync,formato-campagna,dungeon,scala,critici,disegno})
 npm run build        # build di produzione (fa anche typecheck)
 npm run temi:contrasto   # rapporti WCAG di tutti i temi (esce 1 se una coppia è sotto soglia)
 ```
@@ -139,7 +159,8 @@ coprono il gestore degli strumenti mappa e la geometria del righello
 conflitti (`test/sync/`), il contratto del documento campagna
 (`test/formato-campagna/`), le pareti che l'import del dungeon costruisce
 (`test/dungeon/`), la scala della campagna e l'accordo fra le due liste di forme
-(`test/scala/`), più gli **invarianti critici** (`test/critici/`):
+(`test/scala/`), marcatura del testo e geometria dei percorsi (`test/disegno/`),
+più gli **invarianti critici** (`test/critici/`):
 `jsonForScript`, la proiezione del tavolo come whitelist (segreti marcati che non
 devono comparire nel JSON, nemmeno da campi futuri), `sanitizeState`, determinismo
 e coerenza del generatore di dungeon. Questi ultimi importano `share.ts`,

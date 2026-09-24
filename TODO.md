@@ -1,5 +1,35 @@
 # To-do
 
+## Testo formattato e collegamenti a mano (24 settembre 2026)
+
+Richieste di un tester: un riepilogo delle missioni leggibile sulla mappa
+generale senza zoomare all'infinito, "simile a Word", e strade che seguono
+il percorso disegnato invece della riga più corta.
+
+- [x] **Formattazione dentro la casella di testo.** Titolo, sottotitolo,
+  intestazione, testo piccolo, elenchi puntati e numerati (con rientro),
+  linea di separazione, grassetto, corsivo, barrato. Il testo resta una
+  stringa in `notes` con una marcatura da tastiera (`# `, `- `, `1. `,
+  `**…**`…) resa da `public/app/testo-ricco.js`, che escapa prima e
+  aggiunge solo tag suoi: niente HTML da sanificare, niente migrazione. Nel
+  pannello una barra di bottoni la scrive sulla selezione (Ctrl+B/Ctrl+I).
+- [x] **Il testo segue la casella.** L'altezza la sceglie il DM tirando
+  l'angolo e cresce solo se il testo non ci sta (prima la imponeva il
+  testo). "Adatta il testo alla casella" (`textFit`) fa il contrario: il
+  carattere più grande che ci sta, misurato sulla resa (`adattaCaratteri` in
+  `mappa.js`). Grandezze fino a 240px (prima 48) con un campo numerico, e
+  allineamento (`textAlign`).
+- [x] **Collegamenti disegnati a mano.** Trascinando dalla maniglia ◦ la
+  traccia diventa il percorso (`e.percorso`, punti relativi alle due
+  estremità, semplificati con Ramer–Douglas–Peucker e disegnati come
+  Catmull-Rom): segue le bolle spostate, una traccia dritta resta dritta.
+  Ritracciare un collegamento esistente ne ridisegna il percorso;
+  "Raddrizza" nel pannello lo toglie. Contratto e bonifica in
+  `formato-campagna.js` (`normalizzaPercorso`), al tavolo esce. Le porte
+  del perimetro derivato si aprono dove esce il primo tratto.
+  Test: `test/disegno/`; nel browser
+  `node test/browser/verifica-testo-e-percorsi.mjs` (vuole `npm run dev`).
+
 ## Corridoi dipinti (24 settembre 2026)
 
 - [x] **I corridoi del generatore si possono disegnare anche a mano.** Nuova

@@ -25,7 +25,7 @@ import { randomBytes } from "crypto";
 // non risolve gli import senza estensione.
 import {
   CURRENT_CAMPAIGN_SCHEMA_VERSION, IMMAGINE_LOCALE, GRID_FORMS, GRID_LIMITS,
-  normalizzaCorridoi,
+  normalizzaCorridoi, normalizzaPercorso,
 } from "../../public/app/formato-campagna.js";
 
 type Node = Record<string, any>;
@@ -233,10 +233,17 @@ function projectNode(n: Node, data: Node): Node {
     edges: (Array.isArray(n.edges) ? n.edges : [])
       .filter((e: Node) => !DM_ONLY_EDGES.has(String(e.type ?? "")))
       .filter((e: Node) => visibleIds.has(safeId(e.a)) && visibleIds.has(safeId(e.b)))
-      .map((e: Node) => ({
-        id: safeId(e.id), a: safeId(e.a), b: safeId(e.b),
-        type: String(e.type ?? ""), label: String(e.label ?? ""), notes: "",
-      })),
+      .map((e: Node) => {
+        const out: Node = {
+          id: safeId(e.id), a: safeId(e.a), b: safeId(e.b),
+          type: String(e.type ?? ""), label: String(e.label ?? ""), notes: "",
+        };
+        // Il tracciato a mano esce: è la forma della strada che si vede, non
+        // un segreto, ed è relativo alle due estremità già visibili.
+        const percorso = normalizzaPercorso(e.percorso);
+        if (percorso.length) out.percorso = percorso;
+        return out;
+      }),
     x: num(n.x),
     y: num(n.y),
     shape: n.shape != null ? String(n.shape) : null,

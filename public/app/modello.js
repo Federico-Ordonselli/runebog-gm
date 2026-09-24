@@ -5,7 +5,7 @@
    Quell'import esiste per una riga sola (`IMMAGINE_LOCALE`): la forma di un URL
    di immagine deve essere la stessa qui e nel validatore, sennò il client
    accetta ciò che il server rifiuta. Non è la porta per farne entrare altre. */
-import { IMMAGINE_LOCALE, GRID_FORMS, GRID_LIMITS, CAMPAIGN_LIMITS, normalizzaCorridoi } from "./formato-campagna.js";
+import { IMMAGINE_LOCALE, GRID_FORMS, GRID_LIMITS, CAMPAIGN_LIMITS, normalizzaCorridoi, normalizzaPercorso } from "./formato-campagna.js";
 
 export const TYPES = {
   zona:      {label:"Zona",      color:"var(--fen)"},
@@ -655,12 +655,21 @@ export const TESTO_BOX = {w:200, h:80};
    sembrare una bolla dimenticata. */
 export const nomeInElenco = n => n.title || (isTesto(n) ? "Casella di testo" : "(senza nome)");
 /* La dimensione del carattere finisce in un attributo style: si legge SOLO da
-   qui, che la riduce a un numero fra due limiti qualunque cosa ci sia scritto. */
-export const TESTO_SIZES = [12, 16, 22, 30];
+   qui, che la riduce a un numero fra due limiti qualunque cosa ci sia scritto.
+   Il tetto è alto (24 set 2026): una casella sulla mappa del mondo sta in un
+   livello largo migliaia di pixel, e a 48 si leggeva solo zoomando fino in
+   fondo. Per lo stesso problema c'è `textFit`: il carattere lo decide la
+   casella, e la si tira grande quanto serve. */
+export const TESTO_SIZES = [12, 16, 22, 30, 48, 72];
+export const TESTO_SIZE_MAX = 240;
 export const testoSize = n => {
   const v = Number(n.textSize);
-  return Number.isFinite(v) ? Math.min(48, Math.max(10, Math.round(v))) : 16;
+  return Number.isFinite(v) ? Math.min(TESTO_SIZE_MAX, Math.max(8, Math.round(v))) : 16;
 };
+/* Anche l'allineamento finisce in uno style: esce solo da questo elenco. */
+export const TESTO_ALLINEA = {left:"A sinistra", center:"Al centro", right:"A destra", justify:"Giustificato"};
+export const testoAllinea = n => Object.hasOwn(TESTO_ALLINEA, n.textAlign) ? n.textAlign : "left";
+export const testoAdatta = n => n.textFit === true;
 export const isMarker = n => !(n.type==="zona" || n.type==="luogo" || n.type==="testo");
 export const defShape = n => n.type==="zona" ? "quartiere" : "edificio";
 
@@ -767,6 +776,7 @@ export function sanitizeState(s){
     for(const e of (Array.isArray(n.edges) ? n.edges : [])){
       if(e.id != null) e.id = safeId(e.id);
       e.a = safeId(e.a); e.b = safeId(e.b);
+      if(e.percorso != null){ const p = normalizzaPercorso(e.percorso); if(p.length) e.percorso = p; else delete e.percorso; }
     }
     for(const f of (n.monster && Array.isArray(n.monster.foes) ? n.monster.foes : []))
       if(f.id != null) f.id = safeId(f.id);
