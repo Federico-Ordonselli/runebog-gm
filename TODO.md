@@ -29,6 +29,8 @@ il percorso disegnato invece della riga più corta.
   del perimetro derivato si aprono dove esce il primo tratto.
   Test: `test/disegno/`; nel browser
   `node test/browser/verifica-testo-e-percorsi.mjs` (vuole `npm run dev`).
+- [x] **Portable 0.2.4** con queste due novità: versione, download e
+  checksum aggiornati in `src/lib/site.ts`; smoke del desktop verde.
 
 ## Corridoi dipinti (24 settembre 2026)
 
