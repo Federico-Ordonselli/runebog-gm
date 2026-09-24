@@ -12,6 +12,8 @@
   pannello. Nuovi tipi: varco, finestra, grata, disegnati con segni diversi
   e ammessi da contratto e tavolo. Test `test/disegno/aperture.test.mjs`,
   verifica `node test/browser/verifica-penna-muri.mjs`.
+- [x] **Portable 0.2.5** con penna dei muri e aperture: versione, download
+  e checksum aggiornati in `src/lib/site.ts`; smoke del desktop verde.
 
 ## Testo formattato e collegamenti a mano (24 settembre 2026)
 
