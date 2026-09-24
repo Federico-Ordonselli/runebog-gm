@@ -501,7 +501,17 @@ export const DOOR_TYPES = {
   aperta:  {label:"Porta aperta"},
   chiusa:  {label:"Porta chiusa"},
   chiave:  {label:"Chiusa a chiave"},
-  segreta: {label:"Porta segreta", dmOnly:true}
+  segreta: {label:"Porta segreta", dmOnly:true},
+  /* Le altre aperture del dungeon (24 set 2026): stanno qui e non in un
+     elenco loro perché sono la stessa cosa — un pezzo di muro che dichiara
+     cosa c'è nel vano — e passano dagli stessi tre posti (contratto,
+     share.ts, disegno). Varco: si passa, niente battente (l'arcata che
+     prima si faceva solo lasciando un buco, e al tavolo non si leggeva).
+     Finestra: si vede, non si passa. Grata: si vede, non si passa finché
+     non la si alza. */
+  varco:    {label:"Varco"},
+  finestra: {label:"Finestra"},
+  grata:    {label:"Grata"}
 };
 export const doorKind = w => DOOR_TYPES[w.porta] ? w.porta : null;
 /* Nome di un muro in una riga: è il titolo del pannello, l'etichetta del menu

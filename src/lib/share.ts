@@ -87,7 +87,7 @@ const DM_ONLY_EDGES = new Set(["segreto"]);
  * sbagliare.
  */
 const DM_ONLY_DOORS = new Set(["segreta"]);
-const DOOR_KINDS = new Set(["aperta", "chiusa", "chiave", "segreta"]);
+const DOOR_KINDS = new Set(["aperta", "chiusa", "chiave", "segreta", "varco", "finestra", "grata"]);
 
 /**
  * I campi che il client interpola DENTRO attributi HTML (onclick="jumpTo('${id}')",

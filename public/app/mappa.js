@@ -4,13 +4,13 @@
 
 import { duplicaNodi } from "./duplica.js";
 import { puntiArco, percorsoRelativo, semplificaTraccia, curvaArco } from "./percorsi.js";
-import { normalizzaPercorso } from "./formato-campagna.js";
+import { normalizzaPercorso, CAMPAIGN_LIMITS } from "./formato-campagna.js";
 import { testoRicco, testoSemplice } from "./testo-ricco.js";
 import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeColor,
          isMarker, isTesto, testoSize, testoAllinea, testoAdatta, TESTO_BOX, defShape, nodeBox, nodeCenter, node, uid, escapeHtml, escapeAttr,
          gridShape, onGrid, snapGrid, snapNode,
          wallShape, wallBox, contentBox, wallOpening, wallPlan, WALL,
-         wallSegsOf, wallSegEnds, newWallSeg, stretchWallSeg,
+         wallSegsOf, wallSegEnds, newWallSeg, stretchWallSeg, WALL_MAX,
          corridoiDi, cellaCorridoio, chiaveCella, sagomaCorridoi, riquadroCorridoi, CORRIDOI_MAX,
          DOOR_TYPES, doorKind, wallLabel, shapeType, scalaSopra, scalaDentro,
          GRIGLIE, GRIGLIA_BASE, GRID_LIMITS, grigliaDi, isHex, inScala, nomeCelle, formattaMetri,
@@ -368,6 +368,22 @@ function doorMarkup(w, e, kind){
      aperta smette di essere un buco: il vano vuoto è già il modo di dire
      "varco", e le due cose devono restare distinguibili. Il verso in cui si
      apre non è un dato: l'anta sta sempre dallo stesso lato. */
+  /* Varco, finestra e grata tengono gli stessi stipiti e si distinguono per
+     SEGNO, non per colore: il varco ha le spalle perpendicolari e il vano
+     vuoto, la finestra la doppia linea sottile delle piante, la grata una
+     fila di sbarre. */
+  if(kind === "varco"){
+    const r = 6;
+    return out + `<line class="wall-seg__door" x1="${ax-nx*r}" y1="${ay-ny*r}" x2="${ax+nx*r}" y2="${ay+ny*r}"/>
+      <line class="wall-seg__door" x1="${bx-nx*r}" y1="${by-ny*r}" x2="${bx+nx*r}" y2="${by+ny*r}"/>`;
+  }
+  if(kind === "finestra"){
+    const r = 2.5;
+    return out + `<line class="wall-seg__win" x1="${ax-nx*r}" y1="${ay-ny*r}" x2="${bx-nx*r}" y2="${by-ny*r}"/>
+      <line class="wall-seg__win" x1="${ax+nx*r}" y1="${ay+ny*r}" x2="${bx+nx*r}" y2="${by+ny*r}"/>`;
+  }
+  if(kind === "grata")
+    return out + `<line class="wall-seg__grata" x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}"/>`;
   out += kind === "aperta"
     ? `<line class="wall-seg__door" x1="${ax}" y1="${ay}" x2="${ax+nx*luce}" y2="${ay+ny*luce}"/>`
     : `<line class="wall-seg__door" x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}"/>`;
@@ -387,6 +403,13 @@ function doorMarkup(w, e, kind){
 function wallSegInner(w, sel){
   const e = wallSegEnds(w, maglia()), kind = doorKind(w);
   let out = `<line class="wall-seg__hit" x1="${e.x1}" y1="${e.y1}" x2="${e.x2}" y2="${e.y2}"/>`;
+  /* Sul muro selezionato, il quadretto in cui "Metti qui" apre il vano. */
+  if(sel && !RO && w.len > 1){
+    const C = maglia().cella, k = cellaToccata(w);
+    out += w.dir === "v"
+      ? `<rect class="wall-seg__cella" x="${w.x-7}" y="${w.y+k*C}" width="14" height="${C}" rx="2"/>`
+      : `<rect class="wall-seg__cella" x="${w.x+k*C}" y="${w.y-7}" width="${C}" height="14" rx="2"/>`;
+  }
   if(!kind || kind === "segreta")
     out += `<line class="wall-seg__line" x1="${e.x1}" y1="${e.y1}" x2="${e.x2}" y2="${e.y2}"/>`;
   if(kind) out += doorMarkup(w, e, kind);
@@ -1085,6 +1108,43 @@ export function setWallDoor(id, kind){
   if(DOOR_TYPES[kind]) w.porta = kind; else delete w.porta;
   save(); renderCanvas(); renderDetail();
 }
+/* Il quadretto di un muro lungo su cui il DM ha toccato: lì "Metti qui"
+   apre porta, varco o finestra spezzando il muro in tre. Con la penna i muri
+   nascono lunghi un lato intero di stanza, e trasformare in porta tutto il
+   lato non è quasi mai ciò che si vuole. Senza un tocco (selezione da
+   tastiera) è il quadretto di mezzo. */
+let cellaMuro = null;
+export function cellaDelMuro(w, p){
+  const C = maglia().cella, lungo = w.dir === "v" ? p.y - w.y : p.x - w.x;
+  return Math.max(0, Math.min(w.len-1, Math.floor(lungo / C)));
+}
+export function toccaMuro(w, p){ cellaMuro = {id:w.id, k:cellaDelMuro(w, p)}; }
+export function cellaToccata(w){
+  return cellaMuro?.id === w.id ? Math.min(cellaMuro.k, w.len-1) : Math.floor((w.len-1)/2);
+}
+/* La porta resta un segmento intero (vedi DOOR_TYPES): qui il muro diventa
+   fino a tre segmenti — prima, il vano da un quadretto, dopo — e le due parti
+   laterali tengono il tipo che il muro aveva. */
+export function inserisciNelMuro(id, kind){
+  if(RO) return;
+  const w = wallOf(id); if(!w) return;
+  if(w.len < 2) return setWallDoor(id, kind);
+  const k = cellaToccata(w), C = maglia().cella, prima = doorKind(w);
+  const pezzo = (da, len, tipo) => {
+    const s = {id:uid(), dir:w.dir, len,
+               x: w.dir === "h" ? w.x + da*C : w.x, y: w.dir === "v" ? w.y + da*C : w.y};
+    if(tipo) s.porta = tipo;
+    return s;
+  };
+  const vano = pezzo(k, 1, DOOR_TYPES[kind] ? kind : null);
+  const nuovi = [...(k > 0 ? [pezzo(0, k, prima)] : []), vano,
+                 ...(k < w.len-1 ? [pezzo(k+1, w.len-1-k, prima)] : [])];
+  const cur = currentNode();
+  cur.wallSegs.splice(cur.wallSegs.indexOf(w), 1, ...nuovi);
+  cellaMuro = null;
+  selectWall(vano.id);
+  save(); renderCanvas(); renderDetail();
+}
 export function deleteWallSeg(id){
   if(RO) return;
   togliMuri([id]);
@@ -1212,6 +1272,8 @@ let suppressFocusSel = false;          // vero solo durante il focus() di ripris
 function planHintText(){
   if(armedPal?.corridoi)
     return "Trascina per dipingere i corridoi · partendo da una cella dipinta la cancelli · Esc per finire";
+  if(penneMuri(armedPal))
+    return "Tieni premuto e trascina per tracciare i muri · un clic ne posa uno · Esc per finire";
   return armedPal
     ? "Tocca la mappa per piazzare · Esc per annullare"
     : "◉ trascina, oppure tocca un elemento della palette e poi la mappa · Doppio clic: entra / nuova bolla · Ctrl+clic: selezione multipla · Canc: elimina · ?: scorciatoie";
@@ -1258,6 +1320,63 @@ function alternaCellaCorridoio(x, y){
   iniziaPennello({x, y});
   save(); renderMap();
 }
+
+/* ---------- la penna dei muri ----------
+   Con "Muro" armato, tenere premuto e trascinare traccia i muri dietro al
+   puntatore: un segmento per ogni tratto dritto, e l'angolo cade dove il
+   dito lascia l'asse di almeno un quadretto. Gli estremi sono incroci della
+   maglia, come per ogni muro, quindi un tratto storto diventa una scala di
+   segmenti invece di un muro obliquo che il formato non sa dire. Un clic
+   secco posa il muro da due quadretti di sempre. Resta armata dopo un
+   tratto, come il pennello dei corridoi: una stanza si fa in più tratti. */
+function iniziaPenna(p){
+  const mg = maglia();
+  return {mode:"penna", angolo:{x:snapGrid(p.x, mg), y:snapGrid(p.y, mg)},
+          dir:null, muro:null, moved:false, p0:p};
+}
+function penna(drag, p){
+  const mg = maglia(), C = mg.cella;
+  const q = {x:snapGrid(p.x, mg), y:snapGrid(p.y, mg)};
+  const K = drag.angolo;
+  if(drag.dir){
+    const fuori = drag.dir === "h" ? Math.abs(q.y - K.y) : Math.abs(q.x - K.x);
+    if(fuori >= C){
+      const svolta = drag.dir === "h" ? {x:q.x, y:K.y} : {x:K.x, y:q.y};
+      stendiMuro(drag, svolta);
+      drag.muro = null; drag.dir = null; drag.angolo = svolta;
+      return penna(drag, p);
+    }
+  }else{
+    const dx = Math.abs(q.x - K.x), dy = Math.abs(q.y - K.y);
+    if(Math.max(dx, dy) < C) return;
+    drag.dir = dx >= dy ? "h" : "v";
+  }
+  stendiMuro(drag, q);
+}
+function stendiMuro(drag, q){
+  const cur = currentNode(), C = maglia().cella, K = drag.angolo;
+  const d = drag.dir === "h" ? q.x - K.x : q.y - K.y;
+  const len = Math.min(WALL_MAX, Math.round(Math.abs(d) / C));
+  if(!len){
+    if(drag.muro){ togliMuri([drag.muro.id]); drag.muro = null; }
+  }else{
+    if(!drag.muro){
+      if(wallSegsOf(cur).length >= CAMPAIGN_LIMITS.wallsPerNode) return;
+      drag.muro = {id:uid(), x:K.x, y:K.y, dir:drag.dir, len};
+      (cur.wallSegs ||= []).push(drag.muro);
+    }
+    const w = drag.muro;
+    w.dir = drag.dir; w.len = len;
+    w.x = drag.dir === "h" && d < 0 ? K.x - len*C : K.x;
+    w.y = drag.dir === "v" && d < 0 ? K.y - len*C : K.y;
+  }
+  drag.moved = true;
+  if(!drag.raf){
+    drag.raf = true;
+    requestAnimationFrame(()=>{ drag.raf = false; if(planDrag === drag) renderCanvas(); });
+  }
+}
+const penneMuri = o => !!(o?.wall && !o.porta);
 
 function armPal(el, opts){
   if(armedEl){ armedEl.classList.remove("armed"); armedEl.setAttribute("aria-pressed","false"); }
@@ -1391,6 +1510,13 @@ export function initMappa(){
 
     // Palette armata: questo tocco piazza e basta — anche sopra un blocco esistente,
     // altrimenti "arma e tocca" fallirebbe proprio dove la mappa è già piena.
+    if(penneMuri(armedPal) && !RO && ev.isPrimary !== false){
+      ev.preventDefault();
+      clearTimeout(lpTimer); lpStart = null;
+      planDrag = iniziaPenna(planPoint(ev));
+      svg.setPointerCapture(ev.pointerId);
+      return;
+    }
     if(armedPal && !armedPal.corridoi){
       ev.preventDefault();
       const opts = armedPal;
@@ -1409,7 +1535,7 @@ export function initMappa(){
         const [a,b] = [...pointers.values()];
         // Il primo dito stava dipingendo: quel che ha dipinto resta, e va salvato
         // adesso, perché il rilascio di un pizzico non salva niente.
-        if(planDrag && planDrag.mode==="corridoi" && planDrag.moved) save();
+        if(planDrag && (planDrag.mode==="corridoi" || planDrag.mode==="penna") && planDrag.moved) save();
         planDrag = {mode:"pinch",
           d0: Math.max(1, Math.hypot(a.x-b.x, a.y-b.y)),
           c0: {x:(a.x+b.x)/2, y:(a.y+b.y)/2},
@@ -1498,6 +1624,7 @@ export function initMappa(){
       // costruito col Ctrl+clic lo scioglierebbe al primo tocco.
       if(!st.multiSelWalls.has(w.id)) selectWall(w.id);
       st.selectedWallId = w.id; st.selectedEdgeId = null;
+      toccaMuro(w, planPoint(ev));
       ridipingiSel();
       const g = dragGroup();
       planDrag = wHandle
@@ -1566,6 +1693,8 @@ export function initMappa(){
     const p = planPoint(ev);
     if(planDrag.mode==="corridoi"){
       pennella(planDrag, p);
+    }else if(planDrag.mode==="penna"){
+      penna(planDrag, p);
     }else if(planDrag.mode==="move"){
       const n = childOf(planDrag.id); if(!n) return;
       // Chi sta sulla maglia ci resta anche mentre lo si trascina, e per lui
@@ -1675,6 +1804,9 @@ export function initMappa(){
     if(planDrag.mode==="corridoi"){
       if(planDrag.moved) save();
       renderCanvas();                           // stato vuoto, scala e "Adatta" contano i corridoi
+    }else if(planDrag.mode==="penna"){
+      if(planDrag.moved){ clearSel(); save(); renderMap(); }
+      else{ const p0 = planDrag.p0; armPal(null); addWallSeg(p0.x, p0.y); }
     }else if(planDrag.mode==="link"){
       document.getElementById("plan-temp").setAttribute("visibility","hidden");
       const under = document.elementFromPoint(ev.clientX, ev.clientY)?.closest(".blk");
@@ -1980,4 +2112,4 @@ export function duplicateSelected(){
 // per gli onclick inline nei template e nell'HTML statico
 Object.assign(window, { enterNode, jumpTo, planFit, planZoom, arrangeGrid, quickAddCenter, addAtCenter,
   pickBg, removeBg, toggleBgEdit, setBgOpacity, requestDeleteSelection, goToNode,
-  deleteWallSeg, setWallDoor, impostaGriglia });
+  deleteWallSeg, setWallDoor, inserisciNelMuro, impostaGriglia });

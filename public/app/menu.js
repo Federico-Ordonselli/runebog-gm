@@ -10,7 +10,8 @@ import { GRUPPI, TEMA_DEFAULT, temiDelGruppo } from "./temi.js";
 import { etichettaOffline } from "./offline.js";
 import { exportJSON } from "./esporta.js";
 import { childOf, enterNode, duplicateSelected, addSpatialChild, arrangeGrid,
-         planPointXY, renderCanvas, wallOf, setWallDoor, deleteWallSeg } from "./mappa.js";
+         planPointXY, renderCanvas, wallOf, setWallDoor, deleteWallSeg,
+         inserisciNelMuro, toccaMuro } from "./mappa.js";
 import { renderDetail, openDetailSheet, editNode, askDeleteNode, editEdge, deleteEdge } from "./pannello.js";
 import { copiaSelezione, tagliaSelezione, incolla, ciSonoAppunti } from "./appunti.js";
 
@@ -143,6 +144,24 @@ export function showCtxFor(target, cx, cy){
     const w = wallOf(wallEl.dataset.wall); if(!w) return;
     selectWall(w.id); renderCanvas(); renderDetail();
     const kind = doorKind(w);
+    /* Su un muro lungo il gesto che si vuole è quasi sempre "una porta QUI",
+       non "tutto il lato è una porta": il menu offre quello, e il tipo del
+       muro intero resta nel pannello. */
+    if(w.len > 1){
+      toccaMuro(w, planPointXY(cx, cy)); renderCanvas();
+      openCtx([
+        {head:"Nel quadretto toccato"},
+        ...Object.entries(DOOR_TYPES).map(([k,d])=>({
+          id:"q-"+k, label:d.label,
+          bar: k==="segreta" ? "var(--viola)" : "var(--track)", dash: k==="segreta",
+          run:()=>inserisciNelMuro(w.id, k)
+        })),
+        "---",
+        {id:"tutto", label:"Cambia tutto il muro…", run:()=>openDetailSheet()},
+        {id:"del", label:"Elimina", danger:true, run:()=>deleteWallSeg(w.id)}
+      ], cx, cy);
+      return;
+    }
     const items = [
       {head:"Tipo di muro"},
       {id:"t-pieno", label:"Muro pieno" + (kind?"":"  ✓"), bar:"var(--ink-dim)",

@@ -134,6 +134,17 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   ne sostituisce il percorso. Le porte del perimetro derivato usano la
   direzione del primo/ultimo tratto. Verifica:
   `node test/browser/verifica-testo-e-percorsi.mjs`.
+- Penna dei muri e aperture (24 set 2026): con "Muro" armato (non "Porta")
+  il pointerdown avvia `mode:"penna"` (`iniziaPenna`/`penna`/`stendiMuro` in
+  `mappa.js`): un segmento per tratto dritto, angolo dove il puntatore
+  lascia l'asse di un quadretto, estremi sugli incroci. Un clic secco posa
+  il muro da due e disarma; dopo un tratto resta armata (Esc). Un salvataggio
+  a fine tratto = un Ctrl+Z. Varco, finestra e grata sono tipi di
+  `DOOR_TYPES`: i tre elenchi (app, contratto, `DOOR_KINDS`) li impone uguali
+  `test/disegno/aperture.test.mjs`. La porta resta un segmento intero:
+  "Metti nel quadretto" (`inserisciNelMuro`) spezza il muro in tre col vano
+  da un quadretto nella cella toccata (`toccaMuro`, al centro se nessuna).
+  Verifica: `node test/browser/verifica-penna-muri.mjs`.
 - PostgreSQL reale senza dati dell’app: avviare
   `docker run --rm -d --name runebog-todo-test -e POSTGRES_PASSWORD=runebog-test-only postgres:17-alpine`,
   poi `node test/database/verifica-todo.mjs` e

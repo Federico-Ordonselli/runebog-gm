@@ -66,7 +66,7 @@ const STATUSES = new Set(["","da fare","in corso","fatto"]);
 // campagna legittima, e il DM se ne accorge solo dopo averla costruita.
 const SHAPES = new Set(["mondo","continente","nazione","regione","quartiere","edificio","stanza","piazza","torre"]);
 const EDGE_TYPES = new Set(["strada","bloccata","ponte","segreto","tunnel"]);
-const DOOR_TYPES = new Set(["aperta","chiusa","chiave","segreta"]);
+const DOOR_TYPES = new Set(["aperta","chiusa","chiave","segreta","varco","finestra","grata"]);
 /* La maglia di un livello (`node.griglia`, 22 set 2026): forma, lato della
    cella in px e metri per cella. Esportati perché li leggono anche la bonifica
    (modello.js) e la proiezione del tavolo (share.ts): un limite ricopiato in

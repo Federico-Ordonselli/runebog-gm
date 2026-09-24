@@ -1,5 +1,18 @@
 # To-do
 
+## Penna dei muri e aperture (24 settembre 2026)
+
+- [x] **Tracciare i muri tenendo premuto.** Con "Muro" della palette armato,
+  trascinare disegna i muri dietro al mouse: un segmento per tratto dritto,
+  angoli a squadra sulla maglia; la penna resta armata fino a Esc, un clic
+  secco posa il muro da due come prima (`penna` in `mappa.js`).
+- [x] **Porta (e altro) in un punto del muro.** Su un muro lungo pannello e
+  menu contestuale mettono l'apertura nel quadretto toccato, spezzando il
+  muro in tre (`inserisciNelMuro`); il tipo del muro intero resta nel
+  pannello. Nuovi tipi: varco, finestra, grata, disegnati con segni diversi
+  e ammessi da contratto e tavolo. Test `test/disegno/aperture.test.mjs`,
+  verifica `node test/browser/verifica-penna-muri.mjs`.
+
 ## Testo formattato e collegamenti a mano (24 settembre 2026)
 
 Richieste di un tester: un riepilogo delle missioni leggibile sulla mappa

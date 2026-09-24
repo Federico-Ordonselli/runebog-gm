@@ -259,6 +259,9 @@
   .img-zoom{display:block;width:100%;cursor:zoom-in}
   #detail-img{display:block;width:100%;border-radius:var(--r);border:1px solid var(--line)}
   .img-actions{display:flex;gap:8px}
+  /* Elenchi di scelte (aperture di un muro, grandezze del testo): vanno a capo, sennò escono dal pannello. */
+  .img-actions.scelte{flex-wrap:wrap;gap:6px}
+  .img-actions.scelte .btn{flex:none}
   #detail h2{font-size:19px;color:var(--fen)}
   .detail-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;padding-top:14px;border-top:1px solid var(--line)}
   .child-list{display:flex;flex-direction:column;gap:6px}
@@ -533,6 +536,9 @@
      (--track), il segno della segreta è quello del passaggio segreto (--viola).
      Due sistemi diversi disegnano la stessa cosa, e devono somigliarsi. */
   .wall-seg__door{stroke:var(--track);stroke-width:3;stroke-linecap:butt}
+  .wall-seg__win{stroke:var(--track);stroke-width:1.5;stroke-linecap:butt}
+  .wall-seg__grata{stroke:var(--ink-dim);stroke-width:7;stroke-linecap:butt;stroke-dasharray:2 4}
+  .wall-seg__cella{fill:none;stroke:var(--ink);stroke-width:2;pointer-events:none}
   .wall-seg__lock{stroke:var(--ember);stroke-width:3;stroke-linecap:round}
   /* Il segno della segreta copre il muro per intero (stesso spessore): a 4px
      su 6 restava un filo viola in mezzo alla pietra, cioè un segreto che il DM

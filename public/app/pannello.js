@@ -10,7 +10,7 @@ import { TYPES, STATUSES, SHAPES, EDGE_TYPES, NODE_COLORS, nodeColor,
 import { st, save, findNode, findParent, removeNode, currentNode, RO } from "./stato.js";
 import { openConfirm } from "./viste.js";
 import { renderMap, renderCrumbs, renderCanvas, bgEdit, isEmptyNode, doDeleteNodes,
-         wallOf, misuraMuro, deleteWallSeg, adattaTesto } from "./mappa.js";
+         wallOf, misuraMuro, deleteWallSeg, adattaTesto, inserisciNelMuro, cellaToccata } from "./mappa.js";
 import { statblockHTML } from "./mostri.js";
 
 /* Una forma in scala si legge in celle e metri della maglia del suo livello:
@@ -188,14 +188,19 @@ function renderDetailCore(){
           <h2>${escapeHtml(wallLabel(w))}</h2>
         </div>
         <p class="hint-sm">${w.dir==="v" ? "Verticale" : "Orizzontale"} · ${escapeHtml(misuraMuro(w))}</p>
-        <div class="field"><label>Tipo</label>
+        ${w.len > 1 ? `<div class="field"><label>Metti nel quadretto evidenziato</label>
+          <div class="img-actions scelte">${Object.entries(DOOR_TYPES).map(([k,d])=>`<button class="btn"
+            onclick="inserisciNelMuro('${w.id}','${k}')">${d.label}</button>`).join("")}</div>
+          <p class="hint-sm">Il muro si spezza e al posto del quadretto ${cellaToccata(w)+1} di ${w.len}
+            (quello che hai toccato, in oro) compare il vano. Per sceglierne un altro, tocca il muro lì.</p></div>` : ""}
+        <div class="field"><label>${w.len > 1 ? "Tutto il muro" : "Tipo"}</label>
           <select onchange="setWallDoor('${w.id}',this.value)">${tipoOpts}</select>
           ${kind==="segreta"?`<p class="hint-sm">Resta tua: al tavolo questo pezzo esce come
             muro pieno, non come porta da cercare. Quando i giocatori la trovano, cambia
             il tipo in aperta o chiusa.</p>`:""}</div>
         <p class="hint-sm">Trascina il muro per spostarlo, i due capi per allungarlo
-          o girarlo. Le frecce lo spostano di un quadretto. Un varco senza battente
-          si fa ancora così: lasciando un buco fra un muro e l'altro.</p>
+          o girarlo. Le frecce lo spostano di un quadretto. Con “Muro” della palette
+          armato, tieni premuto e trascina per tracciarne tanti di fila.</p>
         <div class="detail-actions">
           <button class="btn danger" onclick="deleteWallSeg('${w.id}')">Elimina muro</button>
         </div>
@@ -457,13 +462,13 @@ function testoDetailHTML(n){
         ? "Il carattere cresce e cala con la casella: tirane l'angolo in basso a destra finché si legge bene."
         : "La casella la allarghi e allunghi tirando l'angolo in basso a destra: il testo va a capo dentro, e se non ci sta la casella si allunga."}</p></div>
     ${fit ? "" : `<div class="field"><label for="testo-size">Carattere</label>
-      <div class="img-actions">${TESTO_SIZES.map((v,i)=>`<button class="btn${v===size?" primary":""}"
+      <div class="img-actions scelte">${TESTO_SIZES.map((v,i)=>`<button class="btn${v===size?" primary":""}"
         aria-pressed="${v===size}" onclick="editNode('${n.id}','textSize',${v})"
         style="font-size:${11+Math.min(i,4)*2}px">${["Piccolo","Medio","Grande","Titolo","Enorme","Cartello"][i]}</button>`).join("")}
         <input id="testo-size" type="number" min="8" max="${TESTO_SIZE_MAX}" step="1" value="${size}" style="width:5.5em"
           aria-label="Grandezza in pixel" onchange="editNode('${n.id}','textSize',Number(this.value))"></div></div>`}
     <div class="field"><label>Allineamento</label>
-      <div class="img-actions">${Object.entries(TESTO_ALLINEA).map(([k,v])=>`<button class="btn${k===al?" primary":""}"
+      <div class="img-actions scelte">${Object.entries(TESTO_ALLINEA).map(([k,v])=>`<button class="btn${k===al?" primary":""}"
         aria-pressed="${k===al}" onclick="editNode('${n.id}','textAlign','${k}')">${v}</button>`).join("")}</div></div>
     <div class="field"><label>Colore del testo</label>
       <div class="swatches">
