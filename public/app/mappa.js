@@ -8,6 +8,7 @@ import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeCo
          gridShape, onGrid, snapGrid, snapNode,
          wallShape, wallBox, contentBox, wallOpening, wallPlan, WALL,
          wallSegsOf, wallSegEnds, newWallSeg, stretchWallSeg,
+         corridoiDi, cellaCorridoio, chiaveCella, sagomaCorridoi, riquadroCorridoi, CORRIDOI_MAX,
          DOOR_TYPES, doorKind, wallLabel, shapeType, scalaSopra, scalaDentro,
          GRIGLIE, GRIGLIA_BASE, GRID_LIMITS, grigliaDi, isHex, inScala, nomeCelle, formattaMetri,
          passoMaglia, tasselloMaglia } from "./modello.js";
@@ -154,7 +155,8 @@ let scalaOsservata = false;
 function scalaUtile(cur){
   // Una maglia dichiarata dal DM misura qualcosa per definizione: l'ha messa
   // lì per contare, anche su una mappa di viaggio senza piante.
-  return battleOn() || !!cur.griglia || gridShape(cur) || wallSegsOf(cur).length>0 || cur.children.some(gridShape);
+  return battleOn() || !!cur.griglia || gridShape(cur) || wallSegsOf(cur).length>0
+    || corridoiDi(cur).length>0 || cur.children.some(gridShape);
 }
 function aggiornaScala(){
   const el = document.getElementById("plan-scale");
@@ -190,7 +192,8 @@ export function planFit(rerender){
   // "Adatta" gli dava la vista di default, come a un livello vuoto. Stessa
   // ragione per cui `vuoto` in renderCanvas li conta.
   const muri = wallSegsOf(cur);
-  if(!kids.length && !muri.length){ planVB = {x:-600,y:-400,w:1200,h:800}; planApplyVB(); return; }
+  const pav = riquadroCorridoi(maglia(), corridoiDi(cur));
+  if(!kids.length && !muri.length && !pav){ planVB = {x:-600,y:-400,w:1200,h:800}; planApplyVB(); return; }
   let x1=Infinity,y1=Infinity,x2=-Infinity,y2=-Infinity;
   kids.forEach(c=>{ const b=nodeBox(c);
     x1=Math.min(x1,c.x); y1=Math.min(y1,c.y);
@@ -198,6 +201,7 @@ export function planFit(rerender){
   muri.forEach(w=>{ const e=wallSegEnds(w, maglia());
     x1=Math.min(x1,e.x1); y1=Math.min(y1,e.y1);
     x2=Math.max(x2,e.x2); y2=Math.max(y2,e.y2); });
+  if(pav){ x1=Math.min(x1,pav.x1); y1=Math.min(y1,pav.y1); x2=Math.max(x2,pav.x2); y2=Math.max(y2,pav.y2); }
   const pad=120, w=Math.max(700,x2-x1+pad*2), h=Math.max(480,y2-y1+pad*2);
   planVB = {x:x1-pad-(w-(x2-x1)-pad*2)/2, y:y1-pad-(h-(y2-y1)-pad*2)/2, w, h};
   planApplyVB();
@@ -666,12 +670,12 @@ export function renderCanvas(){
   ensureLayout(cur);
   // Un livello con dei muri non è vuoto: chi ha cominciato a tirare su un
   // perimetro non deve vedersi tornare davanti l'invito a creare la prima bolla.
-  const vuoto = cur.children.length===0 && wallSegsOf(cur).length===0;
+  const vuoto = cur.children.length===0 && wallSegsOf(cur).length===0 && corridoiDi(cur).length===0;
   const emptyEl = document.getElementById("empty-node");
   emptyEl.classList.toggle("show", vuoto);
   if(vuoto) emptyEl.innerHTML = emptyNodeMarkup();
   const hint = document.getElementById("plan-hint");
-  hint.style.display = cur.children.length ? "" : "none";
+  hint.style.display = cur.children.length || armedPal ? "" : "none";
   hint.textContent = planHintText();
 
   planVB = planVBs[cur.id] || null;
@@ -721,6 +725,12 @@ export function renderCanvas(){
       <rect id="bg-handle" x="${cur.bg.x+cur.bg.w-14}" y="${cur.bg.y+cur.bg.h-14}" width="28" height="28" rx="5"
         fill="var(--gold)" stroke-width="2" style="stroke:var(--bog);cursor:nwse-resize"/>`;
   }
+
+  /* I corridoi dipinti: sopra lo sfondo e sotto tutto il resto, e senza
+     eventi — è la superficie su cui si posa, non una cosa da prendere. C'è
+     sempre, anche vuoto: il pennello lo aggiorna per id mentre si trascina,
+     senza ridisegnare la tela sotto il dito. */
+  out += `<path id="corridoi" class="corridoi" d="${sagomaCorridoi(maglia(), corridoiDi(cur))}" pointer-events="none"/>`;
 
   // collegamenti del livello corrente
   for(const e of (cur.edges||[])){
@@ -953,6 +963,7 @@ export function addSpatialChild(opts, x, y){
   // qui che passano i tre modi di posare una cosa (trascina, arma-e-tocca,
   // Invio dalla palette), e sdoppiarli avrebbe voluto dire tenerli allineati.
   if(opts.wall) return addWallSeg(x, y, opts.porta);
+  if(opts.corridoi) return alternaCellaCorridoio(x, y);
   let c;
   if(opts.testo){ c = node("", "testo"); c.w = TESTO_BOX.w; c.h = TESTO_BOX.h; }
   else if(opts.marker) c = node("", opts.marker);
@@ -1137,9 +1148,53 @@ let suppressFocusSel = false;          // vero solo durante il focus() di ripris
 // Un solo posto decide il testo del suggerimento: renderCanvas lo riscrive a ogni
 // ridisegno, quindi salvarne una copia altrove sarebbe fragile.
 function planHintText(){
+  if(armedPal?.corridoi)
+    return "Trascina per dipingere i corridoi · partendo da una cella dipinta la cancelli · Esc per finire";
   return armedPal
     ? "Tocca la mappa per piazzare · Esc per annullare"
     : "◉ trascina, oppure tocca un elemento della palette e poi la mappa · Doppio clic: entra / nuova bolla · Ctrl+clic: selezione multipla · Canc: elimina · ?: scorciatoie";
+}
+
+/* ---------- il pennello dei corridoi ----------
+   Il primo tocco decide cosa fa tutto il gesto: su una cella vuota dipinge, su
+   una dipinta cancella. Un gesto che alterna cella per cella lascerebbe a
+   scacchi un corridoio ripassato. Fra due campioni del puntatore si
+   interpola, sennò un trascinamento veloce salta le celle. */
+function iniziaPennello(p){
+  const cur = currentNode();
+  const celle = new Map(corridoiDi(cur).map(c=>[chiaveCella(c), c]));
+  const prima = cellaCorridoio(maglia(), p.x, p.y);
+  const drag = {mode:"corridoi", celle, cancella: celle.has(chiaveCella(prima)), ultimo:p, moved:false};
+  applicaPennello(drag, [prima]);
+  return drag;
+}
+function pennella(drag, p){
+  const g = maglia(), a = drag.ultimo;
+  const passi = Math.max(1, Math.ceil(Math.hypot(p.x-a.x, p.y-a.y) / (g.cella/3)));
+  const celle = [];
+  for(let k=1; k<=passi; k++)
+    celle.push(cellaCorridoio(g, a.x + (p.x-a.x)*k/passi, a.y + (p.y-a.y)*k/passi));
+  drag.ultimo = p;
+  applicaPennello(drag, celle);
+}
+function applicaPennello(drag, celle){
+  let cambiato = false;
+  for(const c of celle){
+    const k = chiaveCella(c);
+    if(drag.cancella){ if(drag.celle.delete(k)) cambiato = true; }
+    else if(!drag.celle.has(k) && drag.celle.size < CORRIDOI_MAX){ drag.celle.set(k, c); cambiato = true; }
+  }
+  if(!cambiato) return;
+  const cur = currentNode();
+  if(drag.celle.size) cur.corridoi = [...drag.celle.values()]; else delete cur.corridoi;
+  drag.moved = true;
+  document.getElementById("corridoi")?.setAttribute("d", sagomaCorridoi(maglia(), corridoiDi(cur)));
+}
+/* Dal trascinamento HTML5 della voce di palette: una cella sola, dove cade. */
+function alternaCellaCorridoio(x, y){
+  if(RO) return;
+  iniziaPennello({x, y});
+  save(); renderMap();
 }
 
 function armPal(el, opts){
@@ -1148,13 +1203,24 @@ function armPal(el, opts){
   armedPal = el ? opts : null;
   if(armedEl){ armedEl.classList.add("armed"); armedEl.setAttribute("aria-pressed","true"); }
   const svg = planSvg();
-  if(svg) svg.classList.toggle("arming", !!armedPal);
+  if(svg){
+    svg.classList.toggle("arming", !!armedPal && !armedPal.corridoi);
+    svg.classList.toggle("pennello", !!armedPal?.corridoi);
+  }
   const hint = document.getElementById("plan-hint");
-  if(hint) hint.textContent = planHintText();
+  if(hint){
+    hint.textContent = planHintText();
+    if(armedPal) hint.style.display = "";
+  }
 }
 
 export function initMappa(){
-  addEventListener("keydown", ev=>{ if(ev.key === "Escape" && armedPal) armPal(null); });
+  /* L'Esc che disarma la palette si ferma qui: proseguendo, le scorciatoie lo
+     leggerebbero come "risali di un livello" — e col pennello, che si spegne
+     proprio con Esc, ogni fine lavoro portava fuori dalla stanza dipinta. */
+  addEventListener("keydown", ev=>{
+    if(ev.key === "Escape" && armedPal){ armPal(null); ev.stopImmediatePropagation(); }
+  });
   addEventListener("resize", ()=>{ if(document.getElementById("view-map").classList.contains("active")) renderCanvas(); });
 
   const svg = planSvg();
@@ -1185,6 +1251,8 @@ export function initMappa(){
       // il blocco appena creato selezionato e ci entrano dentro
       ev.preventDefault(); ev.stopPropagation();
       let opts; try{ opts = JSON.parse(el.dataset.pal); }catch(_){ return; }
+      // Il pennello non si "posa" al centro: da tastiera lo si accende e spegne.
+      if(opts.corridoi){ armPal(el === armedEl ? null : el, opts); return; }
       armPal(null);
       const cx = planVB ? planVB.x+planVB.w/2 : 0, cy = planVB ? planVB.y+planVB.h/2 : 0;
       addSpatialChild(opts, cx, cy);
@@ -1261,7 +1329,7 @@ export function initMappa(){
 
     // Palette armata: questo tocco piazza e basta — anche sopra un blocco esistente,
     // altrimenti "arma e tocca" fallirebbe proprio dove la mappa è già piena.
-    if(armedPal){
+    if(armedPal && !armedPal.corridoi){
       ev.preventDefault();
       const opts = armedPal;
       const p0 = planPoint(ev);
@@ -1277,6 +1345,9 @@ export function initMappa(){
         drawGuides(null,null);
         const t=document.getElementById("plan-temp"); if(t) t.setAttribute("visibility","hidden");
         const [a,b] = [...pointers.values()];
+        // Il primo dito stava dipingendo: quel che ha dipinto resta, e va salvato
+        // adesso, perché il rilascio di un pizzico non salva niente.
+        if(planDrag && planDrag.mode==="corridoi" && planDrag.moved) save();
         planDrag = {mode:"pinch",
           d0: Math.max(1, Math.hypot(a.x-b.x, a.y-b.y)),
           c0: {x:(a.x+b.x)/2, y:(a.y+b.y)/2},
@@ -1295,6 +1366,16 @@ export function initMappa(){
         showCtxFor(lpStart.target, lpStart.x, lpStart.y);
         lpStart = null;
       }, 550);
+    }
+    /* Pennello dei corridoi: prende ogni tocco, anche sopra bolle e muri —
+       un corridoio arriva fino alla porta, cioè sotto il bordo della stanza.
+       Resta acceso finché non lo si spegne (Esc o di nuovo la sua voce). */
+    if(armedPal?.corridoi && !RO){
+      ev.preventDefault();
+      clearTimeout(lpTimer); lpStart = null;
+      planDrag = iniziaPennello(planPoint(ev));
+      svg.setPointerCapture(ev.pointerId);
+      return;
     }
     const handle = RO ? null : ev.target.closest(".link-handle");
     const rsEl   = RO ? null : ev.target.closest(".rs-handle");
@@ -1420,7 +1501,9 @@ export function initMappa(){
     }
     if(!planDrag) return;
     const p = planPoint(ev);
-    if(planDrag.mode==="move"){
+    if(planDrag.mode==="corridoi"){
+      pennella(planDrag, p);
+    }else if(planDrag.mode==="move"){
       const n = childOf(planDrag.id); if(!n) return;
       // Chi sta sulla maglia ci resta anche mentre lo si trascina, e per lui
       // niente allineamento magnetico alle altre bolle: tirerebbe fuori
@@ -1523,7 +1606,10 @@ export function initMappa(){
       return;
     }
     if(!planDrag) return;
-    if(planDrag.mode==="link"){
+    if(planDrag.mode==="corridoi"){
+      if(planDrag.moved) save();
+      renderCanvas();                           // stato vuoto, scala e "Adatta" contano i corridoi
+    }else if(planDrag.mode==="link"){
       document.getElementById("plan-temp").setAttribute("visibility","hidden");
       const under = document.elementFromPoint(ev.clientX, ev.clientY)?.closest(".blk");
       if(under && under.dataset.block !== planDrag.from){

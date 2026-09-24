@@ -103,6 +103,17 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   pastiglia la mette dentro il suo gruppo, e `gruppoDellaPalette` la trova in
   ordine di documento. Sotto i 760px e coricati le intestazioni diventano un
   ☰. Verifica: `node test/browser/verifica-barra-menu.mjs`.
+- Corridoi dipinti (`n.corridoi`, 24 set 2026): celle `[i, j]` della
+  maglia del livello (quadretti, o assiali negli esagoni), non pixel e senza
+  id. Un pennello nella palette Pianta (`armedPal.corridoi`, `iniziaPennello`
+  in `mappa.js`) dipinge o cancella — lo decide la prima cella del gesto — e
+  resta armato. Bonifica UNA: `normalizzaCorridoi` nel contratto, letta da
+  `sanitizeState` e da `share.ts` (al tavolo esce, come i muri liberi). Il
+  generatore di dungeon scrive lì i corridoi, non più nello sfondo `bg`.
+  Disegno: un solo `<path id="corridoi">` sempre presente, aggiornato per id
+  durante il gesto. L'Esc che disarma la palette si ferma in `mappa.js`
+  (`stopImmediatePropagation`), sennò `scorciatoie.js` risaliva di livello.
+  Verifica: `node test/browser/verifica-corridoi.mjs`.
 - PostgreSQL reale senza dati dell’app: avviare
   `docker run --rm -d --name runebog-todo-test -e POSTGRES_PASSWORD=runebog-test-only postgres:17-alpine`,
   poi `node test/database/verifica-todo.mjs` e

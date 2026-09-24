@@ -450,6 +450,12 @@
   .pal-item.armed{border-color:var(--fen);color:var(--fen);background:var(--panel-2);
     box-shadow:0 0 0 1px var(--fen) inset}
   #plan-svg.arming{cursor:copy}
+  #plan-svg.pennello{cursor:crosshair}
+  /* I corridoi dipinti (n.corridoi): bianco velato sui temi scuri, cioè
+     l'inchiostro del tema e non un #fff fisso — sui temi chiari l'inchiostro è
+     scuro, e un bianco sulla carta non si vedrebbe. Velato perché sotto deve
+     restare leggibile la maglia, che è la misura. */
+  #plan-svg .corridoi{fill:color-mix(in srgb, var(--ink) 30%, transparent)}
   #plan-wrap{flex:1;position:relative;overflow:hidden}
   #plan-svg{width:100%;height:100%;display:block;touch-action:none;cursor:default}
   /* La tela degli strumenti temporanei: copre plan-wrap ma non riceve puntatori

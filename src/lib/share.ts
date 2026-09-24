@@ -25,6 +25,7 @@ import { randomBytes } from "crypto";
 // non risolve gli import senza estensione.
 import {
   CURRENT_CAMPAIGN_SCHEMA_VERSION, IMMAGINE_LOCALE, GRID_FORMS, GRID_LIMITS,
+  normalizzaCorridoi,
 } from "../../public/app/formato-campagna.js";
 
 type Node = Record<string, any>;
@@ -288,6 +289,12 @@ function projectNode(n: Node, data: Node): Node {
     })
     .filter((s): s is NonNullable<typeof s> => s !== null);
   if (muri.length) out.wallSegs = muri;
+  // I corridoi dipinti escono come i muri liberi: è la pianta del livello, e
+  // senza i giocatori vedrebbero le stanze galleggiare senza corridoi. La
+  // bonifica è quella del contratto, la stessa di sanitizeState nell'app:
+  // coppie di interi e un tetto, niente altro arriva nell'attributo `d`.
+  const corridoi = normalizzaCorridoi(n.corridoi);
+  if (corridoi.length) out.corridoi = corridoi;
   const w = num(n.w), h = num(n.h);
   if (w) out.w = w;
   if (h) out.h = h;

@@ -5,7 +5,7 @@
    Quell'import esiste per una riga sola (`IMMAGINE_LOCALE`): la forma di un URL
    di immagine deve essere la stessa qui e nel validatore, sennò il client
    accetta ciò che il server rifiuta. Non è la porta per farne entrare altre. */
-import { IMMAGINE_LOCALE, GRID_FORMS, GRID_LIMITS } from "./formato-campagna.js";
+import { IMMAGINE_LOCALE, GRID_FORMS, GRID_LIMITS, CAMPAIGN_LIMITS, normalizzaCorridoi } from "./formato-campagna.js";
 
 export const TYPES = {
   zona:      {label:"Zona",      color:"var(--fen)"},
@@ -526,6 +526,68 @@ export function stretchWallSeg(w, capo, px, py, g = GRIGLIA_BASE){
   w.y = orizzontale ? fy : (d >= 0 ? fy : fy - len*C);
 }
 
+/* ---------------- corridoi ----------------
+   Le celle dipinte di un livello (`n.corridoi`, 24 set 2026): i corridoi fra
+   le stanze, che fino a questa data esistevano solo come SFONDO di un dungeon
+   importato — un'immagine, quindi niente da togliere o allungare. Ora sono un
+   dato come i muri liberi, sul nodo del livello, e il generatore li scrive qui.
+   Una cella è `[i, j]` nella maglia del livello (vedi normalizzaCorridoi nel
+   contratto): negli esagoni sono coordinate assiali, quindi i corridoi seguono
+   la forma della maglia senza un secondo formato. Non ha id né selezione: si
+   dipinge e si cancella col pennello, non si prende in mano. */
+export const CORRIDOI_MAX = CAMPAIGN_LIMITS.corridoiPerNode;
+export const corridoiDi = n => Array.isArray(n?.corridoi) ? n.corridoi : [];
+export const chiaveCella = c => c[0] + "," + c[1];
+export function cellaCorridoio(g, x, y){
+  if(isHex(g)){ const c = cellaEsagono(g, x, y); return [c.q, c.r]; }
+  return [Math.floor(x / g.cella), Math.floor(y / g.cella)];
+}
+/* I vertici di una cella, in px. */
+function verticiCella(g, [i, j]){
+  if(!isHex(g)){
+    const c = g.cella, x = i * c, y = j * c;
+    return [[x, y], [x + c, y], [x + c, y + c], [x, y + c]];
+  }
+  const o = centroEsagono(g, {q:i, r:j}), R = g.cella / R3, piatto = hexPiatto(g);
+  const out = [];
+  for(let k = 0; k < 6; k++){
+    const a = Math.PI / 180 * (60 * k - 90);        // punta in alto; il lato piatto è la trasposta
+    const dx = R * Math.cos(a), dy = R * Math.sin(a);
+    out.push(piatto ? [o.x + dy, o.y + dx] : [o.x + dx, o.y + dy]);
+  }
+  return out;
+}
+/* Tutti i corridoi in UN percorso: una cella è un sottopercorso chiuso, e le
+   celle non si sovrappongono, quindi il riempimento semitrasparente resta
+   uniforme. Sui quadretti le corse orizzontali si fondono in un rettangolo
+   solo (la stessa economia dello sfondo che il dungeon disegnava prima). */
+export function sagomaCorridoi(g, celle){
+  const f = v => Math.round(v * 100) / 100;
+  if(isHex(g)) return celle.map(c => "M" + verticiCella(g, c).map(([x, y]) => `${f(x)} ${f(y)}`).join("L") + "Z").join("");
+  const righe = new Map();
+  for(const [i, j] of celle){ if(!righe.has(j)) righe.set(j, []); righe.get(j).push(i); }
+  const c = g.cella;
+  let d = "";
+  for(const [j, col] of righe){
+    col.sort((a, b) => a - b);
+    for(let k = 0; k < col.length;){
+      let e = k;
+      while(e + 1 < col.length && col[e + 1] === col[e] + 1) e++;
+      d += `M${f(col[k] * c)} ${f(j * c)}h${f((e - k + 1) * c)}v${f(c)}h${f(-(e - k + 1) * c)}Z`;
+      k = e + 1;
+    }
+  }
+  return d;
+}
+/* Il riquadro che contiene i corridoi, per "Adatta". */
+export function riquadroCorridoi(g, celle){
+  let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+  for(const c of celle) for(const [x, y] of verticiCella(g, c)){
+    x1 = Math.min(x1, x); y1 = Math.min(y1, y); x2 = Math.max(x2, x); y2 = Math.max(y2, y);
+  }
+  return celle.length ? {x1, y1, x2, y2} : null;
+}
+
 /* Colore di default PER FORMA, non per tipo: prima edificio e stanza erano
    entrambi "luogo" e quindi lo stesso teal, così una pianta di dungeon era una
    distesa di rettangoli identici e la gerarchia si leggeva solo dalla taglia.
@@ -701,6 +763,7 @@ export function sanitizeState(s){
     if(n.griglia != null){ const g = safeGriglia(n.griglia); if(g) n.griglia = g; else delete n.griglia; }
     if(n.wallSegs != null) n.wallSegs = (Array.isArray(n.wallSegs) ? n.wallSegs : [])
       .map(w => safeWallSeg(w, grigliaDi(n))).filter(Boolean);
+    if(n.corridoi != null){ const p = normalizzaCorridoi(n.corridoi); if(p.length) n.corridoi = p; else delete n.corridoi; }
     for(const e of (Array.isArray(n.edges) ? n.edges : [])){
       if(e.id != null) e.id = safeId(e.id);
       e.a = safeId(e.a); e.b = safeId(e.b);

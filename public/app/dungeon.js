@@ -2,7 +2,7 @@
    L'export di /dungeon (runebog-dungeon-generator) diventa una bolla nel livello
    corrente: le stanze sono blocchi alle coordinate vere della griglia (1 quadrato
    = 40px, la stessa maglia del canvas) con le loro PARETI vere attorno (muri
-   liberi, vedi dungeon-muri.js), i corridoi sono lo sfondo della pianta più archi
+   liberi, vedi dungeon-muri.js), i corridoi sono celle dipinte più archi
    "tunnel", gli incontri sono nodi encounter coi nemici già contati, e i PG di
    state.players entrano come pedine trascinabili nella stanza d'ingresso. */
 
@@ -22,34 +22,23 @@ const DG_RARITY_IT = {common:"comune",uncommon:"non comune",rare:"raro",veryRare
 const DG_ROOM_IT = {ingresso:"Ingresso",combattimento:"Combattimento",tesoro:"Tesoro",trappola:"Trappola",
   enigma:"Enigma",riposo:"Riposo",tana:"Tana",vuota:"Vuota",boss:"Boss"};
 
-function dungeonBgImage(g){
-  // Solo il pavimento dei corridoi: le stanze le disegnano i blocchi che ci
-  // stanno sopra, e le porte sono muri veri sul perimetro delle stanze
-  // (dungeon-muri.js). Il quadrato d'oro che le segnava qui è stato tolto il
-  // 25 lug 2026: stava sulla cella di corridoio, quindi ACCANTO alla porta
-  // disegnata sulla parete — due segni per una porta sola, in due posti diversi.
-  // La cella `3` resta pavimento, che è quello che è.
-  // Le corse orizzontali di corridoio si fondono in un rect solo: meno byte in salvataggio.
-  const S = DG_SCALE;
-  let rects = "";
+/* I corridoi sono celle DIPINTE (n.corridoi, 24 set 2026), non più uno
+   sfondo: fino a questa data erano un'immagine SVG in `bg`, cioè un disegno
+   che il DM non poteva allungare né correggere, e che nell'editor non si
+   sapeva rifare a mano. Ora sono le stesse celle che il pennello "Corridoio"
+   dipinge, sulla stessa maglia (1 quadrato del generatore = 1 quadretto).
+   Le stanze no: le disegnano i blocchi che ci stanno sopra. La cella `3`
+   (soglia) resta corridoio, che è quello che è; le porte sono muri veri sul
+   perimetro delle stanze (dungeon-muri.js). I dungeon importati prima tengono
+   il loro sfondo: nessuna migrazione, l'immagine resta valida. */
+function corridoiDelDungeon(g){
+  const celle = [];
   for(let y=0; y<g.rows.length; y++){
     const row = g.rows[y];
-    let run = -1;
-    for(let x=0; x<=row.length; x++){
-      const corr = x<row.length && (row[x]==="2" || row[x]==="3");
-      if(corr && run<0) run = x;
-      if(!corr && run>=0){
-        rects += `<rect x="${run*S}" y="${y*S}" width="${(x-run)*S}" height="${S}"/>`;
-        run = -1;
-      }
-    }
+    for(let x=0; x<row.length; x++)
+      if(row[x]==="2" || row[x]==="3") celle.push([x, y]);
   }
-  // Hex fissi obbligati: questo SVG diventa un'immagine data-URI (documento a
-  // sé), dove i token var(--…) della pagina non esistono. È l'eccezione, non
-  // il modello: nel DOM della pagina i colori passano dai token del tema.
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${g.width*S} ${g.height*S}">`
-    + `<g fill="#8a8f98" fill-opacity="0.45">${rects}</g></svg>`;
-  return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+  return celle;
 }
 
 function dungeonRoomNotes(r){
@@ -91,7 +80,8 @@ function dungeonFromExport(data){
     `Party: livello ${p.level??"?"}, ${p.partySize??"?"} PG · difficoltà ${p.difficulty??"?"} · regole ${p.ruleset??"?"}`,
     `${sum.totalRooms??data.rooms.length} stanze · ${sum.monsterCount??"?"} creature · ${sum.totalAdjustedXP??"?"} XP rettificati · ${sum.totalLootGp??"?"} mo di bottino`,
   ].join("\n");
-  dg.bg = {img: dungeonBgImage(data.grid), x:0, y:0, w:data.grid.width*S, h:data.grid.height*S, opacity:0.7};
+  const corridoi = corridoiDelDungeon(data.grid);
+  if(corridoi.length) dg.corridoi = corridoi;
 
   const idmap = Object.create(null);          // room-N dell'export -> id del nodo creato
   let entrance = null;

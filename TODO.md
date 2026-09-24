@@ -1,5 +1,21 @@
 # To-do
 
+## Corridoi dipinti (24 settembre 2026)
+
+- [x] **I corridoi del generatore si possono disegnare anche a mano.** Nuova
+  voce "Corridoio" nel gruppo Pianta: accende un pennello che resta acceso
+  (Esc o di nuovo la voce lo spengono); trascinando si dipingono celle della
+  maglia velate, partendo da una cella dipinta si cancellano. Il dato è
+  `n.corridoi` sul nodo del livello, coppie di interi in celle (quadretti o
+  coordinate assiali negli esagoni). Contratto e bonifica condivisi
+  (`normalizzaCorridoi` in `formato-campagna.js`, usata da `sanitizeState` e
+  da `share.ts`: al tavolo i corridoi escono). Il generatore di dungeon
+  scrive i corridoi qui invece che in un'immagine di sfondo, quindi ora si
+  correggono; i dungeon già importati tengono lo sfondo. Esc con la palette
+  armata non risale più di livello. Test: `test/critici/corridoi.test.mjs`;
+  verifica nel browser `node test/browser/verifica-corridoi.mjs` (vuole
+  `npm run dev`; aspetta `/app.html`, quindi gira anche senza `.env`).
+
 ## Palette e temi (23 settembre 2026)
 
 - [x] **Provare una light mode con la palette fornita.** Aggiunto il tema

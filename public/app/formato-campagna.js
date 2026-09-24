@@ -45,6 +45,7 @@ export const CAMPAIGN_LIMITS = Object.freeze({
   childrenPerNode: 600,
   edgesPerNode: 3000,
   wallsPerNode: 3000,
+  corridoiPerNode: 10000,
   foesPerNode: 1000,
   initiativePerNode: 1500,
   players: 200,
@@ -76,6 +77,33 @@ const DOOR_TYPES = new Set(["aperta","chiusa","chiave","segreta"]);
    (quadrata, 40px, 1,5 m), quindi nessuna campagna esistente va migrata. */
 export const GRID_FORMS = Object.freeze(["quadrata","hex-punta","hex-piatto"]);
 export const GRID_LIMITS = Object.freeze({cellaMin:10, cellaMax:400, metriMin:0.01, metriMax:1000000});
+/* I corridoi di un livello (`node.corridoi`, 24 set 2026): le celle della
+   maglia che il DM dipinge — i corridoi fra le stanze, come quelli che il
+   generatore di dungeon disegnava nello sfondo. Una cella è `[i, j]`, due
+   INTERI nella maglia del livello: colonna e riga sui quadretti, coordinate
+   assiali (q, r) negli esagoni. In celle e non in pixel, perché così cambiare
+   il lato della maglia non stacca i corridoi dalla griglia.
+
+   `normalizzaCorridoi` è la bonifica, ed è UNA sola: la usano `sanitizeState`
+   (modello.js) e la proiezione del tavolo (share.ts). Finisce in un attributo
+   `d` di SVG attraverso numeri che ne escono interi, e tiene la prima copia di
+   ogni cella: due copie non si vedono, ma contano contro il tetto. */
+export const CORRIDOI_COORD = 1000000;
+export function normalizzaCorridoi(v){
+  if(!Array.isArray(v)) return [];
+  const visti = new Set(), out = [];
+  for(const c of v){
+    if(out.length >= CAMPAIGN_LIMITS.corridoiPerNode) break;
+    if(!Array.isArray(c) || c.length !== 2) continue;
+    const [i, j] = c;
+    if(!Number.isInteger(i) || !Number.isInteger(j)) continue;
+    if(Math.abs(i) > CORRIDOI_COORD || Math.abs(j) > CORRIDOI_COORD) continue;
+    const k = i + "," + j;
+    if(visti.has(k)) continue;
+    visti.add(k); out.push([i + 0, j + 0]);        // + 0: niente -0
+  }
+  return out;
+}
 const IMAGE_MIMES = new Set(["png","jpeg","jpg","webp","gif","avif","svg+xml"]);
 const ID_RE = /^[\w-]+$/u;
 const COLOR_RE = /^#[0-9a-f]{3,8}$/i;
@@ -496,6 +524,16 @@ function validateNodeShallow(node, path){
     if((error = requireArray(node.wallSegs, CAMPAIGN_LIMITS.wallsPerNode, `${path}.wallSegs`))) return error;
     for(let i=0; i<node.wallSegs.length; i++)
       if((error = validateWall(node.wallSegs[i], `${path}.wallSegs[${i}]`))) return error;
+  }
+  if(node.corridoi !== undefined){
+    if((error = requireArray(node.corridoi, CAMPAIGN_LIMITS.corridoiPerNode, `${path}.corridoi`))) return error;
+    for(let i=0; i<node.corridoi.length; i++){
+      const c = node.corridoi[i], cp = `${path}.corridoi[${i}]`;
+      if(!Array.isArray(c) || c.length !== 2)
+        return bad("invalid_corridor_cell", "Una cella di corridoio è una coppia [colonna, riga]", cp);
+      for(let k=0; k<2; k++)
+        if((error = validateNumber(c[k], `${cp}[${k}]`, {integer:true, min:-CORRIDOI_COORD, max:CORRIDOI_COORD}))) return error;
+    }
   }
   for(let i=0; i<node.edges.length; i++)
     if((error = validateEdge(node.edges[i], `${path}.edges[${i}]`))) return error;
