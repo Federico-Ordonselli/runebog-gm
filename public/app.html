@@ -390,6 +390,15 @@
   </form>
 </dialog>
 
+<!-- Impostazioni (impostazioni.js): il contenuto si costruisce all'apertura. -->
+<dialog id="impostazioni-dialog" aria-labelledby="imp-titolo">
+  <h2 id="imp-titolo" class="serif" style="font-size:19px;margin-bottom:12px">Impostazioni</h2>
+  <div id="imp-corpo"></div>
+  <div class="d-actions">
+    <button type="button" class="btn primary" onclick="document.getElementById('impostazioni-dialog').close()">Chiudi</button>
+  </div>
+</dialog>
+
 <dialog id="alert-dialog">
   <p id="alert-text" class="serif" style="font-size:16px"></p>
   <div class="d-actions">

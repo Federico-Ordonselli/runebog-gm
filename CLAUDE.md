@@ -179,6 +179,19 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   vuoto. Un clic che cambia selezione ridisegna al rilascio, sennò le
   maniglie restano sulla bolla di prima. Verifica:
   `node test/browser/verifica-schede.mjs`.
+- Fogli e Impostazioni (25 set 2026). `n.foglio` ∈ `FOGLI` (contratto;
+  `FOGLI` in `modello.js` ha le etichette e `test/scala/foglio.test.mjs`
+  le impone uguali). Si legge SOLO con `foglioDi`, che torna null senza
+  scelta: allora decide `preferenza("foglio")` di `preferenze.js`, che
+  `modello.js` non importa (niente localStorage lì). Il valore diventa la
+  classe `.foglio-*`: tutto CSS dentro il `foreignObject`, niente filtri
+  SVG per bolla; il contenitore non ha bordi né margini verticali, sennò
+  le misure di schede e caselle smettono di essere quelle del testo. Il
+  rettangolo SVG resta presa e selezione (fondo solo per la carta). I
+  colori sono token di `themes.css` uguali in tutti i temi, i "-bordo"
+  dichiarati apposta perché il verificatore li misuri. Le impostazioni
+  (`impostazioni.js`) chiamano `setTheme`/`impostaBarra`, non li ricopiano.
+  Verifica: `node test/browser/verifica-fogli.mjs`.
 - Pixel → mappa passa da `vistaPx` (`mappa.js`, 25 set 2026): il viewBox
   non ha le proporzioni della tela e col "meet" di default un pixel vale
   max(w/W, h/H), non w/W — con w/W il pan scivolava al 50–60% del gesto su

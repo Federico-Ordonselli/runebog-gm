@@ -15,7 +15,8 @@ import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeCo
          DOOR_TYPES, doorKind, wallLabel, shapeType, scalaSopra, scalaDentro,
          GRIGLIE, GRIGLIA_BASE, GRID_LIMITS, grigliaDi, isHex, inScala, nomeCelle, formattaMetri,
          passoMaglia, tasselloMaglia, normalizzaTaglia, TAGLIA_MAX, MARKER_R, CELL,
-         scalaSegnalino, SCHEDA_TIPI, haScheda, schedaDi, SCHEDA_LIMITI } from "./modello.js";
+         scalaSegnalino, SCHEDA_TIPI, haScheda, schedaDi, SCHEDA_LIMITI, foglioDi } from "./modello.js";
+import { preferenza } from "./preferenze.js";
 import { apriScrittura, riposizionaScrittura } from "./scrittura.js";
 import { st, save, findNode, findParent, removeNode, currentNode, pathNodes, RO,
          clearSel, selectNode, selectWall, zoomOut } from "./stato.js";
@@ -662,6 +663,18 @@ const cimaScheda = c => {
   return (c.children.length ? R*2+6+22*k : R*2+4+11*k) + 8*k;
 };
 const misureScheda = new Map();
+/* Il foglio di una casella o di una scheda: quello scelto per la bolla, sennò
+   quello delle impostazioni di chi guarda. Sul foglio l'inchiostro è del
+   foglio: i colori delle bolle sono pastelli pensati per i temi scuri, e su
+   una carta chiara sparirebbero. La texture è tutta CSS dentro il
+   foreignObject (`.foglio-*` in app.css): gradienti e un contorno ritagliato,
+   niente filtri SVG per bolla, che costerebbero a ogni ridisegno. Il
+   contenitore non ha bordi né margini in verticale, così le misure di
+   adattaSchede e adattaTesto restano quelle del testo. */
+const foglioDelNodo = c => foglioDi(c) ?? preferenza("foglio");
+const suFoglio = (stile, html) => stile === "pulito" ? html
+  : `<div xmlns="http://www.w3.org/1999/xhtml" class="foglio foglio-${stile}">${html}</div>`;
+const classeFondo = stile => stile === "pulito" ? "" : ` foglio-fondo fondo-${stile}`;
 function altezzaScheda(c, s){
   if(s.h) return s.h;
   if(testoAdatta(c)) return s.tetto;
@@ -672,12 +685,13 @@ function schedaMarkup(c, col){
   const px = fit ? (misureFit.get(c.id)?.px ?? s.px) : s.px;
   const x = markerR(c) - s.w/2, y = cimaScheda(c);
   const tagliata = misureScheda.get(c.id)?.tagliata ? " tagliata" : "";
+  const stile = foglioDelNodo(c);
   // Lo stato apre la scheda: in una quest è la prima cosa che si cerca.
   const stato = c.status ? `<div class="scheda-stato"><span class="scheda-pallino" style="background:${STATUS_COLORS[c.status]||"var(--grigio)"}"></span>${escapeHtml(c.status)}</div>` : "";
   return `<g class="scheda" transform="translate(${x},${y})">
-    <rect class="scheda-fondo" width="${s.w}" height="${h}" rx="6" style="--c:${col}"/>
+    <rect class="scheda-fondo${classeFondo(stile)}" width="${s.w}" height="${h}" rx="6" style="--c:${col}"/>
     <foreignObject width="${s.w}" height="${h}" pointer-events="none">
-      <div xmlns="http://www.w3.org/1999/xhtml" class="testo-txt scheda-txt${fit?" testo-fit":""}${tagliata}" style="font-size:${px}px;text-align:${testoAllinea(c)}">${stato}${testoRicco(c.notes)}</div>
+      ${suFoglio(stile, `<div xmlns="http://www.w3.org/1999/xhtml" class="testo-txt scheda-txt${fit?" testo-fit":""}${tagliata}" style="font-size:${px}px;text-align:${testoAllinea(c)}">${stato}${testoRicco(c.notes)}</div>`)}
     </foreignObject>
     ${c.id===st.selectedId && st.multiSel.size<=1 ? `<rect class="rs-handle rs-scheda" x="${s.w-8}" y="${h-8}" width="16" height="16" rx="3"/>` : ""}
   </g>`;
@@ -693,7 +707,7 @@ function adattaSchede(cur){
   for(const c of cur.children){
     if(!isMarker(c) || !haScheda(c) || typeof c.x !== "number") continue;
     const s = schedaDi(c), fit = testoAdatta(c);
-    const chiave = `${s.w}|${s.h}|${s.px}|${fit}|${testoAllinea(c)}|${c.status}|${c.notes}`;
+    const chiave = `${s.w}|${s.h}|${s.px}|${fit}|${testoAllinea(c)}|${foglioDelNodo(c)}|${c.status}|${c.notes}`;
     if(misureScheda.get(c.id)?.chiave === chiave) continue;
     const g = svg.querySelector(`.blk[data-block="${c.id}"] .scheda`);
     const el = g?.querySelector(".scheda-txt");
@@ -981,10 +995,12 @@ export function renderCanvas(){
       const fit = testoAdatta(c) && c.notes;
       const px = fit ? (misureFit.get(c.id)?.px ?? testoSize(c)) : testoSize(c);
       const txt = c.notes ? testoRicco(c.notes) : `<span class="testo-vuoto">Scrivi dal pannello…</span>`;
+      const stile = foglioDelNodo(c);
+      const inchiostro = stile === "pulito" ? col : "var(--foglio-ink)";
       out += `<g class="blk testo${selCls}" data-block="${c.id}" ${a11y} transform="translate(${c.x},${c.y})">
-        <rect class="blk-shape" width="${box.w}" height="${box.h}" rx="4" style="--c:${col}"/>
+        <rect class="blk-shape${classeFondo(stile)}" width="${box.w}" height="${box.h}" rx="4" style="--c:${col}"/>
         <foreignObject width="${box.w}" height="${box.h}" pointer-events="none">
-          <div xmlns="http://www.w3.org/1999/xhtml" class="testo-txt${fit?" testo-fit":""}" style="font-size:${px}px;color:${col};text-align:${testoAllinea(c)}">${txt}</div>
+          ${suFoglio(stile, `<div xmlns="http://www.w3.org/1999/xhtml" class="testo-txt${fit?" testo-fit":""}" style="font-size:${px}px;color:${inchiostro};text-align:${testoAllinea(c)}">${txt}</div>`)}
         </foreignObject>
         ${c.id===st.selectedId && st.multiSel.size<=1 ? `<rect class="rs-handle" x="${box.w-8}" y="${box.h-8}" width="16" height="16" rx="3"/>`:""}
       </g>`;
@@ -1093,7 +1109,7 @@ function adattaCaratteri(cur){
     const scheda = isMarker(n) && haScheda(n) && !RO;
     if(!(isTesto(n) || scheda) || !testoAdatta(n) || !n.notes || typeof n.x !== "number") continue;
     const b = scheda ? (s => ({w:s.w, h:altezzaScheda(n, s)}))(schedaDi(n)) : nodeBox(n);
-    const chiave = `${b.w}x${b.h}|${testoAllinea(n)}|${n.status}|${n.notes}`;
+    const chiave = `${b.w}x${b.h}|${testoAllinea(n)}|${foglioDelNodo(n)}|${n.status}|${n.notes}`;
     if(misureFit.get(n.id)?.chiave === chiave) continue;
     const el = svg.querySelector(`.blk[data-block="${n.id}"] .testo-txt`);
     if(!el) continue;
@@ -1181,7 +1197,13 @@ export function addSpatialChild(opts, x, y){
   if(opts.wall) return addWallSeg(x, y, opts.porta);
   if(opts.corridoi) return alternaCellaCorridoio(x, y);
   let c;
-  if(opts.testo){ c = node("", "testo"); c.w = TESTO_BOX.w; c.h = TESTO_BOX.h; }
+  if(opts.testo){
+    c = node("", "testo"); c.w = TESTO_BOX.w; c.h = TESTO_BOX.h;
+    // Il carattere delle impostazioni vale per le caselle NUOVE: cambiarlo a
+    // tutte ridisegnerebbe l'impaginazione di appunti già messi a posto.
+    const px = preferenza("carattere");
+    if(px !== testoSize({})) c.textSize = px;
+  }
   else if(opts.marker) c = node("", opts.marker);
   else { c = node("", shapeType(opts.shape)); c.shape = opts.shape; }
   const mg = maglia();

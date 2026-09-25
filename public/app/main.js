@@ -18,6 +18,7 @@ import { initEsporta } from "./esporta.js";
 import { initDungeon } from "./dungeon.js";
 import { initTavolo } from "./tavolo.js";
 import { initOffline } from "./offline.js";
+import { initImpostazioni } from "./impostazioni.js";
 import { GRUPPI, TEMA_DEFAULT, temaValido, temiDelGruppo } from "./temi.js";
 
 /* --- temi: scelti qui, ricordati, e validi anche sul sito (stessa chiave) --- */
@@ -168,6 +169,7 @@ initChecklist();
 initPng();
 initEsporta();
 initDungeon();
+initImpostazioni();
 initTavolo();
 if(window.runebogDesktop) document.documentElement.classList.add('desktop');
 initDetailResize();

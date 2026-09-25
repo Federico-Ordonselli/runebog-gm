@@ -1,5 +1,39 @@
 # To-do
 
+## Fase 3: impostazioni e fogli (25 settembre 2026)
+
+Dario: «alle caselle di testo puoi dare una texture tipo foglio di carta,
+pergamena srotolata, bruciata», e una pagina di impostazioni per
+personalizzare.
+
+- [x] **Quattro fogli** per caselle di testo e schede dei segnalini: pulito,
+  carta, pergamena srotolata (due rotoli), bruciata (contorno frastagliato
+  con `clip-path` e brace ai bordi). Solo CSS dentro il `foreignObject`
+  (`.foglio-*` in `app.css`), nessun filtro SVG per bolla. Sul foglio
+  l'inchiostro è del foglio: i colori delle bolle sono pastelli per i temi
+  scuri. Il contenitore non ha margini verticali, quindi le misure di
+  `adattaSchede`/`adattaTesto` restano quelle del testo.
+- [x] **Il foglio per bolla** sta nel documento (`n.foglio`, elenco chiuso
+  `FOGLI` nel contratto, `foglioDi` in `modello.js`, bonifica); assente =
+  segue le impostazioni. Si sceglie dal pannello di casella e scheda
+  ("Predefinito" toglie il campo). Al tavolo non arriva: caselle e schede
+  sono del DM, e un test lo impone comunque.
+- [x] **Finestra Impostazioni** (`impostazioni.js`, `#impostazioni-dialog`),
+  da Visualizza e dal ⋯: tema, barra a menu o completa, foglio predefinito,
+  carattere delle caselle nuove. Richiama `setTheme` e `impostaBarra`, non
+  ne fa una seconda strada. Le preferenze stanno in `localStorage`
+  (`preferenze.js`: `runebog-foglio`, `runebog-carattere`); al tavolo
+  restano tema e barra.
+- [x] Colori dei fogli in `themes.css`, uguali in tutti i temi; sei coppie
+  nuove in `npm run temi:contrasto` (la peggiore 4,89:1, lo stato sul
+  margine bruciato).
+- [x] Test `test/scala/foglio.test.mjs`, verifica
+  `node test/browser/verifica-fogli.mjs` (26 controlli, tavolo compreso).
+- [ ] Cambiando foglio dalle impostazioni si allungano le caselle del
+  livello aperto in cui il testo non ci sta più; quelle degli altri livelli
+  si allungano alla prima modifica (fino ad allora il testo in fondo è
+  tagliato).
+
 ## Fase 2: la bolla come pagina (25 settembre 2026)
 
 Il tester vuole girare per la mappa e leggere tutto sulle bolle, senza

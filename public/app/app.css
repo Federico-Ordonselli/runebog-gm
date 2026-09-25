@@ -380,6 +380,19 @@
   #dungeon-dialog{width:min(440px, calc(100vw - 32px));max-height:90dvh;overflow:auto}
   #dungeon-dialog form{display:flex;flex-direction:column;gap:12px}
   #dungeon-dialog label .hint-sm{text-transform:none;letter-spacing:0}
+  #impostazioni-dialog{width:min(480px, calc(100vw - 32px));max-height:90dvh;overflow:auto}
+  #imp-corpo{display:flex;flex-direction:column;gap:14px}
+  /* L'anteprima di un foglio nel bottone che lo sceglie: la stessa classe
+     della tela, in piccolo. La carta prende il colore dal rettangolo SVG
+     che qui non c'è, quindi lo dichiara da sé. */
+  .imp-fogli .btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding-block:6px}
+  .imp-fogli .foglio-prova{display:block;width:58px;height:40px;box-sizing:border-box;border-radius:4px;
+    border:1px solid var(--line-ui)}
+  .imp-fogli .foglio-prova.foglio{border:0}
+  .foglio-prova .testo-txt{padding:0 !important;display:flex;align-items:center;justify-content:center;
+    font-size:15px;white-space:normal}
+  .foglio-prova.foglio-carta{background-color:var(--foglio-carta)}
+  .foglio-prova.foglio-pergamena::before,.foglio-prova.foglio-pergamena::after{height:8px}
   .keys-h{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin:14px 0 8px}
   .keys-grid{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;align-items:center;font-size:13px}
   .keys-grid > span:nth-child(odd){white-space:nowrap}
@@ -601,6 +614,61 @@
   .scheda-stato{display:flex;align-items:center;gap:.4em;font-size:.75em;letter-spacing:.08em;
     text-transform:uppercase;color:var(--ink-dim);margin-bottom:.25em}
   .scheda-pallino{display:inline-block;width:.65em;height:.65em;border-radius:50%;flex:none}
+  /* I fogli di caselle e schede (25 set 2026, `foglioDelNodo` in mappa.js).
+     Solo CSS dentro il foreignObject: gradienti, due cilindri e un contorno
+     ritagliato, nessun filtro SVG per bolla. Il contenitore non ha bordi né
+     margini in verticale — l'altezza la misurano adattaSchede e adattaTesto
+     sul testo, e deve restare quella del foglio. Lo spazio per rotoli e
+     bruciature lo dà il padding del testo, che la misura comprende.
+     L'inchiostro è del foglio (--foglio-ink): i colori delle bolle sono
+     pastelli per i temi scuri, e su carta chiara sparirebbero. Il rettangolo
+     SVG sotto resta la presa e la selezione; sulla carta porta anche il
+     colore e l'ombra, sugli altri due è trasparente, sennò spunterebbe
+     oltre i rotoli e dentro i morsi della bruciatura. */
+  .blk .foglio-fondo.blk-shape,.blk .foglio-fondo.scheda-fondo{fill:transparent;filter:none}
+  .blk:not(.sel):not(:focus-visible) .foglio-fondo.scheda-fondo{stroke:transparent}
+  .blk .fondo-carta.foglio-fondo{fill:var(--foglio-carta);filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+  .foglio{position:relative;box-sizing:border-box;height:100%}
+  .foglio .testo-txt{color:var(--foglio-ink)}
+  .foglio .scheda-stato,.foglio .testo-vuoto{color:var(--foglio-ink-dim)}
+  .foglio .testo-txt{padding:9px 12px}
+  .foglio-carta{background:
+    linear-gradient(to bottom, rgb(255 255 255/.35), transparent 45%),
+    repeating-linear-gradient(to bottom, transparent 0 3px, rgb(120 100 70/.035) 3px 4px)}
+  /* Pergamena srotolata: il foglio è più stretto dei due rotoli, che lo
+     chiudono sopra e sotto come cilindri (luce in alto, ombra in basso). */
+  .foglio-pergamena{padding:0 7px;filter:drop-shadow(0 1px 1.5px rgb(0 0 0/.45));
+    background:radial-gradient(ellipse at 50% 50%, var(--foglio-pergamena) 62%,
+      var(--foglio-pergamena-bordo) 100%) content-box}
+  .foglio-pergamena::before,.foglio-pergamena::after{content:"";position:absolute;left:0;right:0;
+    height:13px;border-radius:6.5px;background:linear-gradient(to bottom,
+      color-mix(in srgb, var(--foglio-rotolo) 70%, #000),
+      color-mix(in srgb, var(--foglio-rotolo) 45%, #fff) 38%,
+      var(--foglio-rotolo) 70%,
+      color-mix(in srgb, var(--foglio-rotolo) 60%, #000))}
+  .foglio-pergamena::before{top:0}
+  .foglio-pergamena::after{bottom:0}
+  .foglio-pergamena .testo-txt{padding:19px 10px}
+  /* Bruciata: i morsi del contorno sono in px e le loro posizioni in %,
+     quindi il bordo resta frastagliato alla stessa scala a ogni misura. Uno
+     solo per tutti i fogli: generarlo dall'id vorrebbe un clip-path per
+     bolla, cioè uno style in più dentro ogni ridisegno. */
+  .foglio-bruciata{
+    background:radial-gradient(ellipse at 50% 45%, var(--foglio-bruciata) 58%,
+      var(--foglio-bruciata-bordo) 90%, var(--foglio-brace) 100%);
+    box-shadow:inset 0 0 9px 2px color-mix(in srgb, var(--foglio-brace) 85%, transparent);
+    clip-path:polygon(0% 9px, 4% 9px, 9% 9px, 15% 4px, 21% 3px, 26% 9px, 32% 3px, 38% 2px, 44% 9px, 49% 5px, 
+    55% 3px, 61% 2px, 66% 1px, 72% 8px, 78% 9px, 84% 3px, 89% 1px, 95% 2px, 100% 1px, calc(100% - 
+    1px) 7%, calc(100% - 4px) 15%, calc(100% - 4px) 24%, calc(100% - 1px) 32%, calc(100% - 9px) 
+    41%, calc(100% - 6px) 50%, calc(100% - 9px) 58%, calc(100% - 4px) 67%, calc(100% - 4px) 75%, 
+    calc(100% - 5px) 84%, calc(100% - 9px) 92%, 100% calc(100% - 1px), 95% calc(100% - 2px), 89% 
+    calc(100% - 9px), 84% calc(100% - 5px), 78% calc(100% - 8px), 72% calc(100% - 2px), 66% 
+    calc(100% - 5px), 61% calc(100% - 6px), 55% calc(100% - 4px), 49% calc(100% - 5px), 44% 
+    calc(100% - 1px), 38% calc(100% - 2px), 32% calc(100% - 2px), 26% calc(100% - 8px), 21% 
+    calc(100% - 2px), 15% calc(100% - 5px), 9% calc(100% - 8px), 4% calc(100% - 2px), 0% calc(100% 
+    - 1px), 1px 92%, 4px 84%, 4px 75%, 1px 67%, 9px 58%, 8px 50%, 8px 41%, 8px 32%, 2px 24%, 4px 
+    15%, 5px 7%)}
+  .foglio-bruciata .testo-txt{padding:14px 16px}
   /* La scrittura sul posto (scrittura.js): la textarea copre il riquadro che
      si scrive, la barra le galleggia sopra (sotto, se sopra non c'è posto).
      Su schermo stretto sta in cima alla tela, fuori dalla tastiera. */

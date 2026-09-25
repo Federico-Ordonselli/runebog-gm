@@ -112,6 +112,25 @@
   --track:       #c9b98a;
   --tunnel:      #9a7d54;
   --grid:        color-mix(in srgb, var(--moss) 9%, transparent);
+
+  /* I fogli di caselle e schede (app.css .foglio-*, 25 set 2026): carta vera,
+     quindi gli stessi in tutti i temi — una pergamena resta chiara anche su
+     una mappa scura, ed è il punto. Nessun tema li ridichiara. L'inchiostro
+     è misurato sulla parte più scura su cui il testo può cadere (non sui
+     bordi bruciati, che il padding tiene lontani): coppie in
+     scripts/verifica-contrasto.mjs. */
+  --foglio-carta:      #f2ede1;
+  --foglio-pergamena:  #e6d3a8;
+  /* I "-bordo" sono dove il gradiente del foglio arriva quando il testo può
+     ancora starci sopra (il bordo del padding): dichiarati e non color-mix,
+     così il verificatore li misura. Oltre, verso la brace, c'è solo padding. */
+  --foglio-pergamena-bordo: #dec79a;
+  --foglio-bruciata:   #e9d7b0;
+  --foglio-bruciata-bordo:  #c1a984;
+  --foglio-rotolo:     #b8925a;
+  --foglio-brace:      #5a3414;
+  --foglio-ink:        #2a2217;
+  --foglio-ink-dim:    #463a29;
 }
 
 /* ---------- Pergamena: carta invecchiata, inchiostro, ceralacca ----------

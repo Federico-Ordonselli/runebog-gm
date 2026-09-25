@@ -7,7 +7,8 @@ import { TYPES, STATUSES, SHAPES, EDGE_TYPES, NODE_COLORS, nodeColor,
          isMarker, isTesto, testoSize, testoAllinea, testoAdatta, TESTO_ALLINEA, TESTO_SIZE_MAX, nomeInElenco, TESTO_SIZES, defShape, nodeBox, node, escapeHtml, escapeAttr,
          wallShape, inScala, DOOR_TYPES, doorKind, wallLabel,
          GRIGLIE, GRID_LIMITS, grigliaDi, isHex, nomeCelle, formattaMetri, normalizzaTaglia, TAGLIA_MAX,
-         SCHEDA_TIPI, schedaDi } from "./modello.js";
+         SCHEDA_TIPI, schedaDi, FOGLI, foglioDi, TESTO_SIZE_NOMI } from "./modello.js";
+import { preferenza } from "./preferenze.js";
 import { st, save, findNode, findParent, removeNode, currentNode, RO } from "./stato.js";
 import { openConfirm } from "./viste.js";
 import { renderMap, renderCrumbs, renderCanvas, bgEdit, isEmptyNode, doDeleteNodes,
@@ -447,8 +448,23 @@ function renderDetailCore(){
    tavolo: di una bolla le servono tre cose (testo, grandezza, colore), e
    nascondere le altre venti con degli `if` sparsi vorrebbe dire inseguirle
    ogni volta che se ne aggiunge una. */
+/* Il foglio di una casella o di una scheda. La prima scelta è "nessuna
+   scelta": la bolla segue le impostazioni di chi guarda, ed è il caso di
+   quasi tutte — chi cambia foglio dalle impostazioni li cambia insieme. */
+function sceltaFoglio(n){
+  const cur = foglioDi(n);
+  return `<div class="field"><label>Foglio</label>
+    <div class="img-actions scelte">
+      <button class="btn${cur?"":" primary"}" aria-pressed="${!cur}"
+        onclick="editNode('${n.id}','foglio',undefined)">Predefinito (${FOGLI[preferenza("foglio")].toLowerCase()})</button>
+      ${Object.entries(FOGLI).map(([k,v])=>`<button class="btn${k===cur?" primary":""}" aria-pressed="${k===cur}"
+        onclick="editNode('${n.id}','foglio','${k}')">${v}</button>`).join("")}
+    </div></div>`;
+}
+
 function testoDetailHTML(n){
   const size = testoSize(n), fit = testoAdatta(n), al = testoAllinea(n);
+  const suCarta = (foglioDi(n) ?? preferenza("foglio")) !== "pulito";
   return `<div class="inner">
     <div>
       <span style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim)">
@@ -472,20 +488,22 @@ function testoDetailHTML(n){
     ${fit ? "" : `<div class="field"><label for="testo-size">Carattere</label>
       <div class="img-actions scelte">${TESTO_SIZES.map((v,i)=>`<button class="btn${v===size?" primary":""}"
         aria-pressed="${v===size}" onclick="editNode('${n.id}','textSize',${v})"
-        style="font-size:${11+Math.min(i,4)*2}px">${["Piccolo","Medio","Grande","Titolo","Enorme","Cartello"][i]}</button>`).join("")}
+        style="font-size:${11+Math.min(i,4)*2}px">${TESTO_SIZE_NOMI[i]}</button>`).join("")}
         <input id="testo-size" type="number" min="8" max="${TESTO_SIZE_MAX}" step="1" value="${size}" style="width:5.5em"
           aria-label="Grandezza in pixel" onchange="editNode('${n.id}','textSize',Number(this.value))"></div></div>`}
     <div class="field"><label>Allineamento</label>
       <div class="img-actions scelte">${Object.entries(TESTO_ALLINEA).map(([k,v])=>`<button class="btn${k===al?" primary":""}"
         aria-pressed="${k===al}" onclick="editNode('${n.id}','textAlign','${k}')">${v}</button>`).join("")}</div></div>
-    <div class="field"><label>Colore del testo</label>
+    ${sceltaFoglio(n)}
+    ${suCarta ? `<p class="hint-sm">Sul foglio si scrive con l'inchiostro del foglio: il colore vale per la casella senza foglio.</p>` :
+    `<div class="field"><label>Colore del testo</label>
       <div class="swatches">
         <button class="swatch swatch--auto${n.color?"":" on"}" style="background:var(--ink)"
           aria-label="Colore predefinito" onclick="editNode('${n.id}','color',null)"></button>
         ${NODE_COLORS.map(cc=>`<button class="swatch${n.color===cc?" on":""}"
           style="background:${cc}" aria-label="Colora di ${cc}"
           onclick="editNode('${n.id}','color','${cc}')"></button>`).join("")}
-      </div></div>
+      </div></div>`}
     <div class="detail-actions">
       <button class="btn danger" onclick="askDeleteNode('${n.id}')">Elimina</button>
     </div>
@@ -520,6 +538,7 @@ function schedaDetailHTML(n){
       <div class="field"><label>Allineamento</label>
         <div class="img-actions scelte">${Object.entries(TESTO_ALLINEA).map(([k,v])=>`<button class="btn${k===al?" primary":""}"
           aria-pressed="${k===al}" onclick="editNode('${n.id}','textAlign','${k}')">${v}</button>`).join("")}</div></div>
+      ${sceltaFoglio(n)}
       ${n.scheda ? `<div class="img-actions">
         ${n.scheda.h ? `<button class="btn" onclick="editNode('${n.id}','scheda',{w:${s.w}})">Altezza secondo il testo</button>` : ""}
         <button class="btn" onclick="editNode('${n.id}','scheda',undefined)">Misure di partenza</button></div>` : ""}
@@ -616,10 +635,10 @@ export function editNode(id, key, val){
   // il testo di una casella È il suo disegno, e così la descrizione di un
   // segnalino con la scheda; la textarea resta viva perché renderDetail qui
   // non gira
-  else if((isTesto(n) || SCHEDA_TIPI.has(n.type)) && ["notes","textSize","textFit","textAlign","scheda"].includes(key)){
+  else if((isTesto(n) || SCHEDA_TIPI.has(n.type)) && ["notes","textSize","textFit","textAlign","scheda","foglio"].includes(key)){
     renderCanvas(); if(isTesto(n)) adattaTesto(n);
   }
-  if(["textSize","textFit","textAlign","scheda"].includes(key)) renderDetail();
+  if(["textSize","textFit","textAlign","scheda","foglio"].includes(key)) renderDetail();
   // la sezione "Scheda sulla mappa" compare col primo carattere e sparisce
   // col testo: si ridisegna solo a quel confine, sennò la textarea
   // perderebbe il focus a ogni battuta

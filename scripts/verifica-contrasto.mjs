@@ -156,6 +156,18 @@ const COPPIE = [
   ["--tunnel",         "--peat",        3,   "tunnel sulla mappa"],
   ["--dg-trap",        "--peat",        3,   "trappola sulla mappa"],
   ["--dg-lair",        "--peat",        3,   "tana sulla mappa"],
+  /* I fogli di caselle e schede (app.css .foglio-*): sono gli stessi in tutti
+     i temi, quindi queste righe danno lo stesso numero dodici volte — stanno
+     qui perché un tema che un domani li ridichiarasse sia misurato. Il fondo
+     peggiore è il "-bordo", dove il gradiente arriva al margine del testo;
+     la carta è il fondo del rettangolo SVG, in tinta unita. Il testo
+     smorzato è la riga di stato di una quest, in cima alla scheda. */
+  ["--foglio-ink",     "--foglio-carta",           4.5, "testo sul foglio di carta"],
+  ["--foglio-ink-dim", "--foglio-carta",           4.5, "stato sul foglio di carta"],
+  ["--foglio-ink",     "--foglio-pergamena-bordo", 4.5, "testo sul margine della pergamena"],
+  ["--foglio-ink-dim", "--foglio-pergamena-bordo", 4.5, "stato sul margine della pergamena"],
+  ["--foglio-ink",     "--foglio-bruciata-bordo",  4.5, "testo sul margine del foglio bruciato"],
+  ["--foglio-ink-dim", "--foglio-bruciata-bordo",  4.5, "stato sul margine del foglio bruciato"],
 ];
 
 /* Le cinque famiglie devono restare DISTINGUIBILI fra loro, che è una

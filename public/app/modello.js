@@ -701,6 +701,7 @@ export const nomeInElenco = n => n.title || (isTesto(n) ? "Casella di testo" : "
    fondo. Per lo stesso problema c'è `textFit`: il carattere lo decide la
    casella, e la si tira grande quanto serve. */
 export const TESTO_SIZES = [12, 16, 22, 30, 48, 72];
+export const TESTO_SIZE_NOMI = ["Piccolo","Medio","Grande","Titolo","Enorme","Cartello"];
 export const testoSize = n => {
   const v = Number(n.textSize);
   return Number.isFinite(v) ? Math.min(TESTO_SIZE_MAX, Math.max(8, Math.round(v))) : 16;
@@ -709,6 +710,15 @@ export const testoSize = n => {
 export const TESTO_ALLINEA = {left:"A sinistra", center:"Al centro", right:"A destra", justify:"Giustificato"};
 export const testoAllinea = n => Object.hasOwn(TESTO_ALLINEA, n.textAlign) ? n.textAlign : "left";
 export const testoAdatta = n => n.textFit === true;
+/* Il foglio su cui è scritta una casella o una scheda (`n.foglio`). Le chiavi
+   sono l'elenco del contratto (un test lo impone); `foglioDi` torna il foglio
+   scelto per QUESTA bolla o null, e chi disegna ci mette al posto la
+   preferenza dello schermo (preferenze.js) — questo modulo non la legge,
+   perché non tocca il localStorage. Il valore diventa una classe: esce solo
+   da qui. */
+export const FOGLI = {pulito:"Pulito", carta:"Carta", pergamena:"Pergamena", bruciata:"Bruciata"};
+export const foglioValido = v => Object.hasOwn(FOGLI, v);
+export const foglioDi = n => foglioValido(n.foglio) ? n.foglio : null;
 export const isMarker = n => !(n.type==="zona" || n.type==="luogo" || n.type==="testo");
 
 /* La scheda di un segnalino (25 set 2026): la descrizione — `notes` — letta
@@ -841,6 +851,7 @@ export function sanitizeState(s){
       .map(w => safeWallSeg(w, grigliaDi(n))).filter(Boolean);
     if(n.taglia != null){ const t = normalizzaTaglia(n.taglia); if(t > 1) n.taglia = t; else delete n.taglia; }
     if(n.scheda != null){ const sc = normalizzaScheda(n.scheda); if(sc) n.scheda = sc; else delete n.scheda; }
+    if(n.foglio != null && !foglioValido(n.foglio)) delete n.foglio;
     if(n.corridoi != null){ const p = normalizzaCorridoi(n.corridoi); if(p.length) n.corridoi = p; else delete n.corridoi; }
     for(const e of (Array.isArray(n.edges) ? n.edges : [])){
       if(e.id != null) e.id = safeId(e.id);

@@ -111,6 +111,13 @@ export function normalizzaScheda(v){
   if(dentro(v.h, L.hMin)) out.h = Math.round(v.h);
   return out;
 }
+/* Il foglio di una casella di testo o della scheda di un segnalino
+   (`node.foglio`, 25 set 2026): su che carta è scritto. Assente vuol dire
+   "come dicono le impostazioni" di chi guarda — una preferenza dello schermo,
+   non della campagna — quindi nessuna campagna va migrata. Il valore diventa
+   una classe CSS: l'elenco è chiuso, e `FOGLI` in modello.js è la stessa
+   verità vista dall'app (un test le impone uguali, come per le forme). */
+export const FOGLI = Object.freeze(["pulito","carta","pergamena","bruciata"]);
 /* I corridoi di un livello (`node.corridoi`, 24 set 2026): le celle della
    maglia che il DM dipinge — i corridoi fra le stanze, come quelli che il
    generatore di dungeon disegnava nello sfondo. Una cella è `[i, j]`, due
@@ -561,6 +568,8 @@ function validateNodeShallow(node, path){
   }
   if((error = validateOptionalNumber(node.textSize, `${path}.textSize`, {min:6, max:TESTO_SIZE_MAX}))) return error;
   if((error = validateOptionalNumber(node.taglia, `${path}.taglia`, {min:1, max:TAGLIA_MAX, integer:true}))) return error;
+  if(node.foglio !== undefined && !FOGLI.includes(node.foglio))
+    return bad("invalid_foglio", "Foglio non valido", `${path}.foglio`);
   if(node.scheda !== undefined){
     if((error = requireObject(node.scheda, `${path}.scheda`))) return error;
     if((error = validateNumber(node.scheda.w, `${path}.scheda.w`, {min:SCHEDA_LIMITI.wMin, max:SCHEDA_LIMITI.max}))) return error;

@@ -251,7 +251,8 @@ export function openTopbarMenu(ev){
       // il verso dell'avvio, quindi si passa dal window come gli onclick inline.
       items.push({id:"th-"+t.id, label: t.label + (cur===t.id?"  ✓":""), run:()=>window.setTheme(t.id)});
   }
-  items.push("---", {id:"keys", label:"Scorciatoie da tastiera", run:openKeys});
+  items.push("---", {id:"impost", label:"Impostazioni…", run:()=>window.apriImpostazioni()},
+             {id:"keys", label:"Scorciatoie da tastiera", run:openKeys});
   // La via di ritorno dalla barra completa: nella barra a menu sta in Visualizza.
   items.push({id:"ui", label:"Passa alla barra a menu", run:()=>window.impostaBarra("menu")});
   if(!RO && !window.__cloud){

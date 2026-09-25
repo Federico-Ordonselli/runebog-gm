@@ -99,6 +99,8 @@ const MENU = {
       {id:"fit", label:"Adatta alla finestra", kbd:"F", run:()=>planFit(true)},
       {id:"zin", label:"Ingrandisci", kbd:"+", run:()=>planZoom(1.25)},
       {id:"zout", label:"Rimpicciolisci", kbd:"−", run:()=>planZoom(0.8)},
+      "---",
+      {id:"impost", label:"Impostazioni…", run:()=>window.apriImpostazioni()},
     ];
     const cur = document.getElementById("theme-select")?.value || TEMA_DEFAULT;
     for(const g of GRUPPI){
