@@ -34,8 +34,23 @@ vedono calendario, giorno e mesi; degli eventi solo quelli segnati visibili.
 - [x] Test `test/calendario/calendario.test.mjs` (12, nel glob di
   `npm test`), verifica `node test/browser/verifica-calendario.mjs` (30
   controlli, telefono e tavolo compresi).
-- [ ] Non fatti: eventi legati a una bolla (`nodeId` della roadmap) ed
-  eventi ricorrenti.
+- [x] **Eventi legati a una bolla** (`evento.nodeId`, 25 set 2026): dal
+  pannello di qualunque bolla (tranne caselle e pedine) «+ Evento per questa
+  bolla» apre il calendario su un evento di oggi già legato; nel calendario
+  il campo Bolla e «Mostra sulla mappa»; nel pannello «Nel calendario»
+  elenca gli eventi della bolla con la prossima data. Un legame a una bolla
+  eliminata resta (Ctrl+Z la rimette) e si dice «(bolla eliminata)». Al
+  tavolo il legame esce solo verso una bolla rivelata (`projectCalendario`
+  riceve gli id dell'albero proiettato).
+- [x] **Eventi ricorrenti** (`evento.ripeti = {ogni, unita}`, unità in
+  `RIPETI_UNITA`): ogni N giorni, settimane, mesi o anni dalla prima volta;
+  mesi e anni tengono il giorno del mese e in un mese più corto cadono
+  sull'ultimo. Conti puri (`occorrenze`, `prossimaOccorrenza`,
+  `ricorrenzaTesto`); ↻ davanti al titolo. Serviva anche poter spostare un
+  evento: data a tre campi (giorno, mese, anno) nell'editor.
+- [x] Test: quattro nuovi in `test/calendario/` (16); verifica
+  `node test/browser/verifica-calendario-eventi.mjs` (25 controlli, tavolo e
+  telefono compresi).
 
 ## Rimasti indietro dalle fasi 2 e 3 (25 settembre 2026)
 

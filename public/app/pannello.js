@@ -14,7 +14,7 @@ import { openConfirm } from "./viste.js";
 import { renderMap, renderCrumbs, renderCanvas, bgEdit, isEmptyNode, doDeleteNodes,
          wallOf, misuraMuro, deleteWallSeg, adattaTesto, inserisciNelMuro, cellaToccata } from "./mappa.js";
 import { statblockHTML } from "./mostri.js";
-import { scadenzaDi, assicuraCalendario } from "./calendario.js";
+import { scadenzaDi, assicuraCalendario, eventiBollaHTML } from "./calendario.js";
 import { calendarioDi, formattaData } from "./calendario-conti.js";
 import { CALENDARIO_LIMITI } from "./formato-campagna.js";
 
@@ -122,7 +122,8 @@ function renderTableDetail(aside){
     </div>`;
   }).join("");
 
-  const nulla = !n.notes && !n.img && !c && !n.children.length;
+  const eventi = eventiBollaHTML(n);
+  const nulla = !n.notes && !n.img && !c && !n.children.length && !eventi;
 
   aside.innerHTML = `<div class="inner">
     <div>
@@ -142,6 +143,7 @@ function renderTableDetail(aside){
     ${n.type==="quest" && Number.isInteger(n.scadenza) ? `<div class="field"><label>Scadenza</label>
       <div class="ro-text">${escapeHtml(formattaData(calendarioDi(st.state), n.scadenza))} ·
         <span class="q-scad s-${scadenzaDi(n).stato}">${escapeHtml(scadenzaDi(n).testo)}</span></div></div>` : ""}
+    ${eventi}
 
     ${c ? `<div class="field"><label>Combattimento</label>
       <div class="foe-head"><span>${c.alive}/${c.total} in vita</span></div>
@@ -405,6 +407,8 @@ function renderDetailCore(){
         ★ ${n.main?"Quest principale":"Segna come principale"}</button></div>` : ""}
 
     ${n.type==="quest" ? scadenzaHTML(n) : ""}
+
+    ${n.type!=="testo" && n.type!=="token" ? eventiBollaHTML(n) : ""}
 
     ${!sel && !RO ? grigliaHTML(cur) : ""}
 

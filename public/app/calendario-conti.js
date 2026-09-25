@@ -85,3 +85,57 @@ export function distanzaTesto(oggi, g){
   if(d === -1) return "ieri";
   return d > 0 ? `tra ${d} giorni` : `${-d} giorni fa`;
 }
+
+/* Le ricorrenze (`evento.ripeti = {ogni, unita}`). Si contano dalla data
+   dell'evento, che è la prima volta: prima di quella l'evento non c'è.
+   Giorni e settimane sono un passo fisso; mesi e anni tengono il giorno del
+   mese, e in un mese più corto cadono sull'ultimo (il 31 di un mese da 30
+   diventa il 30, non il primo del mese dopo). Un anno è `mesi.length` mesi,
+   quindi la stessa regola: mesi e anni sono un caso solo. */
+const passoGiorni = (cal, r) => r.ogni * (r.unita === "settimane" ? cal.settimana.length : 1);
+const passoMesi = (cal, r) => r.ogni * (r.unita === "anni" ? cal.mesi.length : 1);
+const indiceMese = (cal, anno, mese) => (anno - cal.annoIniziale) * cal.mesi.length + mese;
+
+/* I giorni in [da, a] in cui l'evento cade, in ordine. */
+export function occorrenze(cal, ev, da, a){
+  const r = ev.ripeti;
+  if(!r) return ev.giorno >= da && ev.giorno <= a ? [ev.giorno] : [];
+  const out = [];
+  if(r.unita === "giorni" || r.unita === "settimane"){
+    const s = passoGiorni(cal, r);
+    for(let g = ev.giorno + Math.max(0, Math.ceil((da - ev.giorno) / s)) * s; g <= a; g += s) out.push(g);
+    return out;
+  }
+  const s = passoMesi(cal, r), n = cal.mesi.length;
+  const d0 = dataDi(cal, ev.giorno), base = indiceMese(cal, d0.anno, d0.mese);
+  const dDa = dataDi(cal, Math.max(da, ev.giorno));
+  for(let k = Math.max(0, Math.floor((indiceMese(cal, dDa.anno, dDa.mese) - base) / s)); ; k++){
+    const i = base + k * s;
+    const g = giornoDi(cal, cal.annoIniziale + Math.floor(i / n), i % n, d0.giorno);
+    if(g > a) return out;
+    if(g >= da) out.push(g);
+  }
+}
+
+/* La prima volta, da `da` in avanti, in cui l'evento cade; null se è passato
+   e non si ripete. */
+export function prossimaOccorrenza(cal, ev, da){
+  if(!ev.ripeti) return ev.giorno >= da ? ev.giorno : null;
+  const inizio = Math.max(da, ev.giorno);
+  // Il passo più lungo possibile è ogni-mille-anni: una finestra di un passo
+  // intero contiene sempre un'occorrenza, e occorrenze si ferma alla prima
+  // oltre la finestra, quindi il costo è quello di un giro solo.
+  const r = ev.ripeti;
+  const finestra = r.unita === "giorni" || r.unita === "settimane"
+    ? passoGiorni(cal, r) : (passoMesi(cal, r) + 1) * Math.max(...cal.mesi.map(m => m.giorni));
+  return occorrenze(cal, ev, inizio, inizio + finestra)[0] ?? null;
+}
+
+const UNITA_UNO = {giorni:"giorno", settimane:"settimana", mesi:"mese", anni:"anno"};
+/* "ogni anno", "ogni 3 giorni"; "" se non si ripete. */
+export function ricorrenzaTesto(ev){
+  const r = ev.ripeti;
+  if(!r) return "";
+  if(r.ogni === 1) return `ogni ${UNITA_UNO[r.unita]}`;
+  return `ogni ${r.ogni} ${r.unita}`;
+}

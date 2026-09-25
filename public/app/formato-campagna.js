@@ -135,11 +135,26 @@ export const FOGLI = Object.freeze(["pulito","carta","pergamena","bruciata"]);
    `normalizzaCalendario` è l'unica bonifica: la usano `sanitizeState` e la
    proiezione del tavolo, e produce per costruzione un calendario che il
    contratto accetta (un test lo impone). Un evento con un id fuori forma
-   CADE: l'id finisce in un onclick. */
+   CADE: l'id finisce in un onclick.
+
+   Un evento può essere legato a una bolla (`nodeId`, 25 set 2026) e
+   ripetersi (`ripeti: {ogni, unita}`). Il legame è un riferimento come
+   `playerId` delle pedine: una bolla eliminata lo lascia pendente e chi
+   disegna lo ignora, perché ripulirlo a ogni cancellazione vorrebbe dire
+   perderlo anche quando Ctrl+Z la rimette. La ricorrenza è UNA regola e
+   non un elenco di giorni: "ogni anno" si conta dalla data dell'evento, e
+   le occorrenze le calcola `occorrenze` in calendario-conti.js. */
 export const CALENDARIO_LIMITI = Object.freeze({
   mesi:100, giorniMese:1000, settimana:20, nomeChars:60, eraChars:30,
-  giornoMax:100000000, annoAbs:1000000, eventi:2000,
+  giornoMax:100000000, annoAbs:1000000, eventi:2000, ripetiOgni:1000,
 });
+export const RIPETI_UNITA = Object.freeze(["giorni","settimane","mesi","anni"]);
+/* La ricorrenza di un evento, o null se non ne ha una valida. */
+export function normalizzaRipeti(v){
+  if(!v || typeof v !== "object" || !RIPETI_UNITA.includes(v.unita)) return null;
+  const ogni = Number.isInteger(v.ogni) && v.ogni >= 1 && v.ogni <= CALENDARIO_LIMITI.ripetiOgni ? v.ogni : 1;
+  return {ogni, unita: v.unita};
+}
 const MESI_ITALIANI = [
   ["Gennaio",31],["Febbraio",28],["Marzo",31],["Aprile",30],["Maggio",31],["Giugno",30],
   ["Luglio",31],["Agosto",31],["Settembre",30],["Ottobre",31],["Novembre",30],["Dicembre",31],
@@ -179,6 +194,10 @@ export function normalizzaCalendario(v){
     const note = testo(e.note, CAMPAIGN_LIMITS.longTextChars);
     if(note) ev.note = note;
     if(e.visibile === true) ev.visibile = true;
+    if(typeof e.nodeId === "string" && e.nodeId && e.nodeId.length <= CAMPAIGN_LIMITS.idChars && ID_RE.test(e.nodeId))
+      ev.nodeId = e.nodeId;
+    const ripeti = normalizzaRipeti(e.ripeti);
+    if(ripeti) ev.ripeti = ripeti;
     eventi.push(ev);
   }
   return {
@@ -798,6 +817,14 @@ function validateCalendario(cal, path){
     if((error = validateOptionalString(e.note, CAMPAIGN_LIMITS.longTextChars, `${ep}.note`))) return error;
     if(e.visibile !== undefined && typeof e.visibile !== "boolean")
       return bad("expected_boolean", "visibile deve essere booleano", `${ep}.visibile`);
+    if(e.nodeId !== undefined && (error = validateId(e.nodeId, `${ep}.nodeId`))) return error;
+    if(e.ripeti !== undefined){
+      const rp = `${ep}.ripeti`;
+      if((error = requireObject(e.ripeti, rp))) return error;
+      if(!RIPETI_UNITA.includes(e.ripeti.unita))
+        return bad("invalid_repeat", "Ricorrenza non valida", `${rp}.unita`);
+      if((error = validateNumber(e.ripeti.ogni, `${rp}.ogni`, {integer:true, min:1, max:L.ripetiOgni}))) return error;
+    }
   }
   return null;
 }

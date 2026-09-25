@@ -177,3 +177,84 @@ test("la scadenza di una quest esce solo se il DM l'ha resa visibile", () => {
   const nonCondivisa = projectForPlayers(documento({}, {scadenza:12, scadenzaVisibile:true, shared:false}));
   assert.equal(nonCondivisa.root.children.length, 0);
 });
+
+test("le ricorrenze cadono dove le direbbe il DM", () => {
+  const cal = harptos();                                    // 30 + 1 + 30 + 30 = 91 giorni
+  const ev = (giorno, ripeti) => ({id:"e", giorno, titolo:"", ripeti});
+  // ogni 3 giorni dal 5: 5, 8, 11…
+  assert.deepEqual(conti.occorrenze(cal, ev(5, {ogni:3, unita:"giorni"}), 1, 12), [5, 8, 11]);
+  // ogni settimana: la settimana di harptos è una decade
+  assert.deepEqual(conti.occorrenze(cal, ev(2, {ogni:1, unita:"settimane"}), 10, 40), [12, 22, 32]);
+  // ogni mese il 30: nel mese da un giorno cade sull'ultimo (il 31), non salta
+  assert.deepEqual(conti.occorrenze(cal, ev(30, {ogni:1, unita:"mesi"}), 1, 91), [30, 31, 61, 91]);
+  // ogni anno: stesso giorno dello stesso mese
+  const festa = ev(conti.giornoDi(cal, 1492, 2, 15), {ogni:1, unita:"anni"});
+  const volte = conti.occorrenze(cal, festa, 1, 3 * 91);
+  assert.deepEqual(volte.map(g => conti.dataDi(cal, g)),
+    [1492, 1493, 1494].map(anno => ({anno, mese:2, giorno:15})));
+  // ogni 2 anni, e prima della prima volta non c'è niente
+  assert.deepEqual(conti.occorrenze(cal, ev(10, {ogni:2, unita:"anni"}), 1, 5 * 91), [10, 192, 374]);
+  assert.deepEqual(conti.occorrenze(cal, ev(50, {ogni:1, unita:"giorni"}), 1, 49), []);
+  // senza ricorrenza: il giorno e basta
+  assert.deepEqual(conti.occorrenze(cal, ev(7), 1, 91), [7]);
+});
+
+test("la prossima volta di un evento, da un giorno qualunque", () => {
+  const cal = calendarioPredefinito();
+  const ev = (giorno, ripeti) => ({id:"e", giorno, titolo:"", ripeti});
+  assert.equal(conti.prossimaOccorrenza(cal, ev(10), 5), 10);
+  assert.equal(conti.prossimaOccorrenza(cal, ev(10), 11), null, "passato e non si ripete");
+  assert.equal(conti.prossimaOccorrenza(cal, ev(10, {ogni:7, unita:"giorni"}), 11), 17);
+  assert.equal(conti.prossimaOccorrenza(cal, ev(10, {ogni:7, unita:"giorni"}), 17), 17);
+  // il 31 gennaio ogni mese: a febbraio (28 giorni) cade il 28
+  const g = conti.prossimaOccorrenza(cal, ev(31, {ogni:1, unita:"mesi"}), 32);
+  assert.deepEqual(conti.dataDi(cal, g), {anno:1, mese:1, giorno:28});
+  // ogni mille anni, da molto lontano: la risposta arriva e non gira a vuoto
+  const lontano = conti.prossimaOccorrenza(cal, ev(1, {ogni:1000, unita:"anni"}), 2);
+  assert.deepEqual(conti.dataDi(cal, lontano), {anno:1001, mese:0, giorno:1});
+  assert.equal(conti.ricorrenzaTesto(ev(1, {ogni:1, unita:"anni"})), "ogni anno");
+  assert.equal(conti.ricorrenzaTesto(ev(1, {ogni:2, unita:"settimane"})), "ogni 2 settimane");
+  assert.equal(conti.ricorrenzaTesto(ev(1)), "");
+});
+
+test("legame e ricorrenza: la bonifica li pulisce, il contratto li controlla", () => {
+  const pulito = normalizzaCalendario({...harptos(), eventi:[
+    {id:"a", giorno:1, titolo:"", nodeId:"q1", ripeti:{ogni:2, unita:"mesi"}},
+    {id:"b", giorno:1, titolo:"", nodeId:"x' onclick='1", ripeti:{ogni:2, unita:"ore"}},
+    {id:"c", giorno:1, titolo:"", ripeti:{ogni:-3, unita:"anni"}},
+  ]});
+  assert.deepEqual(pulito.eventi[0].ripeti, {ogni:2, unita:"mesi"});
+  assert.equal(pulito.eventi[0].nodeId, "q1");
+  assert.equal(pulito.eventi[1].nodeId, undefined, "un id ostile cade");
+  assert.equal(pulito.eventi[1].ripeti, undefined, "un'unità ignota non è una ricorrenza");
+  assert.deepEqual(pulito.eventi[2].ripeti, {ogni:1, unita:"anni"});
+  assert.ok(prepareCampaignDocument(documento({calendario:pulito})).ok);
+
+  const casi = [
+    [{nodeId:"a b"}, "invalid_id"],
+    [{ripeti:{ogni:1, unita:"ore"}}, "invalid_repeat"],
+    [{ripeti:{ogni:0, unita:"giorni"}}, "number_out_of_range"],
+    [{ripeti:"anni"}, "expected_object"],
+  ];
+  for(const [pezzo, codice] of casi){
+    const esito = prepareCampaignDocument(documento({calendario:{...harptos(),
+      eventi:[{id:"e", giorno:1, titolo:"", ...pezzo}]}}));
+    assert.equal(esito.ok, false, codice);
+    assert.equal(esito.error.code, codice);
+  }
+});
+
+test("al tavolo il legame esce solo verso una bolla rivelata", () => {
+  const cal = {...harptos(), eventi:[
+    {id:"e1", giorno:3, titolo:"Consegna", visibile:true, nodeId:"q1", ripeti:{ogni:1, unita:"anni"}},
+    {id:"e2", giorno:4, titolo:"Asta", visibile:true, nodeId:"covo-segreto"},
+  ]};
+  const tavolo = projectForPlayers(documento({calendario:cal}));
+  assert.equal(tavolo.calendario.eventi[0].nodeId, "q1");
+  assert.deepEqual(tavolo.calendario.eventi[0].ripeti, {ogni:1, unita:"anni"});
+  assert.equal(tavolo.calendario.eventi[1].nodeId, undefined);
+  assert.ok(!JSON.stringify(tavolo).includes("covo-segreto"));
+  const nascosta = projectForPlayers(documento({calendario:cal}, {shared:false}));
+  assert.equal(nascosta.calendario.eventi[0].nodeId, undefined, "la quest non rivelata non si nomina");
+  assert.ok(prepareCampaignDocument(structuredClone(tavolo)).ok);
+});

@@ -357,8 +357,13 @@ function projectNode(n: Node, data: Node): Node {
  * sapendolo, come per `playerNotes`: un testo o è per il tavolo o non lo è.
  * Senza calendario nel documento non esce niente, e il tavolo non mostra la
  * scheda: il DM non l'ha mai usato.
+ *
+ * Il legame con una bolla (`nodeId`) esce solo se quella bolla è nella
+ * proiezione (`visibili`, gli id dell'albero già proiettato): un id di bolla
+ * non rivelata è la stessa fuga dei riferimenti di `projectBattle`. La
+ * ricorrenza esce: è quando cade l'evento, cioè la cosa che si è scelto di dire.
  */
-function projectCalendario(v: unknown): Node | undefined {
+function projectCalendario(v: unknown, visibili: Set<string>): Node | undefined {
   const cal = normalizzaCalendario(v);
   if (!cal) return undefined;
   return {
@@ -372,6 +377,8 @@ function projectCalendario(v: unknown): Node | undefined {
       .map((e: Node) => {
         const ev: Node = { id: safeId(e.id), giorno: e.giorno, titolo: e.titolo, visibile: true };
         if (e.note) ev.note = e.note;
+        if (e.nodeId && visibili.has(e.nodeId)) ev.nodeId = e.nodeId;
+        if (e.ripeti) ev.ripeti = { ogni: e.ripeti.ogni, unita: e.ripeti.unita };
         return ev;
       }),
   };
@@ -383,7 +390,9 @@ function projectCalendario(v: unknown): Node | undefined {
 export function projectForPlayers(data: Node | null | undefined) {
   if (!data?.root) return null;
   const root = projectNode(data.root, data);     // la radice c'è sempre: è il contenitore
-  const calendario = projectCalendario(data.calendario);
+  const visibili = new Set<string>();
+  (function walk(n: Node) { visibili.add(n.id); for (const c of n.children) walk(c); })(root);
+  const calendario = projectCalendario(data.calendario, visibili);
   return {
     ...(calendario ? { calendario } : {}),
     // La proiezione esce alla versione corrente per costruzione: è costruita

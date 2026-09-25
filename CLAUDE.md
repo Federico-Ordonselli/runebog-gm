@@ -229,6 +229,12 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   `scadenzaVisibile`; senza campo il tavolo non ha la scheda. La vista ridisegna
   dopo il `change` con un `setTimeout` e rimette il focus per id: i campi
   hanno id stabili apposta. Verifica: `node test/browser/verifica-calendario.mjs`.
+  Un evento può avere `nodeId` (riferimento come `playerId`: pendente se la
+  bolla sparisce, non si ripulisce) e `ripeti: {ogni, unita}` — UNA regola
+  dalla prima volta, mai un elenco di giorni: chi disegna chiede i giorni a
+  `occorrenze`/`prossimaOccorrenza`, non legge `evento.giorno`. Al tavolo
+  `nodeId` esce solo se la bolla è nella proiezione. Verifica:
+  `node test/browser/verifica-calendario-eventi.mjs`.
 - Costo del ridisegno: `node test/browser/misura-ridisegno.mjs` (numeri,
   non soglie). Il pan tocca solo il viewBox; ogni `renderCanvas` ricrea i
   `foreignObject` delle caselle, e il profilo attribuisce quel layout alla
