@@ -135,6 +135,9 @@ export function chiudiScrittura(conFocus = false){
    sotto il nome. Se la cosa non è più sulla tela (annulla, cambio di
    livello, eliminata) la scrittura si chiude: scrivere in un nodo che non si
    vede più vorrebbe dire scrivere in un documento che non c'è. */
+/* Sotto i 16px iOS ingrandisce la pagina al focus e ce la lascia (vedi la
+   regola @supports in app.css, che usa lo stesso test): lì il minimo sale. */
+const SCRITTURA_MIN = globalThis.CSS?.supports?.("-webkit-touch-callout", "none") ? 16 : 14;
 export function riposizionaScrittura(){
   if(!aperta) return;
   const n = childOf(aperta.id);
@@ -144,7 +147,7 @@ export function riposizionaScrittura(){
   const {box, ta} = aperta;
   const k = planSvg().getScreenCTM()?.a || 1;
   const px = isTesto(n) ? testoSize(n) : schedaDi(n).px;
-  ta.style.fontSize = Math.max(14, Math.min(28, px * k)) + "px";
+  ta.style.fontSize = Math.max(SCRITTURA_MIN, Math.min(28, px * k)) + "px";
   ta.style.textAlign = testoAllinea(n);
 
   if(stretto()){

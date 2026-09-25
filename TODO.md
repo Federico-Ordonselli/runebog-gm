@@ -54,6 +54,14 @@ vedono calendario, giorno e mesi; degli eventi solo quelli segnati visibili.
 
 ## Rimasti indietro dalle fasi 2 e 3 (25 settembre 2026)
 
+- [x] **Su iPhone la pagina restava ingrandita** dopo aver scritto in un
+  campo (Dario, Safari, dopo il deploy): iOS ingrandisce al focus ogni campo
+  sotto i 16px, e nell'app lo erano tutti (base 15px, alcuni 12–13; la
+  scrittura sul posto scendeva a 14). Regola solo iOS in `app.css` e
+  `SCRITTURA_MIN` in `scrittura.js`. Provato in Chromium riscrivendo la
+  condizione: nessun campo sotto 16px e niente scorrimento orizzontale a
+  360 e 390px. Da riprovare sul telefono dopo il deploy.
+
 - [x] **La verifica della barra a menu falliva un giro su nove sotto
   carico**, anche prima della Fase 3. Non era la prova: "Nuova campagna" dà
   il focus al titolo con 80 ms di ritardo, e su una macchina carica quel

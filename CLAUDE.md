@@ -1809,6 +1809,15 @@ Non negoziabili; se tocchi queste aree, mantienili:
   colonna** però non è un link in linea: `.srd-nomi` (fino a 331 voci, il
   bestiario) stava a 24,6px di passo, cioè sopra il minimo di 24 per meno di un
   pixel, e la sua regola sta in `srd.css` accanto all'elenco.
+- **Su iPhone un campo sotto i 16px ingrandisce la pagina** al focus e la
+  lascia ingrandita (25 set 2026, trovato da Dario su Safari: dopo aver
+  scritto, ogni gesto sulla tela sembrava uno zoom). Nell'app lo erano tutti
+  i campi. La regola `@supports (-webkit-touch-callout:none)` in `app.css` li
+  porta a 16px solo su iOS; `SCRITTURA_MIN` in `scrittura.js` fa lo stesso
+  per la textarea della scrittura sul posto, che la regola esclude perché la
+  sua grandezza segue la mappa. Niente `maximum-scale=1`: su Android spegne
+  lo zoom della pagina. Chromium non ha quella proprietà, quindi per provarla
+  si riscrive la condizione servendo `app.css` da una `route`.
 - **"Mobile" è una soglia di LARGHEZZA, e un telefono coricato è largo**
   (`@media (max-height:480px)` in `app.css`, 29 lug 2026). Tutti i gradini
   dell'editor guardano `max-width`, e il più basso è 760px: un iPhone 14 Pro

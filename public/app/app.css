@@ -56,6 +56,19 @@
      Le coppie sono misurate da scripts/verifica-contrasto.mjs. */
   input:focus,textarea:focus,select:focus,button:focus-visible{outline:2px solid var(--fen);outline-offset:1px}
   textarea{resize:vertical;min-height:90px}
+  /* Su iOS un campo col testo sotto i 16px fa ingrandire la PAGINA quando
+     prende il focus, e la pagina resta ingrandita anche dopo (25 set 2026):
+     da lì ogni gesto sulla tela sembra uno zoom. Nell'app lo erano tutti —
+     la base è 15px, qualche campo 12–13. Solo iOS (`-webkit-touch-callout`
+     è suo, lo stesso test di SCRITTURA_MIN in scrittura.js), e !important
+     perché i campi piccoli hanno regole per id e classe che vincerebbero.
+     Non `maximum-scale=1` nel viewport: su Android spegnerebbe anche lo
+     zoom a due dita della pagina, che serve a chi ingrandisce per leggere.
+     La textarea della scrittura sul posto è fuori: la sua grandezza segue
+     la mappa, e il minimo lo mette il JS. */
+  @supports (-webkit-touch-callout:none){
+    input:not([type=checkbox]):not([type=range]), select, textarea:not(#scrittura textarea){font-size:16px !important}
+  }
   ::placeholder{color:var(--grigio)}
 
   /* ---------- top bar ---------- */
