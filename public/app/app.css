@@ -755,6 +755,15 @@
      l'intera riga e il titolo della quest collassa a una parola per riga. */
   .q-status{font-size:12px;padding:4px 6px;width:auto}
 
+  /* ---------- elenco PNG (le righe sono quelle del diario quest) ---------- */
+  #view-png{overflow-y:auto}
+  #png-wrap{max-width:760px;margin:0 auto;padding:28px 20px 60px}
+  .png-testa{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+  .png-testa .q-h{margin:0}
+  #png-filtro{margin-bottom:14px}
+  /* Un bottone e non un <a> senza href: col Tab ci si arriva e Invio lo preme. */
+  .png-nome{background:none;border:0;padding:0;font:inherit;font-weight:600;text-align:left}
+
   /* ---------- ricerca rapida ---------- */
   #qs-wrap{position:relative}
   #quick-search{width:200px;font-size:13px;padding:6px 58px 6px 10px}
@@ -972,7 +981,14 @@
     #topbar .spacer{display:none}
     nav.tabs{order:5;margin-left:0}
     #savestate{order:6;font-size:11px}
-    .tabs button{padding:6px 10px;font-size:13px}
+    /* Cinque schede dal 25 set 2026 (PNG): con 10px di lato stavano in 368px,
+       cioè sforavano un telefono da 360. A 7px ci stanno in 338; sotto (i
+       telefoni da 320) la riga scorre invece di andare a capo o schiacciare
+       le etichette — flex:none, sennò il bersaglio si stringe e la parola no.
+       Il selettore è `nav.tabs button` e non `.tabs button`: quello perdeva
+       contro la regola base e non si è mai applicato. */
+    nav.tabs{max-width:100%;overflow-x:auto;scrollbar-width:none}
+    nav.tabs button{padding:6px 7px;font-size:13px;flex:none}
     #quick-search{width:110px}
     /* Barra a menu: le cinque intestazioni qui non hanno spazio, quindi il ☰
        le raccoglie e prende il posto del ⋯ in fondo alla prima riga. */
@@ -1102,7 +1118,7 @@
        capo con `order`, e senza questo resterebbero in coda alla ricerca. */
     nav.tabs{order:0;margin-left:0}
     #savestate{order:0;font-size:11px}
-    .tabs button{padding:6px 10px;font-size:13px}
+    nav.tabs button{padding:6px 10px;font-size:13px}
     #quick-search{width:110px}
     /* Barra a menu: le cinque intestazioni qui non hanno spazio, quindi il ☰
        le raccoglie e prende il posto del ⋯ in fondo alla prima riga. */

@@ -6,7 +6,7 @@ import { avvolgi, prefissaRighe } from "./testo-ricco.js";
 import { TYPES, STATUSES, SHAPES, EDGE_TYPES, NODE_COLORS, nodeColor,
          isMarker, isTesto, testoSize, testoAllinea, testoAdatta, TESTO_ALLINEA, TESTO_SIZE_MAX, nomeInElenco, TESTO_SIZES, defShape, nodeBox, node, escapeHtml, escapeAttr,
          wallShape, inScala, DOOR_TYPES, doorKind, wallLabel,
-         GRIGLIE, GRID_LIMITS, grigliaDi, isHex, nomeCelle, formattaMetri } from "./modello.js";
+         GRIGLIE, GRID_LIMITS, grigliaDi, isHex, nomeCelle, formattaMetri, normalizzaTaglia, TAGLIA_MAX } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, RO } from "./stato.js";
 import { openConfirm } from "./viste.js";
 import { renderMap, renderCrumbs, renderCanvas, bgEdit, isEmptyNode, doDeleteNodes,
@@ -25,6 +25,21 @@ const labelScala = (box, g) => {
    cella in px e metri per cella. Il lato è in px perché serve ad allineare la
    maglia allo sfondo caricato, che è misurato in px; i metri sono quello che
    il righello e la barra della scala dicono al tavolo. */
+/* La taglia di un segnalino: quanti quadretti occupa per lato. I quattro
+   bottoni sono le taglie delle creature, il campo arriva a TAGLIA_MAX per i
+   PNG da leggere su una mappa larga. Lo stesso lo fa la maniglia sulla tela. */
+function tagliaHTML(n){
+  const t = normalizzaTaglia(n.taglia);
+  const nomi = ["Normale","Grande","Enorme","Mastodontica"];
+  return `<div class="field"><label for="taglia-num">Taglia</label>
+    <div class="img-actions scelte">${nomi.map((nome, i)=>`<button class="btn${t===i+1?" primary":""}"
+      aria-pressed="${t===i+1}" onclick="impostaTaglia('${n.id}',${i+1})">${nome}</button>`).join("")}
+      <input id="taglia-num" type="number" min="1" max="${TAGLIA_MAX}" step="1" value="${t}" style="width:4.5em"
+        aria-label="Quadretti per lato" onchange="impostaTaglia('${n.id}',this.value)"></div>
+    <p class="hint-sm">Quadretti per lato: ${t}×${t}. Nome e sigla crescono con il segnalino;
+      si può anche tirare l'angolo in basso a destra sulla mappa.</p></div>`;
+}
+
 function grigliaHTML(cur){
   const g = grigliaDi(cur), L = GRID_LIMITS;
   const forme = Object.entries(GRIGLIE)
@@ -316,6 +331,8 @@ function renderDetailCore(){
       <div class="field"><label>Stato</label>
         <select onchange="editNode('${n.id}','status',this.value)">${statusOpts}</select></div>
     </div>
+
+    ${isMarker(n) && !isRoot ? tagliaHTML(n) : ""}
 
     ${isRoot && !isMarker(n) ? `<div class="field"><label>Scala</label>
       <select onchange="editNode('${n.id}','shape',this.value)">${scalaOpts}</select>

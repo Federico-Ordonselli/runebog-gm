@@ -77,6 +77,22 @@ const DOOR_TYPES = new Set(["aperta","chiusa","chiave","segreta","varco","finest
    (quadrata, 40px, 1,5 m), quindi nessuna campagna esistente va migrata. */
 export const GRID_FORMS = Object.freeze(["quadrata","hex-punta","hex-piatto"]);
 export const GRID_LIMITS = Object.freeze({cellaMin:10, cellaMax:400, metriMin:0.01, metriMax:1000000});
+/* Il tetto del carattere di una casella di testo: lo legge anche testoSize in
+   modello.js. Fino al 25 set 2026 il contratto diceva 200 e l'app 240, cioè
+   una casella portata a 240 dal pannello faceva rimbalzare con 422 il
+   salvataggio in cloud — il guasto per cui questi limiti stanno qui una volta. */
+export const TESTO_SIZE_MAX = 240;
+/* La taglia di un segnalino (`node.taglia`, 25 set 2026): quanti quadretti
+   occupa per lato, come le taglie delle creature (Grande = 2, Enorme = 3,
+   Mastodontica = 4) e oltre, per i PNG da leggere sulla mappa di una regione.
+   Assente vuol dire 1, cioè il segnalino di sempre: niente da migrare.
+   `normalizzaTaglia` è l'unica lettura — app, bonifica e tavolo — perché il
+   numero finisce in un raggio, cioè in attributi SVG. */
+export const TAGLIA_MAX = 8;
+export function normalizzaTaglia(v){
+  const t = Math.round(Number(v));
+  return Number.isFinite(t) ? Math.min(TAGLIA_MAX, Math.max(1, t)) : 1;
+}
 /* I corridoi di un livello (`node.corridoi`, 24 set 2026): le celle della
    maglia che il DM dipinge — i corridoi fra le stanze, come quelli che il
    generatore di dungeon disegnava nello sfondo. Una cella è `[i, j]`, due
@@ -525,7 +541,8 @@ function validateNodeShallow(node, path){
       nullable:true, min:-CAMPAIGN_LIMITS.coordinateAbs, max:CAMPAIGN_LIMITS.coordinateAbs,
     }))) return error;
   }
-  if((error = validateOptionalNumber(node.textSize, `${path}.textSize`, {min:6, max:200}))) return error;
+  if((error = validateOptionalNumber(node.textSize, `${path}.textSize`, {min:6, max:TESTO_SIZE_MAX}))) return error;
+  if((error = validateOptionalNumber(node.taglia, `${path}.taglia`, {min:1, max:TAGLIA_MAX, integer:true}))) return error;
   if(node.playerId !== undefined && (error = validateId(node.playerId, `${path}.playerId`))) return error;
   if(node.foe !== undefined){
     if((error = requireObject(node.foe, `${path}.foe`))) return error;

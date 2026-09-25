@@ -5,7 +5,9 @@
    Quell'import esiste per una riga sola (`IMMAGINE_LOCALE`): la forma di un URL
    di immagine deve essere la stessa qui e nel validatore, sennò il client
    accetta ciò che il server rifiuta. Non è la porta per farne entrare altre. */
-import { IMMAGINE_LOCALE, GRID_FORMS, GRID_LIMITS, CAMPAIGN_LIMITS, normalizzaCorridoi, normalizzaPercorso } from "./formato-campagna.js";
+import { IMMAGINE_LOCALE, GRID_FORMS, GRID_LIMITS, CAMPAIGN_LIMITS, normalizzaCorridoi, normalizzaPercorso,
+         TESTO_SIZE_MAX, TAGLIA_MAX, normalizzaTaglia } from "./formato-campagna.js";
+export { TESTO_SIZE_MAX, TAGLIA_MAX, normalizzaTaglia };
 
 export const TYPES = {
   zona:      {label:"Zona",      color:"var(--fen)"},
@@ -292,8 +294,20 @@ export const inScala = (n, g = GRIGLIA_BASE) => gridShape(n) && !isHex(g);
 /* Il raggio disegnato del simbolo: la pedina è un filo più grande del segnalino
    (vedi il disco in mappa.js, che legge di qui). Il raggio decide l'aggancio,
    quindi dev'essere quello vero: con un raggio sbagliato il centro geometrico
-   finisce nel quadretto giusto e il disco no. */
-export const markerR = n => n.type === "token" ? MARKER_R + 1 : MARKER_R;
+   finisce nel quadretto giusto e il disco no.
+   Con una taglia (`n.taglia`) il disco cresce di mezzo quadretto per lato a
+   ogni gradino: taglia t sta in t×t quadretti con lo stesso margine di 5px
+   del segnalino da uno. Il passo è CELL e non il lato della maglia del
+   livello, così il raggio non dipende da dove sta il segnalino. */
+export const markerR = n => (n.type === "token" ? MARKER_R + 1 : MARKER_R) + (normalizzaTaglia(n.taglia) - 1) * CELL / 2;
+/* Quanti quadretti occupa per lato un segnalino sulla maglia g: serve a
+   decidere se il centro va nel centro di una cella (dispari) o su un incrocio
+   (pari), come un Grande che occupa 2×2. Il segnalino da uno resta a 1 anche
+   su maglie fitte: contarlo lì avrebbe spostato quelli già posati. */
+export function celleSegnalino(n, g = GRIGLIA_BASE){
+  if(normalizzaTaglia(n.taglia) === 1) return 1;
+  return Math.max(1, Math.round((2 * markerR(n) + 10) / g.cella));
+}
 export function snapToCell(v, r = MARKER_R + 1){
   const centro = v + r;
   return Math.floor(centro / CELL) * CELL + CELL / 2 - r;
@@ -301,8 +315,14 @@ export function snapToCell(v, r = MARKER_R + 1){
 /* Il segnalino col centro nel centro della cella, su qualunque maglia: le
    coordinate di un simbolo sono l'angolo del suo riquadro, quindi si passa dal
    centro e si torna indietro del raggio. Sulla maglia quadrata di default è
-   esattamente snapToCell sui due assi. */
-export function snapMarker(g, x, y, r = MARKER_R + 1){
+   esattamente snapToCell sui due assi. Con un numero PARI di celle per lato il
+   centro va sull'incrocio più vicino; negli esagoni una creatura grande sta
+   comunque centrata in un esagono, che è come la si conta lì. */
+export function snapMarker(g, x, y, r = MARKER_R + 1, celle = 1){
+  if(celle % 2 === 0 && !isHex(g)){
+    const s = g.cella;
+    return {x:Math.round((x + r) / s) * s - r, y:Math.round((y + r) / s) * s - r};
+  }
   const c = centroCella(g, x + r, y + r);
   return {x:c.x - r, y:c.y - r};
 }
@@ -312,7 +332,7 @@ export function snapMarker(g, x, y, r = MARKER_R + 1){
 export function snapNode(n, x = n.x, y = n.y, g = GRIGLIA_BASE){
   if(typeof x !== "number" || typeof y !== "number") return {x, y};
   if(inScala(n, g)) return {x:snapGrid(x, g), y:snapGrid(y, g)};
-  if(isMarker(n)) return snapMarker(g, x, y, markerR(n));
+  if(isMarker(n)) return snapMarker(g, x, y, markerR(n), celleSegnalino(n, g));
   return {x, y};
 }
 
@@ -671,7 +691,6 @@ export const nomeInElenco = n => n.title || (isTesto(n) ? "Casella di testo" : "
    fondo. Per lo stesso problema c'è `textFit`: il carattere lo decide la
    casella, e la si tira grande quanto serve. */
 export const TESTO_SIZES = [12, 16, 22, 30, 48, 72];
-export const TESTO_SIZE_MAX = 240;
 export const testoSize = n => {
   const v = Number(n.textSize);
   return Number.isFinite(v) ? Math.min(TESTO_SIZE_MAX, Math.max(8, Math.round(v))) : 16;
@@ -694,7 +713,7 @@ export function nodeColor(n){
   return SHAPE_COLORS[n.shape || defShape(n)] || (TYPES[n.type] || TYPES.nota).color;
 }
 export function nodeBox(n){
-  if(isMarker(n)) return {w:MARKER_R*2, h:MARKER_R*2};
+  if(isMarker(n)){ const r = markerR(n); return {w:r*2, h:r*2}; }
   const s = isTesto(n) ? TESTO_BOX : (SHAPES[n.shape] || SHAPES[defShape(n)]);
   return {w:n.w||s.w, h:n.h||s.h};
 }
@@ -782,6 +801,7 @@ export function sanitizeState(s){
     if(n.griglia != null){ const g = safeGriglia(n.griglia); if(g) n.griglia = g; else delete n.griglia; }
     if(n.wallSegs != null) n.wallSegs = (Array.isArray(n.wallSegs) ? n.wallSegs : [])
       .map(w => safeWallSeg(w, grigliaDi(n))).filter(Boolean);
+    if(n.taglia != null){ const t = normalizzaTaglia(n.taglia); if(t > 1) n.taglia = t; else delete n.taglia; }
     if(n.corridoi != null){ const p = normalizzaCorridoi(n.corridoi); if(p.length) n.corridoi = p; else delete n.corridoi; }
     for(const e of (Array.isArray(n.edges) ? n.edges : [])){
       if(e.id != null) e.id = safeId(e.id);

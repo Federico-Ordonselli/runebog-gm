@@ -145,6 +145,25 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   "Metti nel quadretto" (`inserisciNelMuro`) spezza il muro in tre col vano
   da un quadretto nella cella toccata (`toccaMuro`, al centro se nessuna).
   Verifica: `node test/browser/verifica-penna-muri.mjs`.
+- Taglia dei segnalini (`n.taglia`, 25 set 2026): quadretti per lato, 1–8,
+  assente = 1. Si legge SOLO con `normalizzaTaglia` (contratto), da
+  `markerR`, dalla bonifica e da `share.ts`. Il raggio cresce di CELL/2 per
+  gradino (taglia t sta in t×t quadretti col margine di sempre); le taglie
+  pari si agganciano all'incrocio (`celleSegnalino`, `snapMarker`), il
+  segnalino da 1 non cambia aggancio nemmeno su maglie fitte. Dal pannello
+  cresce attorno al centro (`impostaTaglia`), dalla maniglia tiene fermo
+  l'angolo e si riaggancia al rilascio. `TESTO_SIZE_MAX` sta nel contratto
+  per la stessa ragione di `GRID_LIMITS`: prima diceva 200 contro i 240
+  dell'app. Verifica: `node test/browser/verifica-png-e-taglia.mjs`.
+- Scheda PNG (`png.js`, 25 set 2026): il diario quest applicato ai
+  personaggi, solo DM. Il filtro sta fuori dall'elenco che si ridisegna,
+  sennò il campo perde il focus a ogni battuta. Le regole mobili delle
+  schede usano `nav.tabs button`: `.tabs button` perdeva contro la base.
+- Costo del ridisegno: `node test/browser/misura-ridisegno.mjs` (numeri,
+  non soglie). Il pan tocca solo il viewBox; ogni `renderCanvas` ricrea i
+  `foreignObject` delle caselle, e il profilo attribuisce quel layout alla
+  prima funzione che legge una misura (oggi `allineaPalette`): toglierla
+  non cambia il totale.
 - PostgreSQL reale senza dati dell’app: avviare
   `docker run --rm -d --name runebog-todo-test -e POSTGRES_PASSWORD=runebog-test-only postgres:17-alpine`,
   poi `node test/database/verifica-todo.mjs` e

@@ -73,6 +73,7 @@
   <nav class="tabs" role="tablist" aria-label="Sezioni">
     <button id="tab-map" class="active" role="tab" aria-selected="true" aria-controls="view-map" onclick="showView('map')">Mappa</button>
     <button id="tab-quests" role="tab" aria-selected="false" aria-controls="view-quests" onclick="showView('quests')">Quest</button>
+    <button id="tab-png" class="dm-only" role="tab" aria-selected="false" aria-controls="view-png" onclick="showView('png')">PNG</button>
     <button id="tab-check" class="dm-only" role="tab" aria-selected="false" aria-controls="view-check" onclick="showView('check')">Checklist</button>
     <button id="tab-players" role="tab" aria-selected="false" aria-controls="view-players" onclick="showView('players')">Giocatori</button>
   </nav>
@@ -261,6 +262,19 @@
   <!-- ============ QUEST ============ -->
   <section id="view-quests" class="view" role="tabpanel" aria-labelledby="tab-quests">
     <div id="quests-list"></div>
+  </section>
+
+  <!-- ============ PNG ============ -->
+  <section id="view-png" class="view" role="tabpanel" aria-labelledby="tab-png">
+    <div id="png-wrap">
+      <div class="png-testa">
+        <h2 class="q-h">PNG</h2>
+        <span id="png-conto" class="q-loc"></span>
+      </div>
+      <input id="png-filtro" type="search" placeholder="Filtra per nome, luogo o note…" autocomplete="off"
+        aria-label="Filtra i PNG" aria-controls="png-list">
+      <div id="png-list"></div>
+    </div>
   </section>
 
   <!-- ============ CHECKLIST ============ -->

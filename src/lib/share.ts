@@ -25,7 +25,7 @@ import { randomBytes } from "crypto";
 // non risolve gli import senza estensione.
 import {
   CURRENT_CAMPAIGN_SCHEMA_VERSION, IMMAGINE_LOCALE, GRID_FORMS, GRID_LIMITS,
-  normalizzaCorridoi, normalizzaPercorso,
+  normalizzaCorridoi, normalizzaPercorso, normalizzaTaglia,
 } from "../../public/app/formato-campagna.js";
 
 type Node = Record<string, any>;
@@ -305,6 +305,10 @@ function projectNode(n: Node, data: Node): Node {
   const w = num(n.w), h = num(n.h);
   if (w) out.w = w;
   if (h) out.h = h;
+  // La taglia di un segnalino è geometria come w/h: al tavolo la pedina di un
+  // drago Enorme deve occupare le stesse 3×3 celle che vede il DM.
+  const taglia = normalizzaTaglia(n.taglia);
+  if (taglia > 1) out.taglia = taglia;
   // `tokenColor` è il vecchio nome (valeva solo per le pedine): l'app migra al volo
   // in migrateState, ma una campagna salvata prima e non più riaperta dal DM ha
   // ancora il campo vecchio nel JSONB — finché non la risalva, va letto anche quello.

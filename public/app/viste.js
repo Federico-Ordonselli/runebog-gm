@@ -7,6 +7,7 @@ import { renderMap } from "./mappa.js";
 import { renderQuests } from "./quest.js";
 import { renderChecklist } from "./checklist.js";
 import { renderPlayers } from "./giocatori.js";
+import { renderPng } from "./png.js";
 
 export function showView(v){
   document.querySelectorAll(".view").forEach(s=>s.classList.remove("active"));
@@ -18,6 +19,7 @@ export function showView(v){
   tab.classList.add("active"); tab.setAttribute("aria-selected","true");
   if(v==="map") renderMap();
   if(v==="quests") renderQuests();
+  if(v==="png") renderPng();
   if(v==="check") renderChecklist();
   if(v==="players") renderPlayers();
 }

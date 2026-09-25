@@ -1,5 +1,34 @@
 # To-do
 
+## Fase 1 delle richieste di un tester (25 settembre 2026)
+
+Roadmap in quattro fasi: la bolla come pagina, impostazioni e texture,
+calendario di gioco vengono dopo. Qui la prima.
+
+- [x] **Scheda PNG** accanto a Mappa, Quest, Checklist, Giocatori: tutti i
+  nodi `png` dell'albero con il luogo che li contiene e la prima riga delle
+  note, filtro per nome/luogo/note, il nome porta alla bolla (`goToNode`).
+  Solo DM per ora (`public/app/png.js`).
+- [x] **Segnalini ridimensionabili** (`n.taglia`, 1–8 quadretti per lato):
+  dal pannello (Normale/Grande/Enorme/Mastodontica o numero) e dalla
+  maniglia d'angolo sulla tela. Disco, sigla e nome crescono insieme; le
+  taglie pari si agganciano all'incrocio, le dispari al centro della cella.
+  Contratto, bonifica e tavolo leggono tutti `normalizzaTaglia`.
+  Test `test/scala/taglia.test.mjs`, verifica
+  `node test/browser/verifica-png-e-taglia.mjs`.
+- [x] **Il contratto rifiutava il carattere massimo delle caselle**: diceva
+  200 e il pannello concede 240, quindi una casella a 240 faceva rimbalzare
+  con 422 il salvataggio in cloud. Ora `TESTO_SIZE_MAX` sta nel contratto e
+  l'app lo importa.
+- [x] **Schede su telefono**: le regole `.tabs button` dei gradini mobili non
+  si sono mai applicate (perdevano contro `nav.tabs button`). Corrette, e le
+  cinque schede stanno in 308px su 360.
+- [ ] **Lentezza segnalata**: misurata con `test/browser/misura-ridisegno.mjs`.
+  Il pan resta a 60 fps anche con 120 caselle di testo; ogni clic che
+  ridisegna la tela ricrea tutti i `foreignObject` (CPU ×4: ~70 ms con 40
+  caselle, ~150 con 120). In attesa di sapere quale gesto rallenta e su che
+  dispositivo prima di cambiare il disegno.
+
 ## Penna dei muri e aperture (24 settembre 2026)
 
 - [x] **Tracciare i muri tenendo premuto.** Con "Muro" della palette armato,

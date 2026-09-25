@@ -14,7 +14,7 @@ import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeCo
          corridoiDi, cellaCorridoio, chiaveCella, sagomaCorridoi, riquadroCorridoi, CORRIDOI_MAX,
          DOOR_TYPES, doorKind, wallLabel, shapeType, scalaSopra, scalaDentro,
          GRIGLIE, GRIGLIA_BASE, GRID_LIMITS, grigliaDi, isHex, inScala, nomeCelle, formattaMetri,
-         passoMaglia, tasselloMaglia } from "./modello.js";
+         passoMaglia, tasselloMaglia, normalizzaTaglia, TAGLIA_MAX, MARKER_R, CELL } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, pathNodes, RO,
          clearSel, selectNode, selectWall, zoomOut } from "./stato.js";
 import { showView, openConfirm } from "./viste.js";
@@ -593,6 +593,15 @@ function statusDot(x,y,st_){
   return `<circle cx="${x}" cy="${y}" r="5.5" style="fill:${col};stroke:var(--bog)" stroke-width="2" pointer-events="none"/>`;
 }
 
+/* Quanto crescono le scritte di un segnalino con la sua taglia: quanto il
+   disco, così nome e iniziale restano nella stessa proporzione (la richiesta
+   era "le scritte aumentano insieme"). Taglia 1 = 1, cioè il disegno di sempre. */
+const scalaSegnalino = c => 1 + (normalizzaTaglia(c.taglia) - 1) * CELL / 2 / MARKER_R;
+/* La maniglia d'angolo: la stessa delle bolle, e compare alle stesse
+   condizioni (una sola cosa selezionata). */
+const maniglia = (c, lato) => c.id===st.selectedId && st.multiSel.size<=1
+  ? `<rect class="rs-handle" x="${lato-8}" y="${lato-8}" width="16" height="16" rx="3"/>` : "";
+
 /* Nome accessibile di una bolla: quello che un lettore di schermo annuncia
    arrivandoci con Tab. Tipo prima del titolo, come nel pannello di dettaglio. */
 function ariaBlk(c){
@@ -823,7 +832,7 @@ export function renderCanvas(){
     // il focus (vedi il focusin in initMappa) e aria-pressed la annuncia
     const a11y = `tabindex="0" role="button" aria-pressed="${isSel}" aria-label="${ariaBlk(c)}"`;
     if(c.type==="token"){
-      const R = markerR(c), tcol = col;
+      const R = markerR(c), tcol = col, k = scalaSegnalino(c);
       // Una pedina collegata (a un PG o a un nemico) prende nome e PF dalla fonte:
       // sul campo e nella scheda c'è UN solo numero, non due che divergono.
       const link = tokenLink(c);
@@ -842,10 +851,11 @@ export function renderCanvas(){
            style="fill:${pct>0.5?"var(--fen)":pct>0.25?"var(--gold)":"var(--ember)"}"/>`;
       out += `<g class="blk marker token${selCls}${shCls}${giu?" giu":""}" data-block="${c.id}" ${a11y} transform="translate(${c.x},${c.y})">
         <circle class="blk-shape" cx="${R}" cy="${R}" r="${R}" style="fill:${tcol};--c:var(--bog)"/>
-        <text x="${R}" y="${R+4}" text-anchor="middle" style="font-size:12px;font-weight:700;fill:var(--bog)">${escapeHtml(ini)}</text>
+        <text x="${R}" y="${R+4*k}" text-anchor="middle" style="font-size:${12*k}px;font-weight:700;fill:var(--bog)">${escapeHtml(ini)}</text>
         ${barra}
         ${inBattaglia ? "" :
-          `<text x="${R}" y="${R*2+(pct===null?15:22)}" text-anchor="middle" style="font-size:11px;fill:var(--ink-dim)">${escapeHtml(nome)}</text>`}
+          `<text x="${R}" y="${R*2+(pct===null?4:11)+11*k}" text-anchor="middle" style="font-size:${11*k}px;fill:var(--ink-dim)">${escapeHtml(nome)}</text>`}
+        ${maniglia(c, R*2)}
       </g>`;
     }else if(isTesto(c)){
       /* Il testo va a capo da sé dentro un foreignObject: in SVG puro ogni riga
@@ -868,14 +878,15 @@ export function renderCanvas(){
         ${c.id===st.selectedId && st.multiSel.size<=1 ? `<rect class="rs-handle" x="${box.w-8}" y="${box.h-8}" width="16" height="16" rx="3"/>`:""}
       </g>`;
     }else if(isMarker(c)){
-      const R = markerR(c);
+      const R = markerR(c), k = scalaSegnalino(c);
       out += `<g class="blk marker${selCls}${shCls}" data-block="${c.id}" ${a11y} transform="translate(${c.x},${c.y})">
         <circle class="blk-shape" cx="${R}" cy="${R}" r="${R}" style="--c:${col}"/>
-        <text x="${R}" y="${R+4}" text-anchor="middle" style="font-size:12px;fill:${col};font-weight:700">${(TYPES[c.type]||TYPES.nota).label[0]}</text>
-        <text x="${R}" y="${R*2+15}" text-anchor="middle" style="font-size:11px;fill:var(--ink-dim)">${escapeHtml(c.title||"")}</text>
+        <text x="${R}" y="${R+4*k}" text-anchor="middle" style="font-size:${12*k}px;fill:${col};font-weight:700">${(TYPES[c.type]||TYPES.nota).label[0]}</text>
+        <text x="${R}" y="${R*2+4+11*k}" text-anchor="middle" style="font-size:${11*k}px;fill:var(--ink-dim)">${escapeHtml(c.title||"")}</text>
         ${c.status?statusDot(R*2-2,3,c.status):""}
-        ${c.children.length?`<text x="${R}" y="${R*2+28}" text-anchor="middle" style="font-size:9px;fill:var(--ink-dim)">◦ ${c.children.length}</text>`:""}
+        ${c.children.length?`<text x="${R}" y="${R*2+6+22*k}" text-anchor="middle" style="font-size:${9*k}px;fill:var(--ink-dim)">◦ ${c.children.length}</text>`:""}
         ${canEditEdges()?`<circle class="link-handle" cx="${R*2}" cy="0" r="8"/>`:""}
+        ${maniglia(c, R*2)}
       </g>`;
     }else{
       const box = nodeBox(c);
@@ -1741,7 +1752,15 @@ export function initMappa(){
     }else if(planDrag.mode==="resize"){
       const n = childOf(planDrag.id); if(!n) return;
       const mg = maglia();
-      if(inScala(n, mg)){
+      if(isMarker(n)){
+        /* Un segnalino cresce a taglie intere: il lato tirato dal puntatore
+           diventa il numero di quadretti più vicino. L'angolo in alto a
+           sinistra sta fermo durante il gesto e al rilascio si riaggancia. */
+        const lato = Math.max(p.x-n.x, p.y-n.y);
+        const t = Math.max(1, Math.min(TAGLIA_MAX, Math.round((lato + 10) / CELL)));
+        if(t === normalizzaTaglia(n.taglia)) return;
+        if(t > 1) n.taglia = t; else delete n.taglia;
+      }else if(inScala(n, mg)){
         n.w = Math.max(mg.cella, snapGrid(p.x-n.x, mg));
         n.h = Math.max(mg.cella, snapGrid(p.y-n.y, mg));
       }else{
@@ -1849,6 +1868,7 @@ export function initMappa(){
     }else if(planDrag.mode==="resize"){
       const n = childOf(planDrag.id);
       if(n && isTesto(n)) adattaTesto(n);
+      if(n && isMarker(n)){ const q = snapNode(n, n.x, n.y, maglia()); n.x = q.x; n.y = q.y; }
       save(); renderCanvas(); renderDetail();
     }else if(planDrag.mode==="bgmove"||planDrag.mode==="bgresize"){
       if(planDrag.moved) save();
@@ -2109,7 +2129,24 @@ export function duplicateSelected(){
   save(); renderMap();
 }
 
+/* La taglia dal pannello: il segnalino cresce attorno al proprio CENTRO, che
+   è ciò che l'occhio segue (la maniglia sulla tela invece tiene fermo
+   l'angolo, perché è l'angolo che il dito sta tirando). Poi si riaggancia. */
+export function impostaTaglia(id, v){
+  if(RO) return;
+  const n = childOf(id); if(!n || !isMarker(n)) return;
+  const t = normalizzaTaglia(v);
+  if(typeof n.x === "number"){
+    const r0 = markerR(n);
+    if(t > 1) n.taglia = t; else delete n.taglia;
+    const r1 = markerR(n);
+    const q = snapNode(n, n.x + r0 - r1, n.y + r0 - r1, maglia());
+    n.x = q.x; n.y = q.y;
+  }else if(t > 1) n.taglia = t; else delete n.taglia;
+  save(); renderCanvas(); renderDetail();
+}
+
 // per gli onclick inline nei template e nell'HTML statico
-Object.assign(window, { enterNode, jumpTo, planFit, planZoom, arrangeGrid, quickAddCenter, addAtCenter,
+Object.assign(window, { enterNode, impostaTaglia, jumpTo, planFit, planZoom, arrangeGrid, quickAddCenter, addAtCenter,
   pickBg, removeBg, toggleBgEdit, setBgOpacity, requestDeleteSelection, goToNode,
   deleteWallSeg, setWallDoor, inserisciNelMuro, impostaGriglia });
