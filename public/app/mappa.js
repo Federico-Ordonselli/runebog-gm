@@ -125,6 +125,19 @@ export function planPointXY(cx, cy){
   return p.matrixTransform(svg.getScreenCTM().inverse());
 }
 function planPoint(evt){ return planPointXY(evt.clientX, evt.clientY); }
+/* Quanto vale un pixel dello schermo in unità della mappa, e dove cade
+   l'origine. Il viewBox NON ha le proporzioni della tela (planFit lo vuole
+   largo almeno 700×480), e col preserveAspectRatio di default ("meet") il
+   browser lo scala per farlo stare e lo centra: un pixel vale
+   max(w/W, h/H), non w/W. Fino al 25 set 2026 pan e pizzico usavano w/W, e
+   su uno schermo largo la mappa scivolava sotto il mouse al 50–60% del
+   gesto invece di seguirlo. Legge il riquadro della tela, cioè forza un
+   layout: i gesti la chiamano una volta all'inizio, non a ogni movimento. */
+function vistaPx(vb = planVB){
+  const r = planSvg().getBoundingClientRect();
+  const W = r.width || 1, H = r.height || 1, s = Math.max(vb.w / W, vb.h / H);
+  return {s, W, H, left:r.left, top:r.top};
+}
 function planApplyVB(){
   const vb = `${planVB.x} ${planVB.y} ${planVB.w} ${planVB.h}`;
   planSvg().setAttribute("viewBox", vb);
@@ -291,7 +304,7 @@ function percorsoDaTraccia(traccia, a, b, daB, svg){
   const [, inizio, ...resto] = traccia;
   const tr = resto.filter(q => !dentro(q, a) && !dentro(q, b));
   const fine = daB ? A : B;
-  const via = semplificaTraccia([inizio, ...tr, fine], 10 * planVB.w / (svg.clientWidth || 1)).slice(1, -1);
+  const via = semplificaTraccia([inizio, ...tr, fine], 10 * vistaPx().s).slice(1, -1);
   // ritracciando un arco esistente dall'altro capo, la traccia va rovesciata
   return normalizzaPercorso(percorsoRelativo(daB ? via.reverse() : via, A, B));
 }
@@ -1778,13 +1791,20 @@ export function initMappa(){
       const d1 = Math.max(1, Math.hypot(a.x-b.x, a.y-b.y));
       const c1 = {x:(a.x+b.x)/2, y:(a.y+b.y)/2};
       const f = planDrag.d0 / d1;
-      const W = svg.clientWidth||1, H = svg.clientHeight||1;
       const vb0 = planDrag.vb0;
+      // Il punto della mappa che stava sotto il centro delle due dita
+      // all'inizio deve restarci sotto: si calcola una volta sola.
+      if(!planDrag.v0){
+        const v = vistaPx(vb0);
+        planDrag.v0 = {...v,
+          wx: vb0.x - (v.W*v.s - vb0.w)/2 + (planDrag.c0.x - v.left)*v.s,
+          wy: vb0.y - (v.H*v.s - vb0.h)/2 + (planDrag.c0.y - v.top)*v.s};
+      }
+      const {W, H, left, top, wx, wy} = planDrag.v0;
       const w = Math.min(30000, Math.max(200, vb0.w*f));
       const h = vb0.h * (w/vb0.w);
-      const wx0 = vb0.x + (planDrag.c0.x/W)*vb0.w;
-      const wy0 = vb0.y + (planDrag.c0.y/H)*vb0.h;
-      planVB = {x: wx0 - (c1.x/W)*w, y: wy0 - (c1.y/H)*h, w, h};
+      const s1 = Math.max(w/W, h/H);
+      planVB = {x: wx - (c1.x - left)*s1 + (W*s1 - w)/2, y: wy - (c1.y - top)*s1 + (H*s1 - h)/2, w, h};
       planApplyVB();
     }else if(planDrag.mode==="bgmove"){
       const cur = currentNode(); if(!cur.bg) return;
@@ -1798,12 +1818,13 @@ export function initMappa(){
       planDrag.moved = true; updateBgAttrs();
     }else if(planDrag.mode==="link"){
       const tr = planDrag.traccia, ult = tr.at(-1);
-      if(Math.hypot(p.x-ult.x, p.y-ult.y) >= 3*planVB.w/(svg.clientWidth||1)) tr.push(p);
+      planDrag.s ??= vistaPx().s;
+      if(Math.hypot(p.x-ult.x, p.y-ult.y) >= 3*planDrag.s) tr.push(p);
       else tr[tr.length-1] = p;
       document.getElementById("plan-temp").setAttribute("points",
         tr.map(q=>`${Math.round(q.x)},${Math.round(q.y)}`).join(" "));
     }else if(planDrag.mode==="pan"){
-      const scale = planVB.w / svg.clientWidth;
+      const scale = planDrag.s ??= vistaPx(planDrag.vb).s;
       planVB.x = planDrag.vb.x - (ev.clientX-planDrag.sx)*scale;
       planVB.y = planDrag.vb.y - (ev.clientY-planDrag.sy)*scale;
       if(Math.abs(ev.clientX-planDrag.sx)+Math.abs(ev.clientY-planDrag.sy)>4) planDrag.moved = true;

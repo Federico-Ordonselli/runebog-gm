@@ -159,6 +159,12 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   personaggi, solo DM. Il filtro sta fuori dall'elenco che si ridisegna,
   sennò il campo perde il focus a ogni battuta. Le regole mobili delle
   schede usano `nav.tabs button`: `.tabs button` perdeva contro la base.
+- Pixel → mappa passa da `vistaPx` (`mappa.js`, 25 set 2026): il viewBox
+  non ha le proporzioni della tela e col "meet" di default un pixel vale
+  max(w/W, h/H), non w/W — con w/W il pan scivolava al 50–60% del gesto su
+  schermi larghi. Si calcola all'inizio del gesto (legge il riquadro, cioè
+  forza un layout). Chi scrive un gesto nuovo non ricalcoli la scala a mano.
+  Verifica: `node test/browser/verifica-pan.mjs`.
 - Costo del ridisegno: `node test/browser/misura-ridisegno.mjs` (numeri,
   non soglie). Il pan tocca solo il viewBox; ogni `renderCanvas` ricrea i
   `foreignObject` delle caselle, e il profilo attribuisce quel layout alla

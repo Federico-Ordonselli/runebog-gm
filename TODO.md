@@ -23,11 +23,18 @@ calendario di gioco vengono dopo. Qui la prima.
 - [x] **Schede su telefono**: le regole `.tabs button` dei gradini mobili non
   si sono mai applicate (perdevano contro `nav.tabs button`). Corrette, e le
   cinque schede stanno in 308px su 360.
-- [ ] **Lentezza segnalata**: misurata con `test/browser/misura-ridisegno.mjs`.
-  Il pan resta a 60 fps anche con 120 caselle di testo; ogni clic che
-  ridisegna la tela ricrea tutti i `foreignObject` (CPU ×4: ~70 ms con 40
-  caselle, ~150 con 120). In attesa di sapere quale gesto rallenta e su che
-  dispositivo prima di cambiare il disegno.
+- [x] **La mappa "scivolava" nel pan**: non era lentezza. Pan e pizzico
+  convertivano i pixel con `larghezza viewBox / larghezza tela`, ma il
+  viewBox non ha le proporzioni della tela e il browser lo scala con
+  max(w/W, h/H): su uno schermo largo la mappa seguiva il mouse al 50–60%.
+  Il pizzico in più ignorava la posizione della tela nella pagina. Ora c'è
+  una sola conversione (`vistaPx` in `mappa.js`), calcolata all'inizio del
+  gesto. Verifica `node test/browser/verifica-pan.mjs` (rossa sul codice
+  vecchio a 1600×700 e col pizzico).
+- [x] **Costo del ridisegno misurato** (`test/browser/misura-ridisegno.mjs`):
+  ogni clic che ridisegna la tela ricrea tutti i `foreignObject` delle
+  caselle (CPU ×4: ~70 ms con 40 caselle, ~150 con 120). Non è ciò che il
+  tester sentiva; resta un margine da prendere se le campagne crescono.
 
 ## Penna dei muri e aperture (24 settembre 2026)
 

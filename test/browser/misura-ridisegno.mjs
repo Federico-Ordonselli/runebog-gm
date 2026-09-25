@@ -1,9 +1,10 @@
 /*
  * Quanto costa muoversi su una campagna carica (25 set 2026). Non è una
  * verifica: non ha soglie, stampa numeri. È nata per la segnalazione "lo
- * spostamento nelle bolle è lento", e la prima misura ha detto dove NON è il
- * problema — il pan riscrive solo il viewBox e resta a 60 fps anche con 120
- * caselle — e dove sì: ogni clic che ridisegna la tela (selezione, salto,
+ * spostamento nelle bolle è lento", che poi era un'altra cosa (il pan che
+ * scivolava, vedi verifica-pan.mjs). La misura resta utile per quel che ha
+ * trovato: il pan riscrive solo il viewBox e tiene i 60 fps anche con 120
+ * caselle, mentre ogni clic che ridisegna la tela (selezione, salto,
  * entrare e uscire) ricrea da capo tutti i `foreignObject` delle caselle di
  * testo, e il layout cresce con loro (a CPU ×4: ~70 ms con 40 caselle, ~150
  * con 120). Il profilo lo attribuisce ad allineaPalette, che è solo la prima
