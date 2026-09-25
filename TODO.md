@@ -30,7 +30,11 @@ calendario di gioco vengono dopo. Qui la prima.
   Il pizzico in più ignorava la posizione della tela nella pagina. Ora c'è
   una sola conversione (`vistaPx` in `mappa.js`), calcolata all'inizio del
   gesto. Verifica `node test/browser/verifica-pan.mjs` (rossa sul codice
-  vecchio a 1600×700 e col pizzico).
+  vecchio a 1600×700 e col pizzico). Il video del tester era su un
+  ultrawide, dove seguiva a circa un decimo: la verifica prova anche
+  3440×1000.
+- [x] **Portable 0.2.6** col pan corretto: versione, download e checksum
+  aggiornati in `src/lib/site.ts`; smoke e tavolo del desktop verdi.
 - [x] **Costo del ridisegno misurato** (`test/browser/misura-ridisegno.mjs`):
   ogni clic che ridisegna la tela ricrea tutti i `foreignObject` delle
   caselle (CPU ×4: ~70 ms con 40 caselle, ~150 con 120). Non è ciò che il
