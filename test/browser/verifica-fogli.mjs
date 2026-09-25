@@ -23,6 +23,9 @@ const documento = () => validaDocumento({schemaVersion:CURRENT_CAMPAIGN_SCHEMA_V
     nodo("n1", "Appunto", "nota", {x:895, y:55, notes:"Piove da tre giorni, il fiume sale."}),
     nodo("c1", "", "testo", {x:95, y:420, w:260, h:120, foglio:"carta", notes:"# Taverna\nIl **Cinghiale Zoppo**: birra annacquata."}),
     nodo("c2", "", "testo", {x:495, y:420, w:260, h:80, notes:"Casella senza foglio"}),
+    nodo("cantina", "Cantina", "luogo", {x:895, y:420, shape:"edificio", children:[
+      nodo("c3", "", "testo", {x:40, y:40, w:220, h:60, notes:"Tre botti\nUna è vuota"}),
+    ]}),
   ]})});
 const salvato = p => p.evaluate(() => JSON.parse(localStorage.getItem("gm-campaign-prova")));
 const nodoSalvato = async (p, id) => (await salvato(p)).root.children.find(c => c.id === id);
@@ -107,6 +110,15 @@ try {
   await p.keyboard.press("Control+z");
   await p.waitForTimeout(900);
   controlla((await nodoSalvato(p, "c1")).foglio === "bruciata", "Ctrl+Z torna al foglio di prima");
+
+  // --- una casella in un altro livello, mai toccata ---
+  await p.evaluate(() => import("/app/mappa.js").then(m => m.entra("cantina")));
+  await p.locator('[data-block="c3"]').waitFor();
+  await p.waitForTimeout(200);
+  const c3 = await misure(p, "c3");
+  controlla(c3.scroll <= c3.client + 1 && c3.h > 60,
+    `in un altro livello la casella si allunga da sé col foglio nuovo (${JSON.stringify(c3)})`);
+  await p.evaluate(() => import("/app/mappa.js").then(m => m.goToNode("radice")));
 
   // --- ricaricando ---
   await p.reload();

@@ -243,7 +243,14 @@ export function newCampaign(){
   persistCurrent(); renderCampaignSelect();
   st.path = [st.state.root.id]; clearSel();
   showView("map");
-  setTimeout(()=>{ const i=document.querySelector("#detail input"); if(i){ i.focus(); i.select(); } }, 80);
+  /* Il titolo si scrive subito, ma il focus arriva dopo il disegno del
+     pannello: se nel frattempo si è già altrove — un'altra campagna, un
+     menu aperto da tastiera — rinuncia. Su una macchina carica gli 80 ms
+     diventavano abbastanza da rubare il focus a metà della barra a menu. */
+  setTimeout(()=>{
+    if(campaignId !== id || document.querySelector("#ctx-menu.show")) return;
+    const i=document.querySelector("#detail input"); if(i){ i.focus(); i.select(); }
+  }, 80);
 }
 /* L'import di un file entra in una campagna NUOVA invece di sostituire quella
    aperta. In locale uno slot non costa niente, quindi la domanda "vuoi

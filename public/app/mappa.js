@@ -1064,6 +1064,7 @@ export function renderCanvas(){
 
   adattaCaratteri(cur);
   adattaSchede(cur);
+  adattaCaselle(cur);
   riposizionaScrittura();
 
   if(focusSel){
@@ -1090,6 +1091,42 @@ export function adattaTesto(n){
   const h = Math.max(40, Math.ceil(el.offsetHeight / 10) * 10);
   el.style.height = "";
   if(h > nodeBox(n).h){ n.h = h; renderCanvas(); }
+}
+
+/* Le caselle in cui il testo non ci sta più senza che nessuno le abbia
+   toccate: un foglio cambiato dalle impostazioni (rotoli e bruciature
+   vogliono più margine), caratteri diversi su un altro dispositivo. Prima
+   si allungavano solo alla prima modifica, e fino ad allora il fondo del
+   testo restava tagliato. Stessa regola di adattaTesto — cresce e basta —
+   ma dopo il disegno e senza ridisegnare: si riscrivono gli attributi,
+   come in adattaSchede, perché un secondo renderCanvas dentro un gesto
+   distruggerebbe il nodo sotto il dito. Non si salva: l'altezza entra nel
+   documento col prossimo salvataggio, e intanto è già quella giusta.
+   La casella che si sta ridimensionando no: la regola la applica il
+   rilascio, e qui tirerebbe l'angolo contro il dito. */
+const misureCaselle = new Map();
+function adattaCaselle(cur){
+  const svg = planSvg();
+  for(const n of cur.children){
+    if(!isTesto(n) || !n.notes || testoAdatta(n) || typeof n.x !== "number") continue;
+    if(planDrag?.mode === "resize" && planDrag.id === n.id) continue;
+    const box = nodeBox(n);
+    const chiave = `${box.w}x${box.h}|${testoSize(n)}|${testoAllinea(n)}|${foglioDelNodo(n)}|${n.notes}`;
+    if(misureCaselle.get(n.id) === chiave) continue;
+    const g = svg.querySelector(`.blk.testo[data-block="${n.id}"]`);
+    const el = g?.querySelector(".testo-txt");
+    if(!el) continue;
+    el.style.height = "auto";
+    const h = Math.max(40, Math.ceil(el.offsetHeight / 10) * 10);
+    el.style.height = "";
+    if(h > box.h){
+      n.h = h;
+      g.querySelector(".blk-shape").setAttribute("height", h);
+      g.querySelector("foreignObject").setAttribute("height", h);
+      g.querySelector(".rs-handle")?.setAttribute("y", h - 8);
+    }
+    misureCaselle.set(n.id, `${box.w}x${Math.max(h, box.h)}|${testoSize(n)}|${testoAllinea(n)}|${foglioDelNodo(n)}|${n.notes}`);
+  }
 }
 
 /* "Adatta alla casella": il carattere più grande con cui il testo sta nella
@@ -1726,7 +1763,15 @@ export function initMappa(){
       svg.setPointerCapture(ev.pointerId);
       return;
     }
-    const handle = RO ? null : ev.target.closest(".link-handle");
+    /* Col dito Chrome sposta il tocco sull'elemento vicino che gli sembra
+       il bersaglio, e la maniglia dei collegamenti (raggio 11 al tocco) è
+       più grande di un segnalino: a mappa rimpicciolita si prendeva ogni
+       tocco sul simbolo, anche col segnalino non selezionato. Le coordinate
+       dell'evento restano quelle vere del dito: se lì sotto non c'è la
+       maniglia, il gesto è della bolla. */
+    let handle = RO ? null : ev.target.closest(".link-handle");
+    if(handle && ev.pointerType !== "mouse"
+       && !document.elementFromPoint(ev.clientX, ev.clientY)?.closest(".link-handle")) handle = null;
     const rsEl   = RO ? null : ev.target.closest(".rs-handle");
     const blkEl  = ev.target.closest(".blk");
     const edgeEl = ev.target.closest(".edge");

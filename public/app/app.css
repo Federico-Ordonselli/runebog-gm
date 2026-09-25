@@ -700,6 +700,9 @@
   @media (hover:none){
     .blk.sel .link-handle{opacity:1}
     .blk .link-handle{r:11}
+    /* Invisibile vuol dire intoccabile: sennò la regolazione del tocco di
+       Chrome la preferiva al segnalino, che a raggio 11 è più piccolo. */
+    .blk:not(.sel) .link-handle{pointer-events:none}
   }
   .blk .link-handle:hover{fill:var(--fen-dim)}
   .edge{cursor:pointer}

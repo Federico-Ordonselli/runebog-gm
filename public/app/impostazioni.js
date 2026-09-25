@@ -11,10 +11,10 @@
 
    Al tavolo restano tema e barra: caselle e schede lì non arrivano. */
 
-import { RO, currentNode } from "./stato.js";
-import { renderCanvas, adattaTesto } from "./mappa.js";
+import { RO } from "./stato.js";
+import { renderCanvas } from "./mappa.js";
 import { renderDetail } from "./pannello.js";
-import { FOGLI, TESTO_SIZES, TESTO_SIZE_NOMI, isTesto } from "./modello.js";
+import { FOGLI, TESTO_SIZES, TESTO_SIZE_NOMI } from "./modello.js";
 import { preferenza, impostaPreferenza } from "./preferenze.js";
 import { GRUPPI, TEMA_DEFAULT, temiDelGruppo } from "./temi.js";
 
@@ -82,11 +82,9 @@ export function initImpostazioni(){
     const { imp, valore } = b.dataset;
     if(imp === "barra") window.impostaBarra(valore);
     else if(imp === "foglio"){
+      // Le caselle in cui il testo non ci sta più si allungano da sé al
+      // disegno (adattaCaselle in mappa.js), in ogni livello.
       impostaPreferenza("foglio", valore); renderCanvas(); renderDetail();
-      // Rotoli e bruciature vogliono più margine: una casella in cui il testo
-      // non ci sta più si allunga, come dopo una modifica (cresce e basta).
-      // Solo nel livello aperto; le altre si allungano alla prima modifica.
-      for(const n of currentNode().children) if(isTesto(n)) adattaTesto(n);
     }
     else if(imp === "carattere") impostaPreferenza("carattere", Number(valore));
     // Si ridisegna il contenuto e si rimette il focus sulla scelta appena

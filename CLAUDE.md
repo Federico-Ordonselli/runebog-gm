@@ -192,6 +192,23 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   dichiarati apposta perché il verificatore li misuri. Le impostazioni
   (`impostazioni.js`) chiamano `setTheme`/`impostaBarra`, non li ricopiano.
   Verifica: `node test/browser/verifica-fogli.mjs`.
+- Il dito sulla tela (25 set 2026): Chrome sposta un tocco sull'elemento
+  vicino che gli sembra il bersaglio, quindi una maniglia più grande del
+  simbolo si prende i tocchi anche invisibile. Col dito la maniglia dei
+  collegamenti è intoccabile finché la bolla non è selezionata, e il
+  pointerdown la scarta se `elementFromPoint` sulle coordinate dell'evento
+  (che restano quelle vere) dice altro. Chi aggiunge una maniglia faccia lo
+  stesso. Le prove col dito passano da CDP con `radiusX` realistico: con
+  `touchscreen.tap` la regolazione non scatta. Verifica:
+  `node test/browser/verifica-tocco.mjs`.
+- Caselle che si allungano da sé (`adattaCaselle`, 25 set 2026): dopo ogni
+  disegno, in qualunque livello, se il testo non ci sta più; attributi
+  riscritti senza ridisegnare e senza salvare (entra col prossimo
+  salvataggio). La casella che si sta ridimensionando è esclusa: lì decide
+  il rilascio.
+- Un focus dato con `setTimeout` deve controllare, allo scadere, che il
+  mondo sia ancora quello di quando è partito (`newCampaign`): sotto
+  carico il ritardo si allunga e il focus arriva a cose cambiate.
 - Pixel → mappa passa da `vistaPx` (`mappa.js`, 25 set 2026): il viewBox
   non ha le proporzioni della tela e col "meet" di default un pixel vale
   max(w/W, h/H), non w/W — con w/W il pan scivolava al 50–60% del gesto su

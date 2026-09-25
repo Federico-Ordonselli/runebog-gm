@@ -13,7 +13,7 @@ const controlla = (esito, cosa) => {
   esito ? ok++ : ko++;
 };
 
-await attendiServer();
+await attendiServer(`${BASE}/app.html`);
 const {browser} = await apriBrowser();
 
 try {

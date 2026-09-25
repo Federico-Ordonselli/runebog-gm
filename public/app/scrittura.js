@@ -19,8 +19,11 @@
      tela è già aggiornata, perché si ridisegna a ogni battuta.
    - Su schermo stretto non sta sopra il riquadro ma in cima alla tela: la
      tastiera virtuale sale dal basso e coprirebbe proprio quello che si sta
-     scrivendo. L'altezza la dà `visualViewport`, cioè ciò che la tastiera
-     lascia libero. */
+     scrivendo. Posizione e altezza le dà `visualViewport`, cioè ciò che la
+     tastiera lascia libero: su iPhone la tastiera non solo accorcia l'area
+     visibile ma la sposta in giù (`offsetTop`), e un editor fissato in cima
+     alla tela finirebbe sopra il bordo dello schermo. Lo spostamento arriva
+     come `scroll` del visualViewport, non come `resize`. */
 
 import { RO, save, selectNode, apriSessione, chiudiSessione } from "./stato.js";
 import { planSvg, renderCanvas, adattaTesto, childOf } from "./mappa.js";
@@ -146,10 +149,11 @@ export function riposizionaScrittura(){
 
   if(stretto()){
     const vv = window.visualViewport;
-    const basso = vv ? vv.offsetTop + vv.height : innerHeight;
-    const alto = Math.max(120, Math.min(wrap.height * .5, basso - wrap.top - 16));
+    const cima = vv ? vv.offsetTop : 0, basso = vv ? vv.offsetTop + vv.height : innerHeight;
+    const top = Math.max(8, cima - wrap.top + 8);
+    const alto = Math.max(120, Math.min(wrap.height * .5, basso - wrap.top - top - 8));
     box.classList.add("in-cima");
-    Object.assign(box.style, {left:"8px", top:"8px", width:`${wrap.width - 16}px`, height:""});
+    Object.assign(box.style, {left:"8px", top:`${top}px`, width:`${wrap.width - 16}px`, height:""});
     Object.assign(box.querySelector(".scrittura-barra").style, {left:"", maxWidth:""});
     ta.style.height = `${alto - box.querySelector(".scrittura-barra").offsetHeight - 6}px`;
     return;
@@ -180,3 +184,4 @@ export function riposizionaScrittura(){
 }
 
 window.visualViewport?.addEventListener("resize", riposizionaScrittura);
+window.visualViewport?.addEventListener("scroll", riposizionaScrittura);

@@ -141,9 +141,8 @@ try {
   const m = await tel.newPage();
   await m.goto(`${BASE}/app.html`);
   await m.locator('[data-block="olmo"] .scheda').waitFor();
-  // Il doppio tocco sulla scheda, non sul simbolo: rimpicciolito il simbolo
-  // è largo 17px, e Chrome sposta il tocco sulla maniglia dei collegamenti
-  // (raggio 11 su touch). La scheda è larga, ed è quello che si tocca.
+  // Il doppio tocco sulla scheda: il tocco sui segnalini piccoli lo prova
+  // verifica-tocco.mjs.
   const d = await centro(m, '[data-block="olmo"] .scheda-fondo');
   await m.touchscreen.tap(d.x, d.y); await m.waitForTimeout(80); await m.touchscreen.tap(d.x, d.y);
   await m.locator("#scrittura.in-cima textarea").waitFor();
@@ -155,6 +154,22 @@ try {
   });
   controlla(r.cima < 12 && r.larga > 360 && r.pagina <= 390, `su telefono la scrittura sta in cima alla tela (${JSON.stringify(r)})`);
   controlla(!r.foglio, "e non apre il foglio dei dettagli");
+  /* La tastiera virtuale: Chromium emulato non la apre, quindi si finge
+     quello che fa al visualViewport. Android lo accorcia; iPhone lo accorcia
+     e lo sposta in giù per mostrare il campo, e l'avvisa con uno scroll. */
+  for(const [nome, alto, cima, evento] of [["Android", 430, 0, "resize"], ["iPhone", 380, 320, "scroll"]]){
+    const v = await m.evaluate(([alto, cima, evento]) => {
+      const vv = window.visualViewport;
+      Object.defineProperty(vv, "height", {configurable:true, get:() => alto});
+      Object.defineProperty(vv, "offsetTop", {configurable:true, get:() => cima});
+      vv.dispatchEvent(new Event(evento));
+      const box = document.getElementById("scrittura").getBoundingClientRect();
+      const ta = document.querySelector("#scrittura textarea").getBoundingClientRect();
+      return {sopra: Math.round(box.top - cima), sotto: Math.round(cima + alto - ta.bottom), ta: Math.round(ta.height)};
+    }, [alto, cima, evento]);
+    controlla(v.sopra >= 0 && v.sotto >= 0 && v.ta >= 60,
+      `${nome}: con la tastiera aperta barra e testo restano nell'area visibile (${JSON.stringify(v)})`);
+  }
   await tel.close();
 
   // --- tavolo ---

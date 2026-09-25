@@ -15,7 +15,7 @@ const controlla = (esito, cosa) => {
 };
 const visibile = (pagina, sel) => pagina.locator(sel).first().isVisible();
 
-await attendiServer();
+await attendiServer(`${BASE}/app.html`);
 const {browser} = await apriBrowser();
 
 try {
@@ -65,6 +65,20 @@ try {
     controlla(!await visibile(pagina, "#ctx-menu.show"), "Escape chiude");
     controlla(await pagina.evaluate(() => document.activeElement?.dataset.menu === "modifica"),
       "e il focus torna all'intestazione");
+
+    // "Nuova campagna" dà il focus al titolo con 80 ms di ritardo: se nel
+    // frattempo si è tornati a un'altra campagna e si naviga la barra, quel
+    // focus non deve arrivare. Sotto carico succedeva da sé a metà di questa
+    // prova (circa un giro su nove); qui il caso si prova senza aspettarlo.
+    const rubato = await pagina.evaluate(async () => {
+      const prima = localStorage.getItem("gm-current-campaign");
+      window.newCampaign();
+      window.switchCampaign(prima);
+      document.querySelector("#menubar [data-menu=file]").focus();
+      await new Promise(r => setTimeout(r, 250));
+      return document.activeElement?.dataset.menu ?? document.activeElement?.tagName;
+    });
+    controlla(rubato === "file", `il focus ritardato di Nuova campagna non arriva a cose cambiate (${rubato})`);
 
     // Strumenti elenca i tool letti dal gestore, con la loro scorciatoia.
     await pagina.locator("#menubar [data-menu=strumenti]").click();

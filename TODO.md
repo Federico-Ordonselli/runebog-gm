@@ -1,5 +1,18 @@
 # To-do
 
+## Rimasti indietro dalle fasi 2 e 3 (25 settembre 2026)
+
+- [x] **La verifica della barra a menu falliva un giro su nove sotto
+  carico**, anche prima della Fase 3. Non era la prova: "Nuova campagna" dà
+  il focus al titolo con 80 ms di ritardo, e su una macchina carica quel
+  focus arrivava dopo che si era già tornati a un'altra campagna e si
+  navigava la barra da tastiera. Ora rinuncia se la campagna è cambiata o
+  c'è un menu aperto (`newCampaign` in `stato.js`); la verifica prova il caso
+  senza aspettare il carico.
+- [x] `verifica-barra-menu` e `verifica-pannello-mobile` aspettano
+  `/app.html` e non la home, che senza `.env` risponde 500: provano solo
+  l'editor.
+
 ## Fase 3: impostazioni e fogli (25 settembre 2026)
 
 Dario: «alle caselle di testo puoi dare una texture tipo foglio di carta,
@@ -29,10 +42,12 @@ personalizzare.
   margine bruciato).
 - [x] Test `test/scala/foglio.test.mjs`, verifica
   `node test/browser/verifica-fogli.mjs` (26 controlli, tavolo compreso).
-- [ ] Cambiando foglio dalle impostazioni si allungano le caselle del
-  livello aperto in cui il testo non ci sta più; quelle degli altri livelli
-  si allungano alla prima modifica (fino ad allora il testo in fondo è
-  tagliato).
+- [x] **Caselle tagliate in fondo** (25 set 2026): cambiando foglio dalle
+  impostazioni, le caselle degli altri livelli restavano col testo tagliato
+  finché non le si modificava. Ora dopo ogni disegno `adattaCaselle`
+  (`mappa.js`) allunga quelle in cui il testo non ci sta, in qualunque
+  livello e per qualunque causa, riscrivendo gli attributi senza ridisegnare.
+  La verifica `verifica-fogli.mjs` lo prova in un livello mai aperto.
 
 ## Fase 2: la bolla come pagina (25 settembre 2026)
 
@@ -65,12 +80,21 @@ aprire il pannello laterale, e scriverci sopra direttamente.
 - [x] Test `test/scala/scheda.test.mjs`, verifica
   `node test/browser/verifica-schede.mjs` (30 controlli, telefono e tavolo
   compresi).
-- [ ] **Su telefono, a zoom basso, il tocco su un segnalino prende la
-  maniglia dei collegamenti** (raggio 11 su touch, segnalino largo 17px):
-  Chrome sposta il tocco sull'elemento più vicino. C'era già prima; la
-  scheda si tocca bene perché è larga.
-- [ ] Da provare su un telefono vero: la tastiera virtuale (Chromium
-  emulato non la simula; l'altezza viene da `visualViewport`).
+- [x] **Su telefono, a zoom basso, il tocco su un segnalino prendeva la
+  maniglia dei collegamenti** (corretto il 25 set 2026): la maniglia, raggio
+  11 al tocco, è più grande di un segnalino, e la regolazione del tocco di
+  Chrome le consegnava il pointerdown anche invisibile. Ora col dito la
+  maniglia non si tocca finché la bolla non è selezionata (CSS), e il
+  pointerdown la scarta se sotto le coordinate vere del dito c'è altro.
+  Verifica `node test/browser/verifica-tocco.mjs` (rossa sul codice di
+  prima: 8 KO su 10), che tocca con un raggio da dito via CDP.
+- [x] **La tastiera virtuale su iPhone** sposta l'area visibile oltre che
+  accorciarla (`visualViewport.offsetTop`), e l'editor in cima alla tela
+  finiva sopra il bordo dello schermo; lo spostamento arriva come `scroll`,
+  che nessuno ascoltava. Ora l'editor segue l'area visibile.
+  `verifica-schede.mjs` finge le due tastiere (Android e iPhone).
+- [ ] Da provare comunque su un telefono vero: la simulazione riproduce ciò
+  che le tastiere fanno al `visualViewport`, non le tastiere.
 
 ## Fase 1 delle richieste di un tester (25 settembre 2026)
 
