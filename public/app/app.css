@@ -578,6 +578,50 @@
   .testo-txt .tr-in1{margin-left:1.1em}
   .testo-txt .tr-in2{margin-left:2.2em}
   .testo-txt .tr-in3{margin-left:3.3em}
+  /* La piega del foglio (nota): decorazione come .terr-mark, non contorno. */
+  .blk .sag-piega{fill:none;stroke:var(--c, var(--fen));stroke-width:1.5;opacity:.6;pointer-events:none}
+  /* Le icone dei segnalini in palette e nel livello vuoto: la stessa sagoma
+     della tela, a contorno; la pedina piena come sulla tela. */
+  .ico-sag{flex:none;overflow:visible;vertical-align:-2px;margin-right:6px}
+  .ico-sag .blk-shape{fill:none;stroke:var(--c);stroke-width:1.8}
+  .ico-sag .sag-piega{fill:none;stroke:var(--c);stroke-width:1.2}
+  .ico-sag.pieno .blk-shape{fill:var(--c)}
+  .ep-chip .ico-sag{margin-right:0}
+  /* La scheda di un segnalino: il pannello quasi opaco, così si legge anche
+     sopra uno sfondo caricato, e il contorno del colore del segnalino — è la
+     sua pagina, e il colore dice di chi è. La selezione la accende come il
+     simbolo. Il testo è --ink sul pannello, la coppia del pannello. */
+  .blk .scheda-fondo{fill:color-mix(in srgb, var(--panel) 92%, transparent);stroke:var(--c, var(--line-ui));
+    stroke-width:1.5;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+  .blk.sel .scheda-fondo,.blk:focus-visible .scheda-fondo{stroke:var(--gold);stroke-width:2.5}
+  .scheda-txt{color:var(--ink);padding:7px 10px}
+  /* Una scheda che taglia il testo sfuma in fondo: dice "c'è dell'altro". */
+  .scheda-txt.tagliata{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 2.4em),transparent);
+    mask-image:linear-gradient(to bottom,#000 calc(100% - 2.4em),transparent)}
+  .scheda-stato{display:flex;align-items:center;gap:.4em;font-size:.75em;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--ink-dim);margin-bottom:.25em}
+  .scheda-pallino{display:inline-block;width:.65em;height:.65em;border-radius:50%;flex:none}
+  /* La scrittura sul posto (scrittura.js): la textarea copre il riquadro che
+     si scrive, la barra le galleggia sopra (sotto, se sopra non c'è posto).
+     Su schermo stretto sta in cima alla tela, fuori dalla tastiera. */
+  #scrittura{position:absolute;z-index:6}
+  #scrittura textarea{display:block;box-sizing:border-box;width:100%;resize:none;margin:0;
+    background:var(--panel);color:var(--ink);border:2px solid var(--gold);border-radius:6px;
+    padding:7px 10px;line-height:1.3;font-family:"Iowan Old Style",Palatino,Georgia,serif;
+    box-shadow:0 6px 18px rgba(0,0,0,.45)}
+  #scrittura textarea:focus{outline:none}
+  .scrittura-barra{position:absolute;bottom:100%;left:0;margin-bottom:6px;display:flex;flex-wrap:wrap;
+    gap:4px;width:max-content;max-width:min(640px, calc(100vw - 32px));padding:4px;border-radius:8px;
+    background:var(--panel);border:1px solid var(--line-ui);box-shadow:0 4px 12px rgba(0,0,0,.4)}
+  #scrittura.barra-sotto .scrittura-barra{bottom:auto;top:100%;margin:6px 0 0}
+  .scrittura-barra .testo-strumenti{margin:0}
+  #scrittura.in-cima .scrittura-barra{position:static;max-width:none;width:auto;margin:0 0 6px;
+    flex-wrap:nowrap;overflow-x:auto}
+  #scrittura.in-cima .testo-strumenti{flex-wrap:nowrap}
+  /* Su telefono Esc non c'è: "Fatto" apre la striscia invece di chiuderla,
+     sennò starebbe fuori schermo in fondo allo scorrimento. */
+  #scrittura.in-cima .scrittura-extra{order:-1}
+  #scrittura.in-cima .testo-strumenti .btn{flex:none}
   .testo-strumenti{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
   .testo-strumenti .btn{min-width:36px;padding-inline:8px}
   .testo-strumenti .sep{width:1px;background:var(--line);margin:2px 3px}

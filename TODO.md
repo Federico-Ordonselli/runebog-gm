@@ -1,5 +1,43 @@
 # To-do
 
+## Fase 2: la bolla come pagina (25 settembre 2026)
+
+Il tester vuole girare per la mappa e leggere tutto sulle bolle, senza
+aprire il pannello laterale, e scriverci sopra direttamente.
+
+- [x] **Scheda sotto il segnalino.** PNG, quest, encounter e note con una
+  descrizione la mostrano in un riquadro sotto il nome, resa come le
+  caselle di testo (`testoRicco`). Lo stato della quest apre la scheda.
+  Alta quanto il testo fino a un tetto, poi sfuma in fondo; misure di
+  partenza ricavate dalla taglia, quindi nessuna migrazione. La maniglia
+  del riquadro lo allarga dai due lati e ne fissa l'altezza (`n.scheda`,
+  `normalizzaScheda` nel contratto). Carattere, allineamento e "Adatta"
+  come nelle caselle. Pedina esclusa; al tavolo niente schede
+  (`schedaMarkup`/`adattaSchede` in `mappa.js`, `haScheda`/`schedaDi` in
+  `modello.js`).
+- [x] **Scrittura sul posto** (`public/app/scrittura.js`). Doppio clic o
+  Invio su una scheda o una casella: una textarea sopra il riquadro con la
+  barra di formattazione flottante (la stessa del pannello,
+  `barraFormattazione`), più A−/A+, allineamento e Fatto. Esc o un clic
+  fuori chiudono; una sessione è un solo Ctrl+Z (`apriSessione` in
+  `stato.js`). Su telefono sta in cima alla tela, fuori dalla tastiera.
+  Dentro un PNG o una quest si entra da "Entra →" (menu e pannello, `entra`).
+- [x] **Una sagoma per tipo**: PNG tondo, quest scudo, encounter rombo,
+  nota foglio con la piega; la pedina resta un disco pieno. Stessa funzione
+  per tela, palette e livello vuoto (`sagomaSegnalino`).
+- [x] **Le maniglie non comparivano al clic**: il pointerdown non ridisegna
+  e il rilascio senza trascinamento nemmeno, quindi le maniglie restavano
+  sulla bolla di prima. Ora il rilascio ridisegna se la selezione è cambiata.
+- [x] Test `test/scala/scheda.test.mjs`, verifica
+  `node test/browser/verifica-schede.mjs` (30 controlli, telefono e tavolo
+  compresi).
+- [ ] **Su telefono, a zoom basso, il tocco su un segnalino prende la
+  maniglia dei collegamenti** (raggio 11 su touch, segnalino largo 17px):
+  Chrome sposta il tocco sull'elemento più vicino. C'era già prima; la
+  scheda si tocca bene perché è larga.
+- [ ] Da provare su un telefono vero: la tastiera virtuale (Chromium
+  emulato non la simula; l'altezza viene da `visualViewport`).
+
 ## Fase 1 delle richieste di un tester (25 settembre 2026)
 
 Roadmap in quattro fasi: la bolla come pagina, impostazioni e texture,

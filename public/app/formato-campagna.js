@@ -93,6 +93,24 @@ export function normalizzaTaglia(v){
   const t = Math.round(Number(v));
   return Number.isFinite(t) ? Math.min(TAGLIA_MAX, Math.max(1, t)) : 1;
 }
+/* Il riquadro della scheda di un segnalino (`node.scheda`, 25 set 2026): la
+   descrizione di PNG, quest, encounter e note letta sulla mappa, in un
+   riquadro sotto il simbolo. `w` è la larghezza, `h` l'altezza scelta dal DM
+   tirandone l'angolo — assente vuol dire "quanto serve al testo", fino a un
+   tetto. Assente del tutto vuol dire le misure di partenza, ricavate dalla
+   taglia: nessuna campagna va migrata.
+   `normalizzaScheda` è l'unica lettura (bonifica e disegno) perché i numeri
+   finiscono in attributi SVG; il contratto rifiuta ciò che lei scarterebbe. */
+export const SCHEDA_LIMITI = Object.freeze({wMin:80, hMin:40, max:4000});
+export function normalizzaScheda(v){
+  if(!v || typeof v !== "object") return null;
+  const L = SCHEDA_LIMITI;
+  const dentro = (x, min) => typeof x === "number" && Number.isFinite(x) && x >= min && x <= L.max;
+  if(!dentro(v.w, L.wMin)) return null;
+  const out = {w: Math.round(v.w)};
+  if(dentro(v.h, L.hMin)) out.h = Math.round(v.h);
+  return out;
+}
 /* I corridoi di un livello (`node.corridoi`, 24 set 2026): le celle della
    maglia che il DM dipinge — i corridoi fra le stanze, come quelli che il
    generatore di dungeon disegnava nello sfondo. Una cella è `[i, j]`, due
@@ -543,6 +561,11 @@ function validateNodeShallow(node, path){
   }
   if((error = validateOptionalNumber(node.textSize, `${path}.textSize`, {min:6, max:TESTO_SIZE_MAX}))) return error;
   if((error = validateOptionalNumber(node.taglia, `${path}.taglia`, {min:1, max:TAGLIA_MAX, integer:true}))) return error;
+  if(node.scheda !== undefined){
+    if((error = requireObject(node.scheda, `${path}.scheda`))) return error;
+    if((error = validateNumber(node.scheda.w, `${path}.scheda.w`, {min:SCHEDA_LIMITI.wMin, max:SCHEDA_LIMITI.max}))) return error;
+    if((error = validateOptionalNumber(node.scheda.h, `${path}.scheda.h`, {min:SCHEDA_LIMITI.hMin, max:SCHEDA_LIMITI.max}))) return error;
+  }
   if(node.playerId !== undefined && (error = validateId(node.playerId, `${path}.playerId`))) return error;
   if(node.foe !== undefined){
     if((error = requireObject(node.foe, `${path}.foe`))) return error;

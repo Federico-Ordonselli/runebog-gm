@@ -409,8 +409,34 @@ export function resetUndo(){
   lastEditAt = 0;
   refreshUndoBtn();
 }
+/* Una sessione di scrittura sul posto (scrittura.js) è UNA modifica, per
+   quanto duri: chi scrive un paragrafo con le pause per pensare si aspetta
+   che Ctrl+Z tolga il paragrafo, non l'ultima frase. Dentro la sessione la
+   regola della raffica non scatta; alla prima battuta si mette da parte lo
+   stato di prima, una volta sola. Alla chiusura si salva subito, così
+   `lastSnap` è già il testo finito e il Ctrl+Z successivo torna a prima
+   della sessione e non a metà. */
+let sessione = null;           // null, oppure {spinta:bool}
+export function apriSessione(){ sessione = {spinta:false}; }
+export function chiudiSessione(){
+  if(!sessione) return;
+  sessione = null;
+  lastEditAt = Date.now();
+  if(saveTimer){ clearTimeout(saveTimer); doSave(); }
+}
 function noteChange(){
   const now = Date.now();
+  if(sessione){
+    if(!sessione.spinta && lastSnap !== null && undoStack[undoStack.length-1] !== lastSnap){
+      undoStack.push(lastSnap);
+      if(undoStack.length > UNDO_CAP) undoStack.shift();
+    }
+    sessione.spinta = true;
+    redoStack.length = 0;
+    lastEditAt = now;
+    refreshUndoBtn();
+    return;
+  }
   if(lastSnap !== null && now - lastEditAt > BURST_MS && undoStack[undoStack.length-1] !== lastSnap){
     undoStack.push(lastSnap);
     if(undoStack.length > UNDO_CAP) undoStack.shift();

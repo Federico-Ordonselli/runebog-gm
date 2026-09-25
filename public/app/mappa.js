@@ -14,7 +14,9 @@ import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeCo
          corridoiDi, cellaCorridoio, chiaveCella, sagomaCorridoi, riquadroCorridoi, CORRIDOI_MAX,
          DOOR_TYPES, doorKind, wallLabel, shapeType, scalaSopra, scalaDentro,
          GRIGLIE, GRIGLIA_BASE, GRID_LIMITS, grigliaDi, isHex, inScala, nomeCelle, formattaMetri,
-         passoMaglia, tasselloMaglia, normalizzaTaglia, TAGLIA_MAX, MARKER_R, CELL } from "./modello.js";
+         passoMaglia, tasselloMaglia, normalizzaTaglia, TAGLIA_MAX, MARKER_R, CELL,
+         scalaSegnalino, SCHEDA_TIPI, haScheda, schedaDi, SCHEDA_LIMITI } from "./modello.js";
+import { apriScrittura, riposizionaScrittura } from "./scrittura.js";
 import { st, save, findNode, findParent, removeNode, currentNode, pathNodes, RO,
          clearSel, selectNode, selectWall, zoomOut } from "./stato.js";
 import { showView, openConfirm } from "./viste.js";
@@ -92,14 +94,19 @@ export function goUp(){
 }
 
 /* Una casella di testo non è un posto: "entrarci" (doppio clic, Invio, menu,
-   pannello — quattro strade, un cancello solo) vuol dire scriverci. */
+   pannello — quattro strade, un cancello solo) vuol dire scriverci. Dal 25
+   set 2026 vale anche per i segnalini con la scheda (SCHEDA_TIPI): per un
+   PNG o una quest la cosa da fare col doppio clic è leggerne e scriverne la
+   descrizione, e ci si scrive sul posto (scrittura.js). Dentro ci si entra
+   ancora, da "Entra →" nel menu e nel pannello, che chiamano `entra`.
+   Al tavolo non si scrive: lì il doppio clic entra, come sempre. */
 export function enterNode(id){
   const n = childOf(id);
-  if(n && isTesto(n)){
-    selectNode(id); renderMap(); openDetailSheet();
-    setTimeout(()=>document.getElementById("testo-area")?.focus(), 30);
-    return;
-  }
+  if(n && !RO && (isTesto(n) || SCHEDA_TIPI.has(n.type))){ apriScrittura(id); return; }
+  entra(id);
+}
+export function entra(id){
+  if(!childOf(id)) return;
   st.path.push(id); clearSel(); renderMap();
 }
 
@@ -148,6 +155,7 @@ function planApplyVB(){
   document.getElementById("plan-tools-svg")?.setAttribute("viewBox", vb);
   planVBs[currentNode().id] = planVB;
   aggiornaScala();
+  riposizionaScrittura();      // la scrittura sul posto segue zoom e pan
 }
 
 /* ---------- la scala sullo schermo ----------
@@ -549,6 +557,34 @@ function silhouetteForma(s, box, col){
   return `<rect class="blk-shape" width="${W}" height="${H}" rx="${raccordo(10)}" ${c}/>`;
 }
 
+/* La sagoma di un segnalino (`sagoma` in TYPES, 25 set 2026), inscritta nel
+   quadrato D×D del suo riquadro: aggancio, collegamenti e maniglie restano
+   quelli del disco, cambia solo il contorno. Le quattro si distinguono per
+   silhouette e non per colore — il colore è del DM, e due tipi possono
+   finire dello stesso. Lo scudo e il foglio stanno un po' dentro il
+   quadrato: a filo sembrerebbero più grandi del disco, che l'occhio misura
+   sul diametro. La usano la tela, la palette e il livello vuoto. */
+export function sagomaSegnalino(tipo, D, attr = ""){
+  const f = v => (v * D).toFixed(1);
+  switch((TYPES[tipo] || {}).sagoma){
+    case "scudo":
+      return `<path class="blk-shape" ${attr} d="M${f(.1)} ${f(.1)}Q${f(.5)} ${f(-.02)} ${f(.9)} ${f(.1)}L${f(.9)} ${f(.5)}C${f(.9)} ${f(.78)} ${f(.7)} ${f(.92)} ${f(.5)} ${D}C${f(.3)} ${f(.92)} ${f(.1)} ${f(.78)} ${f(.1)} ${f(.5)}Z"/>`;
+    case "rombo":
+      return `<polygon class="blk-shape" ${attr} points="${f(.5)},${f(-.04)} ${f(1.04)},${f(.5)} ${f(.5)},${f(1.04)} ${f(-.04)},${f(.5)}"/>`;
+    case "foglio":
+      // La piega è un segno a parte e non .blk-shape: selezione e alone di
+      // "condiviso" devono accendere un contorno solo (come .terr-mark).
+      return `<path class="blk-shape" ${attr} d="M${f(.14)} ${f(.04)}H${f(.64)}L${f(.86)} ${f(.26)}V${f(.96)}H${f(.14)}Z"/>
+        <path class="sag-piega" ${attr} d="M${f(.64)} ${f(.04)}V${f(.26)}H${f(.86)}"/>`;
+  }
+  return `<circle class="blk-shape" ${attr} cx="${D/2}" cy="${D/2}" r="${D/2}"/>`;
+}
+/* L'icona di un segnalino nella palette e nel livello vuoto: la stessa
+   funzione della tela, così le tre non possono divergere. */
+export const icoSegnalino = (tipo, px = 14) => `<svg class="ico-sag${tipo === "token" ? " pieno" : ""}" width="${px}" height="${px}"
+  viewBox="-1.5 -1.5 ${px + 3} ${px + 3}" style="--c:${TYPES[tipo]?.color || "var(--ink)"}" aria-hidden="true">${
+  sagomaSegnalino(tipo, px)}</svg>`;
+
 function shapeMarkup(n, box, col, aperture){
   const s = SHAPES[n.shape||defShape(n)] || {};
   // I muri sono l'unico caso che cambia la sagoma invece di aggiungersi: una
@@ -606,14 +642,77 @@ function statusDot(x,y,st_){
   return `<circle cx="${x}" cy="${y}" r="5.5" style="fill:${col};stroke:var(--bog)" stroke-width="2" pointer-events="none"/>`;
 }
 
-/* Quanto crescono le scritte di un segnalino con la sua taglia: quanto il
-   disco, così nome e iniziale restano nella stessa proporzione (la richiesta
-   era "le scritte aumentano insieme"). Taglia 1 = 1, cioè il disegno di sempre. */
-const scalaSegnalino = c => 1 + (normalizzaTaglia(c.taglia) - 1) * CELL / 2 / MARKER_R;
 /* La maniglia d'angolo: la stessa delle bolle, e compare alle stesse
    condizioni (una sola cosa selezionata). */
 const maniglia = (c, lato) => c.id===st.selectedId && st.multiSel.size<=1
   ? `<rect class="rs-handle" x="${lato-8}" y="${lato-8}" width="16" height="16" rx="3"/>` : "";
+
+/* La scheda di un segnalino (haScheda, schedaDi in modello.js): un riquadro
+   centrato sotto il nome, con la descrizione resa come nelle caselle di
+   testo (testoRicco, stesse classi `.tr-*` in em). Sta DENTRO il gruppo del
+   segnalino, quindi un clic sulla scheda seleziona e trascina il segnalino
+   intero, e selezione, duplica e annulla non hanno niente di nuovo da sapere.
+   Non entra in nodeBox: aggancio, collegamenti e taglia restano quelli del
+   simbolo, e la scheda gli va dietro.
+   Senza un'altezza scelta dal DM la scheda è alta quanto il testo fino al
+   suo tetto: quanto, lo sa solo la resa, e lo misura adattaSchede dopo il
+   disegno. Qui si usa l'ultima misura, per non sfarfallare. */
+const cimaScheda = c => {
+  const R = markerR(c), k = scalaSegnalino(c);
+  return (c.children.length ? R*2+6+22*k : R*2+4+11*k) + 8*k;
+};
+const misureScheda = new Map();
+function altezzaScheda(c, s){
+  if(s.h) return s.h;
+  if(testoAdatta(c)) return s.tetto;
+  return misureScheda.get(c.id)?.h ?? s.tetto;
+}
+function schedaMarkup(c, col){
+  const s = schedaDi(c), h = altezzaScheda(c, s), fit = testoAdatta(c);
+  const px = fit ? (misureFit.get(c.id)?.px ?? s.px) : s.px;
+  const x = markerR(c) - s.w/2, y = cimaScheda(c);
+  const tagliata = misureScheda.get(c.id)?.tagliata ? " tagliata" : "";
+  // Lo stato apre la scheda: in una quest è la prima cosa che si cerca.
+  const stato = c.status ? `<div class="scheda-stato"><span class="scheda-pallino" style="background:${STATUS_COLORS[c.status]||"var(--grigio)"}"></span>${escapeHtml(c.status)}</div>` : "";
+  return `<g class="scheda" transform="translate(${x},${y})">
+    <rect class="scheda-fondo" width="${s.w}" height="${h}" rx="6" style="--c:${col}"/>
+    <foreignObject width="${s.w}" height="${h}" pointer-events="none">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="testo-txt scheda-txt${fit?" testo-fit":""}${tagliata}" style="font-size:${px}px;text-align:${testoAllinea(c)}">${stato}${testoRicco(c.notes)}</div>
+    </foreignObject>
+    ${c.id===st.selectedId && st.multiSel.size<=1 ? `<rect class="rs-handle rs-scheda" x="${s.w-8}" y="${h-8}" width="16" height="16" rx="3"/>` : ""}
+  </g>`;
+}
+/* Dopo il disegno: l'altezza delle schede senza altezza scelta, e quali
+   tagliano il testo (quelle hanno una sfumatura in fondo, che dice "c'è
+   dell'altro" invece di lasciar credere che il testo finisca lì). Si scrive
+   negli attributi e non si ridisegna: la tela gira a ogni selezione, e un
+   secondo renderCanvas dentro un gesto distruggerebbe il nodo sotto il dito.
+   La misura resta in memoria per chiave, come quella di adattaCaratteri. */
+function adattaSchede(cur){
+  const svg = planSvg();
+  for(const c of cur.children){
+    if(!isMarker(c) || !haScheda(c) || typeof c.x !== "number") continue;
+    const s = schedaDi(c), fit = testoAdatta(c);
+    const chiave = `${s.w}|${s.h}|${s.px}|${fit}|${testoAllinea(c)}|${c.status}|${c.notes}`;
+    if(misureScheda.get(c.id)?.chiave === chiave) continue;
+    const g = svg.querySelector(`.blk[data-block="${c.id}"] .scheda`);
+    const el = g?.querySelector(".scheda-txt");
+    if(!el) continue;
+    let h = altezzaScheda(c, s), tagliata = false;
+    if(!fit){
+      el.style.height = "auto";
+      const naturale = Math.ceil(el.offsetHeight);
+      el.style.height = "";
+      if(!s.h) h = Math.max(SCHEDA_LIMITI.hMin, Math.min(s.tetto, naturale));
+      tagliata = naturale > h + 1;
+    }
+    misureScheda.set(c.id, {chiave, h, tagliata});
+    g.querySelector(".scheda-fondo").setAttribute("height", h);
+    g.querySelector("foreignObject").setAttribute("height", h);
+    g.querySelector(".rs-scheda")?.setAttribute("y", h-8);
+    el.classList.toggle("tagliata", tagliata);
+  }
+}
 
 /* Nome accessibile di una bolla: quello che un lettore di schermo annuncia
    arrivandoci con Tab. Tipo prima del titolo, come nel pannello di dettaglio. */
@@ -713,8 +812,7 @@ function emptyNodeMarkup(){
     return chip("shape", k, s.label, col, icoForma(s, col));
   }).join("");
   const segnalini = ["quest","encounter","png","nota","token"].map(t=>
-    chip("marker", t, TYPES[t].label, TYPES[t].color,
-         `<span class="ep-ico punto" style="--c:${TYPES[t].color}"></span>`)).join("");
+    chip("marker", t, TYPES[t].label, TYPES[t].color, icoSegnalino(t, 14))).join("");
   const palette = `<div class="empty-pal">
     <div class="ep-group"><span class="ep-lab">Territorio</span>${forme(true)}</div>
     <div class="ep-group"><span class="ep-lab">Luoghi</span>${forme(false)}</div>
@@ -892,12 +990,15 @@ export function renderCanvas(){
       </g>`;
     }else if(isMarker(c)){
       const R = markerR(c), k = scalaSegnalino(c);
+      // Lo scudo ha il baricentro più in alto del disco: l'iniziale sale con lui.
+      const yIni = R + (TYPES[c.type]?.sagoma === "scudo" ? 2 : 4) * k;
       out += `<g class="blk marker${selCls}${shCls}" data-block="${c.id}" ${a11y} transform="translate(${c.x},${c.y})">
-        <circle class="blk-shape" cx="${R}" cy="${R}" r="${R}" style="--c:${col}"/>
-        <text x="${R}" y="${R+4*k}" text-anchor="middle" style="font-size:${12*k}px;fill:${col};font-weight:700">${(TYPES[c.type]||TYPES.nota).label[0]}</text>
+        ${sagomaSegnalino(c.type, R*2, `style="--c:${col}"`)}
+        <text x="${R}" y="${yIni}" text-anchor="middle" style="font-size:${12*k}px;fill:${col};font-weight:700">${(TYPES[c.type]||TYPES.nota).label[0]}</text>
         <text x="${R}" y="${R*2+4+11*k}" text-anchor="middle" style="font-size:${11*k}px;fill:var(--ink-dim)">${escapeHtml(c.title||"")}</text>
         ${c.status?statusDot(R*2-2,3,c.status):""}
         ${c.children.length?`<text x="${R}" y="${R*2+6+22*k}" text-anchor="middle" style="font-size:${9*k}px;fill:var(--ink-dim)">◦ ${c.children.length}</text>`:""}
+        ${!RO && haScheda(c) ? schedaMarkup(c, col) : ""}
         ${canEditEdges()?`<circle class="link-handle" cx="${R*2}" cy="0" r="8"/>`:""}
         ${maniglia(c, R*2)}
       </g>`;
@@ -946,6 +1047,8 @@ export function renderCanvas(){
     <line id="guide-h" stroke="var(--gold)" stroke-width="1" stroke-dasharray="4 4" visibility="hidden" pointer-events="none"/>`;
 
   adattaCaratteri(cur);
+  adattaSchede(cur);
+  riposizionaScrittura();
 
   if(focusSel){
     const el = svg.querySelector(focusSel);
@@ -985,10 +1088,14 @@ const misureFit = new Map();
 function adattaCaratteri(cur){
   const svg = planSvg();
   for(const n of cur.children){
-    if(!isTesto(n) || !testoAdatta(n) || !n.notes || typeof n.x !== "number") continue;
-    const b = nodeBox(n), chiave = `${b.w}x${b.h}|${testoAllinea(n)}|${n.notes}`;
+    // Anche le schede: "Adatta" vale per loro come per le caselle, e il
+    // riquadro da riempire è quello della scheda, non il segnalino.
+    const scheda = isMarker(n) && haScheda(n) && !RO;
+    if(!(isTesto(n) || scheda) || !testoAdatta(n) || !n.notes || typeof n.x !== "number") continue;
+    const b = scheda ? (s => ({w:s.w, h:altezzaScheda(n, s)}))(schedaDi(n)) : nodeBox(n);
+    const chiave = `${b.w}x${b.h}|${testoAllinea(n)}|${n.status}|${n.notes}`;
     if(misureFit.get(n.id)?.chiave === chiave) continue;
-    const el = svg.querySelector(`.blk.testo[data-block="${n.id}"] .testo-txt`);
+    const el = svg.querySelector(`.blk[data-block="${n.id}"] .testo-txt`);
     if(!el) continue;
     const sta = px => { el.style.fontSize = px + "px";
       return el.scrollHeight <= el.clientHeight + 1 && el.scrollWidth <= el.clientWidth + 1; };
@@ -1300,7 +1407,7 @@ function planHintText(){
     return "Tieni premuto e trascina per tracciare i muri · un clic ne posa uno · Esc per finire";
   return armedPal
     ? "Tocca la mappa per piazzare · Esc per annullare"
-    : "◉ trascina, oppure tocca un elemento della palette e poi la mappa · Doppio clic: entra / nuova bolla · Ctrl+clic: selezione multipla · Canc: elimina · ?: scorciatoie";
+    : "◉ trascina, oppure tocca un elemento della palette e poi la mappa · Doppio clic: entra o scrivi / nuova bolla · Ctrl+clic: selezione multipla · Canc: elimina · ?: scorciatoie";
 }
 
 /* ---------- il pennello dei corridoi ----------
@@ -1436,6 +1543,14 @@ export function initMappa(){
     showCtxFor(ev.target, ev.clientX, ev.clientY);
   });
 
+  /* Le pastiglie dei segnalini sono scritte a mano in app.html, ma la loro
+     icona no: è la sagoma della tela (sagomaSegnalino), messa qui al posto
+     del pallino, così palette e mappa non possono dire due cose diverse. */
+  document.querySelectorAll('#plan-toolbar .pal-item[data-pal*="marker"]').forEach(el=>{
+    let tipo; try{ tipo = JSON.parse(el.dataset.pal).marker; }catch(_){ return; }
+    el.querySelector(".type-badge")?.insertAdjacentHTML("afterend", icoSegnalino(tipo, 14));
+    el.querySelector(".type-badge")?.remove();
+  });
   document.querySelectorAll("#plan-toolbar .pal-item").forEach(el=>{
     el.addEventListener("dragstart", ev=>{
       ev.dataTransfer.setData("text/plain", el.dataset.pal);
@@ -1611,7 +1726,9 @@ export function initMappa(){
     }
     if(rsEl && blkEl){                          // ridimensionamento dall'angolo
       const n = childOf(blkEl.dataset.block); if(!n) return;
-      planDrag = {mode:"resize", id:n.id, moved:false, raf:false};
+      // Due maniglie su un segnalino con la scheda: quella del simbolo cambia
+      // la taglia, quella della scheda il riquadro del testo.
+      planDrag = {mode:"resize", id:n.id, scheda:rsEl.classList.contains("rs-scheda"), moved:false, raf:false};
       svg.setPointerCapture(ev.pointerId);
       return;
     }
@@ -1619,7 +1736,12 @@ export function initMappa(){
       const now = performance.now();
       if(lastTap.id===blkEl.dataset.block && now-lastTap.t<400){
         lastTap = {id:null, t:0};
-        enterNode(blkEl.dataset.block);
+        /* Dopo il pointerdown il browser sposta il focus sul gruppo toccato:
+           aperta subito, la scrittura lo perderebbe in quello stesso istante
+           e si richiuderebbe da sola. Il timeout la apre dopo. */
+        const id = blkEl.dataset.block;
+        ev.preventDefault();
+        setTimeout(()=>enterNode(id));
         return;
       }
       lastTap = {id:blkEl.dataset.block, t:now};
@@ -1688,12 +1810,13 @@ export function initMappa(){
       }
       // Una bolla fuori dalla selezione la ridefinisce (muri compresi); una già
       // dentro la tiene, e il gruppo si muove tutto insieme.
+      const giaSola = st.selectedId===n.id && st.multiSel.size<=1 && !st.multiSelWalls.size;
       if(!st.multiSel.has(n.id)) selectNode(n.id);
       st.selectedId = n.id;
       if(RO){ renderCanvas(); renderDetail(); return; }   // al tavolo si guarda, non si sposta
       const g = dragGroup();
       planDrag = {mode:"move", id:n.id, dx:p.x-n.x, dy:p.y-n.y, el:blkEl, moved:false,
-                  g, collapse: g.size>1};
+                  g, collapse: g.size>1, giaSola};
       blkEl.classList.add("dragging");
       ridipingiSel();
       renderDetail();
@@ -1765,7 +1888,16 @@ export function initMappa(){
     }else if(planDrag.mode==="resize"){
       const n = childOf(planDrag.id); if(!n) return;
       const mg = maglia();
-      if(isMarker(n)){
+      if(planDrag.scheda){
+        /* La scheda è centrata sotto il simbolo, quindi cresce dai due lati:
+           la larghezza è il doppio della distanza dal centro. L'altezza tirata
+           a mano è una scelta, e da lì il riquadro non segue più il testo. */
+        const L = SCHEDA_LIMITI, cx = n.x + markerR(n);
+        n.scheda = {
+          w: Math.max(L.wMin, Math.min(L.max, Math.round(2*Math.abs(p.x-cx)/10)*10)),
+          h: Math.max(L.hMin, Math.min(L.max, Math.round((p.y-n.y-cimaScheda(n))/10)*10)),
+        };
+      }else if(isMarker(n)){
         /* Un segnalino cresce a taglie intere: il lato tirato dal puntatore
            diventa il numero di quadretti più vicino. L'angolo in alto a
            sinistra sta fermo durante il gesto e al rilascio si riaggancia. */
@@ -1871,6 +2003,14 @@ export function initMappa(){
       if(!planDrag.moved && planDrag.collapse){    // clic secco su un membro: selezione singola
         selectNode(planDrag.id);
         renderCanvas(); renderDetail();
+      }else if(!planDrag.moved && !planDrag.giaSola){
+        /* Le maniglie (angolo, scheda) compaiono sulla sola cosa selezionata,
+           ma il pointerdown non ridisegna — deve tenere vivo il nodo sotto il
+           puntatore — e fino al 25 set 2026 un clic secco le lasciava sulla
+           bolla di prima finché qualcos'altro non ridisegnava. Al rilascio il
+           nodo non serve più. Solo se la selezione è cambiata: un clic sulla
+           bolla già scelta non costa un disegno. */
+        renderCanvas();
       }
       if(planDrag.moved){
         // Il gruppo si muove rigido con l'ancora: se l'ancora era una bolla
@@ -1889,8 +2029,9 @@ export function initMappa(){
     }else if(planDrag.mode==="resize"){
       const n = childOf(planDrag.id);
       if(n && isTesto(n)) adattaTesto(n);
-      if(n && isMarker(n)){ const q = snapNode(n, n.x, n.y, maglia()); n.x = q.x; n.y = q.y; }
-      save(); renderCanvas(); renderDetail();
+      if(n && isMarker(n) && !planDrag.scheda){ const q = snapNode(n, n.x, n.y, maglia()); n.x = q.x; n.y = q.y; }
+      if(planDrag.moved) save();
+      renderCanvas(); renderDetail();
     }else if(planDrag.mode==="bgmove"||planDrag.mode==="bgresize"){
       if(planDrag.moved) save();
     }else if(planDrag.mode==="pan"){
@@ -2168,6 +2309,6 @@ export function impostaTaglia(id, v){
 }
 
 // per gli onclick inline nei template e nell'HTML statico
-Object.assign(window, { enterNode, impostaTaglia, jumpTo, planFit, planZoom, arrangeGrid, quickAddCenter, addAtCenter,
+Object.assign(window, { enterNode, entra, impostaTaglia, jumpTo, planFit, planZoom, arrangeGrid, quickAddCenter, addAtCenter,
   pickBg, removeBg, toggleBgEdit, setBgOpacity, requestDeleteSelection, goToNode,
   deleteWallSeg, setWallDoor, inserisciNelMuro, impostaGriglia });

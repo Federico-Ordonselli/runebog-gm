@@ -6,7 +6,8 @@ import { avvolgi, prefissaRighe } from "./testo-ricco.js";
 import { TYPES, STATUSES, SHAPES, EDGE_TYPES, NODE_COLORS, nodeColor,
          isMarker, isTesto, testoSize, testoAllinea, testoAdatta, TESTO_ALLINEA, TESTO_SIZE_MAX, nomeInElenco, TESTO_SIZES, defShape, nodeBox, node, escapeHtml, escapeAttr,
          wallShape, inScala, DOOR_TYPES, doorKind, wallLabel,
-         GRIGLIE, GRID_LIMITS, grigliaDi, isHex, nomeCelle, formattaMetri, normalizzaTaglia, TAGLIA_MAX } from "./modello.js";
+         GRIGLIE, GRID_LIMITS, grigliaDi, isHex, nomeCelle, formattaMetri, normalizzaTaglia, TAGLIA_MAX,
+         SCHEDA_TIPI, schedaDi } from "./modello.js";
 import { st, save, findNode, findParent, removeNode, currentNode, RO } from "./stato.js";
 import { openConfirm } from "./viste.js";
 import { renderMap, renderCrumbs, renderCanvas, bgEdit, isEmptyNode, doDeleteNodes,
@@ -361,8 +362,8 @@ function renderDetailCore(){
         un passaggio segreto lascia il muro chiuso.</p>
     </div>` : ""}` : ""}
 
-    <div class="field"><label>Note <span class="only-dm">solo tue</span></label>
-      <textarea oninput="editNode('${n.id}','notes',this.value)" placeholder="Dettagli, agganci, statistiche mostri, letture ad alta voce…">${escapeHtml(n.notes)}</textarea></div>
+    ${SCHEDA_TIPI.has(n.type) && !isRoot ? schedaDetailHTML(n) : `<div class="field"><label>Note <span class="only-dm">solo tue</span></label>
+      <textarea oninput="editNode('${n.id}','notes',this.value)" placeholder="Dettagli, agganci, statistiche mostri, letture ad alta voce…">${escapeHtml(n.notes)}</textarea></div>`}
 
     <div class="field share-field">
       <label>Al tavolo</label>
@@ -436,7 +437,7 @@ function renderDetailCore(){
 
     <div class="detail-actions">
       <button class="btn primary" onclick="addChild('${n.id}')">+ Bolla dentro</button>
-      ${sel?`<button class="btn" onclick="enterNode('${n.id}')">Entra →</button>`:""}
+      ${sel?`<button class="btn" onclick="entra('${n.id}')">Entra →</button>`:""}
       ${!isRoot?`<button class="btn danger" onclick="askDeleteNode('${n.id}')">Elimina</button>`:""}
     </div>
   </div>`;
@@ -448,9 +449,6 @@ function renderDetailCore(){
    ogni volta che se ne aggiunge una. */
 function testoDetailHTML(n){
   const size = testoSize(n), fit = testoAdatta(n), al = testoAllinea(n);
-  const cmd = (c, label, title) =>
-    `<button class="btn tiny" type="button" title="${title}" aria-label="${title}"
-      onmousedown="event.preventDefault()" onclick="formattaTesto('${n.id}','${c}')">${label}</button>`;
   return `<div class="inner">
     <div>
       <span style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim)">
@@ -458,14 +456,7 @@ function testoDetailHTML(n){
       </span>
     </div>
     <div class="field"><label for="testo-area">Testo <span class="only-dm">solo tuo</span></label>
-      <div class="testo-strumenti" role="toolbar" aria-label="Formattazione">
-        ${cmd("b","<b>G</b>","Grassetto (Ctrl+B)")}${cmd("i","<i>C</i>","Corsivo (Ctrl+I)")}${cmd("s","<s>B</s>","Barrato")}
-        <span class="sep"></span>
-        ${cmd("t1","Titolo","Titolo")}${cmd("t2","Sottotitolo","Sottotitolo")}${cmd("t3","Intest.","Intestazione")}
-        ${cmd("piccolo","<small>Piccolo</small>","Testo piccolo")}${cmd("p","Normale","Testo normale")}
-        <span class="sep"></span>
-        ${cmd("ul","• Elenco","Elenco puntato")}${cmd("ol","1. Elenco","Elenco numerato")}${cmd("hr","―","Linea di separazione")}
-      </div>
+      ${barraFormattazione(n.id, "testo-area")}
       <textarea id="testo-area" rows="8" oninput="editNode('${n.id}','notes',this.value)"
         onkeydown="tastiTesto(event,'${n.id}')"
         placeholder="Quello che vuoi leggere a colpo d'occhio sulla mappa">${escapeHtml(n.notes||"")}</textarea>
@@ -501,12 +492,73 @@ function testoDetailHTML(n){
   </div>`;
 }
 
+/* Le note di un segnalino con la scheda (SCHEDA_TIPI): sono la descrizione
+   che si legge sulla mappa, quindi hanno la stessa barra della casella di
+   testo e le stesse regole di carattere e allineamento. Il riquadro si
+   ridimensiona dalla sua maniglia sulla tela; da qui si torna alle misure
+   di partenza, cioè a un riquadro che segue il testo. */
+function schedaDetailHTML(n){
+  const s = schedaDi(n), fit = testoAdatta(n), al = testoAllinea(n);
+  return `<div class="field"><label for="note-area">Descrizione <span class="only-dm">solo tua</span></label>
+      ${barraFormattazione(n.id, "note-area")}
+      <textarea id="note-area" rows="6" oninput="editNode('${n.id}','notes',this.value)"
+        onkeydown="tastiTesto(event,'${n.id}')"
+        placeholder="Chi è, cosa vuole, cosa sa. Si legge sulla mappa, sotto il segnalino.">${escapeHtml(n.notes)}</textarea>
+      <p class="hint-sm">Si legge sulla mappa in una scheda sotto il segnalino; doppio clic sul
+        segnalino per scriverci sul posto. Al tavolo non compare.</p></div>
+    ${n.notes && n.notes.trim() ? `<details class="field" data-sec="scheda" ontoggle="secToggle(this)"${secOpen("scheda")}>
+      <summary>Scheda sulla mappa</summary>
+      <div class="opt"><label><input type="checkbox" ${fit?"checked":""}
+          onchange="editNode('${n.id}','textFit',this.checked)"> Adatta il testo alla scheda</label></div>
+      ${fit ? "" : `<div class="field"><label>Carattere</label>
+        <div class="img-actions scelte">
+          <button class="btn" onclick="cambiaCarattere('${n.id}',-1)" aria-label="Carattere più piccolo">A−</button>
+          <button class="btn" onclick="cambiaCarattere('${n.id}',1)" aria-label="Carattere più grande">A+</button>
+          <span class="hint-sm">${Math.round(s.px)} px</span>
+          ${n.textSize!=null ? `<button class="btn" onclick="editNode('${n.id}','textSize',undefined)">Segue la taglia</button>` : ""}
+        </div></div>`}
+      <div class="field"><label>Allineamento</label>
+        <div class="img-actions scelte">${Object.entries(TESTO_ALLINEA).map(([k,v])=>`<button class="btn${k===al?" primary":""}"
+          aria-pressed="${k===al}" onclick="editNode('${n.id}','textAlign','${k}')">${v}</button>`).join("")}</div></div>
+      ${n.scheda ? `<div class="img-actions">
+        ${n.scheda.h ? `<button class="btn" onclick="editNode('${n.id}','scheda',{w:${s.w}})">Altezza secondo il testo</button>` : ""}
+        <button class="btn" onclick="editNode('${n.id}','scheda',undefined)">Misure di partenza</button></div>` : ""}
+    </details>` : ""}`;
+}
+
+/* La barra della formattazione: la stessa nel pannello (casella di testo,
+   descrizione di un segnalino) e sopra la scrittura sul posto. `taId` è la
+   textarea su cui lavora. Il mousedown non prende il focus, sennò la
+   selezione nella textarea si perderebbe prima del clic. */
+export function barraFormattazione(id, taId){
+  const cmd = (c, label, title) =>
+    `<button class="btn tiny" type="button" title="${title}" aria-label="${title}"
+      onmousedown="event.preventDefault()" onclick="formattaTesto('${id}','${c}','${taId}')">${label}</button>`;
+  return `<div class="testo-strumenti" role="toolbar" aria-label="Formattazione">
+        ${cmd("b","<b>G</b>","Grassetto (Ctrl+B)")}${cmd("i","<i>C</i>","Corsivo (Ctrl+I)")}${cmd("s","<s>B</s>","Barrato")}
+        <span class="sep"></span>
+        ${cmd("t1","Titolo","Titolo")}${cmd("t2","Sottotitolo","Sottotitolo")}${cmd("t3","Intest.","Intestazione")}
+        ${cmd("piccolo","<small>Piccolo</small>","Testo piccolo")}${cmd("p","Normale","Testo normale")}
+        <span class="sep"></span>
+        ${cmd("ul","• Elenco","Elenco puntato")}${cmd("ol","1. Elenco","Elenco numerato")}${cmd("hr","―","Linea di separazione")}
+      </div>`;
+}
+
+/* Il carattere un gradino più grande o più piccolo (×1,2), partendo da
+   quello che si vede: per una scheda senza scelta è quello della taglia. */
+export function cambiaCarattere(id, verso){
+  const n = findNode(id); if(!n || RO) return;
+  const ora = isTesto(n) ? testoSize(n) : schedaDi(n).px;
+  const px = Math.round(verso > 0 ? ora * 1.2 : ora / 1.2);
+  editNode(id, "textSize", Math.max(8, Math.min(TESTO_SIZE_MAX, px === Math.round(ora) ? px + verso : px)));
+}
+
 /* I bottoni della formattazione lavorano sulla selezione della textarea e
    passano da editNode come una battitura: stesso salvataggio, stesso annulla. */
 const SEGNI = {b:"**", i:"*", s:"~~"};
 const PREFISSI = {t1:"# ", t2:"## ", t3:"### ", piccolo:"-# ", p:null, ul:"- ", ol:"1. "};
-export function formattaTesto(id, c){
-  const ta = document.getElementById("testo-area"); if(!ta || RO) return;
+export function formattaTesto(id, c, taId = "testo-area"){
+  const ta = document.getElementById(taId); if(!ta || RO) return;
   const v = ta.value, i = ta.selectionStart, f = ta.selectionEnd;
   let r;
   if(SEGNI[c]) r = avvolgi(v, i, f, SEGNI[c]);
@@ -522,7 +574,7 @@ export function formattaTesto(id, c){
 export function tastiTesto(ev, id){
   if(!(ev.ctrlKey || ev.metaKey) || ev.altKey) return;
   const k = ev.key.toLowerCase();
-  if(k === "b" || k === "i"){ ev.preventDefault(); formattaTesto(id, k); }
+  if(k === "b" || k === "i"){ ev.preventDefault(); formattaTesto(id, k, ev.target.id); }
 }
 
 /* --- pannello mobile (bottom sheet): sempre sincronizzato dopo ogni render --- */
@@ -556,14 +608,24 @@ export function renderDetail(){
 export function editNode(id, key, val){
   if(RO) return;
   const n = findNode(id); if(!n) return;
-  n[key] = val;
+  // undefined toglie il campo: "segue la taglia", "misure di partenza"
+  if(val === undefined) delete n[key]; else n[key] = val;
   if(key==="type" && !isMarker(n) && !n.shape) n.shape = defShape(n);
   save();
   if(["title","type","status","shape","w","h","color","walls"].includes(key)){ renderCrumbs(); renderCanvas(); }
-  // il testo di una casella È il suo disegno; la textarea resta viva perché
-  // renderDetail qui non gira
-  else if(isTesto(n) && ["notes","textSize","textFit","textAlign"].includes(key)){ renderCanvas(); adattaTesto(n); }
-  if(["textSize","textFit","textAlign"].includes(key)) renderDetail();
+  // il testo di una casella È il suo disegno, e così la descrizione di un
+  // segnalino con la scheda; la textarea resta viva perché renderDetail qui
+  // non gira
+  else if((isTesto(n) || SCHEDA_TIPI.has(n.type)) && ["notes","textSize","textFit","textAlign","scheda"].includes(key)){
+    renderCanvas(); if(isTesto(n)) adattaTesto(n);
+  }
+  if(["textSize","textFit","textAlign","scheda"].includes(key)) renderDetail();
+  // la sezione "Scheda sulla mappa" compare col primo carattere e sparisce
+  // col testo: si ridisegna solo a quel confine, sennò la textarea
+  // perderebbe il focus a ogni battuta
+  if(key==="notes" && SCHEDA_TIPI.has(n.type) && !isTesto(n)
+     && !!String(val||"").trim() !== !!document.querySelector('#detail [data-sec="scheda"]')
+     && document.activeElement?.id !== "note-area") renderDetail();
   // shape: cambiando forma cambia il colore predefinito, e il campione "Predefinito"
   // nel pannello deve seguirlo
   if(["type","img","main","color","shape"].includes(key)) renderDetail();
@@ -702,5 +764,5 @@ export function apriInFinestra(id){
 }
 
 // per gli onclick/ontoggle inline nei template
-Object.assign(window, { editNode, editEdge, raddrizzaEdge, formattaTesto, tastiTesto, deleteEdge, addChild, askDeleteNode,
+Object.assign(window, { editNode, editEdge, raddrizzaEdge, formattaTesto, tastiTesto, cambiaCarattere, deleteEdge, addChild, askDeleteNode,
   pickImage, openLightbox, apriInFinestra, openDetailSheet, secToggle });

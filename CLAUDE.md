@@ -159,6 +159,26 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   personaggi, solo DM. Il filtro sta fuori dall'elenco che si ridisegna,
   sennò il campo perde il focus a ogni battuta. Le regole mobili delle
   schede usano `nav.tabs button`: `.tabs button` perdeva contro la base.
+- La bolla come pagina (25 set 2026). **Scheda**: PNG, quest, encounter e
+  nota con `notes` non vuote (`SCHEDA_TIPI`, `haScheda`) mostrano la
+  descrizione in un riquadro sotto il nome, DENTRO il gruppo del segnalino
+  ma FUORI da `nodeBox`: aggancio, archi e taglia restano del simbolo. Le
+  misure passano SOLO da `schedaDi` (modello) e `normalizzaScheda`
+  (contratto); `n.scheda = {w, h?}`, senza `h` l'altezza è quella del testo
+  fino a `tetto`, misurata da `adattaSchede` dopo il disegno e scritta
+  negli attributi senza ridisegnare. Mai al tavolo (`!RO`): lì `notes` è
+  `playerNotes`. **Scrittura sul posto** (`scrittura.js`): textarea HTML
+  fuori da `plan-svg`, riposizionata da `renderCanvas` e `planApplyVB`.
+  `enterNode` per caselle e SCHEDA_TIPI scrive; entrare è `entra` ("Entra →"
+  di menu e pannello). La chiusura NON chiama `renderCanvas` (la può
+  causare un pointerdown su un'altra bolla). Una sessione = un Ctrl+Z
+  (`apriSessione`/`chiudiSessione` in `stato.js`). Il focus si dà in un
+  `setTimeout`: da un Invio finirebbe un a capo nel testo, da un doppio
+  clic il focus del mousedown lo porterebbe via. **Sagome**: `sagoma` in
+  `TYPES`, disegnate da `sagomaSegnalino` per tela, palette e livello
+  vuoto. Un clic che cambia selezione ridisegna al rilascio, sennò le
+  maniglie restano sulla bolla di prima. Verifica:
+  `node test/browser/verifica-schede.mjs`.
 - Pixel → mappa passa da `vistaPx` (`mappa.js`, 25 set 2026): il viewBox
   non ha le proporzioni della tela e col "meet" di default un pixel vale
   max(w/W, h/H), non w/W — con w/W il pan scivolava al 50–60% del gesto su
@@ -194,7 +214,7 @@ coprono il gestore degli strumenti mappa e la geometria del righello
 (`test/strumenti/`), il formato della cache cloud e la classificazione dei
 conflitti (`test/sync/`), il contratto del documento campagna
 (`test/formato-campagna/`), le pareti che l'import del dungeon costruisce
-(`test/dungeon/`), la scala della campagna e l'accordo fra le due liste di forme
+(`test/dungeon/`), la scala della campagna, l'accordo fra le due liste di forme, taglia e scheda dei segnalini
 (`test/scala/`), marcatura del testo e geometria dei percorsi (`test/disegno/`),
 più gli **invarianti critici** (`test/critici/`):
 `jsonForScript`, la proiezione del tavolo come whitelist (segreti marcati che non

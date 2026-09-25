@@ -6,17 +6,22 @@
    di immagine deve essere la stessa qui e nel validatore, sennò il client
    accetta ciò che il server rifiuta. Non è la porta per farne entrare altre. */
 import { IMMAGINE_LOCALE, GRID_FORMS, GRID_LIMITS, CAMPAIGN_LIMITS, normalizzaCorridoi, normalizzaPercorso,
-         TESTO_SIZE_MAX, TAGLIA_MAX, normalizzaTaglia } from "./formato-campagna.js";
-export { TESTO_SIZE_MAX, TAGLIA_MAX, normalizzaTaglia };
+         TESTO_SIZE_MAX, TAGLIA_MAX, normalizzaTaglia, SCHEDA_LIMITI, normalizzaScheda } from "./formato-campagna.js";
+export { TESTO_SIZE_MAX, TAGLIA_MAX, normalizzaTaglia, SCHEDA_LIMITI, normalizzaScheda };
 
 export const TYPES = {
   zona:      {label:"Zona",      color:"var(--fen)"},
   luogo:     {label:"Luogo",     color:"var(--teal)"},
-  quest:     {label:"Quest",     color:"var(--gold)"},
-  encounter: {label:"Encounter", color:"var(--ember)"},
-  png:       {label:"PNG",       color:"var(--viola)"},
-  token:     {label:"Token",     color:"var(--ink)"},
-  nota:      {label:"Nota",      color:"var(--grigio)"},
+  /* `sagoma` (25 set 2026): la silhouette del segnalino, così un PNG e una
+     quest si distinguono a colpo d'occhio anche senza colore — il colore lo
+     sceglie il DM e due tipi possono finire uguali. La pedina resta un disco
+     pieno: è la convenzione di ogni tavolo virtuale, e il pieno la separa già
+     dal PNG, che è un disco a contorno. Disegno: sagomaSegnalino in mappa.js. */
+  quest:     {label:"Quest",     color:"var(--gold)",   sagoma:"scudo"},
+  encounter: {label:"Encounter", color:"var(--ember)",  sagoma:"rombo"},
+  png:       {label:"PNG",       color:"var(--viola)",  sagoma:"tondo"},
+  token:     {label:"Token",     color:"var(--ink)",    sagoma:"tondo"},
+  nota:      {label:"Nota",      color:"var(--grigio)", sagoma:"foglio"},
   testo:     {label:"Testo",     color:"var(--ink)"}
 };
 /* La tavolozza del colore personalizzato. Sono hex letterali, non token di tema,
@@ -300,6 +305,11 @@ export const inScala = (n, g = GRIGLIA_BASE) => gridShape(n) && !isHex(g);
    del segnalino da uno. Il passo è CELL e non il lato della maglia del
    livello, così il raggio non dipende da dove sta il segnalino. */
 export const markerR = n => (n.type === "token" ? MARKER_R + 1 : MARKER_R) + (normalizzaTaglia(n.taglia) - 1) * CELL / 2;
+/* Quanto crescono le scritte di un segnalino con la sua taglia: quanto il
+   disco, così nome, iniziale e scheda restano nella stessa proporzione (la
+   richiesta era "le scritte aumentano insieme"). Taglia 1 = 1, cioè il
+   disegno di sempre. */
+export const scalaSegnalino = n => 1 + (normalizzaTaglia(n.taglia) - 1) * CELL / 2 / MARKER_R;
 /* Quanti quadretti occupa per lato un segnalino sulla maglia g: serve a
    decidere se il centro va nel centro di una cella (dispari) o su un incrocio
    (pari), come un Grande che occupa 2×2. Il segnalino da uno resta a 1 anche
@@ -700,6 +710,34 @@ export const TESTO_ALLINEA = {left:"A sinistra", center:"Al centro", right:"A de
 export const testoAllinea = n => Object.hasOwn(TESTO_ALLINEA, n.textAlign) ? n.textAlign : "left";
 export const testoAdatta = n => n.textFit === true;
 export const isMarker = n => !(n.type==="zona" || n.type==="luogo" || n.type==="testo");
+
+/* La scheda di un segnalino (25 set 2026): la descrizione — `notes` — letta
+   sulla mappa in un riquadro sotto il simbolo, senza aprire il pannello. È la
+   bolla "come pagina" che il tester chiedeva: girare per la mappa e avere
+   sottomano quello che si è scritto. Sempre aperta e senza interruttore, ma
+   solo dove c'è qualcosa da leggere: un PNG senza descrizione resta il
+   segnalino di sempre, e le campagne esistenti non cambiano dove non c'è
+   testo. La pedina no: il suo nome e i PF vengono da una scheda altrove, e
+   una griglia di scontro coperta di riquadri non si gioca.
+   È roba del DM: al tavolo non si disegna (lì `notes` è la descrizione per
+   i giocatori, che la proiezione ci mette al suo posto — vedi share.ts). */
+export const SCHEDA_TIPI = new Set(["png", "quest", "encounter", "nota"]);
+export const haScheda = n => SCHEDA_TIPI.has(n.type) && typeof n.notes === "string" && n.notes.trim() !== "";
+/* Le misure del riquadro: quelle scelte dal DM (normalizzaScheda) oppure le
+   partenze, che crescono con la taglia come il resto del segnalino. Senza
+   altezza scelta il riquadro è alto quanto il testo, fino a `tetto`: una
+   descrizione di due pagine non deve coprire la mappa da sola — si legge
+   tutta allargando il riquadro o scrivendoci dentro. Il carattere è 13px per
+   la scala del segnalino, a meno che il DM non ne abbia scelto uno. */
+export function schedaDi(n){
+  const k = scalaSegnalino(n), s = normalizzaScheda(n.scheda);
+  return {
+    w: s ? s.w : Math.round(220 * k),
+    h: s && s.h ? s.h : null,
+    tetto: Math.round(170 * k),
+    px: n.textSize != null ? testoSize(n) : Math.round(13 * k * 10) / 10,
+  };
+}
 export const defShape = n => n.type==="zona" ? "quartiere" : "edificio";
 
 /* L'UNICO posto che decide di che colore è una bolla. Ordine: scelta esplicita
@@ -802,6 +840,7 @@ export function sanitizeState(s){
     if(n.wallSegs != null) n.wallSegs = (Array.isArray(n.wallSegs) ? n.wallSegs : [])
       .map(w => safeWallSeg(w, grigliaDi(n))).filter(Boolean);
     if(n.taglia != null){ const t = normalizzaTaglia(n.taglia); if(t > 1) n.taglia = t; else delete n.taglia; }
+    if(n.scheda != null){ const sc = normalizzaScheda(n.scheda); if(sc) n.scheda = sc; else delete n.scheda; }
     if(n.corridoi != null){ const p = normalizzaCorridoi(n.corridoi); if(p.length) n.corridoi = p; else delete n.corridoi; }
     for(const e of (Array.isArray(n.edges) ? n.edges : [])){
       if(e.id != null) e.id = safeId(e.id);

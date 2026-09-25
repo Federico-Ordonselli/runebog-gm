@@ -2,14 +2,14 @@
    (il long-press lo rileva mappa.js, che chiama showCtxFor). */
 
 import { TYPES, SHAPES, EDGE_TYPES, STATUS_COLORS, isMarker, isTesto, defShape,
-         DOOR_TYPES, doorKind } from "./modello.js";
+         DOOR_TYPES, doorKind, SCHEDA_TIPI } from "./modello.js";
 import { st, currentNode, newCampaign, askDeleteCampaign, doUndo, doRedo, RO,
          selectNode, selectWall } from "./stato.js";
 import { openKeys } from "./viste.js";
 import { GRUPPI, TEMA_DEFAULT, temiDelGruppo } from "./temi.js";
 import { etichettaOffline } from "./offline.js";
 import { exportJSON } from "./esporta.js";
-import { childOf, enterNode, duplicateSelected, addSpatialChild, arrangeGrid,
+import { childOf, enterNode, entra, duplicateSelected, addSpatialChild, arrangeGrid,
          planPointXY, renderCanvas, wallOf, setWallDoor, deleteWallSeg,
          inserisciNelMuro, toccaMuro } from "./mappa.js";
 import { renderDetail, openDetailSheet, editNode, askDeleteNode, editEdge, deleteEdge } from "./pannello.js";
@@ -91,7 +91,10 @@ export function showCtxFor(target, cx, cy){
       return;
     }
     const items = [
-      {id:"enter", label:"Entra →", run:()=>enterNode(n.id)},
+      // Per un segnalino con la scheda il doppio clic e Invio scrivono la
+      // descrizione (enterNode), e dentro ci si entra da qui.
+      ...(SCHEDA_TIPI.has(n.type) ? [{id:"scr", label:"Scrivi la descrizione", kbd:"Invio", run:()=>enterNode(n.id)}] : []),
+      {id:"enter", label:"Entra →", run:()=>entra(n.id)},
       {id:"ren",   label:"Rinomina", run:()=>{ st.selectedId=n.id; openDetailSheet(); focusDetailTitle(); }},
       {id:"dup",   label:"Duplica", run:()=>{ st.selectedId=n.id; duplicateSelected(); }},
       // Copia e taglia prendono TUTTA la selezione, come Duplica: il clic

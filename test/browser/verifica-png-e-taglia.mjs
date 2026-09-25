@@ -60,7 +60,7 @@ try {
   controlla(uguale(await disco(), {tr:"translate(5,5)", r:"55"}), "taglia 3 dal documento, centrata in una cella");
   await p.click('#detail button:has-text("Grande")');
   controlla(uguale(await disco(), {tr:"translate(45,45)", r:"35"}), "Grande dal pannello: centro sull'incrocio");
-  const h = await p.locator('[data-block="olmo"] .rs-handle').boundingBox();
+  const h = await p.locator('[data-block="olmo"] .rs-handle:not(.rs-scheda)').boundingBox();
   const zoom = await p.evaluate(() => document.getElementById("plan-svg").getScreenCTM().a);
   await p.mouse.move(h.x + h.width/2, h.y + h.height/2); await p.mouse.down();
   await p.mouse.move(h.x + h.width/2 + 90*zoom, h.y + h.height/2 + 90*zoom, {steps:8}); await p.mouse.up();
