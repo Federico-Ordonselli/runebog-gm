@@ -24,6 +24,7 @@ import { showView, openConfirm } from "./viste.js";
 import { renderDetail, compressImage, openDetailSheet } from "./pannello.js";
 import { showCtxFor } from "./menu.js";
 import { battleOn, tokenLink, renderBattleBar } from "./battaglia.js";
+import { scadenzaDi } from "./calendario.js";
 
 /* La maglia del livello aperto: muri, aggancio e disegno la leggono da qui.
    Ciò che sta sulla tela è sempre figlio del livello aperto, quindi è anche la
@@ -686,8 +687,11 @@ function schedaMarkup(c, col){
   const x = markerR(c) - s.w/2, y = cimaScheda(c);
   const tagliata = misureScheda.get(c.id)?.tagliata ? " tagliata" : "";
   const stile = foglioDelNodo(c);
-  // Lo stato apre la scheda: in una quest è la prima cosa che si cerca.
-  const stato = c.status ? `<div class="scheda-stato"><span class="scheda-pallino" style="background:${STATUS_COLORS[c.status]||"var(--grigio)"}"></span>${escapeHtml(c.status)}</div>` : "";
+  // Lo stato apre la scheda: in una quest è la prima cosa che si cerca, e
+  // accanto quanto manca alla scadenza (il testo la dice, il peso la ripete:
+  // sul foglio i colori sono quelli dell'inchiostro, non quelli dei temi).
+  const sc = c.type === "quest" ? scadenzaDi(c) : null;
+  const stato = c.status || sc ? `<div class="scheda-stato">${c.status ? `<span class="scheda-pallino" style="background:${STATUS_COLORS[c.status]||"var(--grigio)"}"></span>${escapeHtml(c.status)}` : ""}${sc ? `<span class="scheda-scad s-${sc.stato}">⚑ ${escapeHtml(sc.testo)}</span>` : ""}</div>` : "";
   return `<g class="scheda" transform="translate(${x},${y})">
     <rect class="scheda-fondo${classeFondo(stile)}" width="${s.w}" height="${h}" rx="6" style="--c:${col}"/>
     <foreignObject width="${s.w}" height="${h}" pointer-events="none">
@@ -707,7 +711,7 @@ function adattaSchede(cur){
   for(const c of cur.children){
     if(!isMarker(c) || !haScheda(c) || typeof c.x !== "number") continue;
     const s = schedaDi(c), fit = testoAdatta(c);
-    const chiave = `${s.w}|${s.h}|${s.px}|${fit}|${testoAllinea(c)}|${foglioDelNodo(c)}|${c.status}|${c.notes}`;
+    const chiave = `${s.w}|${s.h}|${s.px}|${fit}|${testoAllinea(c)}|${foglioDelNodo(c)}|${c.status}|${c.type === "quest" ? scadenzaDi(c)?.testo : ""}|${c.notes}`;
     if(misureScheda.get(c.id)?.chiave === chiave) continue;
     const g = svg.querySelector(`.blk[data-block="${c.id}"] .scheda`);
     const el = g?.querySelector(".scheda-txt");
@@ -739,6 +743,8 @@ function ariaBlk(c){
   // per chi usa un lettore di schermo.
   if(link && link.hpMax>0) s += ` · ${link.hp} PF su ${link.hpMax}`;
   if(c.status) s += ` · ${c.status}`;
+  const sc = c.type === "quest" ? scadenzaDi(c) : null;
+  if(sc) s += ` · ${sc.testo}`;
   if(c.children.length) s += ` · contiene ${c.children.length} element${c.children.length===1?"o":"i"}`;
   if(!RO && c.shared) s += " · visibile ai giocatori";
   return escapeAttr(s);

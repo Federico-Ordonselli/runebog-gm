@@ -14,6 +14,9 @@ import { openConfirm } from "./viste.js";
 import { renderMap, renderCrumbs, renderCanvas, bgEdit, isEmptyNode, doDeleteNodes,
          wallOf, misuraMuro, deleteWallSeg, adattaTesto, inserisciNelMuro, cellaToccata } from "./mappa.js";
 import { statblockHTML } from "./mostri.js";
+import { scadenzaDi, assicuraCalendario } from "./calendario.js";
+import { calendarioDi, formattaData } from "./calendario-conti.js";
+import { CALENDARIO_LIMITI } from "./formato-campagna.js";
 
 /* Una forma in scala si legge in celle e metri della maglia del suo livello:
    i pixel non dicono niente al tavolo. */
@@ -135,6 +138,10 @@ function renderTableDetail(aside){
     ${n.img ? `<div class="field"><label>Immagine</label>
       ${imgZoomMarkup(n)}
     </div>` : ""}
+
+    ${n.type==="quest" && Number.isInteger(n.scadenza) ? `<div class="field"><label>Scadenza</label>
+      <div class="ro-text">${escapeHtml(formattaData(calendarioDi(st.state), n.scadenza))} ·
+        <span class="q-scad s-${scadenzaDi(n).stato}">${escapeHtml(scadenzaDi(n).testo)}</span></div></div>` : ""}
 
     ${c ? `<div class="field"><label>Combattimento</label>
       <div class="foe-head"><span>${c.alive}/${c.total} in vita</span></div>
@@ -397,6 +404,8 @@ function renderDetailCore(){
       <button class="btn ${n.main?"primary":""}" onclick="editNode('${n.id}','main',${n.main?"false":"true"})">
         ★ ${n.main?"Quest principale":"Segna come principale"}</button></div>` : ""}
 
+    ${n.type==="quest" ? scadenzaHTML(n) : ""}
+
     ${!sel && !RO ? grigliaHTML(cur) : ""}
 
     ${!sel && !isMarker(n) ? `<details class="field" data-sec="bg" ontoggle="secToggle(this)"${secOpen("bg", bgEdit)}>
@@ -638,7 +647,7 @@ export function editNode(id, key, val){
   else if((isTesto(n) || SCHEDA_TIPI.has(n.type)) && ["notes","textSize","textFit","textAlign","scheda","foglio"].includes(key)){
     renderCanvas(); if(isTesto(n)) adattaTesto(n);
   }
-  if(["textSize","textFit","textAlign","scheda","foglio"].includes(key)) renderDetail();
+  if(["textSize","textFit","textAlign","scheda","foglio","scadenzaVisibile"].includes(key)) renderDetail();
   // la sezione "Scheda sulla mappa" compare col primo carattere e sparisce
   // col testo: si ridisegna solo a quel confine, sennò la textarea
   // perderebbe il focus a ogni battuta
@@ -783,5 +792,41 @@ export function apriInFinestra(id){
 }
 
 // per gli onclick/ontoggle inline nei template
+/* La scadenza di una quest si scrive come la dice il DM, "tra N giorni", e si
+   salva come giorno assoluto (oggi + N): avanzando il calendario il campo
+   mostra da sé quanto manca. Vuoto toglie la scadenza, e con lei il flag. La
+   prima scadenza scrive il calendario nel documento, sennò al tavolo non
+   arriverebbe il giorno da cui contare. */
+function scadenzaHTML(n){
+  const cal = calendarioDi(st.state), s = scadenzaDi(n);
+  const tra = Number.isInteger(n.scadenza) ? n.scadenza - cal.oggi : "";
+  return `<div class="field"><label for="q-scad-${n.id}">Scadenza</label>
+    <div class="scad-riga"><span>tra</span>
+      <input id="q-scad-${n.id}" type="number" inputmode="numeric" value="${tra}" placeholder="—"
+        onchange="impostaScadenza('${n.id}', this.value)" aria-describedby="q-scad-d-${n.id}">
+      <span>giorni</span></div>
+    <p class="hint-sm" id="q-scad-d-${n.id}">${s
+      ? `${escapeHtml(formattaData(cal, n.scadenza))} · <span class="q-scad s-${s.stato}">${escapeHtml(s.testo)}</span>`
+      : "Vuoto = nessuna scadenza. Compare nel calendario e nel diario."}</p>
+    ${s ? `<div class="opt"><label><input type="checkbox" ${n.scadenzaVisibile?"checked":""}
+        onchange="editNode('${n.id}','scadenzaVisibile',this.checked||undefined)"> La vedono anche i giocatori</label>
+      <p class="hint-sm">${n.scadenzaVisibile ? "Al tavolo esce il giorno, se la quest è rivelata."
+        : "Resta tua: al tavolo non esce."}</p></div>` : ""}
+  </div>`;
+}
+export function impostaScadenza(id, valore){
+  if(RO) return;
+  const n = findNode(id); if(!n) return;
+  if(String(valore).trim() === ""){ delete n.scadenza; delete n.scadenzaVisibile; }
+  else{
+    const tra = Math.round(Number(valore));
+    if(!Number.isFinite(tra)) return renderDetail();
+    const cal = assicuraCalendario();
+    n.scadenza = Math.min(CALENDARIO_LIMITI.giornoMax, Math.max(1, cal.oggi + tra));
+  }
+  save();
+  renderDetail(); renderCanvas();
+}
+
 Object.assign(window, { editNode, editEdge, raddrizzaEdge, formattaTesto, tastiTesto, cambiaCarattere, deleteEdge, addChild, askDeleteNode,
-  pickImage, openLightbox, apriInFinestra, openDetailSheet, secToggle });
+  pickImage, openLightbox, apriInFinestra, openDetailSheet, secToggle, impostaScadenza });

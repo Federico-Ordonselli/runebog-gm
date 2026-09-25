@@ -118,6 +118,85 @@ export function normalizzaScheda(v){
    una classe CSS: l'elenco è chiuso, e `FOGLI` in modello.js è la stessa
    verità vista dall'app (un test le impone uguali, come per le forme). */
 export const FOGLI = Object.freeze(["pulito","carta","pergamena","bruciata"]);
+/* Il calendario del mondo di gioco (`documento.calendario`, 25 set 2026):
+   mesi con nome e numero di giorni, la settimana, l'anno da cui si conta, il
+   giorno corrente ed eventi. È l'unico campo in cima al documento dopo
+   root/checklist/players, e segue la regola dei campi per nodo: ASSENTE vuol
+   dire `calendarioPredefinito()`, quindi nessuna campagna va migrata e
+   `schemaVersion` non sale. Un salto di schema avrebbe fatto rifiutare ogni
+   file nuovo alle copie già distribuite (la portable, un editor in cache), e
+   un calendario non vale una campagna che non si apre.
+
+   I giorni sono UN intero che cresce da 1 (il primo giorno del primo mese
+   dell'anno `annoIniziale`): eventi, `oggi` e la `scadenza` delle quest sono
+   giorni assoluti, e mese e anno si ricavano dalla struttura. Cambiare la
+   lunghezza di un mese non sposta niente — cambia la data in cui cade.
+
+   `normalizzaCalendario` è l'unica bonifica: la usano `sanitizeState` e la
+   proiezione del tavolo, e produce per costruzione un calendario che il
+   contratto accetta (un test lo impone). Un evento con un id fuori forma
+   CADE: l'id finisce in un onclick. */
+export const CALENDARIO_LIMITI = Object.freeze({
+  mesi:100, giorniMese:1000, settimana:20, nomeChars:60, eraChars:30,
+  giornoMax:100000000, annoAbs:1000000, eventi:2000,
+});
+const MESI_ITALIANI = [
+  ["Gennaio",31],["Febbraio",28],["Marzo",31],["Aprile",30],["Maggio",31],["Giugno",30],
+  ["Luglio",31],["Agosto",31],["Settembre",30],["Ottobre",31],["Novembre",30],["Dicembre",31],
+];
+const SETTIMANA_ITALIANA = ["Lun","Mar","Mer","Gio","Ven","Sab","Dom"];
+export function calendarioPredefinito(){
+  return {
+    mesi: MESI_ITALIANI.map(([nome, giorni]) => ({nome, giorni})),
+    settimana: SETTIMANA_ITALIANA.slice(),
+    annoIniziale: 1,
+    era: "",
+    oggi: 1,
+    eventi: [],
+  };
+}
+export function normalizzaCalendario(v){
+  if(!v || typeof v !== "object" || Array.isArray(v)) return null;
+  const L = CALENDARIO_LIMITI, base = calendarioPredefinito();
+  const intero = (x, min, max, alt) =>
+    Number.isInteger(x) && x >= min && x <= max ? x : alt;
+  const testo = (x, max) => typeof x === "string" ? x.slice(0, max) : "";
+  const mesi = (Array.isArray(v.mesi) ? v.mesi : [])
+    .filter(m => m && typeof m === "object" && Number.isInteger(m.giorni))
+    .slice(0, L.mesi)
+    .map(m => ({nome: testo(m.nome, L.nomeChars), giorni: intero(m.giorni, 1, L.giorniMese, 1)}));
+  const settimana = (Array.isArray(v.settimana) ? v.settimana : [])
+    .filter(g => typeof g === "string").slice(0, L.settimana)
+    .map(g => g.slice(0, L.nomeChars));
+  const visti = new Set(), eventi = [];
+  for(const e of (Array.isArray(v.eventi) ? v.eventi : [])){
+    if(eventi.length >= L.eventi) break;
+    if(!e || typeof e !== "object") continue;
+    if(typeof e.id !== "string" || !e.id || e.id.length > CAMPAIGN_LIMITS.idChars || !ID_RE.test(e.id)) continue;
+    if(visti.has(e.id) || !Number.isInteger(e.giorno) || e.giorno < 1 || e.giorno > L.giornoMax) continue;
+    visti.add(e.id);
+    const ev = {id: e.id, giorno: e.giorno, titolo: testo(e.titolo, CAMPAIGN_LIMITS.titleChars)};
+    const note = testo(e.note, CAMPAIGN_LIMITS.longTextChars);
+    if(note) ev.note = note;
+    if(e.visibile === true) ev.visibile = true;
+    eventi.push(ev);
+  }
+  return {
+    mesi: mesi.length ? mesi : base.mesi,
+    settimana: settimana.length ? settimana : base.settimana,
+    annoIniziale: intero(v.annoIniziale, -L.annoAbs, L.annoAbs, 1),
+    era: testo(v.era, L.eraChars),
+    oggi: intero(v.oggi, 1, L.giornoMax, 1),
+    eventi,
+  };
+}
+/* La scadenza di una quest (`node.scadenza`, giorno assoluto) e se i
+   giocatori la vedono (`node.scadenzaVisibile`, assente = no: una scadenza
+   è preparazione del DM finché non decide di dirla). Stessa regola di lettura
+   degli altri campi: un numero che non è un giorno valido non è una scadenza. */
+export function normalizzaScadenza(v){
+  return Number.isInteger(v) && v >= 1 && v <= CALENDARIO_LIMITI.giornoMax ? v : null;
+}
 /* I corridoi di un livello (`node.corridoi`, 24 set 2026): le celle della
    maglia che il DM dipinge — i corridoi fra le stanze, come quelli che il
    generatore di dungeon disegnava nello sfondo. Una cella è `[i, j]`, due
@@ -575,6 +654,11 @@ function validateNodeShallow(node, path){
     if((error = validateNumber(node.scheda.w, `${path}.scheda.w`, {min:SCHEDA_LIMITI.wMin, max:SCHEDA_LIMITI.max}))) return error;
     if((error = validateOptionalNumber(node.scheda.h, `${path}.scheda.h`, {min:SCHEDA_LIMITI.hMin, max:SCHEDA_LIMITI.max}))) return error;
   }
+  if((error = validateOptionalNumber(node.scadenza, `${path}.scadenza`, {
+    integer:true, min:1, max:CALENDARIO_LIMITI.giornoMax,
+  }))) return error;
+  if(node.scadenzaVisibile !== undefined && typeof node.scadenzaVisibile !== "boolean")
+    return bad("expected_boolean", "scadenzaVisibile deve essere booleano", `${path}.scadenzaVisibile`);
   if(node.playerId !== undefined && (error = validateId(node.playerId, `${path}.playerId`))) return error;
   if(node.foe !== undefined){
     if((error = requireObject(node.foe, `${path}.foe`))) return error;
@@ -678,7 +762,44 @@ export function validateCampaignDocument(document){
     if(typeof item.done !== "boolean") return bad("expected_boolean", "done deve essere booleano", `${path}.done`);
   }
 
+  if((error = validateCalendario(document.calendario, "$.calendario"))) return error;
   return ok(document, {stats:{nodes}});
+}
+function validateCalendario(cal, path){
+  if(cal === undefined) return null;
+  const L = CALENDARIO_LIMITI;
+  let error = requireObject(cal, path);
+  if(error) return error;
+  if((error = requireArray(cal.mesi, L.mesi, `${path}.mesi`))) return error;
+  if(!cal.mesi.length) return bad("empty_calendar", "Il calendario ha almeno un mese", `${path}.mesi`);
+  for(let i=0; i<cal.mesi.length; i++){
+    const m = cal.mesi[i], mp = `${path}.mesi[${i}]`;
+    if((error = requireObject(m, mp))) return error;
+    if((error = validateString(m.nome, L.nomeChars, `${mp}.nome`))) return error;
+    if((error = validateNumber(m.giorni, `${mp}.giorni`, {integer:true, min:1, max:L.giorniMese}))) return error;
+  }
+  if((error = requireArray(cal.settimana, L.settimana, `${path}.settimana`))) return error;
+  if(!cal.settimana.length) return bad("empty_week", "La settimana ha almeno un giorno", `${path}.settimana`);
+  for(let i=0; i<cal.settimana.length; i++)
+    if((error = validateString(cal.settimana[i], L.nomeChars, `${path}.settimana[${i}]`))) return error;
+  if((error = validateNumber(cal.annoIniziale, `${path}.annoIniziale`, {integer:true, min:-L.annoAbs, max:L.annoAbs}))) return error;
+  if((error = validateOptionalString(cal.era, L.eraChars, `${path}.era`))) return error;
+  if((error = validateNumber(cal.oggi, `${path}.oggi`, {integer:true, min:1, max:L.giornoMax}))) return error;
+  if((error = requireArray(cal.eventi, L.eventi, `${path}.eventi`))) return error;
+  const ids = new Set();
+  for(let i=0; i<cal.eventi.length; i++){
+    const e = cal.eventi[i], ep = `${path}.eventi[${i}]`;
+    if((error = requireObject(e, ep))) return error;
+    if((error = validateId(e.id, `${ep}.id`))) return error;
+    if(ids.has(e.id)) return bad("duplicate_event_id", "ID evento duplicato", `${ep}.id`);
+    ids.add(e.id);
+    if((error = validateNumber(e.giorno, `${ep}.giorno`, {integer:true, min:1, max:L.giornoMax}))) return error;
+    if((error = validateString(e.titolo, CAMPAIGN_LIMITS.titleChars, `${ep}.titolo`))) return error;
+    if((error = validateOptionalString(e.note, CAMPAIGN_LIMITS.longTextChars, `${ep}.note`))) return error;
+    if(e.visibile !== undefined && typeof e.visibile !== "boolean")
+      return bad("expected_boolean", "visibile deve essere booleano", `${ep}.visibile`);
+  }
+  return null;
 }
 
 /** @returns {EsitoCampagna} */

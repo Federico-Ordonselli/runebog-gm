@@ -4,7 +4,8 @@
 
 import { escapeAttr } from "./modello.js";
 import { st, save, findNode, findParent, RO, TABLE } from "./stato.js";
-import { openAlert } from "./viste.js";
+import { openAlert, showView } from "./viste.js";
+import { aggiornaTabCalendario } from "./calendario.js";
 import { renderMap, renderCanvas } from "./mappa.js";
 import { renderDetail } from "./pannello.js";
 
@@ -186,6 +187,14 @@ export function initTavolo(){
         if(!findNode(st.path[st.path.length-1])) st.path = [st.state.root.id];   // il DM ha ri-nascosto dove eravamo
         if(st.selectedId && !findNode(st.selectedId)) st.selectedId = null;
         renderMap();
+        // Chi sta guardando il diario o il calendario vede arrivare lo stesso
+        // aggiornamento: il giorno che avanza è la ragione per aprirlo.
+        aggiornaTabCalendario();
+        const attiva = document.querySelector(".view.active")?.id.replace("view-","");
+        if(attiva && attiva !== "map"){
+          if(attiva === "cal" && document.getElementById("tab-cal")?.hidden) showView("map");
+          else showView(attiva);
+        }
       }
       el.textContent = "Aggiornato ✓";
       el.style.color = "var(--ink-dim)";

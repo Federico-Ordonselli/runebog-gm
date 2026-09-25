@@ -1,5 +1,42 @@
 # To-do
 
+## Fase 4: calendario di gioco (25 settembre 2026)
+
+Dario: un calendario del mondo con mesi personalizzabili, il giorno
+corrente, e scadenze delle quest scritte come «tra N giorni». I giocatori
+vedono calendario, giorno e mesi; degli eventi solo quelli segnati visibili.
+
+- [x] **Il dato** (`documento.calendario`): mesi `{nome, giorni}`,
+  settimana, anno iniziale, era, `oggi`, eventi `{id, giorno, titolo, note?,
+  visibile?}`. I giorni sono un intero assoluto: cambiare la lunghezza di un
+  mese sposta la data, non il giorno. **Nessun salto di `schemaVersion`**,
+  diversamente dalla roadmap: il campo è facoltativo come `griglia` e
+  `taglia` (assente = `calendarioPredefinito()`), così la portable e gli
+  editor in cache non rifiutano i file nuovi. Contratto, bonifica unica
+  (`normalizzaCalendario`, letta da `sanitizeState` e `share.ts`) e conti
+  puri in `calendario-conti.js`. Guardare la scheda non scrive il campo:
+  lo scrive il primo gesto che modifica.
+- [x] **Scheda Calendario** (`calendario.js`): oggi, −1/+1/«Fai passare N»,
+  mese a griglia sulla settimana del calendario, il giorno scelto con
+  eventi e scadenze, «In arrivo», e la struttura (mesi, settimana, anno,
+  era) in una sezione richiudibile. Ogni gesto è un Ctrl+Z. Su telefono le
+  celle mostrano punti invece dei titoli; le sei schede stanno in 335px su
+  360 (margine delle schede 7→3px).
+- [x] **Scadenze delle quest** (`n.scadenza` giorno assoluto,
+  `n.scadenzaVisibile`): dal pannello «tra N giorni», nel diario (ordinabile
+  per scadenza), nella testata della scheda sulla tela, nel calendario e nel
+  nome accessibile della bolla. Una quest fatta non scade più.
+- [x] **Al tavolo**: la scheda c'è solo se il documento ha un calendario;
+  escono struttura, oggi e gli eventi visibili (titolo e note), mai gli
+  altri né il loro numero. La scadenza esce solo se la quest è rivelata e
+  il DM l'ha detta. Il polling ridisegna anche la vista aperta, non solo la
+  mappa.
+- [x] Test `test/calendario/calendario.test.mjs` (12, nel glob di
+  `npm test`), verifica `node test/browser/verifica-calendario.mjs` (30
+  controlli, telefono e tavolo compresi).
+- [ ] Non fatti: eventi legati a una bolla (`nodeId` della roadmap) ed
+  eventi ricorrenti.
+
 ## Rimasti indietro dalle fasi 2 e 3 (25 settembre 2026)
 
 - [x] **La verifica della barra a menu falliva un giro su nove sotto

@@ -84,6 +84,7 @@
     letter-spacing:.03em;
   }
   nav.tabs button.active{background:var(--panel-2);color:var(--fen)}
+  nav.tabs button[hidden]{display:none}
   nav.tabs button:hover{color:var(--ink)}
   #topbar .spacer{flex:1}
   /* nowrap: "Salvato ✓" si spezzava quando la fila si stringeva. min-width:0 +
@@ -613,6 +614,9 @@
     mask-image:linear-gradient(to bottom,#000 calc(100% - 2.4em),transparent)}
   .scheda-stato{display:flex;align-items:center;gap:.4em;font-size:.75em;letter-spacing:.08em;
     text-transform:uppercase;color:var(--ink-dim);margin-bottom:.25em}
+  .scheda-scad{text-transform:none;letter-spacing:0}
+  .scheda-scad:not(:first-child){margin-left:.6em}
+  .scheda-scad.s-vicina,.scheda-scad.s-oggi,.scheda-scad.s-scaduta{font-weight:700}
   .scheda-pallino{display:inline-block;width:.65em;height:.65em;border-radius:50%;flex:none}
   /* I fogli di caselle e schede (25 set 2026, `foglioDelNodo` in mappa.js).
      Solo CSS dentro il foreignObject: gradienti, due cilindri e un contorno
@@ -870,6 +874,103 @@
      l'intera riga e il titolo della quest collassa a una parola per riga. */
   .q-status{font-size:12px;padding:4px 6px;width:auto}
 
+  /* ---------- scadenze delle quest (diario, calendario, pannello) ----------
+     Il testo dice già tutto ("scaduta da 2 giorni"): il colore lo ripete, e
+     sta sui token di testo misurati sul pannello (--gold, --ember, --fen). */
+  .q-scad{font-size:12px;color:var(--ink-dim);white-space:nowrap}
+  .q-scad.s-vicina,.q-scad.s-oggi{color:var(--gold);font-weight:600}
+  .q-scad.s-scaduta{color:var(--ember);font-weight:600}
+  .q-scad.s-fatta{font-weight:400}
+  .q-ordina{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-dim);margin-bottom:6px}
+  .q-ordina select{width:auto;font-size:12px;padding:4px 6px}
+  .q-meta{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;margin-top:2px}
+  .q-meta .q-loc{margin-left:0}
+  .scad-riga{display:flex;align-items:center;gap:8px}
+  .scad-riga input{width:90px}
+
+  /* ---------- calendario ---------- */
+  #view-cal{overflow-y:auto}
+  #cal-wrap{max-width:1040px;margin:0 auto;padding:28px 20px 60px}
+  .cal-testa{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:flex-end;justify-content:space-between;
+    margin-bottom:20px}
+  .cal-testa .q-h{margin:0 0 4px}
+  .cal-oggi{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;font-size:26px;line-height:1.2}
+  .cal-conta{margin-left:0;display:block;margin-top:2px}
+  .cal-avanza{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .cal-n-riga{display:flex;gap:8px;align-items:center}
+  .cal-n-riga input{width:80px}
+  .cal-corpo{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:20px;align-items:start}
+  .cal-mese-nav{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .cal-mese-titolo{flex:1;font-size:19px;color:var(--fen);text-align:center}
+  .cal-griglia{display:grid;grid-template-columns:repeat(var(--sett),minmax(0,1fr));gap:4px}
+  .cal-sett{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);text-align:center;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-bottom:2px}
+  .cal-g{display:flex;flex-direction:column;align-items:stretch;gap:2px;min-height:74px;min-width:0;padding:4px 5px;
+    text-align:left;background:var(--panel);border:1px solid var(--line-ui);border-radius:8px;overflow:hidden}
+  .cal-g:hover{border-color:var(--fen)}
+  /* Oggi e il giorno scelto si dicono con due segni ciascuno: oggi col bordo
+     d'accento e la parola "oggi", il giorno scelto con l'alone d'evidenza e il
+     numero in grassetto (più aria-pressed per chi non li vede). */
+  .cal-g.oggi{border:2px solid var(--fen);padding:3px 4px}
+  .cal-g.scelto{box-shadow:inset 0 0 0 2px var(--gold)}
+  .cal-g.scelto .cal-num{font-weight:700;color:var(--ink)}
+  .cal-num{font-size:13px;color:var(--ink-dim)}
+  .cal-oggi-tag{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--fen);font-weight:600}
+  .cal-voce{font-size:11px;line-height:1.3;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cal-voce.scadenza{color:var(--gold)}
+  .cal-voce.scadenza.fatta{color:var(--ink-dim);text-decoration:line-through}
+  .cal-piu{font-size:11px;color:var(--ink-dim)}
+  .cal-punti{display:none;font-size:14px;line-height:1;color:var(--gold)}
+  .cal-giorno{border:1px solid var(--line-ui);border-radius:10px;background:var(--panel);padding:14px}
+  .cal-giorno-testa{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;justify-content:space-between;margin-bottom:10px}
+  .cal-giorno h3{font-size:17px}
+  .cal-dist{display:block;font-family:-apple-system,"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:12px;
+    color:var(--ink-dim);font-weight:400;margin-top:2px}
+  .cal-riga{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line)}
+  .cal-glifo{color:var(--gold);width:14px;flex:none;text-align:center}
+  .cal-riga-corpo{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+  .cal-riga-corpo input,.cal-riga-corpo textarea{width:100%}
+  .cal-riga-corpo textarea{min-height:56px}
+  .cal-tipo{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim)}
+  .cal-solo-dm{font-size:11px;color:var(--ink-dim);border:1px dashed var(--line-ui);border-radius:4px;padding:0 5px}
+  .cal-ev-azioni{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;width:100%}
+  .cal-ev-azioni .opt{flex:1;min-width:180px}
+  .cal-ev-azioni .hint-sm{margin-top:2px}
+  .cal-nuovo{margin-top:10px}
+  .cal-prossimi{margin-top:20px}
+  .cal-prossimi .q-h{margin-top:0}
+  .cal-prossimo{display:grid;grid-template-columns:auto 1fr;gap:0 10px;width:100%;text-align:left;padding:8px 10px;
+    border:1px solid var(--line-ui);border-radius:8px;background:var(--panel);margin-bottom:6px}
+  .cal-prossimo:hover{border-color:var(--fen)}
+  .cal-prossimo-data{font-size:12px;color:var(--ink-dim);grid-column:1/-1}
+  .cal-prossimo-titolo{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cal-prossimo .q-scad{justify-self:end}
+  .cal-struttura{margin-top:28px;border:1px solid var(--line-ui);border-radius:10px;background:var(--panel);padding:12px 14px}
+  .cal-struttura summary{cursor:pointer;font-weight:600;color:var(--fen)}
+  .cal-struttura[open] summary{margin-bottom:8px}
+  .cal-mesi{display:flex;flex-direction:column;gap:6px;margin:12px 0 10px}
+  .cal-mese-riga{display:flex;gap:6px;align-items:center}
+  .cal-mese-num{width:24px;flex:none;text-align:right;font-size:12px;color:var(--ink-dim)}
+  .cal-mese-riga input:first-of-type{flex:1;min-width:0}
+  .cal-mese-riga input[type=number]{width:80px;flex:none}
+  .cal-mese-riga .btn{flex:none}
+  .cal-campi{margin-top:16px;display:flex;flex-direction:column;gap:6px}
+  .cal-campi label{font-size:12px;color:var(--ink-dim)}
+  .cal-campi-anno{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px}
+  .cal-campi-anno > span{display:flex;flex-direction:column;gap:4px;flex:1;min-width:140px}
+  @media (max-width:760px){
+    #cal-wrap{padding:18px 12px 60px}
+    .cal-corpo{grid-template-columns:minmax(0,1fr)}
+    .cal-oggi{font-size:22px}
+    /* Su telefono una cella è larga ~45px: i titoli non ci stanno, e dicono
+       quante voci ci sono con i punti. Si leggono sotto, nel giorno scelto. */
+    .cal-g{min-height:48px;padding:3px}
+    .cal-g.oggi{padding:2px}
+    .cal-voce,.cal-piu,.cal-oggi-tag{display:none}
+    .cal-punti{display:block}
+    .cal-mese-riga input[type=number]{width:64px}
+  }
+
   /* ---------- elenco PNG (le righe sono quelle del diario quest) ---------- */
   #view-png{overflow-y:auto}
   #png-wrap{max-width:760px;margin:0 auto;padding:28px 20px 60px}
@@ -1097,13 +1198,16 @@
     nav.tabs{order:5;margin-left:0}
     #savestate{order:6;font-size:11px}
     /* Cinque schede dal 25 set 2026 (PNG): con 10px di lato stavano in 368px,
-       cioè sforavano un telefono da 360. A 7px ci stanno in 338; sotto (i
-       telefoni da 320) la riga scorre invece di andare a capo o schiacciare
-       le etichette — flex:none, sennò il bersaglio si stringe e la parola no.
+       cioè sforavano un telefono da 360. A 7px ci stavano in 338. Sei dal
+       giorno stesso (Calendario): a 7px erano 393, e a 3px di lato con 2 fra
+       l'una e l'altra tornano 335 su 340, senza rimpicciolire il testo né
+       accorciare «Calendario». Sotto (i telefoni da 320) la riga scorre
+       invece di andare a capo o schiacciare le etichette — flex:none, sennò
+       il bersaglio si stringe e la parola no.
        Il selettore è `nav.tabs button` e non `.tabs button`: quello perdeva
        contro la regola base e non si è mai applicato. */
-    nav.tabs{max-width:100%;overflow-x:auto;scrollbar-width:none}
-    nav.tabs button{padding:6px 7px;font-size:13px;flex:none}
+    nav.tabs{max-width:100%;overflow-x:auto;scrollbar-width:none;gap:2px}
+    nav.tabs button{padding:6px 3px;font-size:13px;flex:none}
     #quick-search{width:110px}
     /* Barra a menu: le cinque intestazioni qui non hanno spazio, quindi il ☰
        le raccoglie e prende il posto del ⋯ in fondo alla prima riga. */

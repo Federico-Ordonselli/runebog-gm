@@ -10,7 +10,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "temi:contrasto": "node scripts/verifica-contrasto.mjs",
-    "test": "node --test test/strumenti/*.test.mjs test/sync/*.test.mjs test/formato-campagna/*.test.mjs test/dungeon/*.test.mjs test/scala/*.test.mjs test/critici/*.test.mjs test/disegno/*.test.mjs"
+    "test": "node --test test/strumenti/*.test.mjs test/sync/*.test.mjs test/formato-campagna/*.test.mjs test/dungeon/*.test.mjs test/scala/*.test.mjs test/critici/*.test.mjs test/disegno/*.test.mjs test/calendario/*.test.mjs"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.3",

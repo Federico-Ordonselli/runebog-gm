@@ -6,7 +6,8 @@
    di immagine deve essere la stessa qui e nel validatore, sennò il client
    accetta ciò che il server rifiuta. Non è la porta per farne entrare altre. */
 import { IMMAGINE_LOCALE, GRID_FORMS, GRID_LIMITS, CAMPAIGN_LIMITS, normalizzaCorridoi, normalizzaPercorso,
-         TESTO_SIZE_MAX, TAGLIA_MAX, normalizzaTaglia, SCHEDA_LIMITI, normalizzaScheda } from "./formato-campagna.js";
+         TESTO_SIZE_MAX, TAGLIA_MAX, normalizzaTaglia, SCHEDA_LIMITI, normalizzaScheda,
+         normalizzaCalendario, normalizzaScadenza } from "./formato-campagna.js";
 export { TESTO_SIZE_MAX, TAGLIA_MAX, normalizzaTaglia, SCHEDA_LIMITI, normalizzaScheda };
 
 export const TYPES = {
@@ -853,6 +854,9 @@ export function sanitizeState(s){
     if(n.scheda != null){ const sc = normalizzaScheda(n.scheda); if(sc) n.scheda = sc; else delete n.scheda; }
     if(n.foglio != null && !foglioValido(n.foglio)) delete n.foglio;
     if(n.corridoi != null){ const p = normalizzaCorridoi(n.corridoi); if(p.length) n.corridoi = p; else delete n.corridoi; }
+    if(n.scadenza != null){ const g = normalizzaScadenza(n.scadenza); if(g) n.scadenza = g; else delete n.scadenza; }
+    if(n.scadenza == null) delete n.scadenzaVisibile;
+    else if(n.scadenzaVisibile !== undefined && typeof n.scadenzaVisibile !== "boolean") delete n.scadenzaVisibile;
     for(const e of (Array.isArray(n.edges) ? n.edges : [])){
       if(e.id != null) e.id = safeId(e.id);
       e.a = safeId(e.a); e.b = safeId(e.b);
@@ -870,5 +874,8 @@ export function sanitizeState(s){
   })(s.root);
   for(const p of (Array.isArray(s.players) ? s.players : []))
     if(p && p.id != null) p.id = safeId(p.id);
+  // Il calendario: assente resta assente (vale il predefinito, vedi
+  // calendarioDi), e uno illeggibile si toglie invece di ripararlo a metà.
+  if(s.calendario != null){ const c = normalizzaCalendario(s.calendario); if(c) s.calendario = c; else delete s.calendario; }
   return s;
 }

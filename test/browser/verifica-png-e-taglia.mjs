@@ -82,7 +82,7 @@ try {
   await m.goto(`${BASE}/app.html`);
   await m.locator('[data-block="olmo"]').waitFor();
   const riga = await m.$eval("nav.tabs", n => ({sw:n.scrollWidth, cw:n.clientWidth, pagina:document.documentElement.scrollWidth}));
-  controlla(riga.sw <= riga.cw && riga.pagina <= 360, `le cinque schede stanno in 360px (${riga.sw}px)`);
+  controlla(riga.sw <= riga.cw && riga.pagina <= 360, `le sei schede stanno in 360px (${riga.sw}px)`);
   await tel.close();
 
   // --- tavolo ---

@@ -26,6 +26,7 @@ import { randomBytes } from "crypto";
 import {
   CURRENT_CAMPAIGN_SCHEMA_VERSION, IMMAGINE_LOCALE, GRID_FORMS, GRID_LIMITS,
   normalizzaCorridoi, normalizzaPercorso, normalizzaTaglia,
+  normalizzaCalendario, normalizzaScadenza,
 } from "../../public/app/formato-campagna.js";
 
 type Node = Record<string, any>;
@@ -330,6 +331,11 @@ function projectNode(n: Node, data: Node): Node {
   const griglia = projectGriglia(n.griglia);
   if (griglia) out.griglia = griglia;
 
+  // La scadenza di una quest esce solo se il DM l'ha detta ai giocatori: di
+  // default è preparazione sua, come lo stato. Esce il giorno e basta — il
+  // flag che la rende visibile è una decisione del DM, non un dato del tavolo.
+  const scadenza = normalizzaScadenza(n.scadenza);
+  if (n.type === "quest" && scadenza && n.scadenzaVisibile === true) out.scadenza = scadenza;
   const combat = projectCombat(n.monster);
   if (combat) out.combat = combat;
 
@@ -343,13 +349,43 @@ function projectNode(n: Node, data: Node): Node {
 }
 
 /**
+ * Il calendario come lo vede il tavolo: la struttura intera (mesi, settimana,
+ * anno) e il giorno corrente, che non nascondono niente; degli eventi solo
+ * quelli che il DM ha segnato visibili. Gli altri non escono, nemmeno come
+ * conteggio: che il DM abbia segnato qualcosa il giorno 40 è già un'anticipazione.
+ * Di un evento visibile escono titolo e note — nella scheda il DM lo sceglie
+ * sapendolo, come per `playerNotes`: un testo o è per il tavolo o non lo è.
+ * Senza calendario nel documento non esce niente, e il tavolo non mostra la
+ * scheda: il DM non l'ha mai usato.
+ */
+function projectCalendario(v: unknown): Node | undefined {
+  const cal = normalizzaCalendario(v);
+  if (!cal) return undefined;
+  return {
+    mesi: cal.mesi.map((m: Node) => ({ nome: m.nome, giorni: m.giorni })),
+    settimana: cal.settimana.slice(),
+    annoIniziale: cal.annoIniziale,
+    era: cal.era,
+    oggi: cal.oggi,
+    eventi: cal.eventi
+      .filter((e: Node) => e.visibile === true)
+      .map((e: Node) => {
+        const ev: Node = { id: safeId(e.id), giorno: e.giorno, titolo: e.titolo, visibile: true };
+        if (e.note) ev.note = e.note;
+        return ev;
+      }),
+  };
+}
+/**
  * Lo stato che riceve il tavolo. Stessa forma dell'app (root/checklist/players), così
  * l'app non deve imparare un secondo formato — ma con dentro solo il rivelato.
  */
 export function projectForPlayers(data: Node | null | undefined) {
   if (!data?.root) return null;
   const root = projectNode(data.root, data);     // la radice c'è sempre: è il contenitore
+  const calendario = projectCalendario(data.calendario);
   return {
+    ...(calendario ? { calendario } : {}),
     // La proiezione esce alla versione corrente per costruzione: è costruita
     // campo per campo QUI, non copiata dal documento del DM — quindi la sua
     // versione la dichiara questo codice, non la riga in banca dati.

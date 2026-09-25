@@ -215,6 +215,20 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   schermi larghi. Si calcola all'inizio del gesto (legge il riquadro, cioè
   forza un layout). Chi scrive un gesto nuovo non ricalcoli la scala a mano.
   Verifica: `node test/browser/verifica-pan.mjs`.
+- Calendario di gioco (`documento.calendario`, 25 set 2026): campo in cima
+  al documento ma FACOLTATIVO, senza salto di `schemaVersion` — assente vale
+  `calendarioPredefinito()`, e un salto avrebbe fatto rifiutare i file nuovi
+  alle copie già distribuite. Si legge SOLO con `calendarioDi` e si scrive
+  al primo gesto che lo modifica (`assicuraCalendario`), mai all'apertura:
+  in cloud guardare non deve produrre una revisione. I giorni sono un intero
+  assoluto da 1 (eventi, `oggi`, `n.scadenza` delle quest); mese e anno si
+  ricavano in `calendario-conti.js` (puro, testato). Bonifica UNA
+  (`normalizzaCalendario`, `normalizzaScadenza` nel contratto) per
+  `sanitizeState` e `share.ts`. Al tavolo: struttura e oggi sì, eventi solo
+  con `visibile: true` (escono titolo e note), scadenza solo con
+  `scadenzaVisibile`; senza campo il tavolo non ha la scheda. La vista ridisegna
+  dopo il `change` con un `setTimeout` e rimette il focus per id: i campi
+  hanno id stabili apposta. Verifica: `node test/browser/verifica-calendario.mjs`.
 - Costo del ridisegno: `node test/browser/misura-ridisegno.mjs` (numeri,
   non soglie). Il pan tocca solo il viewBox; ogni `renderCanvas` ricrea i
   `foreignObject` delle caselle, e il profilo attribuisce quel layout alla
@@ -234,7 +248,7 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
 ```bash
 npm run dev          # sviluppo su http://localhost:3000 (serve .env, vedi .env.example)
 npx tsc --noEmit     # typecheck — è il controllo principale, non c'è ESLint
-npm test             # test puri con node:test (test/{strumenti,sync,formato-campagna,dungeon,scala,critici,disegno})
+npm test             # test puri con node:test (test/{strumenti,sync,formato-campagna,dungeon,scala,critici,disegno,calendario})
 npm run build        # build di produzione (fa anche typecheck)
 npm run temi:contrasto   # rapporti WCAG di tutti i temi (esce 1 se una coppia è sotto soglia)
 ```
@@ -246,6 +260,7 @@ conflitti (`test/sync/`), il contratto del documento campagna
 (`test/formato-campagna/`), le pareti che l'import del dungeon costruisce
 (`test/dungeon/`), la scala della campagna, l'accordo fra le due liste di forme, taglia e scheda dei segnalini
 (`test/scala/`), marcatura del testo e geometria dei percorsi (`test/disegno/`),
+conti, bonifica e proiezione del calendario (`test/calendario/`),
 più gli **invarianti critici** (`test/critici/`):
 `jsonForScript`, la proiezione del tavolo come whitelist (segreti marcati che non
 devono comparire nel JSON, nemmeno da campi futuri), `sanitizeState`, determinismo
