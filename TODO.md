@@ -61,6 +61,10 @@ vedono calendario, giorno e mesi; degli eventi solo quelli segnati visibili.
   `SCRITTURA_MIN` in `scrittura.js`. Provato in Chromium riscrivendo la
   condizione: nessun campo sotto 16px e niente scorrimento orizzontale a
   360 e 390px. Da riprovare sul telefono dopo il deploy.
+- [x] **Portable 0.2.7** con le fasi 2, 3 e 4 (scheda e scrittura sul
+  posto, fogli e Impostazioni, calendario con eventi legati e ricorrenti) e
+  la correzione dello zoom su iPhone: versione, download e checksum
+  aggiornati in `src/lib/site.ts`; smoke e tavolo del desktop verdi.
 
 - [x] **La verifica della barra a menu falliva un giro su nove sotto
   carico**, anche prima della Fase 3. Non era la prova: "Nuova campagna" dà
