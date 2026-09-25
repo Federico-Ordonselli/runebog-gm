@@ -3,7 +3,11 @@
  * Il viewBox non ha le proporzioni della tela, e il browser lo scala con
  * max(w/W, h/H): calcolando w/W la mappa scivolava al 50–60% del gesto su
  * uno schermo largo ("non si aggancia al punto, scivola lentamente"). Si
- * prova su tre proporzioni di finestra, col mouse e con due dita (CDP).
+ * prova su quattro proporzioni di finestra, col mouse e con due dita (CDP).
+ * La 3440×1000 è il monitor ultrawide del video di un tester: su schermi
+ * così il codice di prima seguiva il mouse al 36% col contenuto di prova
+ * (misurato a 3840×1000), e nel video a circa un decimo, perché più la tela
+ * è larga rispetto al viewBox più w/W sbaglia.
  * Vuole `npm run dev` acceso; resta fuori da `npm test`.
  */
 import { apriBrowser, attendiServer, BASE, documentoDiProva, semeStandalone } from "./campagna-di-prova.mjs";
@@ -29,7 +33,7 @@ const vuoto = p => p.evaluate(() => {
 await attendiServer(`${BASE}/app.html`);
 const {browser} = await apriBrowser();
 try {
-  for(const viewport of [{width:1600, height:700}, {width:900, height:1000}, {width:1280, height:900}]){
+  for(const viewport of [{width:1600, height:700}, {width:3440, height:1000}, {width:900, height:1000}, {width:1280, height:900}]){
     const contesto = await browser.newContext({viewport});
     await semeStandalone(contesto, {documento:documentoDiProva()});
     const p = await contesto.newPage();
