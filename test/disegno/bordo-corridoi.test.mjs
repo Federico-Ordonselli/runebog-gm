@@ -62,3 +62,15 @@ test("un perimetro aperto non dipinge niente, una pianta non si riempie", ()=>{
   assert.deepEqual(riempiArea(g, [], 10, 10, {muri}, 50), {esito:"aperta", nuove:[]});
   assert.equal(riempiArea(g, [], 10, 10, {stanze:[{x:0,y:0,w:C*2,h:C*2}]}).esito, "pianta");
 });
+
+test("la riva: dove un liquido tocca un altro fondo, una linea sola per lato", async ()=>{
+  const { rivaPavimento } = await import(repoUrl("public/app/modello.js"));
+  // acqua in (1,0), terra a sinistra, velato a destra, vuoto sopra e sotto
+  const segs = rivaPavimento(g, [[2,0]], {"acqua-bassa":[[1,0]], "terra-battuta":[[0,0]]});
+  assert.deepEqual(ordina(segs), ordina([[C,0,C,C],[2*C,0,2*C,C]]));
+  // acqua bassa accanto a profonda: un lato, non due
+  assert.equal(rivaPavimento(g, [], {"acqua-bassa":[[0,0]], "acqua-profonda":[[1,0]]}).length, 1);
+  // stesso liquido o due solidi: niente riva
+  assert.equal(rivaPavimento(g, [], {"lava":[[0,0],[1,0]]}).length, 0);
+  assert.equal(rivaPavimento(g, [[0,0]], {"erba":[[1,0]]}).length, 0);
+});

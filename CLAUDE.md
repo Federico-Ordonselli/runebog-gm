@@ -270,6 +270,8 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   (`.nome-segnalino`). `LEGGIMI.md` e `anteprima.webp` delle texture stanno
   in `risorse/materiali/`, FUORI da `public/`, che il service worker
   precarica per intero. Verifica: `node test/browser/verifica-materiali.mjs`.
+  La riva (`rivaPavimento`, `LIQUIDI`) è derivata come il bordo: linea
+  sottile dove un liquido tocca un altro fondo, mai verso il vuoto.
 - Costo del ridisegno: `node test/browser/misura-ridisegno.mjs` (numeri,
   non soglie). Il pan tocca solo il viewBox; ogni `renderCanvas` ricrea i
   `foreignObject` delle caselle, e il profilo attribuisce quel layout alla

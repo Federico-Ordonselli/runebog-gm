@@ -13,7 +13,7 @@ import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeCo
          wallSegsOf, wallSegEnds, newWallSeg, stretchWallSeg, WALL_MAX,
          corridoiDi, cellaCorridoio, chiaveCella, sagomaCorridoi, riquadroCorridoi, CORRIDOI_MAX,
          bordoCorridoi, sagomaBordo, riempiArea, RIEMPI_MAX,
-         MATERIALI, MATERIALI_NOMI, pavimentiDi, celleDelPavimento, latoTile,
+         MATERIALI, MATERIALI_NOMI, pavimentiDi, celleDelPavimento, latoTile, rivaPavimento,
          DOOR_TYPES, doorKind, wallLabel, shapeType, scalaSopra, scalaDentro,
          GRIGLIE, GRIGLIA_BASE, GRID_LIMITS, grigliaDi, isHex, inScala, nomeCelle, formattaMetri,
          passoMaglia, tasselloMaglia, normalizzaTaglia, TAGLIA_MAX, MARKER_R, CELL,
@@ -929,6 +929,12 @@ export function renderCanvas(){
   for(const m of MATERIALI)
     out += `<path id="pav-${m}" class="pavimento" fill="url(#mat-${m})" d="${sagomaCorridoi(maglia(), pavimentiDi(cur)[m] || [])}" pointer-events="none"/>`;
   out += `<path id="pav-griglia" fill="url(#grid-bg)" d="${dGrigliaMateriali(cur)}" pointer-events="none"/>`;
+  /* La riva (rivaPavimento in modello.js): lo stesso percorso due volte,
+     scuro sotto e chiaro sopra, come la maglia sugli sfondi — sta sopra una
+     texture qualunque, quindi non può seguire il tema. */
+  const riva = dRiva(cur);
+  out += `<path id="riva-sotto" class="riva-sotto" d="${riva}" pointer-events="none"/>
+    <path id="riva" class="riva" d="${riva}" pointer-events="none"/>`;
 
   // collegamenti del livello corrente
   for(const e of (cur.edges||[])){
@@ -1572,6 +1578,9 @@ function ridisegnaPavimento(cur){
   }
   for(const m of MATERIALI) if(!pavimentiDi(cur)[m]) el("pav-" + m)?.setAttribute("d", "");
   el("pav-griglia")?.setAttribute("d", dGrigliaMateriali(cur));
+  const riva = dRiva(cur);
+  el("riva-sotto")?.setAttribute("d", riva);
+  el("riva")?.setAttribute("d", riva);
   el("corridoi-bordo")?.setAttribute("d", dBordoCorridoi(cur));
 }
 /* La texture di un materiale: una tile ogni 4×4 celle (latoTile), agganciata
@@ -1582,6 +1591,9 @@ function patternMateriale(m){
   const L = latoTile(maglia());
   return `<pattern id="mat-${m}" width="${L}" height="${L}" patternUnits="userSpaceOnUse">
     <image href="/app/materiali/${m}.webp" width="${L}" height="${L}" preserveAspectRatio="none"/></pattern>`;
+}
+function dRiva(cur){
+  return sagomaBordo(rivaPavimento(maglia(), corridoiDi(cur), pavimentiDi(cur)));
 }
 function materialiInUso(cur){
   const p = pavimentiDi(cur);

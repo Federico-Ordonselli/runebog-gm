@@ -491,6 +491,11 @@
      tondi: i lati si incontrano a 90° sui quadretti e a 120° negli esagoni,
      e un capo piatto lascerebbe una tacca in ogni angolo. */
   #plan-svg .corridoi-bordo{fill:none;stroke:var(--ink-dim);stroke-width:6;stroke-linecap:round}
+  /* La riva fra un liquido e un altro fondo: sottile, perché non è un muro.
+     Colori fissi come quelli di #grid-bg, per la stessa ragione: sotto c'è
+     una texture, non il fondo del tema. */
+  #plan-svg .riva-sotto{fill:none;stroke:rgba(0,0,0,.4);stroke-width:4.5;stroke-linecap:round}
+  #plan-svg .riva{fill:none;stroke:rgba(255,255,255,.75);stroke-width:2;stroke-linecap:round}
   /* La miniatura di un materiale nella palette: la texture vera, bordata
      come le altre icone perché un quadratino di sabbia su un pannello chiaro
      non ha altro che lo stacchi. */

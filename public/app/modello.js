@@ -740,9 +740,12 @@ export function bordoCorridoi(g, celle, {stanze = [], muri = []} = {}){
       lati.push([l.a[0], l.a[1], l.b[0], l.b[1]]);
     }
   }
+  return fondiLati(g, lati);
+}
+/* Sui quadretti i lati di una stessa retta si fondono: un corridoio lungo
+   venti celle è due linee, non quaranta. Negli esagoni restano lati. */
+function fondiLati(g, lati){
   if(isHex(g)) return lati.map(s => s.map(tondo));
-  /* Sui quadretti i lati di una stessa retta si fondono: un corridoio lungo
-     venti celle è due linee, non quaranta. */
   const fondi = (segs, asse) => {
     const [p, a, b] = asse === "h" ? [1, 0, 2] : [0, 1, 3];
     segs.forEach(s => { if(s[a] > s[b]){ [s[0], s[2]] = [s[2], s[0]]; [s[1], s[3]] = [s[3], s[1]]; } });
@@ -757,6 +760,32 @@ export function bordoCorridoi(g, celle, {stanze = [], muri = []} = {}){
   };
   return [...fondi(lati.filter(s => Math.abs(s[1] - s[3]) < EPS), "h"),
           ...fondi(lati.filter(s => Math.abs(s[0] - s[2]) < EPS), "v")].map(s => s.map(tondo));
+}
+/* La riva (29 set 2026): dove un liquido tocca un pavimento diverso — terra,
+   pietra, il velato, o un altro liquido (l'acqua bassa che diventa
+   profonda) — una linea sottile, derivata come il bordo. Non un muro: ci si
+   passa, e al tavolo deve leggersi "qui cambia il fondo", non "qui ci si
+   ferma". Verso il vuoto non serve: lì c'è già il bordo. */
+export const LIQUIDI = Object.freeze(["acqua-bassa", "acqua-profonda", "lava"]);
+export function rivaPavimento(g, corridoi, pavimenti){
+  const mat = new Map();
+  for(const c of corridoi) mat.set(chiaveCella(c), null);
+  for(const m of MATERIALI) for(const c of (Array.isArray(pavimenti?.[m]) ? pavimenti[m] : [])) mat.set(chiaveCella(c), m);
+  const visti = new Set(), lati = [];
+  for(const m of LIQUIDI){
+    for(const c of (Array.isArray(pavimenti?.[m]) ? pavimenti[m] : [])){
+      if(mat.get(chiaveCella(c)) !== m) continue;          // doppione già bonificato altrove
+      for(const l of latiCella(g, c)){
+        const k = chiaveCella(cellaCorridoio(g, l.oltre.x, l.oltre.y));
+        if(!mat.has(k) || mat.get(k) === m) continue;
+        const kl = chiaveLato(l.a, l.b);
+        if(visti.has(kl)) continue;                           // due liquidi diversi: un lato solo
+        visti.add(kl);
+        lati.push([l.a[0], l.a[1], l.b[0], l.b[1]]);
+      }
+    }
+  }
+  return fondiLati(g, lati);
 }
 export const sagomaBordo = segs => segs.map(s => `M${s[0]} ${s[1]}L${s[2]} ${s[3]}`).join("");
 

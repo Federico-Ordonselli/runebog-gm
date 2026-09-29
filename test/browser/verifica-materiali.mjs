@@ -85,6 +85,15 @@ try {
   controlla(await quante("lava") === 12, `il secchiello riempie il perimetro di lava (${await quante("lava")})`);
   await pagina.keyboard.press("Escape");
 
+  // Erba accanto all'acqua: compare la riva, e non è un muro.
+  await scegli('{"corridoi":true,"materiale":"erba"}');
+  await trascina([[-11,5],[-11,6],[-10,6],[-9,6],[-8,6]]);
+  await pagina.keyboard.press("Escape");
+  const riva = (await pagina.getAttribute("#riva", "d")) || "";
+  controlla(riva.length > 0, "fra acqua ed erba compare la riva");
+  controlla(!/M-400 200L-400 240/.test((await pagina.getAttribute("#corridoi-bordo", "d")) || ""),
+    "e fra i due materiali non c'è muro");
+
   // Le immagini si caricano davvero.
   const caricate = await pagina.evaluate(async () => {
     const r = await Promise.all(["lava","acqua-bassa"].map(m => fetch(`/app/materiali/${m}.webp`).then(x => x.ok)));

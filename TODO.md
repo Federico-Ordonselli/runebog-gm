@@ -42,8 +42,19 @@ un buco contornato dalle mura».
 - [ ] **Licenza delle texture**: il `LICENSE` distingue codice (PolyForm) e
   SRD (CC-BY); le texture sono una terza categoria e oggi, senza una riga
   che lo dica, ricadono sotto PolyForm. Da decidere con Federico.
-- [ ] Riva fra acqua e terra: oggi fra due materiali non c'è segno. Se
-  servirà, una linea sottile derivata come il bordo, non un muro.
+- [x] **Riva** (29 set 2026): dove un liquido (`LIQUIDI`: acqua bassa,
+  acqua profonda, lava) tocca un altro fondo — un altro materiale, il
+  velato, o un altro liquido — una linea sottile, scura sotto e chiara
+  sopra (`rivaPavimento` in `modello.js`, `#riva`/`#riva-sotto`). Derivata
+  come il bordo e non un muro: ci si passa. Verso il vuoto no, lì c'è già
+  il bordo. Prima prova troppo simile alla maglia, rinforzata (2px chiara
+  su 4,5 scura, contro i 6 di un muro). Test in
+  `test/disegno/bordo-corridoi.test.mjs` e nella verifica dei materiali.
+- Costo misurato (29 set 2026): bordo di 9090 celle a scacchiera irregolare,
+  il caso peggiore sotto il tetto, 7–14 ms in Node; una mappa normale sta
+  sotto il millisecondo. Si ricalcola a ogni disegno e a ogni campione del
+  pennello, senza cache: se un giorno il pennello scatta su mappe enormi,
+  la prima mossa è limitarlo a un requestAnimationFrame.
 - [ ] Collegamento "a corridoio" largo N quadretti: sconsigliato, sarebbe un
   secondo modo di fare il pennello con una geometria che non sta sulla maglia.
 
