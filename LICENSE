@@ -18,6 +18,19 @@ in this repository (including `public/app/srd-mostri.js` and
 Attribution 4.0 and whose attribution must be preserved. CC-BY-4.0 permits
 commercial use of that material, and this license does not restrict it.
 
+Le texture dei pavimenti (`public/app/materiali/`) non sono codice e non
+seguono questa licenza: sono rilasciate sotto Creative Commons
+Attribution-NonCommercial 4.0 (CC BY-NC 4.0), testo integrale in
+`risorse/materiali/LICENZA-CC-BY-NC-4.0.txt`. Si possono usare,
+modificare e ridistribuire citandone l'autore, ma non per scopi
+commerciali.
+
+The floor textures (`public/app/materiali/`) are not code and are not
+covered by this license: they are released under Creative Commons
+Attribution-NonCommercial 4.0 (CC BY-NC 4.0), full text in
+`risorse/materiali/LICENZA-CC-BY-NC-4.0.txt`. They may be used, adapted
+and redistributed with attribution, but not for commercial purposes.
+
 Le versioni di questo software distribuite prima del 29 luglio 2026 erano
 sotto licenza MIT, e quella concessione resta valida per quelle versioni.
 Versions of this software distributed before 29 July 2026 were released

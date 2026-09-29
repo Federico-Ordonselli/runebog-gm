@@ -58,11 +58,37 @@ Ogni WebP finale è stato decodificato e ripetuto nove volte, senza specchiature
   chiare sul bordo esterno di alcuni mosaici vengono dal ridimensionamento
   del foglio: nelle cuciture interne e nell'editor non ci sono.
 
-## Licenza e utilizzo
+## Licenza
 
-Le immagini sono output generati per il richiedente, non risorse prelevate da una libreria con licenza di terzi. Nei rapporti tra OpenAI e l'utente, i diritti sull'output spettano all'utente nei limiti consentiti dalla legge. Sono utilizzabili nel progetto, modificabili e distribuibili anche in un prodotto commerciale, nel rispetto dei termini applicabili. Non viene applicata qui una licenza pubblica aggiuntiva come CC0 o CC-BY: l'eventuale concessione di una licenza a terzi spetta al titolare del progetto. L'output AI può non essere esclusivo e la protezione mediante diritto d'autore dipende dalla legge applicabile.
+Le dodici texture di `public/app/materiali/` sono rilasciate da Federico
+Ordonselli sotto **Creative Commons Attribution-NonCommercial 4.0
+International (CC BY-NC 4.0)**. Testo integrale, scaricato dalla fonte il 29
+settembre 2026 e non ricopiato a mano: `LICENZA-CC-BY-NC-4.0.txt` in questa
+cartella (SHA-256 `41003d4a74749c0220e33dd415042164b5a1093ed401f36277234f772d22d3d0`,
+da <https://creativecommons.org/licenses/by-nc/4.0/legalcode.txt>).
 
-Fonte: [Termini d'uso europei OpenAI, sezione Content](https://openai.com/policies/eu-terms-of-use/#content), consultati il 29 settembre 2026.
+In breve, e senza sostituire il testo: si possono usare, modificare e
+ridistribuire, anche insieme ad altro materiale, **per scopi non
+commerciali** e citando l'autore. Attribuzione suggerita:
+
+> Texture di Runebog GM, Federico Ordonselli, CC BY-NC 4.0
+
+Perché questa e non la licenza del codice: PolyForm Noncommercial è scritta
+per il software, e le sue definizioni ("software", "distribuire") si
+adattano male a un'immagine. La CC BY-NC dice la stessa cosa — uso libero,
+non commerciale — nella forma pensata per le opere creative.
+
+Due avvertenze oneste:
+
+- Le immagini sono state generate con uno strumento di intelligenza
+  artificiale (vedi "Generazione"). Nei rapporti con OpenAI i diritti
+  sull'output spettano all'utente nei limiti consentiti dalla legge
+  ([Termini d'uso europei, sezione Content](https://openai.com/policies/eu-terms-of-use/#content),
+  consultati il 29 settembre 2026), ma se e quanto un'immagine generata sia
+  tutelata dal diritto d'autore dipende dalla legge applicabile. La licenza
+  vale nella misura in cui quei diritti esistono.
+- L'output di questi strumenti può non essere esclusivo: immagini simili
+  possono esistere altrove, sotto altre condizioni.
 
 ## Dimensioni dei file
 
@@ -83,4 +109,4 @@ Tutti i valori sono byte effettivi su disco. Le dodici texture sono WebP RGB opa
 | fango.webp | 3430 |
 | tappeto-rosso.webp | 1534 |
 | anteprima.webp | 33452 |
-| LEGGIMI.md | 5972 |
+| LEGGIMI.md | 7105 |

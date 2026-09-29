@@ -1724,7 +1724,7 @@ Non negoziabili; se tocchi queste aree, mantienili:
 - **Password**: scrypt della stdlib con `maxmem` esplicito (`src/lib/password.ts`);
   token di reset monouso, scadenza 1h, nel DB solo lo SHA-256; la richiesta di reset
   risponde sempre allo stesso modo, che l'account esista o no.
-- **Due licenze, e vanno in versi opposti** (29 lug 2026). Il **codice** è
+- **Tre licenze** (codice e SRD dal 29 lug 2026, texture dal 29 set), e le prime due vanno in versi opposti. Il **codice** è
   `PolyForm Noncommercial 1.0.0` — vieta l'uso commerciale — e prima di quella
   data era MIT: quella concessione resta valida per le versioni già
   distribuite, quindi il `LICENSE` lo dichiara invece di far finta di niente.
@@ -1736,6 +1736,14 @@ Non negoziabili; se tocchi queste aree, mantienili:
     `CODE_LICENSE` (`src/lib/site.ts`) e **non** nelle pagine: una pagina che
     ne dichiara una diversa da `LICENSE` non è un refuso, è una concessione
     pubblica che nessuno voleva dare.
+  - **Terza licenza, le texture** (29 set 2026): `public/app/materiali/`
+    è **CC BY-NC 4.0** — uso libero non commerciale con attribuzione, cioè
+    lo stesso verso del codice, ma nella licenza scritta per le opere
+    creative (PolyForm parla di software). Testo integrale scaricato dalla
+    fonte in `risorse/materiali/LICENZA-CC-BY-NC-4.0.txt`, dichiarata nella
+    nota d'ambito di `LICENSE`, nel README e in `risorse/materiali/LEGGIMI.md`.
+    Una texture nuova in quella cartella la eredita: chi ne aggiunge una
+    di provenienza diversa lo scriva nel `LEGGIMI.md`.
   - Il testo della licenza in `LICENSE` è **identico byte per byte** a quello
     ufficiale di PolyForm: la nota d'ambito (il codice sì, l'SRD no) sta fuori
     dal testo e dichiara di starne fuori. Vale la regola già scritta per

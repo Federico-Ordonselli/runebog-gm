@@ -39,9 +39,12 @@ un buco contornato dalle mura».
   texture e alone sui nomi dei segnalini, i due difetti di leggibilità
   misurati nel controllo delle texture. Test: `test/critici/pavimenti.test.mjs`;
   nel browser `node test/browser/verifica-materiali.mjs`.
-- [ ] **Licenza delle texture**: il `LICENSE` distingue codice (PolyForm) e
-  SRD (CC-BY); le texture sono una terza categoria e oggi, senza una riga
-  che lo dica, ricadono sotto PolyForm. Da decidere con Federico.
+- [x] **Licenza delle texture** (29 set 2026): CC BY-NC 4.0, scelta da
+  Federico ("usabile, non monetizzabile"). Testo ufficiale scaricato dalla
+  fonte in `risorse/materiali/LICENZA-CC-BY-NC-4.0.txt`; dichiarata nella
+  nota d'ambito di `LICENSE` (testo PolyForm verificato identico per hash),
+  nel README e nel `LEGGIMI.md` delle texture, con l'avvertenza sulla
+  tutela incerta delle immagini generate.
 - [x] **Riva** (29 set 2026): dove un liquido (`LIQUIDI`: acqua bassa,
   acqua profonda, lava) tocca un altro fondo — un altro materiale, il
   velato, o un altro liquido — una linea sottile, scura sotto e chiara
