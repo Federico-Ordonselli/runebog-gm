@@ -235,6 +235,15 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   `occorrenze`/`prossimaOccorrenza`, non legge `evento.giorno`. Al tavolo
   `nodeId` esce solo se la bolla è nella proiezione. Verifica:
   `node test/browser/verifica-calendario-eventi.mjs`.
+- Davanti e dietro (29 set 2026): l'ordine di disegno È l'ordine di
+  `children` — niente campo `z`, e un riordino si fa sull'array
+  (`riordina` in `modello.js`, `ordinaSelezione` in `mappa.js`, in loco).
+  Muri e corridoi restano sempre sotto le bolle, lo sfondo sotto tutto.
+  Home/End sono della tela solo fuori dai comandi a fuoco (stesso filtro
+  di Invio e Canc). Una casella di testo nuova entra con
+  `posizioneNuovoTesto`, non con `push`. Il filtro degli stati del diario
+  vive in memoria in `quest.js`, come l'ordine. Verifica:
+  `node test/browser/verifica-ordine-e-filtri.mjs`.
 - Costo del ridisegno: `node test/browser/misura-ridisegno.mjs` (numeri,
   non soglie). Il pan tocca solo il viewBox; ogni `renderCanvas` ricrea i
   `foreignObject` delle caselle, e il profilo attribuisce quel layout alla

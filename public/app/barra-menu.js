@@ -21,7 +21,7 @@ import { openKeys } from "./viste.js";
 import { GRUPPI, TEMA_DEFAULT, temiDelGruppo } from "./temi.js";
 import { etichettaOffline } from "./offline.js";
 import { exportJSON } from "./esporta.js";
-import { planFit, planZoom, arrangeGrid, duplicateSelected } from "./mappa.js";
+import { planFit, planZoom, arrangeGrid, duplicateSelected, ordinaSelezione } from "./mappa.js";
 import { copiaSelezione, tagliaSelezione, incolla, ciSonoAppunti } from "./appunti.js";
 
 const CHIAVE = "runebog-ui";
@@ -89,6 +89,9 @@ const MENU = {
     // incollare" è un comando che si prova per scoprire che non fa niente.
     if(ciSonoAppunti()) v.push({id:"inc", label:"Incolla", kbd:ctrl("V"), run:()=>incolla()});
     v.push({id:"dup", label:"Duplica", kbd:ctrl("D"), run:duplicateSelected},
+           "---",
+           {id:"z-su", label:"Porta in primo piano", kbd:"Home", run:()=>ordinaSelezione("davanti")},
+           {id:"z-giu", label:"Manda in fondo", kbd:"End", run:()=>ordinaSelezione("dietro")},
            "---",
            {id:"grid", label:"Riordina in griglia", run:arrangeGrid});
     return v;

@@ -188,6 +188,7 @@ function renderDetailCore(){
         Ctrl+D per duplicarli · Canc per eliminarli · Esc per deselezionare
       </p>
       <div class="detail-actions">
+        ${nodes.length ? ordineMarkup(nodes[0]) : ""}
         <button class="btn danger" onclick="requestDeleteSelection()">Elimina selezionati</button>
       </div>
     </div>`;
@@ -452,6 +453,7 @@ function renderDetailCore(){
     <div class="detail-actions">
       <button class="btn primary" onclick="addChild('${n.id}')">+ Bolla dentro</button>
       ${sel?`<button class="btn" onclick="entra('${n.id}')">Entra →</button>`:""}
+      ${sel?ordineMarkup(n):""}
       ${!isRoot?`<button class="btn danger" onclick="askDeleteNode('${n.id}')">Elimina</button>`:""}
     </div>
   </div>`;
@@ -473,6 +475,16 @@ function sceltaFoglio(n){
       ${Object.entries(FOGLI).map(([k,v])=>`<button class="btn${k===cur?" primary":""}" aria-pressed="${k===cur}"
         onclick="editNode('${n.id}','foglio','${k}')">${v}</button>`).join("")}
     </div></div>`;
+}
+
+/* Davanti e dietro, per chi non ha il tasto destro né Home/End (il
+   telefono): solo per una bolla del livello aperto, e solo se c'è con chi
+   scambiarsi di posto. */
+function ordineMarkup(n){
+  const cur = currentNode();
+  if(RO || cur.children.length < 2 || !cur.children.includes(n)) return "";
+  return `<button class="btn" onclick="ordinaSelezione('davanti')" title="Home">Porta in primo piano</button>
+      <button class="btn" onclick="ordinaSelezione('dietro')" title="End">Manda in fondo</button>`;
 }
 
 function testoDetailHTML(n){
@@ -518,6 +530,7 @@ function testoDetailHTML(n){
           onclick="editNode('${n.id}','color','${cc}')"></button>`).join("")}
       </div></div>`}
     <div class="detail-actions">
+      ${ordineMarkup(n)}
       <button class="btn danger" onclick="askDeleteNode('${n.id}')">Elimina</button>
     </div>
   </div>`;

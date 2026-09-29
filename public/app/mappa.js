@@ -15,7 +15,8 @@ import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeCo
          DOOR_TYPES, doorKind, wallLabel, shapeType, scalaSopra, scalaDentro,
          GRIGLIE, GRIGLIA_BASE, GRID_LIMITS, grigliaDi, isHex, inScala, nomeCelle, formattaMetri,
          passoMaglia, tasselloMaglia, normalizzaTaglia, TAGLIA_MAX, MARKER_R, CELL,
-         scalaSegnalino, SCHEDA_TIPI, haScheda, schedaDi, SCHEDA_LIMITI, foglioDi } from "./modello.js";
+         scalaSegnalino, SCHEDA_TIPI, haScheda, schedaDi, SCHEDA_LIMITI, foglioDi,
+         riordina, posizioneNuovoTesto } from "./modello.js";
 import { preferenza } from "./preferenze.js";
 import { apriScrittura, riposizionaScrittura } from "./scrittura.js";
 import { st, save, findNode, findParent, removeNode, currentNode, pathNodes, RO,
@@ -1269,7 +1270,9 @@ export function addSpatialChild(opts, x, y){
     c.x = Math.round((x-b.w/2)/10)*10;
     c.y = Math.round((y-b.h/2)/10)*10;
   }
-  cur.children.push(c);
+  // La casella nasce dietro alle bolle (posizioneNuovoTesto in modello.js).
+  if(isTesto(c)) cur.children.splice(posizioneNuovoTesto(cur.children), 0, c);
+  else cur.children.push(c);
   selectNode(c.id);
   save(); renderMap();
   // Una casella nuova è vuota e va scritta: è un'azione che chiede un campo,
@@ -2381,7 +2384,23 @@ export function impostaTaglia(id, v){
   save(); renderCanvas(); renderDetail();
 }
 
+/* In primo piano / in fondo (riordina in modello.js): tutta la selezione di
+   bolle del livello, come Duplica. I muri no — stanno sempre sotto le bolle
+   (è l'ordine del pavimento, vedi renderCanvas), e lo sfondo sotto tutto:
+   nessun comando può mandarci dietro niente. Un gesto = un Ctrl+Z; se
+   l'ordine non cambia non si salva, sennò resterebbe un annulla a vuoto. */
+export function ordinaSelezione(verso){
+  if(RO) return;
+  const cur = currentNode();
+  const ids = (st.multiSel.size ? [...st.multiSel] : (st.selectedId ? [st.selectedId] : []))
+    .filter(id => childOf(id));
+  const nuovi = riordina(cur.children, ids, verso);
+  if(nuovi.every((c, i) => c === cur.children[i])) return;
+  cur.children.splice(0, cur.children.length, ...nuovi);
+  save(); renderCanvas(); renderDetail();
+}
+
 // per gli onclick inline nei template e nell'HTML statico
-Object.assign(window, { enterNode, entra, impostaTaglia, jumpTo, planFit, planZoom, arrangeGrid, quickAddCenter, addAtCenter,
+Object.assign(window, { enterNode, entra, impostaTaglia, jumpTo, planFit, planZoom, arrangeGrid, quickAddCenter, addAtCenter, ordinaSelezione,
   pickBg, removeBg, toggleBgEdit, setBgOpacity, requestDeleteSelection, goToNode,
   deleteWallSeg, setWallDoor, inserisciNelMuro, impostaGriglia });

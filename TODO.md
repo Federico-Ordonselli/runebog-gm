@@ -1,5 +1,26 @@
 # To-do
 
+## Davanti/dietro e filtro delle quest (29 settembre 2026)
+
+Dario: le caselle di testo fanno da bacheca («Personaggi da incontrare»)
+con sopra i PNG, ma sovrapponendole le bolle sparivano dietro; e nel
+diario vuole vedere solo le quest di certi stati.
+
+- [x] **Davanti e dietro** (`riordina` in `modello.js`, `ordinaSelezione`
+  in `mappa.js`): l'ordine di disegno è l'ordine di `children`, quindi niente
+  campo `z` né migrazione. «Porta in primo piano» e «Manda in fondo» su
+  tutta la selezione, dal tasto destro, dal menu Modifica, dal pannello
+  (anche su telefono) e con Home/End. Muri e sfondo restano sotto le bolle.
+  Un gesto = un Ctrl+Z; senza cambiamenti non si salva.
+- [x] **Una casella nuova nasce dietro alle bolle** (`posizioneNuovoTesto`),
+  davanti alle caselle già posate. Le campagne esistenti non cambiano.
+- [x] **Filtro del diario** (`quest.js`): caselle Da fare (comprende «—»),
+  In corso, Fatte, con il numero per stato. In memoria come l'ordine: un
+  filtro ricordato fra le sessioni farebbe sembrare sparite delle quest.
+- [x] Test `test/disegno/ordine.test.mjs`; verifica
+  `node test/browser/verifica-ordine-e-filtri.mjs` (21 controlli, telefono
+  compreso).
+
 ## Fase 4: calendario di gioco (25 settembre 2026)
 
 Dario: un calendario del mondo con mesi personalizzabili, il giorno

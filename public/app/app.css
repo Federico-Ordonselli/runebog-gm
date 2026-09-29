@@ -894,7 +894,13 @@
   .q-scad.s-vicina,.q-scad.s-oggi{color:var(--gold);font-weight:600}
   .q-scad.s-scaduta{color:var(--ember);font-weight:600}
   .q-scad.s-fatta{font-weight:400}
-  .q-ordina{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-dim);margin-bottom:6px}
+  .q-strumenti{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin-bottom:6px}
+  .q-filtri{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;border:0;margin:0;padding:0;font-size:12px;color:var(--ink-dim)}
+  .q-filtri legend{float:left;margin-right:2px;padding:0}
+  .q-filtri label{display:inline-flex;align-items:center;gap:5px;color:var(--ink);cursor:pointer;white-space:nowrap}
+  .q-filtri input[type=checkbox]{width:17px;height:17px;accent-color:var(--fen-dim);flex:none;cursor:pointer;padding:0;margin:0}
+  .q-conta{color:var(--ink-dim);font-variant-numeric:tabular-nums}
+  .q-ordina{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-dim)}
   .q-ordina select{width:auto;font-size:12px;padding:4px 6px}
   .q-meta{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;margin-top:2px}
   .q-meta .q-loc{margin-left:0}
@@ -1191,6 +1197,7 @@
     /* La stella "principale" del diario e i campioni di colore del pannello:
        26px l'una. I sette campioni vanno a capo su due righe e il pannello ci
        sta — su mobile è un foglio largo quanto lo schermo. */
+    .q-filtri label{min-height:44px}
     .q-star{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0}
     .swatch{width:44px;height:44px}
     /* Il titolo di una sezione richiudibile è alto 17px: è il comando che apre

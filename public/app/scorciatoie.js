@@ -5,7 +5,7 @@ import { onGrid, isHex, isMarker, markerR, grigliaDi, passoMaglia } from "./mode
 import { st, save, doUndo, doRedo, findNode, clearSel, currentNode } from "./stato.js";
 import { showView, openKeys } from "./viste.js";
 import { goUp, enterNode, planZoom, planFit, renderCanvas, wallOf,
-         requestDeleteSelection, duplicateSelected } from "./mappa.js";
+         requestDeleteSelection, duplicateSelected, ordinaSelezione } from "./mappa.js";
 import { renderDetail, deleteEdge } from "./pannello.js";
 import { copiaSelezione, tagliaSelezione, incolla } from "./appunti.js";
 
@@ -61,7 +61,7 @@ export function initScorciatoie(){
        lì Invio e Spazio li vuole proprio questo elenco (entra nel livello,
        aggiungi alla selezione multipla). Frecce, zoom, F ed Esc restano
        globali: non sono tasti che un comando a fuoco consuma. */
-    if((k==="Enter" || k===" " || k==="Delete" || k==="Backspace") &&
+    if((k==="Enter" || k===" " || k==="Delete" || k==="Backspace" || k==="Home" || k==="End") &&
        t && t.closest && !t.closest("#plan-svg") &&
        t.closest("button, a, summary, [role=button], [tabindex]")) return;
     if(k==="Escape"){
@@ -101,6 +101,12 @@ export function initScorciatoie(){
       else requestDeleteSelection();
     }else if(k==="Enter"){
       if(st.selectedId) enterNode(st.selectedId);
+    }else if((k==="Home" || k==="End") && !e.ctrlKey && !e.metaKey && !e.altKey){
+      /* Home e End come in Inkscape: in cima e in fondo alla pila. Solo con
+         qualcosa selezionato, e fuori dai comandi a fuoco (il filtro qui
+         sopra): nelle schede Home/End scorrono fra le linguette. */
+      if(!st.selectedId && !st.multiSel.size) return;
+      e.preventDefault(); ordinaSelezione(k==="Home" ? "davanti" : "dietro");
     }else if((e.ctrlKey||e.metaKey) && k.toLowerCase()==="d"){
       e.preventDefault(); duplicateSelected();
     }else if((e.ctrlKey||e.metaKey) && ["c","x","v"].includes(k.toLowerCase()) && !e.shiftKey && !e.altKey){

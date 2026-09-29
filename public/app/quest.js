@@ -9,6 +9,20 @@ import { scadenzaDi } from "./calendario.js";
 /* Per stato o per scadenza: una preferenza della vista, non della campagna. */
 let ordine = "stato";
 
+/* Quali stati si vedono (29 set 2026, Dario: «vedi tutte, o solo in corso,
+   o completate, o non ancora attivate»). Tre caselle e non quattro: una
+   quest senza stato ("—") non è ancora cominciata, quindi sta con le "da
+   fare". Anche questa è della vista e resta in memoria come l'ordine: un
+   filtro ricordato fra una sessione e l'altra farebbe sembrare sparite le
+   quest a chi non si ricorda di averlo messo. */
+const FILTRI = [
+  {id:"q-f-attesa", label:"Da fare",  stati:["", "da fare"]},
+  {id:"q-f-corso",  label:"In corso", stati:["in corso"]},
+  {id:"q-f-fatte",  label:"Fatte",    stati:["fatto"]},
+];
+const nascosti = new Set();          // id dei filtri spenti
+const filtroDi = n => FILTRI.find(f => f.stati.includes(n.status||"")) || FILTRI[0];
+
 export function renderQuests(){
   const wrap = document.getElementById("quests-list");
   const items = [];
@@ -50,15 +64,34 @@ export function renderQuests(){
         <option value="stato"${ordine==="stato"?" selected":""}>per stato</option>
         <option value="scadenza"${ordine==="scadenza"?" selected":""}>per scadenza</option>
       </select></label>` : "";
-  const mains = items.filter(i=>i.n.main), rest = items.filter(i=>!i.n.main);
+  // Le caselle compaiono solo quando c'è qualcosa da filtrare, e dicono
+  // quante quest ci sono per stato: una casella spenta non nasconde niente
+  // di invisibile.
+  const conta = f => items.filter(i => filtroDi(i.n) === f).length;
+  const filtri = items.length ? `<fieldset class="q-filtri"><legend>Mostra</legend>
+      ${FILTRI.map(f=>`<label><input type="checkbox" id="${f.id}"${nascosti.has(f.id)?"":" checked"}
+        onchange="filtraQuest('${f.id}', this.checked)"> ${f.label} <span class="q-conta">${conta(f)}</span></label>`).join("")}
+    </fieldset>` : "";
+  const visibili = items.filter(i => !nascosti.has(filtroDi(i.n).id));
+  const filtrate = visibili.length < items.length;
+  const mains = visibili.filter(i=>i.n.main), rest = visibili.filter(i=>!i.n.main);
+  const vuoto = `<p class="q-empty">Nessuna quest negli stati spuntati.</p>`;
   wrap.innerHTML = `
-    ${ordina}
+    <div class="q-strumenti">${filtri}${ordina}</div>
     <h2 class="q-h">★ Quest principali</h2>
-    ${mains.length ? mains.map(row).join("") :
+    ${mains.length ? mains.map(row).join("") : filtrate ? vuoto :
       `<p class="q-empty">Nessuna quest principale: segna una quest con la ★ qui sotto o dal suo pannello sulla mappa.</p>`}
     <h2 class="q-h">Tutte le quest</h2>
-    ${rest.length ? rest.map(row).join("") :
+    ${rest.length ? rest.map(row).join("") : filtrate ? vuoto :
       `<p class="q-empty">Nessuna quest sulla mappa: trascina un segnalino Quest dalla barra della Mappa.</p>`}`;
+}
+/* L'elenco si riscrive per intero, caselle comprese: il focus torna per id,
+   come per l'ordine, sennò da tastiera si ricomincia dalla cima. */
+export function filtraQuest(id, visibile){
+  if(!FILTRI.some(f => f.id === id)) return;
+  if(visibile) nascosti.delete(id); else nascosti.add(id);
+  renderQuests();
+  document.getElementById(id)?.focus();
 }
 export function toggleMainQuest(id){ const n=findNode(id); if(!n) return; n.main=!n.main; save(); renderQuests(); }
 export function setQuestStatus(id, stt){ const n=findNode(id); if(!n) return; n.status=stt; save(); renderQuests(); }
@@ -69,4 +102,4 @@ export function ordinaQuest(v){
 }
 
 // per gli onclick inline nei template
-Object.assign(window, { toggleMainQuest, setQuestStatus, ordinaQuest });
+Object.assign(window, { toggleMainQuest, setQuestStatus, ordinaQuest, filtraQuest });

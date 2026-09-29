@@ -9,7 +9,7 @@ import { openKeys } from "./viste.js";
 import { GRUPPI, TEMA_DEFAULT, temiDelGruppo } from "./temi.js";
 import { etichettaOffline } from "./offline.js";
 import { exportJSON } from "./esporta.js";
-import { childOf, enterNode, entra, duplicateSelected, addSpatialChild, arrangeGrid,
+import { childOf, enterNode, entra, duplicateSelected, ordinaSelezione, addSpatialChild, arrangeGrid,
          planPointXY, renderCanvas, wallOf, setWallDoor, deleteWallSeg,
          inserisciNelMuro, toccaMuro } from "./mappa.js";
 import { renderDetail, openDetailSheet, editNode, askDeleteNode, editEdge, deleteEdge } from "./pannello.js";
@@ -63,6 +63,15 @@ export function openCtx(items, x, y, da = null){
   if(da && document.activeElement === da) el.querySelector("button")?.focus();
 }
 
+/* Davanti e dietro: solo se sul livello c'è qualcos'altro con cui
+   scambiarsi di posto. Agiscono su tutta la selezione, come Duplica. */
+function vociOrdine(){
+  if(currentNode().children.length < 2) return [];
+  return ["---",
+    {id:"z-su", label:"Porta in primo piano", kbd:"Home", run:()=>ordinaSelezione("davanti")},
+    {id:"z-giu", label:"Manda in fondo", kbd:"End", run:()=>ordinaSelezione("dietro")}];
+}
+
 function focusDetailTitle(){
   setTimeout(()=>{ const i=document.querySelector("#detail input"); if(i){ i.focus(); i.select(); } }, 50);
 }
@@ -85,6 +94,7 @@ export function showCtxFor(target, cx, cy){
         {id:"dup", label:"Duplica", run:()=>{ st.selectedId=n.id; duplicateSelected(); }},
         {id:"cop", label:"Copia", run:copiaSelezione},
         {id:"tag", label:"Taglia", run:tagliaSelezione},
+        ...vociOrdine(),
         "---",
         {id:"del", label:"Elimina…", danger:true, run:()=>askDeleteNode(n.id)}
       ], cx, cy);
@@ -101,6 +111,7 @@ export function showCtxFor(target, cx, cy){
       // destro su una bolla di un gruppo selezionato non lo scioglie.
       {id:"cop",   label:"Copia", run:copiaSelezione},
       {id:"tag",   label:"Taglia", run:tagliaSelezione},
+      ...vociOrdine(),
       "---",
       {head:"Stato"},
       ...Object.entries(STATUS_COLORS).map(([stt,col])=>({

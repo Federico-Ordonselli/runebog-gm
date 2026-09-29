@@ -768,6 +768,32 @@ export function nodeBox(n){
 }
 export const nodeCenter = n => { const b=nodeBox(n); return {x:n.x+b.w/2, y:n.y+b.h/2}; };
 
+/* Davanti e dietro sulla tela (29 set 2026): l'ordine di disegno È l'ordine
+   di `children`, quindi portare una bolla in primo piano vuol dire spostarla
+   in fondo all'elenco. Nessun campo `z`: sarebbe un secondo ordine da tenere
+   d'accordo col primo (il DOM, il Tab, il tavolo seguono comunque l'array),
+   e le campagne già salvate hanno già un ordine — quello giusto finora.
+   La selezione si sposta in blocco e tiene il suo ordine interno: tre PNG
+   posati su una bacheca restano impilati come erano. Torna un array nuovo;
+   con `verso` sconosciuto o niente da spostare torna quello di prima. */
+export function riordina(figli, ids, verso){
+  const sel = new Set(ids);
+  const dentro = figli.filter(c => sel.has(c.id)), fuori = figli.filter(c => !sel.has(c.id));
+  if(!dentro.length || !fuori.length) return figli;
+  if(verso === "davanti") return [...fuori, ...dentro];
+  if(verso === "dietro")  return [...dentro, ...fuori];
+  return figli;
+}
+/* Dove nasce una casella di testo: dietro a tutto ciò che non è testo, ma
+   davanti alle caselle già posate. Una casella fa quasi sempre da fondo (la
+   bacheca "Personaggi da incontrare" con i PNG appoggiati sopra), e nascendo
+   in cima copriva proprio le bolle che doveva raccogliere. Una casella
+   portata avanti dal DM resta dov'è: conta solo il primo non-testo. */
+export function posizioneNuovoTesto(figli){
+  const i = figli.findIndex(c => !isTesto(c));
+  return i < 0 ? figli.length : i;
+}
+
 export function escapeHtml(s){ return String(s??"").replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
 export function escapeAttr(s){ return escapeHtml(s); }
 
