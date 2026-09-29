@@ -25,6 +25,13 @@ un buco contornato dalle mura».
   (`restaArmata` in `mappa.js`).
 - Test: `test/disegno/bordo-corridoi.test.mjs`; nel browser
   `node test/browser/verifica-bordo-corridoi.mjs` (vuole `npm run dev`).
+- [x] **Portable 0.2.9** (29 set 2026) con bordo, secchiello, materiali e
+  riva: costruita dal workflow Windows portable, smoke e tavolo verdi sul
+  runner; controllato che le 12 texture siano nel pacchetto
+  (`resources/static/app/materiali/`). Il server del tavolo LAN non
+  conosceva `.webp` (sarebbe uscito octet-stream con `nosniff`): ora
+  `image/webp`, e `table-server.test.cjs` lo controlla. Versione, download
+  e checksum aggiornati in `src/lib/site.ts`.
 - [x] **Materiali del pavimento** (29 set 2026, stesso giorno). Texture
   generate da Codex (12 materiali, 1–9 KB l'una, provenienza e licenza in
   `risorse/materiali/LEGGIMI.md`); il tappeto rifatto qui per una cucitura
