@@ -629,6 +629,141 @@ export function riquadroCorridoi(g, celle){
   return celle.length ? {x1, y1, x2, y2} : null;
 }
 
+/* ---------------- il bordo dei corridoi ----------------
+   Il pavimento dipinto ha i suoi muri (29 set 2026), e sono DERIVATI come il
+   perimetro delle bolle, non un dato: un lato di cella con il pavimento da
+   una parte e il vuoto dall'altra è parete, ricalcolata a ogni disegno.
+   Cancellare una cella in mezzo lascia quindi un pilastro (o un fosso)
+   murato da sé, e al tavolo non c'è niente da spedire: il client lo ricava
+   dai corridoi che la proiezione manda già.
+
+   Due regole tolgono il muro, e servono entrambe:
+   - il lato confina con l'interno di una PIANTA (gridShape: stanza,
+     edificio, piazza), da una parte o dall'altra. La stanza ha già i suoi
+     muri, e un corridoio dipinto fino alla porta non deve richiuderla. Al
+     tavolo una stanza non rivelata non c'è, quindi lì il lato torna muro:
+     è il verso giusto, il corridoio finisce contro una parete.
+   - sul lato c'è già un muro libero, qualunque (pieno, porta, finestra…).
+     La porta è il caso che conta — il bordo la coprirebbe — ma anche un
+     muro pieno non va disegnato due volte. Una porta segreta esce al tavolo
+     come muro pieno e resta coperta: niente buco che la tradisca.
+   Sempre acceso, senza un campo che lo spenga: con le due regole il
+   generatore di dungeon non raddoppia niente (le sue stanze sono piante e
+   le pareti muri liberi) e i suoi corridoi guadagnano le pareti che non
+   avevano. Se un giorno servisse spegnerlo, un `n.bordoCorridoi:false` con
+   assente = acceso non chiede migrazioni. */
+const tondo = v => Math.round(v * 100) / 100;
+export function centroDiCella(g, [i, j]){
+  if(isHex(g)) return centroEsagono(g, {q:i, r:j});
+  return {x:(i + 0.5) * g.cella, y:(j + 0.5) * g.cella};
+}
+const dentroPianta = (stanze, p) =>
+  stanze.some(s => p.x > s.x && p.x < s.x + s.w && p.y > s.y && p.y < s.y + s.h);
+/* I muri liberi come intervalli su ogni retta della maglia: un lato è
+   coperto se sta tutto dentro uno di loro. */
+function indiceMuri(muri, g){
+  const h = new Map(), v = new Map();
+  for(const w of muri){
+    const e = wallSegEnds(w, g);
+    if(![e.x1, e.y1, e.x2, e.y2].every(Number.isFinite)) continue;
+    const [m, k, a, b] = w.dir === "v" ? [v, tondo(e.x1), e.y1, e.y2] : [h, tondo(e.y1), e.x1, e.x2];
+    if(!m.has(k)) m.set(k, []);
+    m.get(k).push([Math.min(a, b), Math.max(a, b)]);
+  }
+  return {h, v};
+}
+const EPS = 0.01;
+function latoCoperto(idx, [x1, y1], [x2, y2]){
+  let m, k, a, b;
+  if(Math.abs(y1 - y2) < EPS){ m = idx.h; k = tondo(y1); a = x1; b = x2; }
+  else if(Math.abs(x1 - x2) < EPS){ m = idx.v; k = tondo(x1); a = y1; b = y2; }
+  else return false;                              // un lato obliquo (esagoni): nessun muro ci sta sopra
+  const lo = Math.min(a, b), hi = Math.max(a, b);
+  return (m.get(k) || []).some(([p, q]) => p <= lo + EPS && q >= hi - EPS);
+}
+/* I lati di una cella, ognuno col centro della cella che sta dall'altra
+   parte: il riflesso del centro nel punto medio del lato, che vale per i
+   quadretti e per gli esagoni regolari. */
+function latiCella(g, c){
+  const vs = verticiCella(g, c), o = centroDiCella(g, c);
+  return vs.map((a, k) => {
+    const b = vs[(k + 1) % vs.length];
+    return {a, b, oltre:{x:a[0] + b[0] - o.x, y:a[1] + b[1] - o.y}};
+  });
+}
+const chiaveLato = (a, b) => {
+  const p = tondo(a[0]) + "," + tondo(a[1]), q = tondo(b[0]) + "," + tondo(b[1]);
+  return p < q ? p + "|" + q : q + "|" + p;
+};
+/**
+ * @param {{stanze?:{x:number,y:number,w:number,h:number}[], muri?:object[]}} ctx
+ * @returns {number[][]} segmenti [x1, y1, x2, y2], i collineari contigui fusi
+ */
+export function bordoCorridoi(g, celle, {stanze = [], muri = []} = {}){
+  if(!celle.length) return [];
+  const dipinte = new Set(celle.map(chiaveCella)), idx = indiceMuri(muri, g);
+  const lati = [];
+  for(const c of celle){
+    const o = centroDiCella(g, c), dentro = dentroPianta(stanze, o);
+    for(const l of latiCella(g, c)){
+      if(dipinte.has(chiaveCella(cellaCorridoio(g, l.oltre.x, l.oltre.y)))) continue;
+      if(dentro || dentroPianta(stanze, l.oltre)) continue;
+      if(latoCoperto(idx, l.a, l.b)) continue;
+      lati.push([l.a[0], l.a[1], l.b[0], l.b[1]]);
+    }
+  }
+  if(isHex(g)) return lati.map(s => s.map(tondo));
+  /* Sui quadretti i lati di una stessa retta si fondono: un corridoio lungo
+     venti celle è due linee, non quaranta. */
+  const fondi = (segs, asse) => {
+    const [p, a, b] = asse === "h" ? [1, 0, 2] : [0, 1, 3];
+    segs.forEach(s => { if(s[a] > s[b]){ [s[0], s[2]] = [s[2], s[0]]; [s[1], s[3]] = [s[3], s[1]]; } });
+    segs.sort((s, t) => s[p] - t[p] || s[a] - t[a]);
+    const out = [];
+    for(const s of segs){
+      const u = out[out.length - 1];
+      if(u && Math.abs(u[p] - s[p]) < EPS && Math.abs(u[b] - s[a]) < EPS) u[b] = s[b];
+      else out.push([...s]);
+    }
+    return out;
+  };
+  return [...fondi(lati.filter(s => Math.abs(s[1] - s[3]) < EPS), "h"),
+          ...fondi(lati.filter(s => Math.abs(s[0] - s[2]) < EPS), "v")].map(s => s.map(tondo));
+}
+export const sagomaBordo = segs => segs.map(s => `M${s[0]} ${s[1]}L${s[2]} ${s[3]}`).join("");
+
+/* Il secchiello (29 set 2026): dalla cella toccata si allarga il pavimento
+   finché non incontra un muro libero o una pianta. È il "chiudi il perimetro
+   e si riempie" fatto in due gesti — la penna dei muri non deve indovinare
+   quando una forma si è chiusa, e un perimetro lasciato aperto per sbaglio
+   non dipinge mezza mappa: oltre `limite` celle l'area si dichiara aperta e
+   non cambia niente. Le celle già dipinte si attraversano senza contarle,
+   così si riempie anche attorno a un corridoio che c'era già. */
+export const RIEMPI_MAX = 2500;
+export function riempiArea(g, celle, x, y, {stanze = [], muri = []} = {}, limite = RIEMPI_MAX){
+  const inizio = cellaCorridoio(g, x, y);
+  if(dentroPianta(stanze, centroDiCella(g, inizio))) return {esito:"pianta", nuove:[]};
+  const dipinte = new Set(celle.map(chiaveCella)), idx = indiceMuri(muri, g);
+  const visti = new Set([chiaveCella(inizio)]), coda = [inizio], nuove = [];
+  while(coda.length){
+    const c = coda.pop();
+    if(!dipinte.has(chiaveCella(c))){
+      nuove.push(c);
+      if(nuove.length > limite) return {esito:"aperta", nuove:[]};
+    }
+    for(const l of latiCella(g, c)){
+      const n = cellaCorridoio(g, l.oltre.x, l.oltre.y), k = chiaveCella(n);
+      if(visti.has(k) || latoCoperto(idx, l.a, l.b) || dentroPianta(stanze, l.oltre)) continue;
+      visti.add(k);
+      coda.push(n);
+    }
+    /* Anche le celle dipinte si attraversano, ma senza contarle: su un
+       pavimento già intero e aperto verso il vuoto la visita non finirebbe. */
+    if(visti.size > limite * 4) return {esito:"aperta", nuove:[]};
+  }
+  return {esito: nuove.length ? "ok" : "piena", nuove};
+}
+
 /* Colore di default PER FORMA, non per tipo: prima edificio e stanza erano
    entrambi "luogo" e quindi lo stesso teal, così una pianta di dungeon era una
    distesa di rettangoli identici e la gerarchia si leggeva solo dalla taglia.

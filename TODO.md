@@ -1,5 +1,40 @@
 # To-do
 
+## Bordo del pavimento e secchiello (29 settembre 2026)
+
+Nati da una proposta di Dario: «le bolle dei dungeon si creano come i muri,
+appena chiusa la polilinea si riempiono, e cancellando dei quadretti si crea
+un buco contornato dalle mura».
+
+- [x] **Il pavimento dipinto ha i suoi muri.** `bordoCorridoi` in
+  `modello.js`: un lato di cella fra pavimento e vuoto è parete, DERIVATA a
+  ogni disegno come il perimetro delle bolle (`<path id="corridoi-bordo">`,
+  aggiornato per id anche dal pennello). Cancellare una cella in mezzo lascia
+  un pilastro murato da sé. Due regole tolgono il muro, scelte da Federico:
+  (1) il lato confina con l'interno di una pianta (`gridShape`), da una parte
+  o dall'altra; (2) sul lato c'è già un muro libero di qualunque tipo, porte
+  comprese. Sempre acceso e senza campo (scelta mia): con le due regole il
+  generatore non raddoppia niente e i suoi corridoi guadagnano le pareti.
+  Se servirà spegnerlo: `n.bordoCorridoi:false`, assente = acceso, niente
+  migrazione. Al tavolo esce da sé (la proiezione manda già corridoi, muri e
+  le piante rivelate; una stanza nascosta lascia il corridoio contro un muro).
+- [x] **Secchiello "Riempi"** nel gruppo Pianta: un tocco dentro un
+  perimetro di muri liberi ne dipinge le celle (`riempiArea`), fermandosi su
+  muri e piante. Oltre `RIEMPI_MAX` (2500) celle l'area si dichiara aperta,
+  non cambia niente e lo dice in `#savestate`. Resta armato come il pennello
+  (`restaArmata` in `mappa.js`).
+- Test: `test/disegno/bordo-corridoi.test.mjs`; nel browser
+  `node test/browser/verifica-bordo-corridoi.mjs` (vuole `npm run dev`).
+- [ ] **Materiali del pavimento** (pietra, acqua, legno, terra…): oggi una
+  cella è `[i, j]`. Vuole un cambio di contratto (`[i, j, m]` o strati per
+  materiale), bonifica, proiezione e un menu. Da decidere prima di scrivere:
+  pattern SVG procedurali (leggeri, seguono il tema) o texture raster
+  (più belle, da generare fuori: prompt pronto per Codex nella chat del 29
+  set). Il bordo derivato dovrà decidere se due materiali diversi si murano
+  fra loro (probabilmente no: acqua in una stanza non è una parete).
+- [ ] Collegamento "a corridoio" largo N quadretti: sconsigliato, sarebbe un
+  secondo modo di fare il pennello con una geometria che non sta sulla maglia.
+
 ## Davanti/dietro e filtro delle quest (29 settembre 2026)
 
 Dario: le caselle di testo fanno da bacheca («Personaggi da incontrare»)

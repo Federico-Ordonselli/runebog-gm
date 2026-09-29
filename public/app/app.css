@@ -486,6 +486,11 @@
      scuro, e un bianco sulla carta non si vedrebbe. Velato perché sotto deve
      restare leggibile la maglia, che è la misura. */
   #plan-svg .corridoi{fill:color-mix(in srgb, var(--ink) 30%, transparent)}
+  /* Il bordo derivato del pavimento: lo stesso tratto di un muro libero
+     (.wall-seg__line), perché al tavolo si legge come muro e basta. Capi
+     tondi: i lati si incontrano a 90° sui quadretti e a 120° negli esagoni,
+     e un capo piatto lascerebbe una tacca in ogni angolo. */
+  #plan-svg .corridoi-bordo{fill:none;stroke:var(--ink-dim);stroke-width:6;stroke-linecap:round}
   #plan-wrap{flex:1;position:relative;overflow:hidden}
   #plan-svg{width:100%;height:100%;display:block;touch-action:none;cursor:default}
   /* La tela degli strumenti temporanei: copre plan-wrap ma non riceve puntatori

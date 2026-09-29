@@ -12,6 +12,7 @@ import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeCo
          wallShape, wallBox, contentBox, wallOpening, wallPlan, WALL,
          wallSegsOf, wallSegEnds, newWallSeg, stretchWallSeg, WALL_MAX,
          corridoiDi, cellaCorridoio, chiaveCella, sagomaCorridoi, riquadroCorridoi, CORRIDOI_MAX,
+         bordoCorridoi, sagomaBordo, riempiArea, RIEMPI_MAX,
          DOOR_TYPES, doorKind, wallLabel, shapeType, scalaSopra, scalaDentro,
          GRIGLIE, GRIGLIA_BASE, GRID_LIMITS, grigliaDi, isHex, inScala, nomeCelle, formattaMetri,
          passoMaglia, tasselloMaglia, normalizzaTaglia, TAGLIA_MAX, MARKER_R, CELL,
@@ -940,6 +941,12 @@ export function renderCanvas(){
     out += `</g>`;
   }
 
+  /* Il bordo del pavimento dipinto (bordoCorridoi in modello.js): muri
+     derivati, quindi solo disegno e senza eventi. Sta con i muri liberi,
+     sopra i collegamenti, perché è la stessa architettura. C'è sempre,
+     anche vuoto, per la stessa ragione di #corridoi. */
+  out += `<path id="corridoi-bordo" class="corridoi-bordo" d="${dBordoCorridoi(cur)}" pointer-events="none"/>`;
+
   /* Muri liberi: sotto le bolle e i segnalini, sopra i collegamenti. È
      l'ordine del pavimento — un muro è architettura, ci si cammina in mezzo,
      quindi non deve mai coprire una pedina né rubarle il tocco. */
@@ -1240,6 +1247,7 @@ export function addSpatialChild(opts, x, y){
   // Invio dalla palette), e sdoppiarli avrebbe voluto dire tenerli allineati.
   if(opts.wall) return addWallSeg(x, y, opts.porta);
   if(opts.corridoi) return alternaCellaCorridoio(x, y);
+  if(opts.riempi) return riempiQui(x, y);
   let c;
   if(opts.testo){
     c = node("", "testo"); c.w = TESTO_BOX.w; c.h = TESTO_BOX.h;
@@ -1471,6 +1479,8 @@ let suppressFocusSel = false;          // vero solo durante il focus() di ripris
 function planHintText(){
   if(armedPal?.corridoi)
     return "Trascina per dipingere i corridoi · partendo da una cella dipinta la cancelli · Esc per finire";
+  if(armedPal?.riempi)
+    return "Tocca dentro un perimetro di muri per riempirne il pavimento · Esc per finire";
   if(penneMuri(armedPal))
     return "Tieni premuto e trascina per tracciare i muri · un clic ne posa uno · Esc per finire";
   return armedPal
@@ -1512,7 +1522,44 @@ function applicaPennello(drag, celle){
   if(drag.celle.size) cur.corridoi = [...drag.celle.values()]; else delete cur.corridoi;
   drag.moved = true;
   document.getElementById("corridoi")?.setAttribute("d", sagomaCorridoi(maglia(), corridoiDi(cur)));
+  document.getElementById("corridoi-bordo")?.setAttribute("d", dBordoCorridoi(cur));
 }
+/* Cosa toglie il muro dal bordo del pavimento: le piante del livello e i muri
+   liberi (le due regole in modello.js). Al tavolo `children` è già la
+   proiezione, quindi una stanza non rivelata non apre niente. */
+function vincoliPavimento(cur){
+  return {
+    stanze: cur.children.filter(c => gridShape(c) && typeof c.x==="number")
+      .map(c => ({x:c.x, y:c.y, ...nodeBox(c)})),
+    muri: wallSegsOf(cur),
+  };
+}
+function dBordoCorridoi(cur){
+  return sagomaBordo(bordoCorridoi(maglia(), corridoiDi(cur), vincoliPavimento(cur)));
+}
+/* Il secchiello: riempie il pavimento dentro i muri attorno al punto (vedi
+   riempiArea in modello.js). Un'area aperta non cambia niente e lo dice: un
+   secchiello che tace sembra rotto, e uno che dipinge mezza mappa è peggio. */
+function riempiQui(x, y){
+  if(RO) return;
+  const cur = currentNode(), celle = corridoiDi(cur);
+  const r = riempiArea(maglia(), celle, x, y, vincoliPavimento(cur),
+    Math.min(RIEMPI_MAX, CORRIDOI_MAX - celle.length));
+  if(r.esito !== "ok"){
+    const el = document.getElementById("savestate");
+    if(el) el.textContent = {
+      aperta: "Il perimetro non è chiuso (o l'area è troppo grande): niente da riempire",
+      pianta: "Dentro una stanza il pavimento c'è già",
+      piena:  "Qui il pavimento c'è già",
+    }[r.esito];
+    return;
+  }
+  cur.corridoi = [...celle, ...r.nuove];
+  save(); renderCanvas();
+}
+/* Le voci che restano armate dopo il tocco: pennello e secchiello si usano a
+   raffica, e l'Esc (o di nuovo la voce) li spegne. */
+const restaArmata = o => !!(o?.corridoi || o?.riempi);
 /* Dal trascinamento HTML5 della voce di palette: una cella sola, dove cade. */
 function alternaCellaCorridoio(x, y){
   if(RO) return;
@@ -1584,8 +1631,8 @@ function armPal(el, opts){
   if(armedEl){ armedEl.classList.add("armed"); armedEl.setAttribute("aria-pressed","true"); }
   const svg = planSvg();
   if(svg){
-    svg.classList.toggle("arming", !!armedPal && !armedPal.corridoi);
-    svg.classList.toggle("pennello", !!armedPal?.corridoi);
+    svg.classList.toggle("arming", !!armedPal && !restaArmata(armedPal));
+    svg.classList.toggle("pennello", restaArmata(armedPal));
   }
   const hint = document.getElementById("plan-hint");
   if(hint){
@@ -1640,7 +1687,7 @@ export function initMappa(){
       ev.preventDefault(); ev.stopPropagation();
       let opts; try{ opts = JSON.parse(el.dataset.pal); }catch(_){ return; }
       // Il pennello non si "posa" al centro: da tastiera lo si accende e spegne.
-      if(opts.corridoi){ armPal(el === armedEl ? null : el, opts); return; }
+      if(restaArmata(opts)){ armPal(el === armedEl ? null : el, opts); return; }
       armPal(null);
       const cx = planVB ? planVB.x+planVB.w/2 : 0, cy = planVB ? planVB.y+planVB.h/2 : 0;
       addSpatialChild(opts, cx, cy);
@@ -1722,6 +1769,13 @@ export function initMappa(){
       clearTimeout(lpTimer); lpStart = null;
       planDrag = iniziaPenna(planPoint(ev));
       svg.setPointerCapture(ev.pointerId);
+      return;
+    }
+    if(armedPal?.riempi && !RO){
+      ev.preventDefault();
+      clearTimeout(lpTimer); lpStart = null;
+      const p0 = planPoint(ev);
+      riempiQui(p0.x, p0.y);
       return;
     }
     if(armedPal && !armedPal.corridoi){

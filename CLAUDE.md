@@ -244,6 +244,16 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   `posizioneNuovoTesto`, non con `push`. Il filtro degli stati del diario
   vive in memoria in `quest.js`, come l'ordine. Verifica:
   `node test/browser/verifica-ordine-e-filtri.mjs`.
+- Bordo del pavimento e secchiello (29 set 2026): il pavimento dipinto
+  (`n.corridoi`) ha muri DERIVATI, non salvati (`bordoCorridoi` in
+  `modello.js`, `<path id="corridoi-bordo">`): lato fra cella dipinta e
+  vuoto = parete. Niente muro se il lato confina con l'interno di una pianta
+  (`gridShape`, da una parte o dall'altra) o se ci sta già sopra un muro
+  libero, porte comprese — sennò il bordo richiuderebbe le porte. Sempre
+  acceso, senza campo; per spegnerlo in futuro `n.bordoCorridoi:false` con
+  assente = acceso. Il secchiello (`riempiArea`, voce "Riempi") dipinge
+  dentro muri e piante e oltre `RIEMPI_MAX` rifiuta l'area come aperta.
+  Verifica: `node test/browser/verifica-bordo-corridoi.mjs`.
 - Costo del ridisegno: `node test/browser/misura-ridisegno.mjs` (numeri,
   non soglie). Il pan tocca solo il viewBox; ogni `renderCanvas` ricrea i
   `foreignObject` delle caselle, e il profilo attribuisce quel layout alla
