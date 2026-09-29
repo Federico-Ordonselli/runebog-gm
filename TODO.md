@@ -20,6 +20,10 @@ diario vuole vedere solo le quest di certi stati.
 - [x] Test `test/disegno/ordine.test.mjs`; verifica
   `node test/browser/verifica-ordine-e-filtri.mjs` (21 controlli, telefono
   compreso).
+- [x] **Portable 0.2.8** con queste due funzioni: costruita dal workflow
+  Windows portable (su questo Mac `makensis` non parte senza Rosetta),
+  smoke e tavolo del desktop verdi sul runner; versione, download e
+  checksum aggiornati in `src/lib/site.ts`.
 
 ## Fase 4: calendario di gioco (25 settembre 2026)
 
