@@ -7,7 +7,10 @@ const QRCode = require('qrcode');
 const { projectForPlayers, jsonForScript } = require('./projector.cjs');
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png' };
+  '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png',
+  // Le texture dei pavimenti (public/app/materiali): con `nosniff` qui sotto,
+  // un .webp servito come octet-stream è un'immagine che il browser può rifiutare.
+  '.webp': 'image/webp' };
 const NO_STORE = { 'Cache-Control': 'private, no-store', 'Referrer-Policy': 'no-referrer',
   'X-Robots-Tag': 'noindex, nofollow', 'X-Content-Type-Options': 'nosniff' };
 

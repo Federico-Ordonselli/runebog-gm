@@ -36,6 +36,9 @@ test('tavolo LAN: proiezione, asset, aggiornamenti e chiusura', async () => {
     const css = await fetch(new URL('/app/app.css', url));
     assert.equal(css.status, 200);
     assert.match(css.headers.get('content-type'), /text\/css/);
+    const texture = await fetch(new URL('/app/materiali/lava.webp', url));
+    assert.equal(texture.status, 200);
+    assert.equal(texture.headers.get('content-type'), 'image/webp');
     const api = new URL(url.pathname.replace('/tavolo/', '/api/tavolo/'), url);
     const first = await fetch(api);
     assert.equal(first.status, 200);
