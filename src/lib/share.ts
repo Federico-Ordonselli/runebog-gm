@@ -25,7 +25,7 @@ import { randomBytes } from "crypto";
 // non risolve gli import senza estensione.
 import {
   CURRENT_CAMPAIGN_SCHEMA_VERSION, IMMAGINE_LOCALE, GRID_FORMS, GRID_LIMITS,
-  normalizzaCorridoi, normalizzaPercorso, normalizzaTaglia,
+  normalizzaPavimento, normalizzaPercorso, normalizzaTaglia,
   normalizzaCalendario, normalizzaScadenza,
 } from "../../public/app/formato-campagna.js";
 
@@ -301,8 +301,11 @@ function projectNode(n: Node, data: Node): Node {
   // senza i giocatori vedrebbero le stanze galleggiare senza corridoi. La
   // bonifica è quella del contratto, la stessa di sanitizeState nell'app:
   // coppie di interi e un tetto, niente altro arriva nell'attributo `d`.
-  const corridoi = normalizzaCorridoi(n.corridoi);
-  if (corridoi.length) out.corridoi = corridoi;
+  // I materiali escono con loro (sono la stessa pianta): solo i nomi della
+  // whitelist MATERIALI, perché finiscono in un url(#mat-…) e in un href.
+  const pav = normalizzaPavimento(n.corridoi, n.pavimenti);
+  if (pav.corridoi.length) out.corridoi = pav.corridoi;
+  if (Object.keys(pav.pavimenti).length) out.pavimenti = pav.pavimenti;
   const w = num(n.w), h = num(n.h);
   if (w) out.w = w;
   if (h) out.h = h;

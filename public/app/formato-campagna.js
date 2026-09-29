@@ -243,6 +243,48 @@ export function normalizzaCorridoi(v){
   }
   return out;
 }
+/* I materiali del pavimento (`node.pavimenti`, 29 set 2026): un elenco di
+   celle per materiale, ACCANTO a `corridoi`, che resta il pavimento velato
+   di sempre. Non un terzo elemento nella cella: `normalizzaCorridoi` delle
+   copie già distribuite scarta ogni cella che non sia una coppia, quindi un
+   `[i, j, "acqua"]` sparirebbe senza dirlo a chi apre il file con la
+   portable di ieri — mentre un campo che non conosce lo lascia passare e lo
+   riscrive com'è. È la stessa ragione per cui il calendario è entrato senza
+   salto di `schemaVersion`.
+   I nomi finiscono in un `url(#mat-…)` e nel percorso di un'immagine, quindi
+   sono una whitelist: un nome fuori elenco fa rifiutare il documento in
+   scrittura e cade in lettura. Coincide coi file di public/app/materiali/, e
+   un test lo impone. */
+export const MATERIALI = Object.freeze([
+  "pietra-lastricata","pietra-grezza","legno-assi","terra-battuta","erba","sabbia",
+  "acqua-bassa","acqua-profonda","lava","ghiaccio","fango","tappeto-rosso",
+]);
+/* La bonifica UNA di tutto il pavimento di un livello: ogni cella sta in un
+   elenco solo, e il tetto `corridoiPerNode` vale per tutte insieme. Se una
+   cella compare due volte vince il primo materiale nell'ordine di MATERIALI,
+   e `corridoi` viene per ultimo: il pennello non lascia mai doppioni, quindi
+   qui conta solo che la regola sia una e deterministica. */
+export function normalizzaPavimento(corridoi, pavimenti){
+  const visti = new Set(), fuori = {corridoi:[], pavimenti:{}};
+  let tot = 0;
+  const prendi = (v, dove) => {
+    for(const [i, j] of normalizzaCorridoi(v)){
+      if(tot >= CAMPAIGN_LIMITS.corridoiPerNode) return;
+      const k = i + "," + j;
+      if(visti.has(k)) continue;
+      visti.add(k); dove.push([i, j]); tot++;
+    }
+  };
+  const p = pavimenti && typeof pavimenti === "object" && !Array.isArray(pavimenti) ? pavimenti : {};
+  for(const m of MATERIALI){
+    if(!Object.prototype.hasOwnProperty.call(p, m)) continue;
+    const dove = [];
+    prendi(p[m], dove);
+    if(dove.length) fuori.pavimenti[m] = dove;
+  }
+  prendi(corridoi, fuori.corridoi);
+  return fuori;
+}
 /* Il percorso di un collegamento disegnato a mano (`edge.percorso`, 24 set
    2026): i punti di mezzo come `[u, v]` nel riferimento dell'arco (vedi
    public/app/percorsi.js), in unità della distanza fra i due centri. Esce al
@@ -717,6 +759,28 @@ function validateNodeShallow(node, path){
         return bad("invalid_corridor_cell", "Una cella di corridoio è una coppia [colonna, riga]", cp);
       for(let k=0; k<2; k++)
         if((error = validateNumber(c[k], `${cp}[${k}]`, {integer:true, min:-CORRIDOI_COORD, max:CORRIDOI_COORD}))) return error;
+    }
+  }
+  if(node.pavimenti !== undefined){
+    const pp = `${path}.pavimenti`;
+    if(!node.pavimenti || typeof node.pavimenti !== "object" || Array.isArray(node.pavimenti))
+      return bad("invalid_floor", "I pavimenti sono un oggetto { materiale: [celle] }", pp);
+    let tot = Array.isArray(node.corridoi) ? node.corridoi.length : 0;
+    for(const m of Object.keys(node.pavimenti)){
+      if(!MATERIALI.includes(m))
+        return bad("invalid_floor_material", `Materiale del pavimento sconosciuto: ${m.slice(0, 40)}`, `${pp}.${m.slice(0, 40)}`);
+      const celle = node.pavimenti[m];
+      if((error = requireArray(celle, CAMPAIGN_LIMITS.corridoiPerNode, `${pp}.${m}`))) return error;
+      tot += celle.length;
+      if(tot > CAMPAIGN_LIMITS.corridoiPerNode)
+        return bad("too_many_items", `Un livello ha al massimo ${CAMPAIGN_LIMITS.corridoiPerNode} celle di pavimento`, `${pp}.${m}`);
+      for(let i=0; i<celle.length; i++){
+        const c = celle[i], cp = `${pp}.${m}[${i}]`;
+        if(!Array.isArray(c) || c.length !== 2)
+          return bad("invalid_corridor_cell", "Una cella di pavimento è una coppia [colonna, riga]", cp);
+        for(let k=0; k<2; k++)
+          if((error = validateNumber(c[k], `${cp}[${k}]`, {integer:true, min:-CORRIDOI_COORD, max:CORRIDOI_COORD}))) return error;
+      }
     }
   }
   for(let i=0; i<node.edges.length; i++)

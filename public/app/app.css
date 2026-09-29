@@ -491,6 +491,15 @@
      tondi: i lati si incontrano a 90° sui quadretti e a 120° negli esagoni,
      e un capo piatto lascerebbe una tacca in ogni angolo. */
   #plan-svg .corridoi-bordo{fill:none;stroke:var(--ink-dim);stroke-width:6;stroke-linecap:round}
+  /* La miniatura di un materiale nella palette: la texture vera, bordata
+     come le altre icone perché un quadratino di sabbia su un pannello chiaro
+     non ha altro che lo stacchi. */
+  .pal-mat{width:18px;height:18px;border-radius:3px;border:1px solid var(--line-ui);flex:none;object-fit:cover}
+  /* I nomi sotto pedine e segnalini hanno un alone del colore della tela
+     (29 set 2026): coi materiali il fondo non è più quello del tema, e un
+     nome chiaro sulla sabbia o scuro sul legno spariva. Sul fondo di sempre
+     l'alone è dello stesso colore della tela, quindi non si vede. */
+  #plan-svg .nome-segnalino{paint-order:stroke;stroke:var(--bog);stroke-width:3px;stroke-linejoin:round}
   #plan-wrap{flex:1;position:relative;overflow:hidden}
   #plan-svg{width:100%;height:100%;display:block;touch-action:none;cursor:default}
   /* La tela degli strumenti temporanei: copre plan-wrap ma non riceve puntatori

@@ -254,6 +254,22 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   assente = acceso. Il secchiello (`riempiArea`, voce "Riempi") dipinge
   dentro muri e piante e oltre `RIEMPI_MAX` rifiuta l'area come aperta.
   Verifica: `node test/browser/verifica-bordo-corridoi.mjs`.
+- Materiali del pavimento (`n.pavimenti`, 29 set 2026): `{materiale: [celle]}`
+  ACCANTO a `corridoi` (che resta il velato), non un terzo elemento nella
+  cella: `normalizzaCorridoi` delle copie distribuite scarta le celle che
+  non sono coppie, mentre un campo sconosciuto lo conservano (provato col
+  contratto della 0.2.8). `MATERIALI` sta nel contratto ed è una whitelist
+  (finisce in `url(#mat-…)` e in un href); un test la impone uguale ai file
+  di `public/app/materiali/`. Bonifica UNA, `normalizzaPavimento`: una cella
+  in un elenco solo, vincono i materiali, tetto `corridoiPerNode` su tutte.
+  Chi chiede "c'è pavimento?" usa `celleDelPavimento`; il bordo è quello
+  dell'unione (niente muri fra materiali). Le voci della tendina Pavimento
+  si generano da `MATERIALI`; Riempi usa l'ultimo pennello (`materialeScelto`,
+  stato di sessione). Una tile = 4×4 celle (`latoTile`). Sopra i materiali
+  la maglia è `#grid-bg`; i nomi sotto i segnalini hanno un alone
+  (`.nome-segnalino`). `LEGGIMI.md` e `anteprima.webp` delle texture stanno
+  in `risorse/materiali/`, FUORI da `public/`, che il service worker
+  precarica per intero. Verifica: `node test/browser/verifica-materiali.mjs`.
 - Costo del ridisegno: `node test/browser/misura-ridisegno.mjs` (numeri,
   non soglie). Il pan tocca solo il viewBox; ogni `renderCanvas` ricrea i
   `foreignObject` delle caselle, e il profilo attribuisce quel layout alla

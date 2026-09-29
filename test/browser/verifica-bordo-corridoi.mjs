@@ -48,7 +48,7 @@ try {
   controlla(/M0 120L0 160/.test(d0), "il capo libero del corridoio è murato");
 
   // Secchiello nel perimetro chiuso.
-  await pagina.locator('.pal-gruppo[data-gruppo=pianta] .pal-apri').click();
+  await pagina.locator('.pal-gruppo[data-gruppo=pavimento] .pal-apri').click();
   await pagina.locator('.pal-item[data-pal*=riempi]').click();
   controlla(await pagina.locator('#plan-svg.pennello').count() === 1, "la voce accende il secchiello");
   let p = await schermo(-8.5*C, 1.5*C);
@@ -68,8 +68,8 @@ try {
 
   // Esc spegne, poi il pennello cancella la cella centrale del pavimento.
   await pagina.keyboard.press("Escape");
-  await pagina.locator('.pal-gruppo[data-gruppo=pianta] .pal-apri').click();
-  await pagina.locator('.pal-item[data-pal*=corridoi]').click();
+  await pagina.locator('.pal-gruppo[data-gruppo=pavimento] .pal-apri').click();
+  await pagina.locator(`.pal-item[data-pal='{"corridoi":true}']`).click();
   p = await schermo(-8.5*C, 1.5*C);
   await pagina.mouse.move(p.x, p.y);
   await pagina.mouse.down();

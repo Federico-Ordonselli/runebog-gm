@@ -5,7 +5,8 @@
    Quell'import esiste per una riga sola (`IMMAGINE_LOCALE`): la forma di un URL
    di immagine deve essere la stessa qui e nel validatore, sennò il client
    accetta ciò che il server rifiuta. Non è la porta per farne entrare altre. */
-import { IMMAGINE_LOCALE, GRID_FORMS, GRID_LIMITS, CAMPAIGN_LIMITS, normalizzaCorridoi, normalizzaPercorso,
+import { IMMAGINE_LOCALE, GRID_FORMS, GRID_LIMITS, CAMPAIGN_LIMITS, normalizzaPercorso,
+         normalizzaPavimento, MATERIALI,
          TESTO_SIZE_MAX, TAGLIA_MAX, normalizzaTaglia, SCHEDA_LIMITI, normalizzaScheda,
          normalizzaCalendario, normalizzaScadenza } from "./formato-campagna.js";
 export { TESTO_SIZE_MAX, TAGLIA_MAX, normalizzaTaglia, SCHEDA_LIMITI, normalizzaScheda };
@@ -578,6 +579,33 @@ export function stretchWallSeg(w, capo, px, py, g = GRIGLIA_BASE){
    dipinge e si cancella col pennello, non si prende in mano. */
 export const CORRIDOI_MAX = CAMPAIGN_LIMITS.corridoiPerNode;
 export const corridoiDi = n => Array.isArray(n?.corridoi) ? n.corridoi : [];
+/* I materiali (`n.pavimenti`, 29 set 2026): un elenco di celle per
+   materiale accanto ai corridoi velati — la ragione della forma sta sopra
+   MATERIALI nel contratto. Ogni cella sta in un elenco solo. Chi chiede
+   "c'è pavimento qui?" (bordo, secchiello, "Adatta", livello vuoto) guarda
+   TUTTE le celle con `celleDelPavimento`: il materiale cambia il disegno,
+   non la pianta. */
+export { MATERIALI };
+export const MATERIALI_NOMI = {
+  "pietra-lastricata":"Pietra lastricata", "pietra-grezza":"Pietra grezza", "legno-assi":"Assi di legno",
+  "terra-battuta":"Terra battuta", "erba":"Erba", "sabbia":"Sabbia", "acqua-bassa":"Acqua bassa",
+  "acqua-profonda":"Acqua profonda", "lava":"Lava", "ghiaccio":"Ghiaccio", "fango":"Fango",
+  "tappeto-rosso":"Tappeto rosso",
+};
+export const pavimentiDi = n => {
+  const p = n?.pavimenti;
+  return p && typeof p === "object" && !Array.isArray(p) ? p : {};
+};
+export function celleDelPavimento(n){
+  const out = [...corridoiDi(n)];
+  for(const m of MATERIALI) if(Array.isArray(pavimentiDi(n)[m])) out.push(...pavimentiDi(n)[m]);
+  return out;
+}
+/* Una tile di texture copre 4×4 celle, qualunque sia il lato della maglia:
+   le texture sono dipinte a quella scala (assi larghe mezzo quadretto,
+   lastre di uno o due). Negli esagoni la tile non segue la maglia, e non
+   serve: un materiale non ha un verso. */
+export const latoTile = g => g.cella * 4;
 export const chiaveCella = c => c[0] + "," + c[1];
 export function cellaCorridoio(g, x, y){
   if(isHex(g)){ const c = cellaEsagono(g, x, y); return [c.q, c.r]; }
@@ -1014,7 +1042,11 @@ export function sanitizeState(s){
     if(n.taglia != null){ const t = normalizzaTaglia(n.taglia); if(t > 1) n.taglia = t; else delete n.taglia; }
     if(n.scheda != null){ const sc = normalizzaScheda(n.scheda); if(sc) n.scheda = sc; else delete n.scheda; }
     if(n.foglio != null && !foglioValido(n.foglio)) delete n.foglio;
-    if(n.corridoi != null){ const p = normalizzaCorridoi(n.corridoi); if(p.length) n.corridoi = p; else delete n.corridoi; }
+    if(n.corridoi != null || n.pavimenti != null){
+      const p = normalizzaPavimento(n.corridoi, n.pavimenti);
+      if(p.corridoi.length) n.corridoi = p.corridoi; else delete n.corridoi;
+      if(Object.keys(p.pavimenti).length) n.pavimenti = p.pavimenti; else delete n.pavimenti;
+    }
     if(n.scadenza != null){ const g = normalizzaScadenza(n.scadenza); if(g) n.scadenza = g; else delete n.scadenza; }
     if(n.scadenza == null) delete n.scadenzaVisibile;
     else if(n.scadenzaVisibile !== undefined && typeof n.scadenzaVisibile !== "boolean") delete n.scadenzaVisibile;

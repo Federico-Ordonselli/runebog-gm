@@ -13,6 +13,7 @@ import { TYPES, SHAPES, SHAPE_COLORS, EDGE_TYPES, markerR, STATUS_COLORS, nodeCo
          wallSegsOf, wallSegEnds, newWallSeg, stretchWallSeg, WALL_MAX,
          corridoiDi, cellaCorridoio, chiaveCella, sagomaCorridoi, riquadroCorridoi, CORRIDOI_MAX,
          bordoCorridoi, sagomaBordo, riempiArea, RIEMPI_MAX,
+         MATERIALI, MATERIALI_NOMI, pavimentiDi, celleDelPavimento, latoTile,
          DOOR_TYPES, doorKind, wallLabel, shapeType, scalaSopra, scalaDentro,
          GRIGLIE, GRIGLIA_BASE, GRID_LIMITS, grigliaDi, isHex, inScala, nomeCelle, formattaMetri,
          passoMaglia, tasselloMaglia, normalizzaTaglia, TAGLIA_MAX, MARKER_R, CELL,
@@ -184,7 +185,7 @@ function scalaUtile(cur){
   // Una maglia dichiarata dal DM misura qualcosa per definizione: l'ha messa
   // lì per contare, anche su una mappa di viaggio senza piante.
   return battleOn() || !!cur.griglia || gridShape(cur) || wallSegsOf(cur).length>0
-    || corridoiDi(cur).length>0 || cur.children.some(gridShape);
+    || celleDelPavimento(cur).length>0 || cur.children.some(gridShape);
 }
 function aggiornaScala(){
   const el = document.getElementById("plan-scale");
@@ -220,7 +221,7 @@ export function planFit(rerender){
   // "Adatta" gli dava la vista di default, come a un livello vuoto. Stessa
   // ragione per cui `vuoto` in renderCanvas li conta.
   const muri = wallSegsOf(cur);
-  const pav = riquadroCorridoi(maglia(), corridoiDi(cur));
+  const pav = riquadroCorridoi(maglia(), celleDelPavimento(cur));
   if(!kids.length && !muri.length && !pav){ planVB = {x:-600,y:-400,w:1200,h:800}; planApplyVB(); return; }
   let x1=Infinity,y1=Infinity,x2=-Infinity,y2=-Infinity;
   kids.forEach(c=>{ const b=nodeBox(c);
@@ -858,7 +859,7 @@ export function renderCanvas(){
   ensureLayout(cur);
   // Un livello con dei muri non è vuoto: chi ha cominciato a tirare su un
   // perimetro non deve vedersi tornare davanti l'invito a creare la prima bolla.
-  const vuoto = cur.children.length===0 && wallSegsOf(cur).length===0 && corridoiDi(cur).length===0;
+  const vuoto = cur.children.length===0 && wallSegsOf(cur).length===0 && celleDelPavimento(cur).length===0;
   const emptyEl = document.getElementById("empty-node");
   emptyEl.classList.toggle("show", vuoto);
   if(vuoto) emptyEl.innerHTML = emptyNodeMarkup();
@@ -888,6 +889,7 @@ export function renderCanvas(){
       <path d="${t.d}" fill="none" stroke="rgba(0,0,0,${inBattaglia?.55:.4})" stroke-width="1"/>
       <path d="${t.d}" transform="translate(1 1)" fill="none" stroke="rgba(255,255,255,${inBattaglia?.45:.3})" stroke-width="1"/>
     </pattern>
+    ${materialiInUso(cur).map(patternMateriale).join("")}
   </defs>
   <rect x="${planVB.x-6000}" y="${planVB.y-6000}" width="14000" height="14000" fill="url(#grid)" data-bg="1"/>`;
 
@@ -919,6 +921,14 @@ export function renderCanvas(){
      sempre, anche vuoto: il pennello lo aggiorna per id mentre si trascina,
      senza ridisegnare la tela sotto il dito. */
   out += `<path id="corridoi" class="corridoi" d="${sagomaCorridoi(maglia(), corridoiDi(cur))}" pointer-events="none"/>`;
+  /* I materiali: un percorso per materiale, tutti sempre presenti (vuoti se
+     il livello non li usa) perché il pennello li aggiorna per id. Sopra, la
+     maglia doppia degli sfondi limitata alle celle con materiale: una
+     texture è opaca e la maglia al 9% non la attraversa, e su una mappa
+     di gioco la maglia è la misura. */
+  for(const m of MATERIALI)
+    out += `<path id="pav-${m}" class="pavimento" fill="url(#mat-${m})" d="${sagomaCorridoi(maglia(), pavimentiDi(cur)[m] || [])}" pointer-events="none"/>`;
+  out += `<path id="pav-griglia" fill="url(#grid-bg)" d="${dGrigliaMateriali(cur)}" pointer-events="none"/>`;
 
   // collegamenti del livello corrente
   for(const e of (cur.edges||[])){
@@ -993,7 +1003,7 @@ export function renderCanvas(){
         <text x="${R}" y="${R+4*k}" text-anchor="middle" style="font-size:${12*k}px;font-weight:700;fill:var(--bog)">${escapeHtml(ini)}</text>
         ${barra}
         ${inBattaglia ? "" :
-          `<text x="${R}" y="${R*2+(pct===null?4:11)+11*k}" text-anchor="middle" style="font-size:${11*k}px;fill:var(--ink-dim)">${escapeHtml(nome)}</text>`}
+          `<text x="${R}" y="${R*2+(pct===null?4:11)+11*k}" text-anchor="middle" class="nome-segnalino" style="font-size:${11*k}px;fill:var(--ink-dim)">${escapeHtml(nome)}</text>`}
         ${maniglia(c, R*2)}
       </g>`;
     }else if(isTesto(c)){
@@ -1025,7 +1035,7 @@ export function renderCanvas(){
       out += `<g class="blk marker${selCls}${shCls}" data-block="${c.id}" ${a11y} transform="translate(${c.x},${c.y})">
         ${sagomaSegnalino(c.type, R*2, `style="--c:${col}"`)}
         <text x="${R}" y="${yIni}" text-anchor="middle" style="font-size:${12*k}px;fill:${col};font-weight:700">${(TYPES[c.type]||TYPES.nota).label[0]}</text>
-        <text x="${R}" y="${R*2+4+11*k}" text-anchor="middle" style="font-size:${11*k}px;fill:var(--ink-dim)">${escapeHtml(c.title||"")}</text>
+        <text x="${R}" y="${R*2+4+11*k}" text-anchor="middle" class="nome-segnalino" style="font-size:${11*k}px;fill:var(--ink-dim)">${escapeHtml(c.title||"")}</text>
         ${c.status?statusDot(R*2-2,3,c.status):""}
         ${c.children.length?`<text x="${R}" y="${R*2+6+22*k}" text-anchor="middle" style="font-size:${9*k}px;fill:var(--ink-dim)">◦ ${c.children.length}</text>`:""}
         ${!RO && haScheda(c) ? schedaMarkup(c, col) : ""}
@@ -1246,7 +1256,7 @@ export function addSpatialChild(opts, x, y){
   // qui che passano i tre modi di posare una cosa (trascina, arma-e-tocca,
   // Invio dalla palette), e sdoppiarli avrebbe voluto dire tenerli allineati.
   if(opts.wall) return addWallSeg(x, y, opts.porta);
-  if(opts.corridoi) return alternaCellaCorridoio(x, y);
+  if(opts.corridoi) return alternaCellaCorridoio(x, y, materialeDi(opts));
   if(opts.riempi) return riempiQui(x, y);
   let c;
   if(opts.testo){
@@ -1471,16 +1481,22 @@ export function addAtCenter(kind, key){
 }
 
 /* --- interazioni (pointer events) --- */
+/* Il materiale dell'ultimo pennello armato (null = velato): lo usa anche il
+   secchiello, così "Acqua" e poi "Riempi" riempie d'acqua. È stato della
+   sessione, non del documento. */
+let materialeScelto = null;
+const materialeDi = o => MATERIALI.includes(o?.materiale) ? o.materiale : null;
 let armedPal = null, armedEl = null;   // elemento della palette "armato": il prossimo tocco sulla mappa lo piazza
 let suppressFocusSel = false;          // vero solo durante il focus() di ripristino dopo un render
 
 // Un solo posto decide il testo del suggerimento: renderCanvas lo riscrive a ogni
 // ridisegno, quindi salvarne una copia altrove sarebbe fragile.
 function planHintText(){
+  const nome = m => m ? MATERIALI_NOMI[m] : "pavimento velato";
   if(armedPal?.corridoi)
-    return "Trascina per dipingere i corridoi · partendo da una cella dipinta la cancelli · Esc per finire";
+    return `Trascina per dipingere (${nome(materialeDi(armedPal))}) · partendo da una cella dello stesso materiale la cancelli · Esc per finire`;
   if(armedPal?.riempi)
-    return "Tocca dentro un perimetro di muri per riempirne il pavimento · Esc per finire";
+    return `Tocca dentro un perimetro di muri per riempirlo (${nome(materialeScelto)}) · Esc per finire`;
   if(penneMuri(armedPal))
     return "Tieni premuto e trascina per tracciare i muri · un clic ne posa uno · Esc per finire";
   return armedPal
@@ -1493,11 +1509,14 @@ function planHintText(){
    una dipinta cancella. Un gesto che alterna cella per cella lascerebbe a
    scacchi un corridoio ripassato. Fra due campioni del puntatore si
    interpola, sennò un trascinamento veloce salta le celle. */
-function iniziaPennello(p){
+function iniziaPennello(p, materiale = null){
   const cur = currentNode();
-  const celle = new Map(corridoiDi(cur).map(c=>[chiaveCella(c), c]));
+  const celle = mappaPavimento(cur);
   const prima = cellaCorridoio(maglia(), p.x, p.y);
-  const drag = {mode:"corridoi", celle, cancella: celle.has(chiaveCella(prima)), ultimo:p, moved:false};
+  /* Cancella solo chi parte da una cella dello STESSO materiale: partendo da
+     un altro materiale il gesto lo ricopre, cioè cambia pavimento. */
+  const cancella = celle.get(chiaveCella(prima))?.m === materiale;
+  const drag = {mode:"corridoi", celle, materiale, cancella, ultimo:p, moved:false};
   applicaPennello(drag, [prima]);
   return drag;
 }
@@ -1513,16 +1532,65 @@ function pennella(drag, p){
 function applicaPennello(drag, celle){
   let cambiato = false;
   for(const c of celle){
-    const k = chiaveCella(c);
-    if(drag.cancella){ if(drag.celle.delete(k)) cambiato = true; }
-    else if(!drag.celle.has(k) && drag.celle.size < CORRIDOI_MAX){ drag.celle.set(k, c); cambiato = true; }
+    const k = chiaveCella(c), e = drag.celle.get(k);
+    if(drag.cancella){ if(drag.celle.delete(k)) cambiato = true; continue; }
+    if(e?.m === drag.materiale) continue;
+    if(!e && drag.celle.size >= CORRIDOI_MAX) continue;
+    drag.celle.set(k, {c, m:drag.materiale}); cambiato = true;
   }
   if(!cambiato) return;
   const cur = currentNode();
-  if(drag.celle.size) cur.corridoi = [...drag.celle.values()]; else delete cur.corridoi;
+  scriviPavimento(cur, drag.celle);
   drag.moved = true;
-  document.getElementById("corridoi")?.setAttribute("d", sagomaCorridoi(maglia(), corridoiDi(cur)));
-  document.getElementById("corridoi-bordo")?.setAttribute("d", dBordoCorridoi(cur));
+  ridisegnaPavimento(cur);
+}
+/* Il pavimento di un livello come UNA mappa cella → {c, m} (m null =
+   velato), che è la forma in cui lo pensa il pennello: una cella, un
+   materiale. I materiali vincono sui corridoi come nella bonifica del
+   contratto (normalizzaPavimento). */
+function mappaPavimento(cur){
+  const mp = new Map();
+  for(const c of corridoiDi(cur)) mp.set(chiaveCella(c), {c, m:null});
+  const p = pavimentiDi(cur);
+  for(const m of MATERIALI) for(const c of (Array.isArray(p[m]) ? p[m] : [])) mp.set(chiaveCella(c), {c, m});
+  return mp;
+}
+function scriviPavimento(cur, mp){
+  const corr = [], pav = {};
+  for(const {c, m} of mp.values()){ if(m) (pav[m] ||= []).push(c); else corr.push(c); }
+  if(corr.length) cur.corridoi = corr; else delete cur.corridoi;
+  if(Object.keys(pav).length) cur.pavimenti = pav; else delete cur.pavimenti;
+}
+/* Riscrive per id tutto ciò che il pavimento disegna, senza renderCanvas:
+   il pennello lo chiama a ogni campione del puntatore. */
+function ridisegnaPavimento(cur){
+  const g = maglia(), el = id => document.getElementById(id);
+  el("corridoi")?.setAttribute("d", sagomaCorridoi(g, corridoiDi(cur)));
+  for(const m of materialiInUso(cur)){
+    if(!el("mat-" + m)) planSvg().querySelector("defs")?.insertAdjacentHTML("beforeend", patternMateriale(m));
+    el("pav-" + m)?.setAttribute("d", sagomaCorridoi(g, pavimentiDi(cur)[m] || []));
+  }
+  for(const m of MATERIALI) if(!pavimentiDi(cur)[m]) el("pav-" + m)?.setAttribute("d", "");
+  el("pav-griglia")?.setAttribute("d", dGrigliaMateriali(cur));
+  el("corridoi-bordo")?.setAttribute("d", dBordoCorridoi(cur));
+}
+/* La texture di un materiale: una tile ogni 4×4 celle (latoTile), agganciata
+   all'origine della maglia, così le lastre non scorrono spostando la vista.
+   L'indirizzo è assoluto come tutti quelli di app.html: la stessa pagina è
+   servita anche da /play e /tavolo. */
+function patternMateriale(m){
+  const L = latoTile(maglia());
+  return `<pattern id="mat-${m}" width="${L}" height="${L}" patternUnits="userSpaceOnUse">
+    <image href="/app/materiali/${m}.webp" width="${L}" height="${L}" preserveAspectRatio="none"/></pattern>`;
+}
+function materialiInUso(cur){
+  const p = pavimentiDi(cur);
+  return MATERIALI.filter(m => Array.isArray(p[m]) && p[m].length);
+}
+function dGrigliaMateriali(cur){
+  const p = pavimentiDi(cur), celle = [];
+  for(const m of MATERIALI) if(Array.isArray(p[m])) celle.push(...p[m]);
+  return sagomaCorridoi(maglia(), celle);
 }
 /* Cosa toglie il muro dal bordo del pavimento: le piante del livello e i muri
    liberi (le due regole in modello.js). Al tavolo `children` è già la
@@ -1535,14 +1603,14 @@ function vincoliPavimento(cur){
   };
 }
 function dBordoCorridoi(cur){
-  return sagomaBordo(bordoCorridoi(maglia(), corridoiDi(cur), vincoliPavimento(cur)));
+  return sagomaBordo(bordoCorridoi(maglia(), celleDelPavimento(cur), vincoliPavimento(cur)));
 }
 /* Il secchiello: riempie il pavimento dentro i muri attorno al punto (vedi
    riempiArea in modello.js). Un'area aperta non cambia niente e lo dice: un
    secchiello che tace sembra rotto, e uno che dipinge mezza mappa è peggio. */
 function riempiQui(x, y){
   if(RO) return;
-  const cur = currentNode(), celle = corridoiDi(cur);
+  const cur = currentNode(), celle = celleDelPavimento(cur);
   const r = riempiArea(maglia(), celle, x, y, vincoliPavimento(cur),
     Math.min(RIEMPI_MAX, CORRIDOI_MAX - celle.length));
   if(r.esito !== "ok"){
@@ -1554,16 +1622,18 @@ function riempiQui(x, y){
     }[r.esito];
     return;
   }
-  cur.corridoi = [...celle, ...r.nuove];
+  const mp = mappaPavimento(cur);
+  for(const c of r.nuove) mp.set(chiaveCella(c), {c, m:materialeScelto});
+  scriviPavimento(cur, mp);
   save(); renderCanvas();
 }
 /* Le voci che restano armate dopo il tocco: pennello e secchiello si usano a
    raffica, e l'Esc (o di nuovo la voce) li spegne. */
 const restaArmata = o => !!(o?.corridoi || o?.riempi);
 /* Dal trascinamento HTML5 della voce di palette: una cella sola, dove cade. */
-function alternaCellaCorridoio(x, y){
+function alternaCellaCorridoio(x, y, materiale = null){
   if(RO) return;
-  iniziaPennello({x, y});
+  iniziaPennello({x, y}, materiale);
   save(); renderMap();
 }
 
@@ -1628,6 +1698,7 @@ function armPal(el, opts){
   if(armedEl){ armedEl.classList.remove("armed"); armedEl.setAttribute("aria-pressed","false"); }
   armedEl = el || null;
   armedPal = el ? opts : null;
+  if(armedPal?.corridoi) materialeScelto = materialeDi(armedPal);
   if(armedEl){ armedEl.classList.add("armed"); armedEl.setAttribute("aria-pressed","true"); }
   const svg = planSvg();
   if(svg){
@@ -1666,6 +1737,14 @@ export function initMappa(){
     el.querySelector(".type-badge")?.insertAdjacentHTML("afterend", icoSegnalino(tipo, 14));
     el.querySelector(".type-badge")?.remove();
   });
+  /* Le voci dei materiali si generano da MATERIALI, come le pastiglie del
+     livello vuoto da SHAPES: un elenco scritto a mano in app.html sarebbe
+     il terzo da tenere d'accordo con contratto e cartella delle texture. La
+     miniatura è la texture vera, `loading="lazy"`: la tendina è chiusa, e
+     chi non la apre non scarica niente. */
+  document.getElementById("pal-materiali")?.insertAdjacentHTML("beforeend", MATERIALI.map(m =>
+    `<div class="pal-item" draggable="true" tabindex="0" role="button" aria-pressed="false"
+      data-pal='{"corridoi":true,"materiale":"${m}"}' title="Pennello: dipingi ${escapeAttr(MATERIALI_NOMI[m].toLowerCase())}; poi Riempi usa questo materiale"><img class="pal-mat" src="/app/materiali/${m}.webp" alt="" width="18" height="18" loading="lazy">${escapeHtml(MATERIALI_NOMI[m])}</div>`).join(""));
   document.querySelectorAll("#plan-toolbar .pal-item").forEach(el=>{
     el.addEventListener("dragstart", ev=>{
       ev.dataTransfer.setData("text/plain", el.dataset.pal);
@@ -1822,7 +1901,7 @@ export function initMappa(){
     if(armedPal?.corridoi && !RO){
       ev.preventDefault();
       clearTimeout(lpTimer); lpStart = null;
-      planDrag = iniziaPennello(planPoint(ev));
+      planDrag = iniziaPennello(planPoint(ev), materialeDi(armedPal));
       svg.setPointerCapture(ev.pointerId);
       return;
     }

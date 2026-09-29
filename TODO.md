@@ -25,13 +25,25 @@ un buco contornato dalle mura».
   (`restaArmata` in `mappa.js`).
 - Test: `test/disegno/bordo-corridoi.test.mjs`; nel browser
   `node test/browser/verifica-bordo-corridoi.mjs` (vuole `npm run dev`).
-- [ ] **Materiali del pavimento** (pietra, acqua, legno, terra…): oggi una
-  cella è `[i, j]`. Vuole un cambio di contratto (`[i, j, m]` o strati per
-  materiale), bonifica, proiezione e un menu. Da decidere prima di scrivere:
-  pattern SVG procedurali (leggeri, seguono il tema) o texture raster
-  (più belle, da generare fuori: prompt pronto per Codex nella chat del 29
-  set). Il bordo derivato dovrà decidere se due materiali diversi si murano
-  fra loro (probabilmente no: acqua in una stanza non è una parete).
+- [x] **Materiali del pavimento** (29 set 2026, stesso giorno). Texture
+  generate da Codex (12 materiali, 1–9 KB l'una, provenienza e licenza in
+  `risorse/materiali/LEGGIMI.md`); il tappeto rifatto qui per una cucitura
+  visibile. Dato: `n.pavimenti = {materiale: [celle]}` accanto a
+  `corridoi` — scelta B fra tre, perché è l'unica che le copie distribuite
+  non mutilano (verificato col contratto della 0.2.8: accetta e conserva il
+  campo). `MATERIALI` e `normalizzaPavimento` nel contratto, letti da
+  `sanitizeState` e `share.ts`. Tendina "Pavimento" nella palette: Riempi,
+  Velato e un pennello per materiale generato da `MATERIALI`; ripassare con
+  un altro materiale cambia la cella, col suo la cancella; Riempi usa
+  l'ultimo scelto. Niente muri fra materiali diversi. Maglia doppia sopra le
+  texture e alone sui nomi dei segnalini, i due difetti di leggibilità
+  misurati nel controllo delle texture. Test: `test/critici/pavimenti.test.mjs`;
+  nel browser `node test/browser/verifica-materiali.mjs`.
+- [ ] **Licenza delle texture**: il `LICENSE` distingue codice (PolyForm) e
+  SRD (CC-BY); le texture sono una terza categoria e oggi, senza una riga
+  che lo dica, ricadono sotto PolyForm. Da decidere con Federico.
+- [ ] Riva fra acqua e terra: oggi fra due materiali non c'è segno. Se
+  servirà, una linea sottile derivata come il bordo, non un muro.
 - [ ] Collegamento "a corridoio" largo N quadretti: sconsigliato, sarebbe un
   secondo modo di fare il pennello con una geometria che non sta sulla maglia.
 

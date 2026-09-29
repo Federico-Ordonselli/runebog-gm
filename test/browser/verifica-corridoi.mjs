@@ -22,9 +22,9 @@ try {
 
   const celle = () => pagina.evaluate(() => (document.getElementById("corridoi")?.getAttribute("d") || "").split("M").length - 1);
 
-  // Si arma dalla tendina Pianta della barra a menu.
-  await pagina.locator('.pal-gruppo[data-gruppo=pianta] .pal-apri').click();
-  await pagina.locator('.pal-item[data-pal*=corridoi]').click();
+  // Si arma dalla tendina Pavimento della barra a menu.
+  await pagina.locator('.pal-gruppo[data-gruppo=pavimento] .pal-apri').click();
+  await pagina.locator(`.pal-item[data-pal='{"corridoi":true}']`).click();
   controlla(await pagina.locator('#plan-svg.pennello').count() === 1, "la voce accende il pennello");
 
   // Trascino in uno spazio vuoto per 5 celle in orizzontale.
