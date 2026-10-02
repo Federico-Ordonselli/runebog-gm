@@ -26,8 +26,8 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
 - Immagini: upload autenticato `/api/campaigns/[id]/images`, byte in Neon,
   URL casuale `/immagini/[chiave]`. Le immagini si caricano prima della PATCH;
   il salvataggio conserva modifiche concorrenti e migra i vecchi data URL alla
-  prima apertura. Lo standalone resta in base64. Import cloud ricopia i byte
-  per garantire la proprietà della campagna destinataria.
+  prima apertura. Lo standalone nel browser resta in base64. Import cloud
+  ricopia i byte per garantire la proprietà della campagna destinataria.
 - Quote comprensive degli orfani: 500 immagini/32 MiB per campagna,
   2000/128 MiB per account; limite binario per immagine derivato dai 3,75 MiB
   del contratto base64. Lock utente poi campagna negli upload; lock campagna
@@ -272,6 +272,26 @@ riferimenti ai file. Quando finisci un lavoro significativo, aggiungilo lì.
   precarica per intero. Verifica: `node test/browser/verifica-materiali.mjs`.
   La riva (`rivaPavimento`, `LIQUIDI`) è derivata come il bordo: linea
   sottile dove un liquido tocca un altro fondo, mai verso il vuoto.
+- Immagini del portable su file (`desktop/immagini.cjs`, 2 ott 2026): la
+  campagna vive in localStorage, una quota sola per tutte, quindi le immagini
+  vanno in `<userData>/immagini/<chiave>.<ext>` e il documento tiene
+  `/immagini/<chiave>` — la forma del cloud, così contratto, bonifica e
+  `share.ts` non cambiano. Le servono il protocollo `runebog://` e il tavolo
+  LAN, quest'ultimo SOLO per le chiavi citate dalla proiezione; entrambi con
+  `nosniff` e CSP `sandbox` (SVG). Tetto 32 MiB (`DESKTOP_IMAGE_BYTES` in
+  `immagini.js` = `IMAGE_BYTES` del modulo desktop), niente ricompressione
+  (`leggiImmagine` in `pannello.js`). Ogni data URL rimasto — campagne di
+  prima, formati non ammessi passati da `compressImage`, un Ctrl+Z — va su
+  file da `portaImmaginiSuDisco` (`stato.js`), che riscrive senza
+  `noteChange`. Export reincorpora con il tetto alto; l'import passa
+  `imageBytes` al contratto (opzione nuova di `prepareCampaignDocument`,
+  default invariato) e riporta su file PRIMA di localStorage. Spazzino
+  all'avvio: chiavi da TUTTI i valori di localStorage per regex (niente
+  parse), orfane in `orfane.json`, cancellate dopo 30 giorni. Lo smoke
+  (`npm run test:smoke` in `desktop/`) gira in un profilo temporaneo e prova
+  salvataggio, migrazione e un giro export/import da 5 MiB; il tavolo e lo
+  spazzino in `table-server.test.cjs`. Nel profilo vero non si scrive mai da
+  una prova.
 - Costo del ridisegno: `node test/browser/misura-ridisegno.mjs` (numeri,
   non soglie). Il pan tocca solo il viewBox; ogni `renderCanvas` ricrea i
   `foreignObject` delle caselle, e il profilo attribuisce quel layout alla
@@ -1892,7 +1912,7 @@ Non negoziabili; se tocchi queste aree, mantienili:
   64 KB — sopra resta un tentativo, non una garanzia. Non è più una perdita:
   la cache locale è già stata scritta prima della richiesta, quindi alla
   riapertura il lavoro si ripropone (vedi Revisione, cache offline e conflitti).
-- Le immagini stanno in base64 dentro il JSON della campagna: occhio al limite di 4 MB.
+- Le immagini stanno in base64 dentro il JSON della campagna solo nello standalone del browser: occhio al limite di 4 MB. Cloud e portable le tengono fuori dal documento.
 - `package.json` ha tre **overrides npm** nati da alert Dependabot (lug 2026): postcss
   ≥8.5.10 (Next lo pinna vulnerabile), sharp ^0.35 (CVE di libvips; Next 15.5 lo vuole
   ancora ^0.34, e nel sito `next/image` non è usato da nessuna parte, quindi il rischio

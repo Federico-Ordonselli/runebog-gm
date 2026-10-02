@@ -2,7 +2,7 @@
    condiviso da tutti i moduli, il salvataggio (locale o cloud), le campagne
    multiple e le utilità sull'albero. */
 
-import { imageFields, uploadImages, replaceImageUrls } from "./immagini.js";
+import { imageFields, uploadImages, replaceImageUrls, storeImagesOnDisk, imageKeysIn } from "./immagini.js";
 import { uid, node, escapeHtml, sanitizeState, isMarker, snapNode, grigliaDi,
          nodeBox, defShape, scalaSopra, SHAPES, SCALA } from "./modello.js";
 import { openAlert, openConfirm, showView } from "./viste.js";
@@ -230,6 +230,7 @@ export function switchCampaign(id){
   resetUndo();                       // l'undo non attraversa le campagne
   st.path = [st.state.root.id]; clearSel();
   renderCampaignSelect(); showView("map");
+  portaImmaginiSuDisco();
 }
 export function newCampaign(){
   if(window.__cloud) return;
@@ -365,6 +366,8 @@ export function initStato(){
   if(window.__cloud) queueMicrotask(()=>{
     if(!cloudPaused && imageFields(st.state).some(([o,k])=>o[k].startsWith('data:'))) save();
   });
+  queueMicrotask(portaImmaginiSuDisco);
+  setTimeout(spazzaImmagini, 5000);
   addEventListener("pagehide", flushSave);
   // Tornare in rete non è un'azione dell'utente: se è rimasto del lavoro da
   // spedire, riparte da sé invece di aspettare la battitura successiva.
@@ -767,6 +770,7 @@ function doSave(finale = false){
   }
   persistent = store.set(ckey(campaignId), json);
   window.runebogDesktop?.updateTable(st.state).catch(()=>{});
+  portaImmaginiSuDisco();
   const c = campaignsIdx.find(x=>x.id===campaignId);
   if(c){
     const nm = st.state.root.title || "Campagna";
@@ -780,6 +784,40 @@ function doSave(finale = false){
                  : warn ? `Salvato ✓ · ${warn.msg}` : "Salvato ✓";
   el.style.color = !persistent ? "var(--gold)" : warn ? warn.tone : "var(--ink-dim)";
 }
+/* Portable (2 ott 2026): le immagini stanno in file accanto ai dati e il
+   documento ne tiene l'indirizzo, perché la campagna vive in localStorage e una
+   quota sola per tutte le campagne non regge una battlemap. Qui si porta su
+   file ogni data URL rimasto — campagne nate prima, formati passati da
+   compressImage, un Ctrl+Z che ne riporta uno — e si riscrive SENZA noteChange:
+   non è una modifica del DM, e un Ctrl+Z che la annullasse non cambierebbe
+   niente a vista. Se intanto si è cambiata campagna, quella vecchia si riprende
+   alla prossima apertura; il digest in immagini.js evita il file doppio. */
+const SU_DISCO = !RO && !window.__cloud && !!window.runebogDesktop?.saveImage;
+let suDiscoInCorso = false;
+function portaImmaginiSuDisco(){
+  if(!SU_DISCO || suDiscoInCorso) return;
+  if(!imageFields(st.state).some(([o,k])=>o[k].startsWith("data:"))) return;
+  suDiscoInCorso = true;
+  const stato = st.state;
+  storeImagesOnDisk(stato, window.runebogDesktop.saveImage)
+    .then(n=>{ if(n && st.state === stato){ clearTimeout(saveTimer); doSave(); } })
+    .catch(error=>{
+      const el = document.getElementById("savestate");
+      if(el){ el.textContent = `Immagini rimaste nella campagna: ${error.message}`; el.style.color = "var(--ember)"; }
+    })
+    .finally(()=>{ suDiscoInCorso = false; });
+}
+/* Lo spazzino del portable (desktop/immagini.cjs) riceve le chiavi citate da
+   QUALUNQUE valore di localStorage più lo stato aperto: un'immagine conta
+   come usata anche da una campagna illeggibile. Segna e basta; cancella solo
+   ciò che resta orfano per 30 giorni. */
+function spazzaImmagini(){
+  if(!SU_DISCO || !window.runebogDesktop.sweepImages) return;
+  const keys = new Set(imageKeysIn(JSON.stringify(st.state)));
+  for(const k of store.keys()) for(const key of imageKeysIn(store.get(k) || "")) keys.add(key);
+  window.runebogDesktop.sweepImages([...keys]).catch(()=>{});
+}
+
 export function save(){
   if(RO || cloudPaused) return;                   // il tavolo non salva; il dialogo aspetta una scelta
   noteChange();

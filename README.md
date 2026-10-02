@@ -26,7 +26,7 @@ Per una firma Windows attendibile serve un certificato di code signing valido, c
 
 Su una macchina di sviluppo puoi usare `npm run build:win:signed` con le stesse due variabili d'ambiente. Non mettere certificato o password nel repository. Una firma attendibile identifica il publisher, ma non garantisce che SmartScreen smetta subito di mostrare avvisi: la reputazione cresce con le distribuzioni successive.
 
-Il file risultante è in `desktop/dist/`. Le campagne e le preferenze sono nel profilo `Runebog GM Data` creato **accanto all'EXE**: per spostare l'app su una chiavetta o fare un backup, copia entrambi. La capienza del salvataggio locale dipende dalla quota di `localStorage`; usa periodicamente **Esporta** per conservare copie JSON. Le campagne già presenti sul sito si trasferiscono con **Esporta** dal sito e **Importa** nell'app portable (e viceversa).
+Il file risultante è in `desktop/dist/`. Le campagne e le preferenze sono nel profilo `Runebog GM Data` creato **accanto all'EXE**: per spostare l'app su una chiavetta o fare un backup, copia entrambi (le immagini stanno in `Runebog GM Data/immagini`). La capienza del salvataggio locale dipende dalla quota di `localStorage`; usa periodicamente **Esporta** per conservare copie JSON. Le campagne già presenti sul sito si trasferiscono con **Esporta** dal sito e **Importa** nell'app portable (e viceversa).
 
 Per provare l'involucro desktop durante lo sviluppo su macOS o Windows: `cd desktop`, `npm ci`, `npm start`. In sviluppo il profilo usa la posizione standard di Electron, mentre nell'EXE portable rimane accanto al programma.
 
@@ -112,7 +112,11 @@ Il flusso:
 
 Le immagini cloud stanno in `campaign_image` su Neon e nel documento restano
 URL immutabili `/immagini/[chiave]`. I vecchi data URL vengono convertiti alla
-prima apertura della campagna. Lo standalone conserva le immagini in base64.
+prima apertura della campagna. Lo standalone nel browser conserva le immagini
+in base64; l'app portable le salva come file nella cartella `immagini` del
+profilo (fino a 32 MiB l'una, senza ricompressione) e il documento ne tiene
+solo l'indirizzo. Un backup del portable con immagini oltre 3,75 MiB si
+reimporta nel portable, non sul sito.
 L’export reincorpora i byte: è un backup autosufficiente, con un limite di
 64 MiB; il documento inviato all’API conserva il limite di 4 MiB.
 

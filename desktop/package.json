@@ -31,6 +31,7 @@
     "files": [
       "main.cjs",
       "table-server.cjs",
+      "immagini.cjs",
       "preload.cjs",
       "projector.cjs",
       "package.json"

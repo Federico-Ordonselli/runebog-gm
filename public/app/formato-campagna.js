@@ -572,7 +572,7 @@ const FUORI_DALL_ATTRIBUTO = /[\s"'<>`]/;
    vedrebbe rimbalzare con 422 una campagna legittima. */
 export const IMMAGINE_LOCALE = /^\/immagini\/[A-Za-z0-9_-]{1,64}$/;
 
-function validateImage(value, path){
+function validateImage(value, path, imageBytes = CAMPAIGN_LIMITS.imageBytes){
   if(value === null || value === undefined) return null;
   if(typeof value !== "string") return bad("invalid_image", "L'immagine deve essere una stringa o null", path);
   if(FUORI_DALL_ATTRIBUTO.test(value))
@@ -584,7 +584,7 @@ function validateImage(value, path){
   const match = value.match(/^data:image\/([^;,]+);(base64|utf8),/i);
   if(!match || !IMAGE_MIMES.has(match[1].toLowerCase()))
     return bad("invalid_image_type", "Tipo immagine non ammesso", path);
-  if(utf8ByteLength(value) > CAMPAIGN_LIMITS.imageBytes)
+  if(utf8ByteLength(value) > imageBytes)
     return bad("image_too_large", "Immagine incorporata troppo grande", path);
   return null;
 }
@@ -676,7 +676,7 @@ function validateBattle(battle, path){
   return null;
 }
 
-function validateNodeShallow(node, path){
+function validateNodeShallow(node, path, imageBytes){
   let error = requireObject(node, path);
   if(error) return error;
   if((error = validateId(node.id, `${path}.id`))) return error;
@@ -685,7 +685,7 @@ function validateNodeShallow(node, path){
   if(!STATUSES.has(node.status)) return bad("invalid_status", "Stato non valido", `${path}.status`);
   if((error = validateString(node.notes, CAMPAIGN_LIMITS.longTextChars, `${path}.notes`))) return error;
   if((error = validateOptionalString(node.playerNotes, CAMPAIGN_LIMITS.longTextChars, `${path}.playerNotes`))) return error;
-  if((error = validateImage(node.img, `${path}.img`))) return error;
+  if((error = validateImage(node.img, `${path}.img`, imageBytes))) return error;
   if((error = requireArray(node.children, CAMPAIGN_LIMITS.childrenPerNode, `${path}.children`))) return error;
   if((error = requireArray(node.edges, CAMPAIGN_LIMITS.edgesPerNode, `${path}.edges`))) return error;
   if(node.shape !== null && node.shape !== undefined && !SHAPES.has(node.shape))
@@ -728,7 +728,7 @@ function validateNodeShallow(node, path){
   }
   if(node.bg !== undefined){
     if((error = requireObject(node.bg, `${path}.bg`))) return error;
-    if((error = validateImage(node.bg.img, `${path}.bg.img`))) return error;
+    if((error = validateImage(node.bg.img, `${path}.bg.img`, imageBytes))) return error;
     for(const key of ["x","y","w","h"])
       if((error = validateNumber(node.bg[key], `${path}.bg.${key}`, {
         min:-CAMPAIGN_LIMITS.coordinateAbs,max:CAMPAIGN_LIMITS.coordinateAbs,
@@ -791,7 +791,10 @@ function validateNodeShallow(node, path){
 }
 
 /** @returns {EsitoCampagna} */
-export function validateCampaignDocument(document){
+/* `imageBytes` lo alza solo il portable, che all'import riporta le immagini
+   incorporate su file (DESKTOP_IMAGE_BYTES in immagini.js): ovunque altrove il
+   documento le porta dentro di sé, e il tetto resta quello del contratto. */
+export function validateCampaignDocument(document, {imageBytes} = {}){
   let error = requireObject(document, "$");
   if(error) return error;
   if(document.schemaVersion !== CURRENT_CAMPAIGN_SCHEMA_VERSION)
@@ -809,7 +812,7 @@ export function validateCampaignDocument(document){
       return bad("too_many_nodes", `Massimo ${CAMPAIGN_LIMITS.nodes} nodi`, current.path);
     if(current.depth > CAMPAIGN_LIMITS.treeDepth)
       return bad("tree_too_deep", `Massimo ${CAMPAIGN_LIMITS.treeDepth} livelli di mappa`, current.path);
-    if((error = validateNodeShallow(current.node, current.path))) return error;
+    if((error = validateNodeShallow(current.node, current.path, imageBytes))) return error;
     if(ids.has(current.node.id)) return bad("duplicate_node_id", "ID nodo duplicato", `${current.path}.id`);
     ids.add(current.node.id);
     for(let i=current.node.children.length-1; i>=0; i--)
@@ -901,7 +904,7 @@ export function prepareCampaignDocument(document, options = {}){
   const migration = migrateCampaignDocument(document);
   if(!migration.ok) return migration;
 
-  const validation = validateCampaignDocument(document);
+  const validation = validateCampaignDocument(document, {imageBytes:options.imageBytes});
   if(!validation.ok) return validation;
 
   let normalizedBytes;

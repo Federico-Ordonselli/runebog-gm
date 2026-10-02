@@ -1,5 +1,35 @@
 # To-do
 
+## Immagini del portable su file (2 ottobre 2026)
+
+Chiesto da Federico: togliere il limite di 4 MB per le immagini, almeno nel
+portable. Il limite vero lì non erano i 3,75 MiB del contratto ma la quota di
+localStorage, condivisa da tutte le campagne: un'immagine da 6 MB la riempiva
+da sola, e `store.set` ripiegava in memoria (lavoro perso alla chiusura).
+
+- [x] **Immagini come file accanto ai dati** (`desktop/immagini.cjs`,
+  scelta di Federico), servite da `runebog://app/immagini/<chiave>` e dal
+  tavolo LAN solo se la proiezione le cita. Tetto 32 MiB (scelta di
+  Federico), niente ricompressione a 1400px nel portable.
+- [x] Migrazione dei data URL alla prima apertura e a ogni salvataggio
+  (`portaImmaginiSuDisco` in `stato.js`); import con tetto per immagine alzato
+  (`imageBytes` nel contratto) e immagini riportate su file prima di
+  localStorage; export che le reincorpora fino a 32 MiB.
+- [x] Spazzino all'avvio con 30 giorni di grazia (`orfane.json`).
+- Test: `desktop/table-server.test.cjs` (deposito, tavolo, spazzino), lo
+  smoke Electron (salvataggio, migrazione, giro export/import da 5 MiB) e
+  `test/formato-campagna` per l'opzione `imageBytes`.
+- [ ] **Da fare**: pubblicare una portable 0.2.10 col workflow Windows. Il
+  backup di un portable con immagini oltre 3,75 MiB il sito lo rifiuta
+  (dichiarato: lì il tetto è la richiesta da 4 MB di Vercel); se servirà
+  portarlo sul sito, l'import cloud dovrà caricare le immagini una per una
+  prima della validazione invece di validare il documento con i byte dentro.
+- [x] Al tavolo LAN le immagini escono `immutable` e non `no-store`, come
+  `/immagini` del sito: con `no-store` un telefono riscaricava tutto a ogni
+  apertura.
+- [ ] Da provare a mano su Windows: un'immagine grande al tavolo LAN da un
+  telefono.
+
 ## Bordo del pavimento e secchiello (29 settembre 2026)
 
 Nati da una proposta di Dario: «le bolle dei dungeon si creano come i muri,

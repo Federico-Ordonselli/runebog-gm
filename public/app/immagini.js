@@ -3,6 +3,12 @@
 import { CAMPAIGN_LIMITS, IMMAGINE_LOCALE } from './formato-campagna.js';
 export const ARCHIVE_BYTES = 64 * 1024 * 1024;
 export const IMAGE_UPLOAD_BYTES = Math.floor(CAMPAIGN_LIMITS.imageBytes * 3 / 4) - 128;
+/* Il portable salva le immagini in file accanto ai dati (desktop/immagini.cjs,
+   che ha la stessa costante): lì il tetto non è più il documento ma il browser
+   dei giocatori al tavolo LAN. Un backup le reincorpora, quindi all'import il
+   data URL corrispondente deve passare il contratto (`DESKTOP_DATA_URL_BYTES`). */
+export const DESKTOP_IMAGE_BYTES = 32 * 1024 * 1024;
+export const DESKTOP_DATA_URL_BYTES = Math.ceil(DESKTOP_IMAGE_BYTES / 3) * 4 + 128;
 export const IMAGE_MIMES = new Set(['image/png','image/jpeg','image/webp','image/gif','image/avif','image/svg+xml']);
 
 export function imageFields(state){
@@ -34,13 +40,13 @@ export async function readLimitedBody(response, limit=IMAGE_UPLOAD_BYTES){
   return bytes;
 }
 
-async function readImage(url, fetcher){
+async function readImage(url, fetcher, limit=IMAGE_UPLOAD_BYTES){
   const response=await fetcher(url, {signal:AbortSignal.timeout(30000)});
   if(!response.ok) throw new Error('Immagine non disponibile ('+response.status+').');
   let mime=response.headers.get('content-type')?.split(';')[0].trim().toLowerCase();
   if(mime === 'image/jpg') mime = 'image/jpeg';
   if(!IMAGE_MIMES.has(mime)) throw new Error('Formato immagine non ammesso.');
-  return {mime, bytes:await readLimitedBody(response)};
+  return {mime, bytes:await readLimitedBody(response, limit)};
 }
 function dataUrl({mime,bytes}){
   let binary='';
@@ -52,7 +58,7 @@ export function replaceImageUrls(state, replacements){
 }
 
 /** Ritorna una copia completa oppure fallisce senza produrre alcun file. */
-export async function embedImages(state, {fetcher=fetch, onProgress=()=>{}}={}){
+export async function embedImages(state, {fetcher=fetch, onProgress=()=>{}, limit=IMAGE_UPLOAD_BYTES}={}){
   const copy=structuredClone(state), replacements=new Map();
   const occurrences=new Map();
   for(const [o,k] of imageFields(copy)) if(!o[k].startsWith('data:')) occurrences.set(o[k],(occurrences.get(o[k]) || 0)+1);
@@ -61,7 +67,7 @@ export async function embedImages(state, {fetcher=fetch, onProgress=()=>{}}={}){
   let total=byteLength(JSON.stringify(copy));
   onProgress(0,urls.length);
   for(const [i,url] of urls.entries()){
-    const data=dataUrl(await readImage(url,fetcher));
+    const data=dataUrl(await readImage(url,fetcher,limit));
     // Lo stesso URL può comparire in migliaia di bolle. Conta TUTTE le copie
     // prima di serializzare: scaricarlo una volta non rende piccolo l'export.
     total+=(data.length+2-byteLength(JSON.stringify(url)))*occurrences.get(url);
@@ -106,3 +112,30 @@ export async function uploadImages(state, campaignId, {fetcher=fetch,onProgress=
   }
   return replacements;
 }
+
+/** Portable: ogni data URL diventa un file (`salva` è `runebogDesktop.saveImage`)
+ * e il documento tiene solo `/immagini/<chiave>`. Serve all'import di un backup
+ * e alla prima apertura delle campagne nate prima del 2 ott 2026. Il digest
+ * evita di riscrivere lo stesso file quando un Ctrl+Z riporta il data URL. */
+const savedDesktop = new Map();
+export async function storeImagesOnDisk(state, salva, {fetcher=fetch}={}){
+  const urls=[...new Set(imageFields(state).map(([o,k])=>o[k]).filter(s=>s.startsWith('data:')))];
+  const replacements=new Map();
+  for(const url of urls){
+    const {mime,bytes}=await readImage(url,fetcher,DESKTOP_IMAGE_BYTES);
+    const digest=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(v=>v.toString(16).padStart(2,'0')).join('');
+    let saved=savedDesktop.get(`${mime}:${digest}`);
+    if(!saved){
+      saved=await salva(bytes,mime);
+      if(!IMMAGINE_LOCALE.test(saved || '')) throw new Error('Salvataggio immagine non riuscito.');
+      savedDesktop.set(`${mime}:${digest}`,saved);
+    }
+    replacements.set(url,saved);
+  }
+  replaceImageUrls(state,replacements);
+  return replacements.size;
+}
+/** Le chiavi citate da un testo qualsiasi: lo spazzino del portable le legge da
+ * tutto localStorage senza fare il parse delle campagne, così una campagna
+ * illeggibile non fa sembrare orfane le sue immagini. */
+export const imageKeysIn = text => [...String(text).matchAll(/\/immagini\/([A-Za-z0-9_-]{1,64})/g)].map(m=>m[1]);

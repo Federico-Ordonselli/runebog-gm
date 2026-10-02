@@ -52,3 +52,49 @@ test('tavolo LAN: proiezione, asset, aggiornamenti e chiusura', async () => {
     assert.equal((await fetch(new URL('/api/tavolo/token-sbagliato', url))).status, 404);
   } finally { table.close(); }
 });
+
+test('immagini del portable: file su disco, tetto, tavolo solo per le immagini condivise', async () => {
+  const fs = require('node:fs');
+  const os = require('node:os');
+  const { createImageStore, GRAZIA_MS, IMAGE_BYTES } = require('./immagini.cjs');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'runebog-immagini-'));
+  const images = createImageStore(dir);
+  const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 1, 2, 3]);
+  const condivisa = images.save(png, 'image/png');
+  const segreta = images.save(png, 'image/jpeg');
+  assert.match(condivisa, /^\/immagini\/[A-Za-z0-9_-]{1,64}$/);
+  assert.throws(() => images.save(png, 'text/html'), /Formato/);
+  assert.throws(() => images.save(new Uint8Array(IMAGE_BYTES + 1), 'image/png'), /32 MiB/);
+  assert.equal(images.find('../orfane'), null);
+  assert.equal(images.find(condivisa.slice(10)).mime, 'image/png');
+
+  const conImmagini = { ...state, root: { ...state.root, children: [
+    { ...state.root.children[0], img: condivisa },
+    { ...state.root.children[1], img: segreta },
+  ] } };
+  const table = createTableServer(path.resolve(__dirname, '..', 'public'), { images });
+  try {
+    const url = new URL((await table.open(conImmagini)).urls[0]);
+    url.hostname = '127.0.0.1';
+    const ok = await fetch(new URL(condivisa, url));
+    assert.equal(ok.status, 200);
+    assert.equal(ok.headers.get('content-type'), 'image/png');
+    assert.match(ok.headers.get('content-security-policy'), /sandbox/);
+    assert.match(ok.headers.get('cache-control'), /immutable/);
+    assert.deepEqual(new Uint8Array(await ok.arrayBuffer()), png);
+    // la bolla non condivisa non esce, e con lei la sua immagine
+    assert.equal((await fetch(new URL(segreta, url))).status, 404);
+  } finally { table.close(); }
+
+  // Lo spazzino segna, aspetta la grazia, e riabilita chi torna citato.
+  const k1 = condivisa.slice(10), k2 = segreta.slice(10);
+  const t0 = Date.now();
+  assert.deepEqual(images.sweep([k1], t0), { marked: 1, deleted: 0 });
+  assert.deepEqual(images.sweep([k1, k2], t0 + GRAZIA_MS), { marked: 0, deleted: 0 });
+  assert.ok(images.find(k2));
+  images.sweep([k1], t0 + GRAZIA_MS);
+  assert.deepEqual(images.sweep([k1], t0 + 2 * GRAZIA_MS), { marked: 0, deleted: 1 });
+  assert.equal(images.find(k2), null);
+  assert.ok(images.find(k1));
+  fs.rmSync(dir, { recursive: true, force: true });
+});

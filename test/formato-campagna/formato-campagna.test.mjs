@@ -271,3 +271,14 @@ test("rifiuta documenti oltre il limite usando byte reali", ()=>{
   assert.equal(result.ok, false);
   assert.equal(result.error.code, "document_too_large");
 });
+
+test("il tetto per immagine si alza solo se il chiamante lo chiede (import del portable)", ()=>{
+  const grande = "data:image/png;base64," + "A".repeat(CAMPAIGN_LIMITS.imageBytes);
+  const doc = () => campaign({...node("root"), img:grande});
+  const opzioni = {documentBytes:64 * 1024 * 1024};
+  assert.equal(prepareCampaignDocument(doc(), opzioni).error?.code, "image_too_large");
+  assert.equal(prepareCampaignDocument(doc(), {...opzioni, imageBytes:grande.length}).ok, true);
+  // lo sfondo passa dalla stessa regola
+  const sfondo = campaign({...node("root"), bg:{img:grande, x:0, y:0, w:10, h:10, opacity:1}});
+  assert.equal(prepareCampaignDocument(sfondo, opzioni).error?.code, "image_too_large");
+});

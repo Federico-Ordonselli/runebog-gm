@@ -5,6 +5,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const QRCode = require('qrcode');
 const { projectForPlayers, jsonForScript } = require('./projector.cjs');
+const { INTESTAZIONI } = require('./immagini.cjs');
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png',
@@ -30,8 +31,17 @@ function send(res, code, body, type = 'text/plain; charset=utf-8', headers = {})
   res.end(body);
 }
 
-function createTableServer(staticRoot) {
+/* Al tavolo esce un'immagine solo se la proiezione la cita: la chiave è già un
+   segreto, ma qui il filtro costa una riga e toglie anche quel margine. */
+function chiaviImmagini(projection) {
+  const keys = new Set();
+  JSON.stringify(projection).replace(/"\/immagini\/([A-Za-z0-9_-]{1,64})"/g, (_, k) => keys.add(k));
+  return keys;
+}
+
+function createTableServer(staticRoot, { images = null } = {}) {
   let server = null, token = null, projection = null, name = '', revision = 0;
+  let visibili = new Set();
   const html = fs.readFileSync(path.join(staticRoot, 'app.html'), 'utf8');
 
   function handle(req, res) {
@@ -47,6 +57,16 @@ function createTableServer(staticRoot) {
       const etag = `"r${revision}"`;
       if (req.headers['if-none-match'] === etag) return send(res, 304, '', 'application/json', { ETag: etag });
       return send(res, 200, JSON.stringify({ name, state: projection }), 'application/json', { ETag: etag });
+    }
+    if (pathname.startsWith('/immagini/') && token && images) {
+      const key = pathname.slice('/immagini/'.length);
+      const found = visibili.has(key) && images.find(key);
+      if (!found) return send(res, 404, 'Non trovato');
+      // Chiave casuale e file mai riscritto: come /immagini del sito, si tiene
+      // in cache. Con no-store un telefono riscaricherebbe 32 MiB a ogni giro.
+      res.writeHead(200, { ...NO_STORE, ...INTESTAZIONI, 'Content-Type': found.mime,
+        'Cache-Control': 'private, max-age=31536000, immutable' });
+      return fs.createReadStream(found.file).pipe(res);
     }
     if (!/^\/(?:app\/|icone\/|themes\.css$|icon\.svg$)/.test(pathname))
       return send(res, 404, 'Tavolo non trovato o chiuso');
@@ -76,6 +96,7 @@ function createTableServer(staticRoot) {
     const next = projectForPlayers(state);
     if (!next) throw new Error('Campagna non valida');
     projection = next;
+    visibili = chiaviImmagini(next);
     name = String(state.root.title || 'Campagna');
     revision++;
   }
@@ -95,7 +116,7 @@ function createTableServer(staticRoot) {
   }
 
   function close() {
-    token = null; projection = null;
+    token = null; projection = null; visibili = new Set();
     if (server) { server.close(); server = null; }
     return { open: false };
   }

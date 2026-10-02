@@ -24,7 +24,7 @@ import { apriScrittura, riposizionaScrittura } from "./scrittura.js";
 import { st, save, findNode, findParent, removeNode, currentNode, pathNodes, RO,
          clearSel, selectNode, selectWall, zoomOut } from "./stato.js";
 import { showView, openConfirm } from "./viste.js";
-import { renderDetail, compressImage, openDetailSheet } from "./pannello.js";
+import { renderDetail, leggiImmagine, openDetailSheet } from "./pannello.js";
 import { showCtxFor } from "./menu.js";
 import { battleOn, tokenLink, renderBattleBar } from "./battaglia.js";
 import { scadenzaDi } from "./calendario.js";
@@ -2313,8 +2313,7 @@ export function pickBg(){
   inp.type="file"; inp.accept="image/*";
   inp.onchange = ()=>{
     const f = inp.files[0]; if(!f) return;
-    const r = new FileReader();
-    r.onload = ()=>{ compressImage(r.result, (data)=>{
+    leggiImmagine(f, (data)=>{
       const img = new Image();
       img.onload = ()=>{
         const cur = currentNode();
@@ -2330,8 +2329,7 @@ export function pickBg(){
         save(); renderCanvas(); renderDetail();
       };
       img.src = data;
-    }); };
-    r.readAsDataURL(f);
+    });
   };
   inp.click();
 }

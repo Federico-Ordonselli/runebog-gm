@@ -10,7 +10,8 @@ import { TYPES, STATUSES, SHAPES, EDGE_TYPES, NODE_COLORS, nodeColor,
          SCHEDA_TIPI, schedaDi, FOGLI, foglioDi, TESTO_SIZE_NOMI } from "./modello.js";
 import { preferenza } from "./preferenze.js";
 import { st, save, findNode, findParent, removeNode, currentNode, RO } from "./stato.js";
-import { openConfirm } from "./viste.js";
+import { openConfirm, openAlert } from "./viste.js";
+import { IMAGE_MIMES, DESKTOP_IMAGE_BYTES } from "./immagini.js";
 import { renderMap, renderCrumbs, renderCanvas, bgEdit, isEmptyNode, doDeleteNodes,
          wallOf, misuraMuro, deleteWallSeg, adattaTesto, inserisciNelMuro, cellaToccata } from "./mappa.js";
 import { statblockHTML } from "./mostri.js";
@@ -733,13 +734,25 @@ export function askDeleteNode(id){
 export function pickImage(id){
   const inp = document.createElement("input");
   inp.type="file"; inp.accept="image/*";
-  inp.onchange = ()=>{
-    const f = inp.files[0]; if(!f) return;
-    const r = new FileReader();
-    r.onload = ()=>{ compressImage(r.result, (data)=>{ editNode(id,"img",data); }); };
-    r.readAsDataURL(f);
-  };
+  inp.onchange = ()=>{ const f = inp.files[0]; if(f) leggiImmagine(f, data=>editNode(id,"img",data)); };
   inp.click();
+}
+/* Nel portable il file va su disco così com'è, senza ricompressione: è il
+   motivo per cui le immagini lì stanno fuori dal documento, e una battlemap
+   ridotta a 1400px in JPEG perde proprio la griglia stampata. Un formato che il
+   contratto non conosce (BMP, HEIC…) passa comunque da compressImage, e il
+   data URL che ne esce va su file al salvataggio (storeImagesOnDisk). */
+export async function leggiImmagine(f, cb){
+  const desktop = window.runebogDesktop?.saveImage && !window.__cloud;
+  if(desktop && IMAGE_MIMES.has(f.type)){
+    if(f.size > DESKTOP_IMAGE_BYTES){ openAlert("L'immagine supera 32 MiB."); return; }
+    try{ cb(await window.runebogDesktop.saveImage(new Uint8Array(await f.arrayBuffer()), f.type)); }
+    catch(error){ openAlert(`Immagine non salvata: ${error.message}`); }
+    return;
+  }
+  const r = new FileReader();
+  r.onload = ()=>compressImage(r.result, cb);
+  r.readAsDataURL(f);
 }
 export function compressImage(dataUrl, cb){
   const img = new Image();

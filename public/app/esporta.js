@@ -1,11 +1,18 @@
 /* Esporta/Importa: lo stesso JSON {root, checklist, players} del salvataggio,
    come file. È il formato di scambio con il sito (colonna campaign.data). */
 
-import { embedImages, uploadImages, replaceImageUrls, ARCHIVE_BYTES } from "./immagini.js";
+import { embedImages, uploadImages, replaceImageUrls, storeImagesOnDisk, ARCHIVE_BYTES,
+         IMAGE_UPLOAD_BYTES, DESKTOP_IMAGE_BYTES, DESKTOP_DATA_URL_BYTES } from "./immagini.js";
 import { st, save, migrateState, resetUndo, clearSel,
          importAsNewCampaign } from "./stato.js";
 import { openAlert, openConfirm, showView } from "./viste.js";
 import { parseCampaignJson, campaignErrorMessage } from "./formato-campagna.js";
+
+/* Nel portable le immagini stanno su file fino a 32 MiB (stato.js,
+   portaImmaginiSuDisco): il backup le reincorpora intere e l'import le riporta
+   su file, quindi i due tetti per immagine si alzano solo lì. Il sito continua
+   a rifiutare quel backup, ed è dichiarato: il suo tetto è la richiesta da 4 MB. */
+const SU_DISCO = () => !window.__cloud && !!window.runebogDesktop?.saveImage;
 
 let exporting = false;
 export async function exportJSON(){
@@ -14,6 +21,7 @@ export async function exportJSON(){
   const status = document.getElementById("savestate");
   try{
     const snapshot = await embedImages(st.state, {
+      limit: SU_DISCO() ? DESKTOP_IMAGE_BYTES : IMAGE_UPLOAD_BYTES,
       onProgress(done,total){ if(status) status.textContent = `Preparazione backup: immagini ${done}/${total}…`; },
     });
     const json = JSON.stringify(snapshot, null, 2);
@@ -45,10 +53,11 @@ const contaBolle = n => 1 + n.children.reduce((s,c)=>s+contaBolle(c), 0);
    per poi fallire sarebbe uno spavento per nulla. Chi legge il dialogo sa già
    che il file è buono, e sta decidendo solo del proprio lavoro. */
 function preparaImport(text){
-  const esito = parseCampaignJson(text, {documentBytes:ARCHIVE_BYTES});
+  const limiti = {documentBytes:ARCHIVE_BYTES, ...(SU_DISCO() ? {imageBytes:DESKTOP_DATA_URL_BYTES} : {})};
+  const esito = parseCampaignJson(text, limiti);
   if(!esito.ok) throw new Error(campaignErrorMessage(esito.error));
   const data = esito.value;
-  migrateState(data, {documentBytes:ARCHIVE_BYTES});
+  migrateState(data, limiti);
   return data;
 }
 /* Sostituire la campagna aperta: è la strada del cloud, dove l'indirizzo è la
@@ -63,6 +72,9 @@ function replaceWithImported(data){
 async function applyImportedJSON(text){
   let data = preparaImport(text);
   if(!window.__cloud) data = await embedImages(data);
+  // Prima di entrare in localStorage: un backup con le immagini dentro ne
+  // riempirebbe la quota da solo.
+  if(SU_DISCO()) await storeImagesOnDisk(data, window.runebogDesktop.saveImage);
   // In locale non si distrugge niente: la campagna importata è una in più.
   if(importAsNewCampaign(data)) return;
   /* Qui invece il danno è identico a quello di "Elimina campagna", e la
