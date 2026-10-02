@@ -19,7 +19,11 @@ da sola, e `store.set` ripiegava in memoria (lavoro perso alla chiusura).
 - Test: `desktop/table-server.test.cjs` (deposito, tavolo, spazzino), lo
   smoke Electron (salvataggio, migrazione, giro export/import da 5 MiB) e
   `test/formato-campagna` per l'opzione `imageBytes`.
-- [ ] **Da fare**: pubblicare una portable 0.2.10 col workflow Windows. Il
+- [x] **Portable 0.2.10** (2 ott 2026): costruita dal workflow Windows sul
+  ramo `portable-0.2.10`, smoke (con le prove nuove delle immagini) e tavolo
+  verdi sul runner; controllato che `immagini.cjs` sia nell'`app.asar`.
+  Versione, download e checksum aggiornati in `src/lib/site.ts`.
+- [ ] Il
   backup di un portable con immagini oltre 3,75 MiB il sito lo rifiuta
   (dichiarato: lì il tetto è la richiesta da 4 MB di Vercel); se servirà
   portarlo sul sito, l'import cloud dovrà caricare le immagini una per una

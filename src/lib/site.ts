@@ -10,9 +10,9 @@ export const DONATE_URL = "https://ko-fi.com/runebog";
 // Il repo è pubblico: /privacy afferma che il codice è verificabile da chiunque,
 // quindi se questo link torna privato va tolta anche quella frase.
 export const REPO_URL = "https://github.com/Federico-Ordonselli/runebog-gm";
-export const WINDOWS_PORTABLE_VERSION = "0.2.9";
+export const WINDOWS_PORTABLE_VERSION = "0.2.10";
 export const WINDOWS_PORTABLE_URL = `${REPO_URL}/releases/download/v${WINDOWS_PORTABLE_VERSION}/Runebog-GM-Portable-${WINDOWS_PORTABLE_VERSION}-x64.exe`;
-export const WINDOWS_PORTABLE_SHA256 = "d2dd0ed5d8046b17673165ee9c75a4a7957ca8808ab53141904d15af80721610";
+export const WINDOWS_PORTABLE_SHA256 = "37919b58ea472ae57393f433d0f8c208ee552a5cec8dc174df5d460f8512ee2f";
 
 /* Il nome della licenza del CODICE, come va scritto agli utenti. Sta qui e non
    nelle pagine per la stessa ragione dell'indirizzo di contatto: una pagina che
