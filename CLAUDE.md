@@ -350,7 +350,9 @@ che si costruisce la sua idea di documento valido invecchia in silenzio e prova
 la resa di qualcosa che il server non manderebbe mai. `serviTavolo` risponde al
 polling senza database (ETag = `revision`, come la rotta) perché il ponte da
 solo lascia il tavolo "Offline" dopo cinque secondi. Si prova da sé con
-`node test/browser/verifica-fixture.mjs`, con `npm run dev` acceso.
+`node test/browser/verifica-fixture.mjs`, con `npm run dev` acceso. Se la porta
+3000 è occupata da altro, `RUNEBOG_BASE=http://localhost:3100` sposta tutte le
+verifiche (e il server con `npx next dev -p 3100` o `npx next start -p 3100`).
 Accanto c'è `verifica-offline.mjs` (2 ago 2026), che invece vuole `npm run start`
 su un build di produzione — la ragione sta nella sezione "La copia offline".
 `test/browser/` **sta fuori da `npm test`**, che elenca le cartelle una per una:
@@ -429,7 +431,7 @@ memorizzabile in cache per sempre.
 
 Il repo contiene **due applicazioni** che condividono un formato dati:
 
-1. **Il sito** (Next.js 15 App Router, `src/`): login, lista campagne, API REST,
+1. **Il sito** (Next.js 16 App Router, Turbopack anche in build, `src/`): login, lista campagne, API REST,
    pagine pubbliche. Auth.js v5 (Google OAuth + credenziali), Neon Postgres via Drizzle.
 2. **L'app** (`public/app.html` + `public/app/`): l'editor di mappe vero e proprio.
    Vanilla JS in moduli ES, niente framework, niente build: `app.html` è solo markup,
@@ -1913,14 +1915,21 @@ Non negoziabili; se tocchi queste aree, mantienili:
   la cache locale è già stata scritta prima della richiesta, quindi alla
   riapertura il lavoro si ripropone (vedi Revisione, cache offline e conflitti).
 - Le immagini stanno in base64 dentro il JSON della campagna solo nello standalone del browser: occhio al limite di 4 MB. Cloud e portable le tengono fuori dal documento.
-- `package.json` ha tre **overrides npm** nati da alert Dependabot (lug 2026): postcss
-  ≥8.5.10 (Next lo pinna vulnerabile), sharp ^0.35 (CVE di libvips; Next 15.5 lo vuole
-  ancora ^0.34, e nel sito `next/image` non è usato da nessuna parte, quindi il rischio
-  di rottura è nullo) ed esbuild ^0.25 sotto `@esbuild-kit` (dipendenza abbandonata
-  trascinata da drizzle-kit). Quando Next o drizzle-kit si aggiornano, ricontrolla se
-  sono diventati superflui. Se cambi gli overrides: npm NON li riapplica a risoluzioni
-  già nel lockfile — va rigenerato (`rm -rf node_modules package-lock.json
-  && npm install`).
+- `package.json` ha due **overrides npm** nati da alert Dependabot: nanoid ^3.3.18 ed
+  esbuild ^0.25 sotto `@esbuild-kit` (dipendenza abbandonata trascinata da
+  drizzle-kit). Quelli di postcss e sharp sono stati tolti il 26 nov 2026: Next 16
+  pinna da sé postcss 8.5.23 e sharp ^0.35.5, cioè più in alto di quanto
+  imponessero. Quando Next o drizzle-kit si aggiornano, ricontrolla se i due
+  rimasti sono diventati superflui. Se cambi gli overrides: npm NON li riapplica a
+  risoluzioni già nel lockfile — va rigenerato (`rm -rf node_modules
+  package-lock.json && npm install`).
+- **TypeScript 7 non si può ancora adottare** (provato il 26 nov 2026): è il
+  compilatore nativo e il pacchetto `typescript` non esporta più l'API JS classica
+  (solo `version.cjs` e un'API `unstable`). Next la usa per leggere `paths` da
+  `tsconfig`, e senza di lei `@/…` non si risolve: la build fallisce con "Module not
+  found". In più attiva `noUncheckedSideEffectImports`, che rifiuta gli
+  `import "./x.css"` senza una dichiarazione. Si riprova quando Next dichiara il
+  supporto; fino ad allora `typescript` resta `^5`.
 - Il registro migrazioni è `drizzle.__drizzle_migrations` (schema `drizzle`, non
   `public`): il baseline `0000_iniziale` è stato inserito a mano perché il DB esisteva
   già — se `db:migrate` volesse riapplicarlo, qualcosa non va nel registro, non nello

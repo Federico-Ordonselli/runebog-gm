@@ -87,7 +87,10 @@ try {
     mostri: Object.keys(window.SRD_MONSTERS || {}).length,
   }));
   controlla(vivo.tela, "la tela c'è");
-  controlla(vivo.temi >= 12, `i moduli ES hanno girato (${vivo.temi} temi nel select)`);
+  // In app.html il select è vuoto: lo riempie main.js da temi.js, quindi
+  // un'opzione qualsiasi prova che i moduli hanno girato. Contare i temi
+  // invecchiava a ogni palette tolta (pretendeva 12, oggi sono 11).
+  controlla(vivo.temi > 0, `i moduli ES hanno girato (${vivo.temi} temi nel select)`);
   controlla(vivo.mostri > 300, `il bestiario è offline (${vivo.mostri} schede)`);
   await contesto.setOffline(false);
 

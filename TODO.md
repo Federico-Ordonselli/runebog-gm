@@ -4089,3 +4089,30 @@ Cosa **resta** da fare, misurato:
   traffico passa da Cloudflare. Niente banner: chiederebbe un consenso che
   l'art. 5.3 non richiede. Chi aggiunge uno script di terze parti o un cookie
   nuovo aggiorni quell'elenco.
+- [x] **Giro di aggiornamenti dopo due mesi fermi** — fatto (26 nov 2026).
+  Patch di sicurezza: next 15.5.29 (sei advisory, fra cui la RCE critica
+  dell'ottimizzatore d'immagini con gli SVG — qui spenta per default),
+  sharp 0.35.5, source-map-js 1.2.4; nel desktop electron 44.9.1
+  (certificati eMudhra), undici, fast-uri. Poi i major, uno per commit:
+  Electron 45, esbuild 0.28 (desktop), driver Neon 1.2 (lo spazzino passa
+  a `client.query`), **Next 16** con Turbopack. Tolti gli override di
+  postcss e sharp, che Next 16 supera da sé. Verifiche: tsc, 213 test,
+  build, smoke e tavolo LAN del desktop, `verifica-todo` e
+  `verifica-api-immagini` su PostgreSQL 17, lettura sul branch Neon dev
+  (batch, bytea, JSONB), `verifica-offline` 27/27 su `next start`,
+  fixture 18/18, barra a menu 36/36, conflitti cloud 27/27 su `next dev`.
+  `verifica-offline` pretendeva 12 temi (sono 11): ora controlla solo che
+  il select sia stato riempito. Le verifiche nel browser accettano
+  `RUNEBOG_BASE`, perché la 3000 era occupata da un altro container.
+- [ ] **Resta dopo quel giro**:
+  - TypeScript 7: bloccato finché Next non usa il compilatore nativo (vedi
+    CLAUDE.md, "Trappole note"). Si riprova a ogni major di Next.
+  - Sei avvisi moderati su `minimatch` nelle parti macOS di
+    electron-builder (dmg, universal): l'unico rimedio offerto è tornare a
+    electron-builder 25. La portable è solo Windows; si riguarda al
+    prossimo rilascio di electron-builder.
+  - Portable 0.2.11 con Electron 45: da costruire e pubblicare (non fatto,
+    è un rilascio verso fuori). Prima, una prova a mano su Windows.
+  - Dopo il deploy di Next 16: smoke in produzione (login Google e con
+    password, apertura di una campagna cloud, un tavolo condiviso, un
+    upload d'immagine), che qui si è potuto provare solo in locale.

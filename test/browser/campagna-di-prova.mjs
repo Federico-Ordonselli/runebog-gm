@@ -47,7 +47,9 @@ const { prepareCampaignDocument, campaignErrorMessage, CURRENT_CAMPAIGN_SCHEMA_V
   await import(repoUrl("public/app/formato-campagna.js"));
 const { projectForPlayers } = await import(repoUrl("src/lib/share.ts"));
 
-export const BASE = "http://localhost:3000";
+/* La porta 3000 può essere occupata da altro sulla stessa macchina:
+   RUNEBOG_BASE la sposta (con `npm run start -- -p 3100`). */
+export const BASE = process.env.RUNEBOG_BASE ?? "http://localhost:3000";
 
 /* ==================== il documento ==================== */
 
