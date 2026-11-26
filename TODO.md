@@ -4111,8 +4111,13 @@ Cosa **resta** da fare, misurato:
     electron-builder (dmg, universal): l'unico rimedio offerto è tornare a
     electron-builder 25. La portable è solo Windows; si riguarda al
     prossimo rilascio di electron-builder.
-  - Portable 0.2.11 con Electron 45: da costruire e pubblicare (non fatto,
-    è un rilascio verso fuori). Prima, una prova a mano su Windows.
+  - [x] Portable 0.2.11 con Electron 45 (26 nov 2026): costruita dal
+    workflow Windows sul ramo `portable-0.2.11`, smoke e tavolo verdi sul
+    runner. Nell'EXE: i sei file dell'involucro nell'`app.asar`, versione
+    0.2.11, Electron 45.5.0, statici identici a `main` a meno dei CRLF del
+    checkout Windows. Versione, download e checksum in `src/lib/site.ts`.
+    Resta una prova a mano su un Windows vero (apertura di una campagna
+    0.2.10 con immagini, tavolo LAN da un telefono).
   - Dopo il deploy di Next 16: smoke in produzione (login Google e con
     password, apertura di una campagna cloud, un tavolo condiviso, un
     upload d'immagine), che qui si è potuto provare solo in locale.
