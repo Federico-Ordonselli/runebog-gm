@@ -18,9 +18,9 @@
     "build:win:signed": "electron-builder --win portable --x64 -c.forceCodeSigning=true"
   },
   "devDependencies": {
-    "electron": "44.9.1",
+    "electron": "45.5.0",
     "electron-builder": "26.18.0",
-    "esbuild": "^0.25.12"
+    "esbuild": "^0.28.2"
   },
   "build": {
     "appId": "app.runebog.gm",
