@@ -8,9 +8,9 @@ import { lockCampaignSql,markOrphanImagesSql,deleteOrphanImagesSql,countExpiredI
 if(!process.env.DATABASE_URL) throw new Error('Impostare DATABASE_URL (oppure usare node --env-file=.env).');
 if(process.argv.slice(2).some(a=>a!=='--apply')) throw new Error('Unica opzione ammessa: --apply. Senza opzioni non modifica il database.');
 const client=neon(process.env.DATABASE_URL),dialect=new PgDialect();
-const query=statement=>{const q=dialect.sqlToQuery(statement);return client(q.sql,q.params);};
+const query=statement=>{const q=dialect.sqlToQuery(statement);return client.query(q.sql,q.params);};
 const apply=process.argv.includes('--apply');
-const campaigns=await client('SELECT id,user_id FROM campaign');
+const campaigns=await client.query("SELECT id,user_id FROM campaign");
 let images=0,bytes=0;
 for(const c of campaigns){
   if(apply){
